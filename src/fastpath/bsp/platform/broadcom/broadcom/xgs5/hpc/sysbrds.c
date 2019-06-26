@@ -188,30 +188,6 @@ L7_RC_t hpcConfigBoardSet()
 
     switch (lclUnitDesc->unitTypeDescriptor.unitTypeId)
     {
-
-      case UNIT_BROAD_24_TENGIG_4_GIG_56820_REV_1_ID: /* Scorpion */
-        if (sal_config_set(spn_TRUNK_EXTEND, "0x1") != 0)
-          return(L7_FAILURE);
-        sal_config_set("phy_led1_mode", "1");
-        sal_config_set("phy_led2_mode", "3");
-        sal_config_set("phy_led_ctrl","0xb");
-        break;
-
-      case UNIT_BROAD_48_GIG_4_TENGIG_56634_REV_1_ID:
-      case UNIT_BROAD_24_GIG_4_TENGIG_56524_REV_1_ID:
-      case UNIT_BROAD_48_GIG_4_TENGIG_56624_REV_1_ID:
-      case UNIT_BROAD_25_GIG_6_TENGIG_56636_REV_1_ID:
-      case UNIT_BROAD_24_GIG_4_TENGIG_56334_REV_1_ID:
-      case UNIT_BROAD_48_GIG_4_TENGIG_56538_REV_1_ID:
-        if (sal_config_set(spn_TRUNK_EXTEND, "0x1") != 0)
-          return(L7_FAILURE);
-
-        sal_config_set("phy_led1_mode", "0xa");
-        sal_config_set("phy_led2_mode", "0xa");
-        sal_config_set("phy_led_select","0x128");          
-        break;
-
-      case UNIT_BROAD_24_GIG_4_TENGIG_56680_REV_1_ID:
       case UNIT_BROAD_24_GIG_4_TENGIG_56689_REV_1_ID:   /* PTin added: new switch 56689 (Valkyrie2) */
         /* Enable trunk_128 bit. This will enable 128 trunks */
         /* and fixes LAG issue on XGS3 stacking              */

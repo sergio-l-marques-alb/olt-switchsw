@@ -33,13 +33,13 @@
 
 
 /******************************************************************************
- ******************************************************************************
  *                                SLOT ENTRIES                                *
- ******************************************************************************
- *****************************************************************************/
+ ******************************************************************************/
+
+/* PTin added: new switch 56689 (Valkyrie2) - TG16G */
 
 /*******************************************************************************
- * Broadcom reference platform with 24GB & 4 10GB fixed ports on a single slot.*
+ * Broadcom Valkyrie unit with 24GB & 4 10GB fixed ports on a single slot.   *
  *                                                                             *
  ******************************************************************************/
 HPC_BROAD_SLOT_MAC_ALLOCATION_t mac_allocation_UNIT_BROAD_24_GIG_4_TENGIG_REV_1[] =
@@ -48,164 +48,6 @@ HPC_BROAD_SLOT_MAC_ALLOCATION_t mac_allocation_UNIT_BROAD_24_GIG_4_TENGIG_REV_1[
 { 1,  L7_FALSE,  1,  0},   /* logical CPU card */
 { 2,  L7_TRUE,   8, 30},   /* logical LAG card */
 { 3,  L7_TRUE,   8, 38}    /* logical Router card */
-};
-
-HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_24_GIG_4_TENGIG_REV_1[] = 
-{
-  {0, 24},
-  {0, 25},
-  {0, 26},
-  {0, 27}
-};
-
-
-/*******************************************************************************
- * Broadcom reference platform with 20 10GB fixed ports on a single slot.      *
- *                                                                             *
- ******************************************************************************/
-HPC_BROAD_SLOT_MAC_ALLOCATION_t mac_allocation_UNIT_BROAD_20_TENGIG_REV_1[] =
-{
-{ 0,  L7_TRUE,   20, 2},   /* physical slot with 28 port card */
-{ 1,  L7_FALSE,  1,  0},   /* logical CPU card */
-{ 2,  L7_TRUE,   8, 22},   /* logical LAG card */
-{ 3,  L7_TRUE,   8, 30}    /* logical Router card */
-};
-
-HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_20_TENGIG_REV_1[] =
-{
-};
-
-/*******************************************************************************
- * Broadcom reference platform with 24 10GB fixed ports on a single slot.      *
- *                                                                             *
- ******************************************************************************/
-HPC_BROAD_SLOT_MAC_ALLOCATION_t mac_allocation_UNIT_BROAD_24_TENGIG_4_GIG_REV_1[] =
-{
-{ 0,  L7_TRUE,   28, 2},   /* physical slot with 28 port card */
-{ 1,  L7_FALSE,  1,  0},   /* logical CPU card */
-{ 2,  L7_TRUE,   8, 30},   /* logical LAG card */
-{ 3,  L7_TRUE,   8, 38}    /* logical Router card */
-};
-
-HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_24_TENGIG_4_GIG_REV_1[] =
-{
-  {0, 21},
-  {0, 22},
-  {0, 23},
-  {0, 24}
-};
-
-/* PTin added: new switch 56843 (Trident) */
-/*******************************************************************************
- * Broadcom reference platform with 40 10GB fixed ports on a single slot.      *
- *                                                                             *
- ******************************************************************************/
-HPC_BROAD_SLOT_MAC_ALLOCATION_t mac_allocation_UNIT_BROAD_40_TENGIG_56843_REV_1[] =
-{
-{ 0,  L7_TRUE,   41, 2},   /* physical slot with 36 port card */
-{ 1,  L7_FALSE,  1,  0},   /* logical CPU card */
-{ 2,  L7_TRUE,   8, 43},   /* logical LAG card */
-{ 3,  L7_TRUE,   8, 51}    /* logical Router card */
-};
-
-/* PTin added: new switch 56846 (Trident-plus) */
-/*******************************************************************************
- * Broadcom reference platform with 64 10GB fixed ports on a single slot.      *
- *                                                                             *
- ******************************************************************************/
-HPC_BROAD_SLOT_MAC_ALLOCATION_t mac_allocation_UNIT_BROAD_64_TENGIG_56846_REV_1[] =
-{
-  { 0,  L7_TRUE,   64, 2},   /* physical slot with 36 port card */
-  { 1,  L7_FALSE,  1,  0},   /* logical CPU card */
-  { 2,  L7_TRUE,   8, 66},   /* logical LAG card */
-  { 3,  L7_TRUE,   8, 74}    /* logical Router card */
-
-#if 0 /* XXXX */
-{ 0,  L7_TRUE,   64, 2},   /* physical slot with 64 port card */
-{ 1,  L7_FALSE,  1,  0},   /* logical CPU card */
-{ 2,  L7_TRUE,   8, 66},   /* logical LAG card */
-{ 3,  L7_TRUE,   8, 74}    /* logical Router card */
-#endif
-};
-
-//HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_40_TENGIG_56843_REV_1[] =
-//{
-//  {0, 21},
-//  {0, 22},
-//  {0, 23},
-//  {0, 24}
-//};
-
-
-/* PTin modified: new switch 5664x (Triumph3) */
-/*******************************************************************************
- * Broadcom reference platform with 48GE & 4 Dedicated stacking ports     *
- *                                                                             *
- ******************************************************************************/
-HPC_BROAD_SLOT_MAC_ALLOCATION_t mac_allocation_UNIT_BROAD_48_GIG_4_TENGIG_REV_1[] =
-{
-{ 0,  L7_TRUE,   48, 1},   /* physical slot with 48 port card */
-{ 1,  L7_FALSE,  1,  0},   /* logical CPU card */
-{ 2,  L7_TRUE,   8, 30},   /* logical LAG card */
-{ 3,  L7_TRUE,   8, 38}    /* logical Router card */
-};
-
-/*******************************************************************************
- * Broadcom reference platform with 4 10GBE & 4 Dedicated stacking ports       *
- *                                                                             *
- ******************************************************************************/
-/* PTin added: new switch 5664x (Triumph3) GPON */
-HPC_BROAD_SLOT_MAC_ALLOCATION_t mac_allocation_UNIT_BROAD_4_TENGIG_4_40GIG_REV_1[] =
-{
-{ 0,  L7_TRUE,   4,  1},   /* physical slot with 4 port card */
-{ 1,  L7_FALSE,  1,  0},   /* logical CPU card */
-{ 2,  L7_TRUE,   8, 30},   /* logical LAG card */
-{ 3,  L7_TRUE,   8, 38}    /* logical Router card */
-};
-
-/* PTin added: new switch 5664x (Triumph3) SF */
-HPC_BROAD_SLOT_MAC_ALLOCATION_t mac_allocation_UNIT_BROAD_4_10G_3_40G_1_GIG_REV_1[] =
-{
-{ 0,  L7_TRUE,   8,  1},   /* physical slot with 8 port card (4x10G + 4x40G) */
-{ 1,  L7_FALSE,  1,  0},   /* logical CPU card */
-{ 2,  L7_TRUE,   8, 30},   /* logical LAG card */
-{ 3,  L7_TRUE,   8, 38}    /* logical Router card */
-};
-
-/* PTin added: new switch 56340 (Helix4) */
-HPC_BROAD_SLOT_MAC_ALLOCATION_t mac_allocation_UNIT_BROAD_12_GIG_4_TENGIG_1_GS_REV_1[] =
-{
-{ 0,  L7_TRUE,   16, 1},   /* physical slot with 16 port card (12x1G + 4x10G + 1x1G +1x1G) */
-{ 1,  L7_FALSE,  1,  0},   /* logical CPU card */
-{ 2,  L7_TRUE,   8, 30},   /* logical LAG card */
-{ 3,  L7_TRUE,   8, 38}    /* logical Router card */
-};
-
-HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_48_GIG_4_TENGIG_REV_1[] =
-{
- /* bcm_unit, bcm_port */
-  {0, 24},
-  {0, 25},
-  {1, 24},
-  {1, 25}
-};
-
-HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_48_GIG_4_TENGIG_56624_REV_1[] =
-{
- /* bcm_unit, bcm_port */
-  {0, 28},
-  {0, 29},
-  {0, 30},
-  {0, 31}
-};
-
-HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_48_GIG_4_TENGIG_56634_REV_1[] =
-{
- /* bcm_unit, bcm_port */
-  {0, 26},
-  {0, 27},
-  {0, 28},
-  {0, 29}
 };
 
 HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_24_GIG_4_TENGIG_SINGLE_CHIP_REV_1[] =
@@ -217,127 +59,6 @@ HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_24_GIG_4_TENGIG_SING
   {0, 31}
 };
 
-/* PTin added: new switch 5664x (Triumph3) SF */
-HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_4_10G_3_40G_1_GIG_SINGIG_SINGLE_CHIP_REV_1[] =
-{
- /* bcm_unit, bcm_port */
-  {0,  5},
-  {0,  9},
-  {0, 13}
-};
-
-/* PTin added: new switch 5664x (Triumph3) GPON */
-HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_4_TENGIG_4_40GIG_SINGLE_CHIP_REV_1[] =
-{
- /* bcm_unit, bcm_port */
-  {0, 54},
-  {0, 55},
-  {0, 56},
-  {0, 57}
-};
-
-/* PTin added: new switch 5664x (Triumph3) */
-HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_48_GIG_4_TENGIG_SINGLE_CHIP_REV_1[] =
-{
- /* bcm_unit, bcm_port */
-  {0, 48},
-  {0, 49},
-  {0, 50},
-  {0, 51}
-};
-
-/* PTin added: new switch 56340 (Helix4) */
-HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_12_GIG_4_TENGIG_1_GS_SINGLE_CHIP_REV_1[] =
-{
- /* bcm_unit, bcm_port */
-  {0, 50},
-  {0, 51},
-  {0, 52},
-  {0, 53}
-};
-
-/* PTin added: new switch 56450 (Katana2) */
-HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_12_GIG_4_TENGIG_1_GS_K2_SINGLE_CHIP_REV_1[] =
-{
- /* bcm_unit, bcm_port */
-  {0, 27},
-  {0, 25},
-  {0, 33},
-  {0, 36}
-};
-
-HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_24_GIG_4_TENGIG_56524_REV_1[] =
-{
- /* bcm_unit, bcm_port */
-  {0, 26},
-  {0, 27},
-  {0, 28},
-  {0, 29}
-};
-
-/* BCM 56636 reference platform. 25GE and 6 Higig (4 for stacking and 2 for 10G) */
-HPC_BROAD_SLOT_MAC_ALLOCATION_t mac_allocation_UNIT_BROAD_25_GIG_6_TENGIG_56636_REV_1[] =
-{
-{ 0,  L7_TRUE,   27, 2},   /* physical slot with 25+2 port card */
-{ 1,  L7_FALSE,  1,  0},   /* logical CPU card */
-{ 2,  L7_TRUE,   8, 29},   /* logical LAG card */
-{ 3,  L7_TRUE,   8, 37}    /* logical Router card */
-};
-
-HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_25_GIG_6_TENGIG_56636_REV_1[] =
-{
- /* bcm_unit, bcm_port */
-  {0, 26},
-  {0, 27},
-  {0, 28},
-  {0, 29}
-};
-
-HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_24_GIG_4_TENGIG_56334_REV_1[] =
-{
- /* bcm_unit, bcm_port */
-  {0, 26},
-  {0, 27},
-  {0, 28},
-  {0, 29}
-};
-
-
-/******************************************************************************
- ******************************************************************************
- *                                UNIT ENTRIES                                *
- ******************************************************************************
- *****************************************************************************/
-
-/*******************************************************************************
- * Broadcom Triumph unit with 48GB & 4 10GB fixed ports on a single slot.   *
- *                                                                             *
- ******************************************************************************/
-HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_48_GIG_4_TENGIG_56624_REV_1[] =
-{
-{
-  mac_allocation_UNIT_BROAD_48_GIG_4_TENGIG_REV_1,
-  sizeof(mac_allocation_UNIT_BROAD_48_GIG_4_TENGIG_REV_1)/sizeof(HPC_BROAD_SLOT_MAC_ALLOCATION_t),
-
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},                  /* mod_ids_req   */
-  0,                                                  /* slot_id       */
-  1,                                                  /* num_units     */
-  0,                                                  /* dest_unit     */
-  0,                                                  /* dest_port     */
-#ifdef L7_STACKING_PACKAGE
-  sizeof(stack_port_data_UNIT_BROAD_48_GIG_4_TENGIG_56624_REV_1)/sizeof(HPC_BROAD_STK_PORT_TABLE_ENTRY_t),  /* num_stk_ports */
-  stack_port_data_UNIT_BROAD_48_GIG_4_TENGIG_56624_REV_1     /* stk_port_list */
-#else
-  0,
-  L7_NULLPTR
-#endif
-}
-};
-
-/*******************************************************************************
- * Broadcom Valkyrie unit with 24GB & 4 10GB fixed ports on a single slot.   *
- *                                                                             *
- ******************************************************************************/
 HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_24_GIG_4_TENGIG_56680_REV_1[] =
 {
 {
@@ -359,16 +80,37 @@ HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_24_GIG_4_TENGIG_56680_REV_1[] =
 }
 };
 
-/* PTin added: new switch 5664x (Triumph3) SF */
+
+/* PTin added: new switch 56843 (Trident) */
+
 /*******************************************************************************
- * Broadcom Triumph3 unit with 4 10GB & 3 40GB fixed ports on a single slot.   *
+ * Broadcom reference platform with 40 10GB fixed ports on a single slot.      *
  *                                                                             *
  ******************************************************************************/
-HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[] =
+HPC_BROAD_SLOT_MAC_ALLOCATION_t mac_allocation_UNIT_BROAD_40_TENGIG_56843_REV_1[] =
+{
+{ 0,  L7_TRUE,   41, 2},   /* physical slot with 36 port card */
+{ 1,  L7_FALSE,  1,  0},   /* logical CPU card */
+{ 2,  L7_TRUE,   8, 43},   /* logical LAG card */
+{ 3,  L7_TRUE,   8, 51}    /* logical Router card */
+};
+
+#ifdef L7_STACKING_PACKAGE
+HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_40_TENGIG_56843_REV_1[] =
+{
+  {0, 21},
+  {0, 22},
+  {0, 23},
+  {0, 24}
+};
+#endif
+
+HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_40_TENGIG_56843_REV_1[] =
 {
 {
-  mac_allocation_UNIT_BROAD_4_10G_3_40G_1_GIG_REV_1,
-  sizeof(mac_allocation_UNIT_BROAD_4_10G_3_40G_1_GIG_REV_1)/sizeof(mac_allocation_UNIT_BROAD_4_10G_3_40G_1_GIG_REV_1),
+  mac_allocation_UNIT_BROAD_40_TENGIG_56843_REV_1,
+  (sizeof(mac_allocation_UNIT_BROAD_40_TENGIG_56843_REV_1) / 
+   sizeof(HPC_BROAD_SLOT_MAC_ALLOCATION_t)),
 
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},                  /* mod_ids_req   */
   0,                                                  /* slot_id       */
@@ -376,8 +118,9 @@ HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[] =
   0,                                                  /* dest_unit     */
   0,                                                  /* dest_port     */
 #ifdef L7_STACKING_PACKAGE
-  sizeof(stack_port_data_UNIT_BROAD_4_10G_3_40G_1_GIG_SINGIG_SINGLE_CHIP_REV_1)/sizeof(HPC_BROAD_STK_PORT_TABLE_ENTRY_t),  /* num_stk_ports */
-  stack_port_data_UNIT_BROAD_48_GIG_4_TENGIG_SINGLE_CHIP_REV_1     /* stk_port_list */
+  (sizeof(stack_port_data_UNIT_BROAD_40_TENGIG_56843_REV_1) / 
+   sizeof(HPC_BROAD_STK_PORT_TABLE_ENTRY_t)),  /* num_stk_ports */
+  stack_port_data_UNIT_BROAD_40_TENGIG_56843_REV_1     /* stk_port_list */
 #else
   0,
   L7_NULLPTR
@@ -385,11 +128,70 @@ HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[] =
 }
 };
 
-/* PTin added: new switch 5664x (Triumph3) GPON */
+
+/* PTin added: new switch 56846 (Trident-plus) */
+
 /*******************************************************************************
- * Broadcom Valkyrie unit with 4 10GB & 4 40GB fixed ports on a single slot.   *
+ * Broadcom reference platform with 64 10GB fixed ports on a single slot.      *
  *                                                                             *
  ******************************************************************************/
+HPC_BROAD_SLOT_MAC_ALLOCATION_t mac_allocation_UNIT_BROAD_64_TENGIG_56846_REV_1[] =
+{
+  { 0,  L7_TRUE,   64, 2},   /* physical slot with 36 port card */
+  { 1,  L7_FALSE,  1,  0},   /* logical CPU card */
+  { 2,  L7_TRUE,   8, 66},   /* logical LAG card */
+  { 3,  L7_TRUE,   8, 74}    /* logical Router card */
+};
+
+HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_64_TENGIG_56846_REV_1[] =
+{
+{
+  mac_allocation_UNIT_BROAD_64_TENGIG_56846_REV_1,
+  (sizeof(mac_allocation_UNIT_BROAD_64_TENGIG_56846_REV_1) / 
+   sizeof(HPC_BROAD_SLOT_MAC_ALLOCATION_t)),
+
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},                  /* mod_ids_req   */
+  0,                                                  /* slot_id       */
+  1,                                                  /* num_units     */
+  0,                                                  /* dest_unit     */
+  0,                                                  /* dest_port     */
+#ifdef L7_STACKING_PACKAGE
+  (sizeof(stack_port_data_UNIT_BROAD_64_TENGIG_56846_REV_1) / 
+   sizeof(HPC_BROAD_STK_PORT_TABLE_ENTRY_t)),  /* num_stk_ports */
+  stack_port_data_UNIT_BROAD_64_TENGIG_56846_REV_1     /* stk_port_list */
+#else
+  0,
+  L7_NULLPTR
+#endif
+}
+};
+
+
+/* PTin added: new switch 5664x (Triumph3) GPON */
+
+/*******************************************************************************
+ * Broadcom reference platform with 4 10GBE & 4 Dedicated stacking ports       *
+ *                                                                             *
+ ******************************************************************************/
+HPC_BROAD_SLOT_MAC_ALLOCATION_t mac_allocation_UNIT_BROAD_4_TENGIG_4_40GIG_REV_1[] =
+{
+{ 0,  L7_TRUE,   4,  1},   /* physical slot with 4 port card */
+{ 1,  L7_FALSE,  1,  0},   /* logical CPU card */
+{ 2,  L7_TRUE,   8, 30},   /* logical LAG card */
+{ 3,  L7_TRUE,   8, 38}    /* logical Router card */
+};
+
+#ifdef L7_STACKING_PACKAGE
+HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_4_TENGIG_4_40GIG_SINGLE_CHIP_REV_1[] =
+{
+ /* bcm_unit, bcm_port */
+  {0, 54},
+  {0, 55},
+  {0, 56},
+  {0, 57}
+};
+#endif
+
 HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_4_TENGIG_4_40GIG_56643_REV_1[] =
 {
 {
@@ -411,11 +213,78 @@ HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_4_TENGIG_4_40GIG_56643_REV_1[] =
 }
 };
 
-/* PTin added: new switch 5664x (Triumph3) */
+
+/* PTin added: new switch 5664x (Triumph3) SF - CXO160G */
+
 /*******************************************************************************
- * Broadcom Valkyrie unit with 48GB & 4 10GB fixed ports on a single slot.   *
+ * Broadcom Triumph3 unit with 4 10GB & 3 40GB fixed ports on a single slot.   *
  *                                                                             *
  ******************************************************************************/
+HPC_BROAD_SLOT_MAC_ALLOCATION_t mac_allocation_UNIT_BROAD_4_10G_3_40G_1_GIG_REV_1[] =
+{
+{ 0,  L7_TRUE,   8,  1},   /* physical slot with 8 port card (4x10G + 4x40G) */
+{ 1,  L7_FALSE,  1,  0},   /* logical CPU card */
+{ 2,  L7_TRUE,   8, 30},   /* logical LAG card */
+{ 3,  L7_TRUE,   8, 38}    /* logical Router card */
+};
+
+#ifdef L7_STACKING_PACKAGE
+HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_4_10G_3_40G_1_GIG_SINGIG_SINGLE_CHIP_REV_1[] =
+{
+ /* bcm_unit, bcm_port */
+  {0,  5},
+  {0,  9},
+  {0, 13}
+};
+#endif
+
+HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[] =
+{
+{
+  mac_allocation_UNIT_BROAD_4_10G_3_40G_1_GIG_REV_1,
+  sizeof(mac_allocation_UNIT_BROAD_4_10G_3_40G_1_GIG_REV_1)/sizeof(mac_allocation_UNIT_BROAD_4_10G_3_40G_1_GIG_REV_1),
+
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},                  /* mod_ids_req   */
+  0,                                                  /* slot_id       */
+  1,                                                  /* num_units     */
+  0,                                                  /* dest_unit     */
+  0,                                                  /* dest_port     */
+#ifdef L7_STACKING_PACKAGE
+  sizeof(stack_port_data_UNIT_BROAD_4_10G_3_40G_1_GIG_SINGIG_SINGLE_CHIP_REV_1)/sizeof(HPC_BROAD_STK_PORT_TABLE_ENTRY_t),  /* num_stk_ports */
+  stack_port_data_UNIT_BROAD_48_GIG_4_TENGIG_SINGLE_CHIP_REV_1     /* stk_port_list */
+#else
+  0,
+  L7_NULLPTR
+#endif
+}
+};
+
+
+/* PTin added: new switch 5664x (Triumph3) - TA48GE */
+
+/*******************************************************************************
+ * Broadcom reference platform with 48GE & 4 Dedicated stacking ports     *
+ *                                                                             *
+ ******************************************************************************/
+HPC_BROAD_SLOT_MAC_ALLOCATION_t mac_allocation_UNIT_BROAD_48_GIG_4_TENGIG_REV_1[] =
+{
+{ 0,  L7_TRUE,   48, 1},   /* physical slot with 48 port card */
+{ 1,  L7_FALSE,  1,  0},   /* logical CPU card */
+{ 2,  L7_TRUE,   8, 30},   /* logical LAG card */
+{ 3,  L7_TRUE,   8, 38}    /* logical Router card */
+};
+
+#ifdef L7_STACKING_PACKAGE
+HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_48_GIG_4_TENGIG_SINGLE_CHIP_REV_1[] =
+{
+ /* bcm_unit, bcm_port */
+  {0, 48},
+  {0, 49},
+  {0, 50},
+  {0, 51}
+};
+#endif
+
 HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_48_GIG_4_TENGIG_56643_REV_1[] =
 {
 {
@@ -437,11 +306,31 @@ HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_48_GIG_4_TENGIG_56643_REV_1[] =
 }
 };
 
+
+/* PTin added: new switch 56340 (Helix4), 56450 (Katana2) */
+
+HPC_BROAD_SLOT_MAC_ALLOCATION_t mac_allocation_UNIT_BROAD_12_GIG_4_TENGIG_1_GS_REV_1[] =
+{
+{ 0,  L7_TRUE,   16, 1},   /* physical slot with 16 port card (12x1G + 4x10G + 1x1G +1x1G) */
+{ 1,  L7_FALSE,  1,  0},   /* logical CPU card */
+{ 2,  L7_TRUE,   8, 30},   /* logical LAG card */
+{ 3,  L7_TRUE,   8, 38}    /* logical Router card */
+};
+
 /* PTin added: new switch 56340 (Helix4) */
 /***********************************************************************************
  * Broadcom Helix4 unit with 8x2.5GB + 4x1G + 4x10GB fixed ports on a single slot. *
  *                                                                                 *
  ***********************************************************************************/
+HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_12_GIG_4_TENGIG_1_GS_SINGLE_CHIP_REV_1[] =
+{
+ /* bcm_unit, bcm_port */
+  {0, 50},
+  {0, 51},
+  {0, 52},
+  {0, 53}
+};
+
 HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_12_GIG_4_TENGIG_1_GS_56340_REV_1[] =
 {
 {
@@ -468,6 +357,15 @@ HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_12_GIG_4_TENGIG_1_GS_56340_REV_1[] =
  * Broadcom Katana2 unit with 8x2.5GB + 4x1G + 4x10GB fixed ports on a single slot. *
  *                                                                                 *
  ***********************************************************************************/
+HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_12_GIG_4_TENGIG_1_GS_K2_SINGLE_CHIP_REV_1[] =
+{
+ /* bcm_unit, bcm_port */
+  {0, 27},
+  {0, 25},
+  {0, 33},
+  {0, 36}
+};
+
 HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1[] =
 {
 {
@@ -489,232 +387,39 @@ HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1[] =
 }
 };
 
-/*******************************************************************************
- * Broadcom Scorpion unit with 24 10GB fixed ports on a single slot.            *
- *                                                                             *
- ******************************************************************************/
-HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_24_TENGIG_4_GIG_56820_REV_1[] =
-{
-{
-  mac_allocation_UNIT_BROAD_24_TENGIG_4_GIG_REV_1,
-  sizeof(mac_allocation_UNIT_BROAD_24_TENGIG_4_GIG_REV_1)/sizeof(HPC_BROAD_SLOT_MAC_ALLOCATION_t),
 
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},                  /* mod_ids_req   */
-  0,                                                  /* slot_id       */
-  1,                                                  /* num_units     */
-  0,                                                  /* dest_unit     */
-  0,                                                 /* dest_port     */
-#ifdef L7_STACKING_PACKAGE
-  sizeof(stack_port_data_UNIT_BROAD_24_TENGIG_4_GIG_REV_1)/sizeof(HPC_BROAD_STK_PORT_TABLE_ENTRY_t),  /* num_stk_ports */
-  stack_port_data_UNIT_BROAD_24_TENGIG_4_GIG_REV_1     /* stk_port_list */
-#else
-  0,
-  L7_NULLPTR
-#endif
-}
+/******************************************************************************
+ *                                UNIT ENTRIES                                *
+ ******************************************************************************/
+
+
+HAPI_CARD_SLOT_MAP_t dapiBroadCpuCardSlotMap_CARD_BROAD_DEFAULT[] =
+/* slotNum  portNum  bcm_cpuunit bcm_port portName *
+ * -------  -------  ----------- -------- -------- */
+{{ 0xFFFF,  0xFFFF,          0,        0,       "" },
 };
 
-/*******************************************************************************
- * Broadcom Triumph2 unit with 48GB & 4 10GB fixed ports on a single slot.   *
- *                                                                             *
- ******************************************************************************/
-HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_48_GIG_4_TENGIG_56634_REV_1[] =
-{
-{
-  mac_allocation_UNIT_BROAD_48_GIG_4_TENGIG_REV_1,
-  sizeof(mac_allocation_UNIT_BROAD_48_GIG_4_TENGIG_REV_1)/sizeof(HPC_BROAD_SLOT_MAC_ALLOCATION_t),
-
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},                  /* mod_ids_req   */
-  0,                                                  /* slot_id       */
-  1,                                                  /* num_units     */
-  0,                                                  /* dest_unit     */
-  0,                                                  /* dest_port     */
-#ifdef L7_STACKING_PACKAGE
-  sizeof(stack_port_data_UNIT_BROAD_48_GIG_4_TENGIG_56634_REV_1)/sizeof(HPC_BROAD_STK_PORT_TABLE_ENTRY_t),  /* num_stk_ports */
-  stack_port_data_UNIT_BROAD_48_GIG_4_TENGIG_56634_REV_1     /* stk_port_list */
-#else
-  0,
-  L7_NULLPTR
-#endif
-}
-};
-
-/*******************************************************************************
- * Broadcom Apollo unit with 24GB & 4 10GB fixed ports on a single slot.   *
- *                                                                             *
- ******************************************************************************/
-HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_24_GIG_4_TENGIG_56524_REV_1[] = 
-{
-{
-  mac_allocation_UNIT_BROAD_24_GIG_4_TENGIG_REV_1,
-  sizeof(mac_allocation_UNIT_BROAD_24_GIG_4_TENGIG_REV_1)/sizeof(HPC_BROAD_SLOT_MAC_ALLOCATION_t),
-
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},                  /* mod_ids_req   */
-  0,                                                  /* slot_id       */
-  1,                                                  /* num_units     */
-  0,                                                  /* dest_unit     */
-  0,                                                  /* dest_port     */
-#ifdef L7_STACKING_PACKAGE
-  sizeof(stack_port_data_UNIT_BROAD_24_GIG_4_TENGIG_56524_REV_1)/sizeof(HPC_BROAD_STK_PORT_TABLE_ENTRY_t),  /* num_stk_ports */
-  stack_port_data_UNIT_BROAD_24_GIG_4_TENGIG_56524_REV_1     /* stk_port_list */
-#else
-  0,
-  L7_NULLPTR
-#endif
-}
-};
-
-/*******************************************************************************
- * Broadcom Triumph2 unit with 25GB & 6 10GB fixed ports on a single slot.   *
- *                                                                             *
- ******************************************************************************/
-HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_25_GIG_6_TENGIG_56636_REV_1[] =
-{
-{
-  mac_allocation_UNIT_BROAD_25_GIG_6_TENGIG_56636_REV_1,
-  (sizeof(mac_allocation_UNIT_BROAD_25_GIG_6_TENGIG_56636_REV_1) / 
-   sizeof(HPC_BROAD_SLOT_MAC_ALLOCATION_t)),
-
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},                  /* mod_ids_req   */
-  0,                                                  /* slot_id       */
-  1,                                                  /* num_units     */
-  0,                                                  /* dest_unit     */
-  0,                                                  /* dest_port     */
-#ifdef L7_STACKING_PACKAGE
-  (sizeof(stack_port_data_UNIT_BROAD_25_GIG_6_TENGIG_56636_REV_1) / 
-   sizeof(HPC_BROAD_STK_PORT_TABLE_ENTRY_t)),  /* num_stk_ports */
-  stack_port_data_UNIT_BROAD_25_GIG_6_TENGIG_56636_REV_1     /* stk_port_list */
-#else
-  0,
-  L7_NULLPTR
-#endif
-}
-};
-
-/*******************************************************************************
- * Broadcom Enduro unit with 24GB & 4 10GB fixed ports on a single slot.   *
- *                                                                             *
- ******************************************************************************/
-HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_24_GIG_4_TENGIG_56334_REV_1[] = 
-{
-{
-  mac_allocation_UNIT_BROAD_24_GIG_4_TENGIG_REV_1,
-  sizeof(mac_allocation_UNIT_BROAD_24_GIG_4_TENGIG_REV_1)/sizeof(HPC_BROAD_SLOT_MAC_ALLOCATION_t),
-
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},                  /* mod_ids_req   */
-  0,                                                  /* slot_id       */
-  1,                                                  /* num_units     */
-  0,                                                  /* dest_unit     */
-  0,                                                  /* dest_port     */
-#ifdef L7_STACKING_PACKAGE
-  sizeof(stack_port_data_UNIT_BROAD_24_GIG_4_TENGIG_56334_REV_1)/sizeof(HPC_BROAD_STK_PORT_TABLE_ENTRY_t),  /* num_stk_ports */
-  stack_port_data_UNIT_BROAD_24_GIG_4_TENGIG_56334_REV_1     /* stk_port_list */
-#else
-  0,
-  L7_NULLPTR
-#endif
-}
-};
-
-/* PTin added: new switch 56843 (Trident) */
-/*******************************************************************************
- * Broadcom Trident unit with 40 10GB fixed ports on a single slot.   *
- *                                                                             *
- ******************************************************************************/
-HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_40_TENGIG_56843_REV_1[] =
-{
-{
-  mac_allocation_UNIT_BROAD_40_TENGIG_56843_REV_1,
-  (sizeof(mac_allocation_UNIT_BROAD_40_TENGIG_56843_REV_1) / 
-   sizeof(HPC_BROAD_SLOT_MAC_ALLOCATION_t)),
-
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},                  /* mod_ids_req   */
-  0,                                                  /* slot_id       */
-  1,                                                  /* num_units     */
-  0,                                                  /* dest_unit     */
-  0,                                                  /* dest_port     */
-#ifdef L7_STACKING_PACKAGE
-  (sizeof(stack_port_data_UNIT_BROAD_40_TENGIG_56843_REV_1) / 
-   sizeof(HPC_BROAD_STK_PORT_TABLE_ENTRY_t)),  /* num_stk_ports */
-  stack_port_data_UNIT_BROAD_40_TENGIG_56843_REV_1     /* stk_port_list */
-#else
-  0,
-  L7_NULLPTR
-#endif
-}
+DAPI_CARD_ENTRY_t dapiBroadCpuCardEntry_CARD_BROAD_DEFAULT = {
+    hapiBroadCpuCardInsert,hapiBroadCardRemove,
+    dapiBroadCpuCardSlotMap_CARD_BROAD_DEFAULT,
+    sizeof(dapiBroadCpuCardSlotMap_CARD_BROAD_DEFAULT)/sizeof(HAPI_CARD_SLOT_MAP_t),
+    NULL, 0,
+    0, NULL, 0
 };
 
 /* PTin added: new switch 56846 (Trident-plus) */
-/*******************************************************************************
- * Broadcom Trident unit with 64 10GB fixed ports on a single slot.   *
- *                                                                             *
- ******************************************************************************/
-HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_64_TENGIG_56846_REV_1[] =
-{
-{
-  mac_allocation_UNIT_BROAD_64_TENGIG_56846_REV_1,
-  (sizeof(mac_allocation_UNIT_BROAD_64_TENGIG_56846_REV_1) / 
-   sizeof(HPC_BROAD_SLOT_MAC_ALLOCATION_t)),
-
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},                  /* mod_ids_req   */
-  0,                                                  /* slot_id       */
-  1,                                                  /* num_units     */
-  0,                                                  /* dest_unit     */
-  0,                                                  /* dest_port     */
-#ifdef L7_STACKING_PACKAGE
-  (sizeof(stack_port_data_UNIT_BROAD_64_TENGIG_56846_REV_1) / 
-   sizeof(HPC_BROAD_STK_PORT_TABLE_ENTRY_t)),  /* num_stk_ports */
-  stack_port_data_UNIT_BROAD_64_TENGIG_56846_REV_1     /* stk_port_list */
-#else
-  0,
-  L7_NULLPTR
+DAPI_CARD_ENTRY_t dapiBroadCpuCardEntry_CARD_BROAD_64_TENGIG_REV_1 = {
+    hapiBroadCpuCardInsert,hapiBroadCardRemove,
+    dapiBroadCpuCardSlotMap_CARD_BROAD_DEFAULT,
+    sizeof(dapiBroadCpuCardSlotMap_CARD_BROAD_DEFAULT)/sizeof(HAPI_CARD_SLOT_MAP_t),
+    NULL, 0,
+    0, NULL, 0,
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+    NULL, 0,
+    NULL, 0
 #endif
-}
 };
-/* PTin end */
 
-/*******************************************************************************
-*
-* @Data    dapiBroadBaseCardSlotMap
-*
-* @purpose The mapping of all potential slots in the box
-*
-* @end
-*
-*******************************************************************************/
-/* Most of the BMW 24-port reference platforms have same slot map. */
-HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1[] =
-/* slotNum  portNum bcm_cpuunit bcm_port portName *
- * -------  ------- ----------- -------- -------- */
-{{      0,       0,          0,       0,       "" },
-{       0,       1,          0,       1,       "" },
-{       0,       2,          0,       2,       "" },
-{       0,       3,          0,       3,       "" },
-{       0,       4,          0,       4,       "" },
-{       0,       5,          0,       5,       "" },
-{       0,       6,          0,       6,       "" },
-{       0,       7,          0,       7,       "" },
-{       0,       8,          0,       8,       "" },
-{       0,       9,          0,       9,       "" },
-{       0,      10,          0,      10,       "" },
-{       0,      11,          0,      11,       "" },
-{       0,      12,          0,      12,       "" },
-{       0,      13,          0,      13,       "" },
-{       0,      14,          0,      14,       "" },
-{       0,      15,          0,      15,       "" },
-{       0,      16,          0,      16,       "" },
-{       0,      17,          0,      17,       "" },
-{       0,      18,          0,      18,       "" },
-{       0,      19,          0,      19,       "" },
-{       0,      20,          0,      20,       "" },
-{       0,      21,          0,      21,       "" },
-{       0,      22,          0,      22,       "" },
-{       0,      23,          0,      23,       "" },
-{       0,      24,          0,      24,       "" },
-{       0,      25,          0,      25,       "" },
-{       0,      26,          0,      26,       "" },
-{       0,      27,          0,      27,       "" },
-};
 
 HAPI_CARD_SLOT_MAP_t dapiBroadCpuCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1[] =
 /* slotNum  portNum  bcm_cpuunit bcm_port portName *
@@ -722,61 +427,12 @@ HAPI_CARD_SLOT_MAP_t dapiBroadCpuCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1[] 
 {{ 0xFFFF,  0xFFFF,          0,       28,       "" },
 };
 
-HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_REV_1[] =
-/* slotNum  portNum bcm_cpuunit bcm_port portName *
- * -------  ------- ----------- -------- -------- */
-{{      0,       0,          0,       0,       "" },
-{       0,       1,          0,       1,       "" },
-{       0,       2,          0,       2,       "" },
-{       0,       3,          0,       3,       "" },
-{       0,       4,          0,       4,       "" },
-{       0,       5,          0,       5,       "" },
-{       0,       6,          0,       6,       "" },
-{       0,       7,          0,       7,       "" },
-{       0,       8,          0,       8,       "" },
-{       0,       9,          0,       9,       "" },
-{       0,      10,          0,      10,       "" },
-{       0,      11,          0,      11,       "" },
-{       0,      12,          0,      12,       "" },
-{       0,      13,          0,      13,       "" },
-{       0,      14,          0,      14,       "" },
-{       0,      15,          0,      15,       "" },
-{       0,      16,          0,      16,       "" },
-{       0,      17,          0,      17,       "" },
-{       0,      18,          0,      18,       "" },
-{       0,      19,          0,      19,       "" },
-{       0,      20,          0,      20,       "" },
-{       0,      21,          0,      21,       "" },
-{       0,      22,          0,      22,       "" },
-{       0,      23,          0,      23,       "" },
-{       0,      24,          1,       0,       "" },
-{       0,      25,          1,       1,       "" },
-{       0,      26,          1,       2,       "" },
-{       0,      27,          1,       3,       "" },
-{       0,      28,          1,       4,       "" },
-{       0,      29,          1,       5,       "" },
-{       0,      30,          1,       6,       "" },
-{       0,      31,          1,       7,       "" },
-{       0,      32,          1,       8,       "" },
-{       0,      33,          1,       9,       "" },
-{       0,      34,          1,      10,       "" },
-{       0,      35,          1,      11,       "" },
-{       0,      36,          1,      12,       "" },
-{       0,      37,          1,      13,       "" },
-{       0,      38,          1,      14,       "" },
-{       0,      39,          1,      15,       "" },
-{       0,      40,          1,      16,       "" },
-{       0,      41,          1,      17,       "" },
-{       0,      42,          1,      18,       "" },
-{       0,      43,          1,      19,       "" },
-{       0,      44,          1,      20,       "" },
-{       0,      45,          1,      21,       "" },
-{       0,      46,          1,      22,       "" },
-{       0,      47,          1,      23,       "" },
-{       0,      48,          0,      25,       "" },
-{       0,      49,          0,      24,       "" },
-{       0,      50,          1,      25,       "" },
-{       0,      51,          1,      24,       "" },
+DAPI_CARD_ENTRY_t dapiBroadCpuCardEntry_CARD_BROAD_24_GIG_4_TENGIG_REV_1 = {
+    hapiBroadCpuCardInsert,hapiBroadCardRemove,
+    dapiBroadCpuCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1,
+    sizeof(dapiBroadCpuCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
+    NULL, 0,
+    0, NULL, 0
 };
 
 HAPI_CARD_SLOT_MAP_t dapiBroadCpuCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_REV_1[] =
@@ -785,154 +441,55 @@ HAPI_CARD_SLOT_MAP_t dapiBroadCpuCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_REV_1[] 
 {{ 0xFFFF,  0xFFFF,          0,       28,       "" },
 };
 
-HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_56624_REV_1[] =
-/* slotNum  portNum bcm_cpuunit bcm_port portName *
- * -------  ------- ----------- -------- -------- */
-{{      0,       0,          0,       2,       "" },
-{       0,       1,          0,       3,       "" },
-{       0,       2,          0,       4,       "" },
-{       0,       3,          0,       5,       "" },
-{       0,       4,          0,       6,       "" },
-{       0,       5,          0,       7,       "" },
-{       0,       6,          0,      18,       "" },
-{       0,       7,          0,      19,       "" },
-{       0,       8,          0,       8,       "" },
-{       0,       9,          0,       9,       "" },
-{       0,      10,          0,      10,       "" },
-{       0,      11,          0,      11,       "" },
-{       0,      12,          0,      12,       "" },
-{       0,      13,          0,      13,       "" },
-{       0,      14,          0,      20,       "" },
-{       0,      15,          0,      21,       "" },
-{       0,      16,          0,      14,       "" },
-{       0,      17,          0,      15,       "" },
-{       0,      18,          0,      16,       "" },
-{       0,      19,          0,      17,       "" },
-{       0,      20,          0,      22,       "" },
-{       0,      21,          0,      23,       "" },
-{       0,      22,          0,      24,       "" },
-{       0,      23,          0,      25,       "" },
-{       0,      24,          0,      37,       "" },
-{       0,      25,          0,      38,       "" },
-{       0,      26,          0,      39,       "" },
-{       0,      27,          0,      40,       "" },
-{       0,      28,          0,      26,       "" },
-{       0,      29,          0,      32,       "" },
-{       0,      30,          0,      33,       "" },
-{       0,      31,          0,      34,       "" },
-{       0,      32,          0,      41,       "" },
-{       0,      33,          0,      42,       "" },
-{       0,      34,          0,      48,       "" },
-{       0,      35,          0,      49,       "" },
-{       0,      36,          0,      50,       "" },
-{       0,      37,          0,      51,       "" },
-{       0,      38,          0,      52,       "" },
-{       0,      39,          0,      53,       "" },
-{       0,      40,          0,      35,       "" },
-{       0,      41,          0,      36,       "" },
-{       0,      42,          0,      46,       "" },
-{       0,      43,          0,      47,       "" },
-{       0,      44,          0,      27,       "" },
-{       0,      45,          0,      43,       "" },
-{       0,      46,          0,      44,       "" },
-{       0,      47,          0,      45,       "" },
-{       0,      48,          0,      28,       "" },
-{       0,      49,          0,      29,       "" },
-{       0,      50,          0,      30,       "" },
-{       0,      51,          0,      31,       "" },
+DAPI_CARD_ENTRY_t dapiBroadCpuCardEntry_CARD_BROAD_48_GIG_4_TENGIG_REV_1 = {
+
+    hapiBroadCpuCardInsert,hapiBroadCardRemove,
+    dapiBroadCpuCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_REV_1,
+    sizeof(dapiBroadCpuCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
+    NULL, 0,
+    0, NULL, 0
 };
 
-HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_56634_REV_1[] =
-/* slotNum  portNum bcm_cpuunit bcm_port portName *
- * -------  ------- ----------- -------- -------- */
-{{      0,       0,          0,      30,       "" },
-{       0,       1,          0,      31,       "" },
-{       0,       2,          0,      32,       "" },
-{       0,       3,          0,      33,       "" },
-{       0,       4,          0,      34,       "" },
-{       0,       5,          0,      35,       "" },
-{       0,       6,          0,      36,       "" },
-{       0,       7,          0,      37,       "" },
-{       0,       8,          0,       2,       "" },
-{       0,       9,          0,       3,       "" },
-{       0,      10,          0,       4,       "" },
-{       0,      11,          0,       5,       "" },
-{       0,      12,          0,       6,       "" },
-{       0,      13,          0,       7,       "" },
-{       0,      14,          0,       8,       "" },
-{       0,      15,          0,       9,       "" },
-{       0,      16,          0,      38,       "" },
-{       0,      17,          0,      39,       "" },
-{       0,      18,          0,      40,       "" },
-{       0,      19,          0,      41,       "" },
-{       0,      20,          0,      10,       "" },
-{       0,      21,          0,      11,       "" },
-{       0,      22,          0,      12,       "" },
-{       0,      23,          0,      13,       "" },
-{       0,      24,          0,      14,       "" },
-{       0,      25,          0,      15,       "" },
-{       0,      26,          0,      16,       "" },
-{       0,      27,          0,      17,       "" },
-{       0,      28,          0,      42,       "" },
-{       0,      29,          0,      43,       "" },
-{       0,      30,          0,      44,       "" },
-{       0,      31,          0,      45,       "" },
-{       0,      32,          0,      18,       "" },
-{       0,      33,          0,      19,       "" },
-{       0,      34,          0,      20,       "" },
-{       0,      35,          0,      21,       "" },
-{       0,      36,          0,      22,       "" },
-{       0,      37,          0,      23,       "" },
-{       0,      38,          0,      24,       "" },
-{       0,      39,          0,      25,       "" },
-{       0,      40,          0,      46,       "" },
-{       0,      41,          0,      47,       "" },
-{       0,      42,          0,      48,       "" },
-{       0,      43,          0,      49,       "" },
-{       0,      44,          0,      50,       "" },
-{       0,      45,          0,      51,       "" },
-{       0,      46,          0,      52,       "" },
-{       0,      47,          0,      53,       "" },
-{       0,      48,          0,      26,       "" },
-{       0,      49,          0,      27,       "" },
-{       0,      50,          0,      28,       "" },
-{       0,      51,          0,      29,       "" },
-};
 
-HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_SINGLE_CHIP_REV_1[] =
-/* slotNum  portNum bcm_cpuunit bcm_port portName *
- * -------  ------- ----------- -------- -------- */
-{{      0,       0,          0,       0,       "" },
-{       0,       1,          0,       1,       "" },
-{       0,       2,          0,       2,       "" },
-{       0,       3,          0,       3,       "" },
-{       0,       4,          0,       4,       "" },
-{       0,       5,          0,       5,       "" },
-{       0,       6,          0,       6,       "" },
-{       0,       7,          0,       7,       "" },
-{       0,       8,          0,       8,       "" },
-{       0,       9,          0,       9,       "" },
-{       0,      10,          0,      10,       "" },
-{       0,      11,          0,      11,       "" },
-{       0,      12,          0,      12,       "" },
-{       0,      13,          0,      13,       "" },
-{       0,      14,          0,      14,       "" },
-{       0,      15,          0,      15,       "" },
-{       0,      16,          0,      16,       "" },
-{       0,      17,          0,      17,       "" },
-{       0,      18,          0,      18,       "" },
-{       0,      19,          0,      19,       "" },
-{       0,      20,          0,      20,       "" },
-{       0,      21,          0,      21,       "" },
-{       0,      22,          0,      22,       "" },
-{       0,      23,          0,      23,       "" },
-{       0,      24,          0,      24,       "" },
-{       0,      25,          0,      25,       "" },
-{       0,      26,          0,      26,       "" },
-{       0,      27,          0,      27,       "" },
-};
+/******************************************************************************
+ *                                UNIT ENTRIES                                *
+ ******************************************************************************/
 
 /* PTin added: new switch 56689 (Valkyrie2) */
+
+HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1[] =
+/*portNum 
+ *------- */
+{{     0},
+{     1},
+{     2},
+{     3},
+{     4},
+{     5},
+{     6},
+{     7},
+{     8},
+{     9},
+{    10},
+{    11},
+{    12},
+{    13},
+{    14},
+{    15},
+{    16},
+{    17},
+{    18},
+{    19},
+{    20},
+{    21},
+{    22},
+{    23},
+{    24},
+{    25},
+{    26},
+{    27},
+};
+
 HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_56689_REV_1[] =
 /* slotNum  portNum bcm_cpuunit bcm_port portName *
  * -------  ------- ----------- -------- -------- */
@@ -998,215 +555,85 @@ HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_56689_R
 #endif
 };
 
-#if 0
-/* PTin added: new switch 5664x (Triumph3) SF */
-HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[] =
-/* slotNum  portNum bcm_cpuunit bcm_port portName *
- * -------  ------- ----------- -------- -------- */
-{
-{       0,       0,          0,      17,       "" }, /* 10G ETH */
-{       0,       1,          0,      21,       "" },
-{       0,       2,          0,      25,       "" },
-{       0,       3,          0,      29,       "" },
-{       0,       4,          0,       5,       "" }, /* 40G ETH */
-{       0,       5,          0,       9,       "" },
-{       0,       6,          0,      13,       "" },
-{       0,       7,          0,       1,       "" }, /* 1G ETH */
+DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_24_GIG_4_TENGIG_56689_REV_1 = {
+hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
+dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_56689_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_56689_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
+dapiBroadBaseCardPortMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
+0, NULL, 0,
 };
-#else
-/* PTin added: new switch 5664x (Triumph3) SF */
-HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[] =
-/* slotNum  portNum bcm_cpuunit bcm_port portName *
- * -------  ------- ----------- -------- -------- */
+
+SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_24_GIG_4_TENGIG_56689_REV_1[]= 
 {
-{       0,       0,          0,      17,       "" }, /* 10G ETH */
-{       0,       1,          0,      21,       "" },
-{       0,       2,          0,      25,       "" },
-{       0,       3,          0,      29,       "" },
-{       0,       4,          0,       5,       "" }, /* 40G ETH */
-{       0,       5,          0,       6,       "" }, /* 40G ETH */
-{       0,       6,          0,       7,       "" }, /* 40G ETH */
-{       0,       7,          0,       8,       "" }, /* 40G ETH */
-{       0,       8,          0,       9,       "" },
-{       0,       9,          0,      10,       "" },
-{       0,      10,          0,      11,       "" },
-{       0,      11,          0,      12,       "" },
-{       0,      12,          0,      13,       "" },
-{       0,      13,          0,      14,       "" },
-{       0,      14,          0,      15,       "" },
-{       0,      15,          0,      16,       "" },
-{       0,      16,          0,       1,       "" }, /* 1G ETH */
-};
+#if (PTIN_BOARD == PTIN_BOARD_TG16G)
+{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
+{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
+{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
+{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},  /* 12 ports (16xPON + 4x10G */
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},
+{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},
+#else /* TOLT8G */
+{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
+{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},  /* 12 ports (8xPON + 4x10G */
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},
+{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},
+{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},
+{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},
 #endif
-
-/* PTin added: new switch 5664x (Triumph3) GPON */
-HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_4_TENGIG_4_40GIG_56643_REV_1[] =
-/* slotNum  portNum bcm_cpuunit bcm_port portName *
- * -------  ------- ----------- -------- -------- */
-{
-{       0,       0,          0,      52,       "" }, /* ETH 1 */
-{       0,       1,          0,      53,       "" },
-{       0,       2,          0,      50,       "" },
-{       0,       3,          0,      51,       "" },
-{       0,       4,          0,      54,       "" }, /* 40Gbps */
-{       0,       5,          0,      55,       "" },
-{       0,       6,          0,      56,       "" },
-{       0,       7,          0,      57,       "" },
 };
 
-/* PTin added: new switch 5664x (Triumph3) */
-HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_56643_REV_1[] =
-/* slotNum  portNum bcm_cpuunit bcm_port portName *
- * -------  ------- ----------- -------- -------- */
-{
-{       0,       0,          0,       2,       "" }, /* ETH 1 */
-{       0,       1,          0,       4,       "" },
-{       0,       2,          0,       1,       "" },
-{       0,       3,          0,       3,       "" },
-{       0,       4,          0,       6,       "" },
-{       0,       5,          0,       8,       "" },
-{       0,       6,          0,       5,       "" },
-{       0,       7,          0,       7,       "" },
-{       0,       8,          0,      14,       "" },
-{       0,       9,          0,      16,       "" },
-{       0,      10,          0,      13,       "" },
-{       0,      11,          0,      15,       "" },
-{       0,      12,          0,      18,       "" },
-{       0,      13,          0,      17,       "" },
-{       0,      14,          0,      20,       "" },
-{       0,      15,          0,      19,       "" },
-{       0,      16,          0,      10,       "" },
-{       0,      17,          0,       9,       "" },
-{       0,      18,          0,      12,       "" },
-{       0,      19,          0,      11,       "" },
-{       0,      20,          0,      22,       "" },
-{       0,      21,          0,      21,       "" },
-{       0,      22,          0,      24,       "" },
-{       0,      23,          0,      23,       "" },
-{       0,      24,          0,      30,       "" },
-{       0,      25,          0,      29,       "" },
-{       0,      26,          0,      26,       "" },
-{       0,      27,          0,      25,       "" },
-{       0,      28,          0,      32,       "" },
-{       0,      29,          0,      27,       "" },
-{       0,      30,          0,      28,       "" },
-{       0,      31,          0,      31,       "" },
-{       0,      32,          0,      34,       "" },
-{       0,      33,          0,      33,       "" },
-{       0,      34,          0,      36,       "" },
-{       0,      35,          0,      35,       "" },
-{       0,      36,          0,      42,       "" },
-{       0,      37,          0,      43,       "" },
-{       0,      38,          0,      44,       "" },
-{       0,      39,          0,      45,       "" },
-{       0,      40,          0,      38,       "" },
-{       0,      41,          0,      39,       "" },
-{       0,      42,          0,      40,       "" },
-{       0,      43,          0,      41,       "" },
-{       0,      44,          0,      47,       "" },
-{       0,      45,          0,      46,       "" },
-{       0,      46,          0,      49,       "" },
-{       0,      47,          0,      48,       "" }, /* ETH 48*/
-{       0,      48,          0,      54,       "" }, /* 10G 1 */
-{       0,      49,          0,      55,       "" },
-{       0,      50,          0,      56,       "" },
-{       0,      51,          0,      57,       "" }, /* 10G 4*/
-};
-
-/* PTin added: new switch 56340 (Helix4) */
-HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56340_REV_1[] =
-/* slotNum  portNum bcm_cpuunit bcm_port portName *
- * -------  ------- ----------- -------- -------- */
-{
-{       0,       0,          0,       1,       "" }, /* 2.5G ETH */
-{       0,       1,          0,       5,       "" },
-{       0,       2,          0,       9,       "" },
-{       0,       3,          0,      13,       "" },
-{       0,       4,          0,      17,       "" },
-{       0,       5,          0,      21,       "" },
-{       0,       6,          0,      25,       "" },
-{       0,       7,          0,      29,       "" },
-{       0,       8,          0,      33,       "" }, /* 1G ETH */
-{       0,       9,          0,      41,       "" },
-{       0,      10,          0,      37,       "" },
-{       0,      11,          0,      45,       "" },
-{       0,      12,          0,      53,       "" }, /* 10G ETH */
-{       0,      13,          0,      52,       "" },
-{       0,      14,          0,      51,       "" },
-{       0,      15,          0,      50,       "" },
-{       0,      16,          0,      54,       "" }, /* 1G port for FPGA */
-{       0,      17,          0,      49,       "" }, /* GS port */
-};
-
-/* PTin added: new switch 56450 (Katana2) - OLT1T0F */
-HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1[] =
-/* slotNum  portNum bcm_cpuunit bcm_port portName *
- * -------  ------- ----------- -------- -------- */
-{
-{       0,       0,          0,       1,       "" }, /* 2.5G ETH */
-{       0,       1,          0,       2,       "" },
-{       0,       2,          0,       3,       "" },
-{       0,       3,          0,       4,       "" },
-{       0,       4,          0,       5,       "" },
-{       0,       5,          0,       6,       "" },
-{       0,       6,          0,       7,       "" },
-{       0,       7,          0,       8,       "" },
-{       0,       8,          0,      28,       "" }, /* 1G ETH */
-{       0,       9,          0,      29,       "" },
-{       0,      10,          0,      30,       "" },
-{       0,      11,          0,      31,       "" },
-{       0,      12,          0,      27,       "" }, /* 10G ETH */
-{       0,      13,          0,      25,       "" },
-{       0,      14,          0,      33,       "" },
-{       0,      15,          0,      36,       "" },
-{       0,      16,          0,      40,       "" }, /* GS port for FPGA */
-};
-
-/* PTin added: new switch 56450 (Katana2) - TG16GF && AG16GA */
-HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_16_GIG_4_TENGIG_1_GS_56450_REV_1[] =
-/* slotNum  portNum bcm_cpuunit bcm_port portName *
- * -------  ------- ----------- -------- -------- */
-{
-{       0,       0,          0,       1,       "" }, /* 2.5G ETH */
-{       0,       1,          0,       2,       "" },
-{       0,       2,          0,       3,       "" },
-{       0,       3,          0,       4,       "" },
-{       0,       4,          0,       5,       "" },
-{       0,       5,          0,       6,       "" },
-{       0,       6,          0,       7,       "" },
-{       0,       7,          0,       8,       "" },
-{       0,       8,          0,       9,       "" },
-{       0,       9,          0,      10,       "" },
-{       0,      10,          0,      11,       "" },
-{       0,      11,          0,      12,       "" },
-{       0,      12,          0,      13,       "" },
-{       0,      13,          0,      14,       "" },
-{       0,      14,          0,      15,       "" },
-{       0,      15,          0,      16,       "" },
-{       0,      16,          0,      36,       "" }, /* 10G ETH */
-{       0,      17,          0,      33,       "" },
-{       0,      18,          0,      25,       "" },
-{       0,      19,          0,      27,       "" },
-{       0,      20,          0,      40,       "" }, /* GS port for FPGA */
-};
-
-/* PTin added: new switch 56450 (Katana2) - TT04SXG */
-HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_8_TENGIG_1_GS_56450_REV_1[] =
-/* slotNum  portNum bcm_cpuunit bcm_port portName *
- * -------  ------- ----------- -------- -------- */
-{
-{       0,       0,          0,      27,       "" }, /* 10G ETH to FPGA */
-{       0,       1,          0,      25,       "" },
-{       0,       2,          0,      33,       "" },
-{       0,       3,          0,      36,       "" },
-{       0,       4,          0,      39,       "" }, /* 10G ETH to Backplane (via Cortina) */
-{       0,       5,          0,      30,       "" },
-{       0,       6,          0,      26,       "" },
-{       0,       7,          0,      28,       "" },
-{       0,       8,          0,       1,       "" }, /* GS port for FPGA */
-};
 
 /* PTin added: new switch 56843 (Trident) */
+
+HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_40_TENGIG_REV_1[] =
+/*portNum
+ *------- */
+{{     0},
+{     1},
+{     2},
+{     3},
+{     4},
+{     5},
+{     6},
+{     7},
+{     8},
+{     9},
+{    10},
+{    11},
+{    12},
+{    13},
+{    14},
+{    15},
+{    16},
+{    17},
+{    18},
+{    19},
+{    20},
+{    21},
+{    22},
+{    23},
+{    24},
+{    25},
+{    26},
+{    27},
+{    28},
+{    29},
+{    30},
+{    31},
+{    32},
+{    33},
+{    34},
+{    35},
+{    36},
+{    37},
+{    38},
+{    39},
+{    40}, /* PTP interface */
+};
+
 HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_40_TENGIG_56843_REV_1[] =
 /* slotNum  portNum bcm_cpuunit bcm_port portName *
  * -------  ------- ----------- -------- -------- */
@@ -1254,80 +681,30 @@ HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_40_TENGIG_56843_REV_1[]
 {       0,      40,          0,      38,       "" },
 };
 
-/* PTin added: new switch 56846 (Trident-plus) */
-HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[] =
-/* slotNum  portNum bcm_cpuunit bcm_port portName *
- * -------  ------- ----------- -------- -------- */
-{{      0,       0,          0,       1,       "" },
-{       0,       1,          0,       2,       "" },
-{       0,       2,          0,       3,       "" },
-{       0,       3,          0,       4,       "" },
-{       0,       4,          0,       5,       "" },
-{       0,       5,          0,       6,       "" },
-{       0,       6,          0,       7,       "" },
-{       0,       7,          0,       8,       "" },
-{       0,       8,          0,       9,       "" },
-{       0,       9,          0,      10,       "" },
-{       0,      10,          0,      11,       "" },
-{       0,      11,          0,      12,       "" },
-{       0,      12,          0,      13,       "" },
-{       0,      13,          0,      14,       "" },
-{       0,      14,          0,      15,       "" },
-{       0,      15,          0,      16,       "" },
-{       0,      16,          0,      17,       "" },
-{       0,      17,          0,      18,       "" },
-{       0,      18,          0,      19,       "" },
-{       0,      19,          0,      20,       "" },
-{       0,      20,          0,      21,       "" },
-{       0,      21,          0,      22,       "" },
-{       0,      22,          0,      23,       "" },
-{       0,      23,          0,      24,       "" },
-{       0,      24,          0,      25,       "" },
-{       0,      25,          0,      26,       "" },
-{       0,      26,          0,      27,       "" },
-{       0,      27,          0,      28,       "" },
-{       0,      28,          0,      29,       "" },
-{       0,      29,          0,      30,       "" },
-{       0,      30,          0,      31,       "" },
-{       0,      31,          0,      32,       "" },
-{       0,      32,          0,      33,       "" },
-{       0,      33,          0,      34,       "" },
-{       0,      34,          0,      35,       "" },
-{       0,      35,          0,      36,       "" },
-{       0,      36,          0,      37,       "" },
-{       0,      37,          0,      38,       "" },
-{       0,      38,          0,      39,       "" },
-{       0,      39,          0,      40,       "" },
-{       0,      40,          0,      41,       "" },
-{       0,      41,          0,      42,       "" },
-{       0,      42,          0,      43,       "" },
-{       0,      43,          0,      44,       "" },
-{       0,      44,          0,      45,       "" },
-{       0,      45,          0,      46,       "" },
-{       0,      46,          0,      47,       "" },
-{       0,      47,          0,      48,       "" },
-#if 1 /* XXXX */
-{       0,      48,          0,      49,       "" },
-{       0,      49,          0,      50,       "" },
-{       0,      50,          0,      51,       "" },
-{       0,      51,          0,      52,       "" },
-{       0,      52,          0,      53,       "" },
-{       0,      53,          0,      54,       "" },
-{       0,      54,          0,      55,       "" },
-{       0,      55,          0,      56,       "" },
-{       0,      56,          0,      57,       "" },
-{       0,      57,          0,      58,       "" },
-{       0,      58,          0,      59,       "" },
-{       0,      59,          0,      60,       "" },
-{       0,      60,          0,      61,       "" },
-{       0,      61,          0,      62,       "" },
-{       0,      62,          0,      63,       "" },
-{       0,      63,          0,      64,       "" },
-#endif
+DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_40_TENGIG_56843_REV_1 = {
+hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
+dapiBroadBaseCardSlotMap_CARD_BROAD_40_TENGIG_56843_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_40_TENGIG_56843_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
+dapiBroadBaseCardPortMap_CARD_BROAD_40_TENGIG_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_40_TENGIG_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
+0, NULL, 0,
 };
 
+SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_40_TENGIG_56843_REV_1[]= 
+{
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN}, /* PTP interface with FPGA */
+};
+
+
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
-/* PTin added: new switch 56846 (Trident-plus) */
 HAPI_WC_SLOT_MAP_t dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1_WORK[] =
 /*  WC index  WC group  Inv.Lanes Inv.Pol. SlotIdx *
  * --------- --------- ---------  -------  -------*/
@@ -1396,7 +773,6 @@ L7_uint32 dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56846_REV_1[]=
   WC_SLOT_MODE_2x10G,   /* Slot 19 */
   WC_SLOT_MODE_NONE  }; /* Slot 20 */
 
-/* PTin added: new switch 56846 (Trident-plus) */
 HAPI_WC_PORT_MAP_t dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[] =
 /* portNum slotIdx  WC idx  WCLane Speed *
  * ------- ------- ------- ------- ----- */
@@ -1500,240 +876,10 @@ HAPI_WC_PORT_MAP_t dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1[] =
 
 #endif
 
-HAPI_CARD_SLOT_MAP_t dapiBroadCpuCardSlotMap_CARD_BROAD_40_TENGIG_REV_1[] =
-/* slotNum  portNum  bcm_cpuunit bcm_port portName *
- * -------  -------  ----------- -------- -------- */
-{{ 0xFFFF,  0xFFFF,          0,        0,       "" },
-};
-// PTin end
+/* PTin added: new switch 56846 (Trident-plus) */
 
-HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_56524_REV_1[] =
-/* slotNum  portNum bcm_cpuunit bcm_port portName *
- * -------  ------- ----------- -------- -------- */
-{{      0,       0,          0,      30,       "" },
-{       0,       1,          0,      31,       "" },
-{       0,       2,          0,      32,       "" },
-{       0,       3,          0,      33,       "" },
-{       0,       4,          0,      34,       "" },
-{       0,       5,          0,      35,       "" },
-{       0,       6,          0,      36,       "" },
-{       0,       7,          0,      37,       "" },
-{       0,       8,          0,      38,       "" },
-{       0,       9,          0,      39,       "" },
-{       0,      10,          0,      40,       "" },
-{       0,      11,          0,      41,       "" },
-{       0,      12,          0,      42,       "" },
-{       0,      13,          0,      43,       "" },
-{       0,      14,          0,      44,       "" },
-{       0,      15,          0,      45,       "" },
-{       0,      16,          0,      46,       "" },
-{       0,      17,          0,      47,       "" },
-{       0,      18,          0,      48,       "" },
-{       0,      19,          0,      49,       "" },
-{       0,      20,          0,      50,       "" },
-{       0,      21,          0,      51,       "" },
-{       0,      22,          0,      52,       "" },
-{       0,      23,          0,      53,       "" },
-{       0,      24,          0,      26,       "" },
-{       0,      25,          0,      27,       "" },
-{       0,      26,          0,      28,       "" },
-{       0,      27,          0,      29,       "" },
-};
-
-HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_25_GIG_6_TENGIG_56636_REV_1[] =
-/* slotNum  portNum bcm_cpuunit bcm_port portName *
- * -------  ------- ----------- -------- -------- */
-{{      0,       0,          0,      30,       "" },
-{       0,       1,          0,      31,       "" },
-{       0,       2,          0,      32,       "" },
-{       0,       3,          0,      33,       "" },
-{       0,       4,          0,      34,       "" },
-{       0,       5,          0,      35,       "" },
-{       0,       6,          0,      36,       "" },
-{       0,       7,          0,      37,       "" },
-{       0,       8,          0,       2,       "" },
-{       0,       9,          0,       3,       "" },
-{       0,      10,          0,       4,       "" },
-{       0,      11,          0,       5,       "" },
-{       0,      12,          0,       6,       "" },
-{       0,      13,          0,       7,       "" },
-{       0,      14,          0,       8,       "" },
-{       0,      15,          0,       9,       "" },
-{       0,      16,          0,      38,       "" },
-{       0,      17,          0,      39,       "" },
-{       0,      18,          0,      40,       "" },
-{       0,      19,          0,      41,       "" },
-{       0,      20,          0,      10,       "" },
-{       0,      21,          0,      11,       "" },
-{       0,      22,          0,      12,       "" },
-{       0,      23,          0,      13,       "" },
-{       0,      24,          0,       1,       "" },
-{       0,      25,          0,      42,       "" },
-{       0,      26,          0,      50,       "" },
-{       0,      27,          0,      26,       "" },
-{       0,      28,          0,      27,       "" },
-{       0,      29,          0,      28,       "" },
-{       0,      30,          0,      29,       "" },
-};
-
-HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_56334_REV_1[] =
-/* slotNum  portNum bcm_cpuunit bcm_port portName *
- * -------  ------- ----------- -------- -------- */
-{{      0,       0,          0,       2,       "" },
-{       0,       1,          0,       3,       "" },
-{       0,       2,          0,       4,       "" },
-{       0,       3,          0,       5,       "" },
-{       0,       4,          0,       6,       "" },
-{       0,       5,          0,       7,       "" },
-{       0,       6,          0,       8,       "" },
-{       0,       7,          0,       9,       "" },
-{       0,       8,          0,      10,       "" },
-{       0,       9,          0,      11,       "" },
-{       0,      10,          0,      12,       "" },
-{       0,      11,          0,      13,       "" },
-{       0,      12,          0,      14,       "" },
-{       0,      13,          0,      15,       "" },
-{       0,      14,          0,      16,       "" },
-{       0,      15,          0,      17,       "" },
-{       0,      16,          0,      18,       "" },
-{       0,      17,          0,      19,       "" },
-{       0,      18,          0,      20,       "" },
-{       0,      19,          0,      21,       "" },
-{       0,      20,          0,      22,       "" },
-{       0,      21,          0,      23,       "" },
-{       0,      22,          0,      24,       "" },
-{       0,      23,          0,      25,       "" },
-{       0,      24,          0,      26,       "" },
-{       0,      25,          0,      27,       "" },
-{       0,      26,          0,      28,       "" },
-{       0,      27,          0,      29,       "" },
-};
-
-HAPI_CARD_SLOT_MAP_t dapiBroadCpuCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_SINGLE_CHIP_REV_1[] =
-/* slotNum  portNum  bcm_cpuunit bcm_port portName *
- * -------  -------  ----------- -------- -------- */
-{{ 0xFFFF,  0xFFFF,          0,        0,       "" },
-};
-
-HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_20_TENGIG_REV_1[] =
-/* slotNum  portNum bcm_cpuunit bcm_port portName *
- * -------  ------- ----------- -------- -------- */
-{{      0,       0,          0,       0,       "" },
-{       0,       1,          0,       1,       "" },
-{       0,       2,          0,       2,       "" },
-{       0,       3,          0,       3,       "" },
-{       0,       4,          0,       4,       "" },
-{       0,       5,          0,       5,       "" },
-{       0,       6,          0,       6,       "" },
-{       0,       7,          0,       7,       "" },
-{       0,       8,          0,       8,       "" },
-{       0,       9,          0,       9,       "" },
-{       0,      10,          0,      10,       "" },
-{       0,      11,          0,      11,       "" },
-{       0,      12,          0,      12,       "" },
-{       0,      13,          0,      13,       "" },
-{       0,      14,          0,      14,       "" },
-{       0,      15,          0,      15,       "" },
-{       0,      16,          0,      16,       "" },
-{       0,      17,          0,      17,       "" },
-{       0,      18,          0,      18,       "" },
-{       0,      19,          0,      19,       "" },
-};
-
-HAPI_CARD_SLOT_MAP_t dapiBroadCpuCardSlotMap_CARD_BROAD_20_TENGIG_REV_1[] =
-/* slotNum  portNum  bcm_cpuunit bcm_port portName *
- * -------  -------  ----------- -------- -------- */
-{{ 0xFFFF,  0xFFFF,          0,       20,       "" },
-};
-
-HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_24_TENGIG_4_GIG_REV_1[] =
-/* slotNum  portNum bcm_cpuunit bcm_port portName *
- * -------  ------- ----------- -------- -------- */
-{
-#ifndef SC_1G_PORTS_FIRST
-/* 24 X 10G ports */
-{       0,       0,          0,       1,       "" },
-{       0,       1,          0,       2,       "" },
-{       0,       2,          0,       3,       "" },
-{       0,       3,          0,       4,       "" },
-{       0,       4,          0,       5,       "" },
-{       0,       5,          0,       6,       "" },
-{       0,       6,          0,       7,       "" },
-{       0,       7,          0,       8,       "" },
-{       0,       8,          0,       9,       "" },
-{       0,       9,          0,      10,       "" },
-{       0,      10,          0,      11,       "" },
-{       0,      11,          0,      12,       "" },
-{       0,      12,          0,      13,       "" },
-{       0,      13,          0,      14,       "" },
-{       0,      14,          0,      15,       "" },
-{       0,      15,          0,      16,       "" },
-{       0,      16,          0,      17,       "" },
-{       0,      17,          0,      18,       "" },
-{       0,      18,          0,      19,       "" },
-{       0,      19,          0,      20,       "" },
-{       0,      20,          0,      21,       "" },
-{       0,      21,          0,      22,       "" },
-{       0,      22,          0,      23,       "" },
-{       0,      23,          0,      24,       "" },
-/* 4 X 1GE ports */
-{       0,      24,          0,      28,       "" },
-{       0,      25,          0,      27,       "" },
-{       0,      26,          0,      26,       "" },
-{       0,      27,          0,      25,       "" },
-#else
-/* 4 X 1G ports */
-{       0,       0,          0,      28,       "" },
-{       0,       1,          0,      27,       "" },
-{       0,       2,          0,      26,       "" },
-{       0,       3,          0,      25,       "" },
-/* 24 X 10G ports */
-{       0,       4,          0,       1,       "" },
-{       0,       5,          0,       2,       "" },
-{       0,       6,          0,       3,       "" },
-{       0,       7,          0,       4,       "" },
-{       0,       8,          0,       5,       "" },
-{       0,       9,          0,       6,       "" },
-{       0,      10,          0,       7,       "" },
-{       0,      11,          0,       8,       "" },
-{       0,      12,          0,       9,       "" },
-{       0,      13,          0,      10,       "" },
-{       0,      14,          0,      11,       "" },
-{       0,      15,          0,      12,       "" },
-{       0,      16,          0,      13,       "" },
-{       0,      17,          0,      14,       "" },
-{       0,      18,          0,      15,       "" },
-{       0,      19,          0,      16,       "" },
-{       0,      20,          0,      17,       "" },
-{       0,      21,          0,      18,       "" },
-{       0,      22,          0,      19,       "" },
-{       0,      23,          0,      20,       "" },
-{       0,      24,          0,      21,       "" },
-{       0,      25,          0,      22,       "" },
-{       0,      26,          0,      23,       "" },
-{       0,      27,          0,      24,       "" },
-#endif
-};
-
-HAPI_CARD_SLOT_MAP_t dapiBroadCpuCardSlotMap_CARD_BROAD_24_TENGIG_4_GIG_REV_1[] =
-/* slotNum  portNum  bcm_cpuunit bcm_port portName *
- * -------  -------  ----------- -------- -------- */
-{{ 0xFFFF,  0xFFFF,          0,        0,       "" },
-};
-
-
-/*******************************************************************************
-*
-* @Data    dapiBroadBaseCardPortMap
-*
-* @purpose A mapping of the ports in the base slot.  This determines the kind
-*			     of ports, their phy addresses, port numbers internal, ...			
-*
-* @end
-*
-*******************************************************************************/
-HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1[] =
-/*portNum 
+HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_64_TENGIG_REV_1[] =
+/*portNum
  *------- */
 {{     0},
 {     1},
@@ -1763,9 +909,155 @@ HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1[]
 {    25},
 {    26},
 {    27},
+{    28},
+{    29},
+{    30},
+{    31},
+{    32},
+{    33},
+{    34},
+{    35},
+{    36},
+{    37},
+{    38},
+{    39},
+{    40},
+{    41},
+{    42},
+{    43},
+{    44},
+{    45},
+{    46},
+{    47},
+{    48},
+{    49},
+{    50},
+{    51},
+{    52},
+{    53},
+{    54},
+{    55},
+{    56},
+{    57},
+{    58},
+{    59},
+{    60},
+{    61},
+{    62},
+{    63},
 };
 
-/* PTin modified: new switch 5664x (Triumph3) GPON */
+HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1[] =
+/* slotNum  portNum bcm_cpuunit bcm_port portName *
+ * -------  ------- ----------- -------- -------- */
+{{      0,       0,          0,       1,       "" },
+{       0,       1,          0,       2,       "" },
+{       0,       2,          0,       3,       "" },
+{       0,       3,          0,       4,       "" },
+{       0,       4,          0,       5,       "" },
+{       0,       5,          0,       6,       "" },
+{       0,       6,          0,       7,       "" },
+{       0,       7,          0,       8,       "" },
+{       0,       8,          0,       9,       "" },
+{       0,       9,          0,      10,       "" },
+{       0,      10,          0,      11,       "" },
+{       0,      11,          0,      12,       "" },
+{       0,      12,          0,      13,       "" },
+{       0,      13,          0,      14,       "" },
+{       0,      14,          0,      15,       "" },
+{       0,      15,          0,      16,       "" },
+{       0,      16,          0,      17,       "" },
+{       0,      17,          0,      18,       "" },
+{       0,      18,          0,      19,       "" },
+{       0,      19,          0,      20,       "" },
+{       0,      20,          0,      21,       "" },
+{       0,      21,          0,      22,       "" },
+{       0,      22,          0,      23,       "" },
+{       0,      23,          0,      24,       "" },
+{       0,      24,          0,      25,       "" },
+{       0,      25,          0,      26,       "" },
+{       0,      26,          0,      27,       "" },
+{       0,      27,          0,      28,       "" },
+{       0,      28,          0,      29,       "" },
+{       0,      29,          0,      30,       "" },
+{       0,      30,          0,      31,       "" },
+{       0,      31,          0,      32,       "" },
+{       0,      32,          0,      33,       "" },
+{       0,      33,          0,      34,       "" },
+{       0,      34,          0,      35,       "" },
+{       0,      35,          0,      36,       "" },
+{       0,      36,          0,      37,       "" },
+{       0,      37,          0,      38,       "" },
+{       0,      38,          0,      39,       "" },
+{       0,      39,          0,      40,       "" },
+{       0,      40,          0,      41,       "" },
+{       0,      41,          0,      42,       "" },
+{       0,      42,          0,      43,       "" },
+{       0,      43,          0,      44,       "" },
+{       0,      44,          0,      45,       "" },
+{       0,      45,          0,      46,       "" },
+{       0,      46,          0,      47,       "" },
+{       0,      47,          0,      48,       "" },
+{       0,      48,          0,      49,       "" },
+{       0,      49,          0,      50,       "" },
+{       0,      50,          0,      51,       "" },
+{       0,      51,          0,      52,       "" },
+{       0,      52,          0,      53,       "" },
+{       0,      53,          0,      54,       "" },
+{       0,      54,          0,      55,       "" },
+{       0,      55,          0,      56,       "" },
+{       0,      56,          0,      57,       "" },
+{       0,      57,          0,      58,       "" },
+{       0,      58,          0,      59,       "" },
+{       0,      59,          0,      60,       "" },
+{       0,      60,          0,      61,       "" },
+{       0,      61,          0,      62,       "" },
+{       0,      62,          0,      63,       "" },
+{       0,      63,          0,      64,       "" },
+};
+
+DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_64_TENGIG_56846_REV_1 = {
+hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
+dapiBroadBaseCardSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
+dapiBroadBaseCardPortMap_CARD_BROAD_64_TENGIG_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_64_TENGIG_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
+0, NULL, 0,
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56846_REV_1, sizeof(dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56846_REV_1)/sizeof(L7_uint32),
+dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1, sizeof(dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1)/sizeof(HAPI_WC_PORT_MAP_t)
+#endif
+};
+
+SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_64_TENGIG_56846_REV_1[]= 
+{
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+/* CXO640G v1 */
+{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},
+{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},
+#else
+/* For the future */
+/* CXO640G v2: slots 2,3,18,19 a 20G e o resto a 40G */
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN}
+#endif
+};
+
+
+/* PTin added: new switch 5664x (Triumph3) GPON */
+
 HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_4_TENGIG_4_40GIG_REV_1[] =
 /*portNum
  *------- */
@@ -1779,7 +1071,38 @@ HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_4_TENGIG_4_40GIG_REV_1[
  {     7},
 };
 
+HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_4_TENGIG_4_40GIG_56643_REV_1[] =
+/* slotNum  portNum bcm_cpuunit bcm_port portName *
+ * -------  ------- ----------- -------- -------- */
+{
+{       0,       0,          0,      52,       "" }, /* ETH 1 */
+{       0,       1,          0,      53,       "" },
+{       0,       2,          0,      50,       "" },
+{       0,       3,          0,      51,       "" },
+{       0,       4,          0,      54,       "" }, /* 40Gbps */
+{       0,       5,          0,      55,       "" },
+{       0,       6,          0,      56,       "" },
+{       0,       7,          0,      57,       "" },
+};
+
+DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_4_TENGIG_4_40GIG_56643_REV_1 = {
+hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
+dapiBroadBaseCardSlotMap_CARD_BROAD_4_TENGIG_4_40GIG_56643_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_4_TENGIG_4_40GIG_56643_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
+dapiBroadBaseCardPortMap_CARD_BROAD_4_TENGIG_4_40GIG_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_4_TENGIG_4_40GIG_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
+0, NULL, 0,
+};
+
+SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_4_TENGIG_4_40GIG_56643_REV_1[]= 
+{
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},  /* 8 ports (4x10G + 4x40G) */
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_40G_KR4},{L7_PORT_DESC_BCOM_40G_KR4},
+{L7_PORT_DESC_BCOM_40G_KR4},{L7_PORT_DESC_BCOM_40G_KR4},
+};
+
+
 /* PTin modified: new switch 5664x (Triumph3) */
+
 HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_48_GIG_4_TENGIG_REV_1[] =
 /*portNum
  *------- */
@@ -1837,7 +1160,94 @@ HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_48_GIG_4_TENGIG_REV_1[]
 {    51},
 };
 
-/* PTin added: new switch 5664x (Triumph3) SF */
+/* PTin added: new switch 5664x (Triumph3) - TA48GE */
+
+HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_56643_REV_1[] =
+/* slotNum  portNum bcm_cpuunit bcm_port portName *
+ * -------  ------- ----------- -------- -------- */
+{
+{       0,       0,          0,       2,       "" }, /* ETH 1 */
+{       0,       1,          0,       4,       "" },
+{       0,       2,          0,       1,       "" },
+{       0,       3,          0,       3,       "" },
+{       0,       4,          0,       6,       "" },
+{       0,       5,          0,       8,       "" },
+{       0,       6,          0,       5,       "" },
+{       0,       7,          0,       7,       "" },
+{       0,       8,          0,      14,       "" },
+{       0,       9,          0,      16,       "" },
+{       0,      10,          0,      13,       "" },
+{       0,      11,          0,      15,       "" },
+{       0,      12,          0,      18,       "" },
+{       0,      13,          0,      17,       "" },
+{       0,      14,          0,      20,       "" },
+{       0,      15,          0,      19,       "" },
+{       0,      16,          0,      10,       "" },
+{       0,      17,          0,       9,       "" },
+{       0,      18,          0,      12,       "" },
+{       0,      19,          0,      11,       "" },
+{       0,      20,          0,      22,       "" },
+{       0,      21,          0,      21,       "" },
+{       0,      22,          0,      24,       "" },
+{       0,      23,          0,      23,       "" },
+{       0,      24,          0,      30,       "" },
+{       0,      25,          0,      29,       "" },
+{       0,      26,          0,      26,       "" },
+{       0,      27,          0,      25,       "" },
+{       0,      28,          0,      32,       "" },
+{       0,      29,          0,      27,       "" },
+{       0,      30,          0,      28,       "" },
+{       0,      31,          0,      31,       "" },
+{       0,      32,          0,      34,       "" },
+{       0,      33,          0,      33,       "" },
+{       0,      34,          0,      36,       "" },
+{       0,      35,          0,      35,       "" },
+{       0,      36,          0,      42,       "" },
+{       0,      37,          0,      43,       "" },
+{       0,      38,          0,      44,       "" },
+{       0,      39,          0,      45,       "" },
+{       0,      40,          0,      38,       "" },
+{       0,      41,          0,      39,       "" },
+{       0,      42,          0,      40,       "" },
+{       0,      43,          0,      41,       "" },
+{       0,      44,          0,      47,       "" },
+{       0,      45,          0,      46,       "" },
+{       0,      46,          0,      49,       "" },
+{       0,      47,          0,      48,       "" }, /* ETH 48*/
+{       0,      48,          0,      54,       "" }, /* 10G 1 */
+{       0,      49,          0,      55,       "" },
+{       0,      50,          0,      56,       "" },
+{       0,      51,          0,      57,       "" }, /* 10G 4*/
+};
+
+DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_48_GIG_4_TENGIG_56643_REV_1 = {
+hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
+dapiBroadBaseCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_56643_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_56643_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
+dapiBroadBaseCardPortMap_CARD_BROAD_48_GIG_4_TENGIG_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_48_GIG_4_TENGIG_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
+0, NULL, 0,
+};
+
+SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_48_GIG_4_TENGIG_56643_REV_1[]= 
+{
+{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
+{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
+{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
+{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
+{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
+{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
+{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
+{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
+{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
+{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
+{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
+{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
+{L7_PORT_DESC_BCOM_40G_KR4},{L7_PORT_DESC_BCOM_40G_KR4},  /* 52 ports (48xETH + 4x10G */
+{L7_PORT_DESC_BCOM_40G_KR4},{L7_PORT_DESC_BCOM_40G_KR4},
+};
+
+
+/* PTin added: new switch 5664x (Triumph3) SF - CXO160G */
+
 HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_4_10G_3_40G_1_GIG_REV_1[] =
 /*portNum
  *------- */
@@ -1860,7 +1270,74 @@ HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_4_10G_3_40G_1_GIG_REV_1
 {    16}
 };
 
+#if 0
+/* PTin added: new switch 5664x (Triumph3) SF */
+HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[] =
+/* slotNum  portNum bcm_cpuunit bcm_port portName *
+ * -------  ------- ----------- -------- -------- */
+{
+{       0,       0,          0,      17,       "" }, /* 10G ETH */
+{       0,       1,          0,      21,       "" },
+{       0,       2,          0,      25,       "" },
+{       0,       3,          0,      29,       "" },
+{       0,       4,          0,       5,       "" }, /* 40G ETH */
+{       0,       5,          0,       9,       "" },
+{       0,       6,          0,      13,       "" },
+{       0,       7,          0,       1,       "" }, /* 1G ETH */
+};
+#else
+/* PTin added: new switch 5664x (Triumph3) SF */
+HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[] =
+/* slotNum  portNum bcm_cpuunit bcm_port portName *
+ * -------  ------- ----------- -------- -------- */
+{
+{       0,       0,          0,      17,       "" }, /* 10G ETH */
+{       0,       1,          0,      21,       "" },
+{       0,       2,          0,      25,       "" },
+{       0,       3,          0,      29,       "" },
+{       0,       4,          0,       5,       "" }, /* 40G ETH */
+{       0,       5,          0,       6,       "" }, /* 40G ETH */
+{       0,       6,          0,       7,       "" }, /* 40G ETH */
+{       0,       7,          0,       8,       "" }, /* 40G ETH */
+{       0,       8,          0,       9,       "" },
+{       0,       9,          0,      10,       "" },
+{       0,      10,          0,      11,       "" },
+{       0,      11,          0,      12,       "" },
+{       0,      12,          0,      13,       "" },
+{       0,      13,          0,      14,       "" },
+{       0,      14,          0,      15,       "" },
+{       0,      15,          0,      16,       "" },
+{       0,      16,          0,       1,       "" }, /* 1G ETH */
+};
+#endif
+
+/* PTin added: new switch 5664x (Triumph3) SF */
+DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1 = {
+hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
+dapiBroadBaseCardSlotMap_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
+dapiBroadBaseCardPortMap_CARD_BROAD_4_10G_3_40G_1_GIG_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_4_10G_3_40G_1_GIG_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
+0, NULL, 0,
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56640_REV_1, sizeof(dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56640_REV_1)/sizeof(L7_uint32),
+dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1, sizeof(dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1)/sizeof(HAPI_WC_PORT_MAP_t)
+#endif
+};
+
+/* PTin added: new switch 5664x (Triumph3) SF */
+SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[]= 
+{
+{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},
+{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+/*{L7_PORT_DESC_BCOM_40G_KR4},{L7_PORT_DESC_BCOM_40G_KR4},{L7_PORT_DESC_BCOM_40G_KR4},*/
+{L7_PORT_DESC_BCOM_1G_AN},
+};
+
+
 /* PTin added: new switch 56340 (Helix4) */
+
 HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_REV_1[] =
 /*portNum
  *------- */
@@ -1884,7 +1361,50 @@ HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_RE
 {    17},
 };
 
+HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56340_REV_1[] =
+/* slotNum  portNum bcm_cpuunit bcm_port portName *
+ * -------  ------- ----------- -------- -------- */
+{
+{       0,       0,          0,       1,       "" }, /* 2.5G ETH */
+{       0,       1,          0,       5,       "" },
+{       0,       2,          0,       9,       "" },
+{       0,       3,          0,      13,       "" },
+{       0,       4,          0,      17,       "" },
+{       0,       5,          0,      21,       "" },
+{       0,       6,          0,      25,       "" },
+{       0,       7,          0,      29,       "" },
+{       0,       8,          0,      33,       "" }, /* 1G ETH */
+{       0,       9,          0,      41,       "" },
+{       0,      10,          0,      37,       "" },
+{       0,      11,          0,      45,       "" },
+{       0,      12,          0,      53,       "" }, /* 10G ETH */
+{       0,      13,          0,      52,       "" },
+{       0,      14,          0,      51,       "" },
+{       0,      15,          0,      50,       "" },
+{       0,      16,          0,      54,       "" }, /* 1G port for FPGA */
+{       0,      17,          0,      49,       "" }, /* GS port */
+};
+
+DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56340_REV_1 = {
+hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
+dapiBroadBaseCardSlotMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56340_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56340_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
+dapiBroadBaseCardPortMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
+0, NULL, 0,
+};
+
+SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56340_REV_1[]= 
+{
+{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
+{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
+{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},  /* 8xGPON + 4x1G ports + 4x10G + GS */
+{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},
+{L7_PORT_DESC_BCOM_XAUI_SGMII_1G},{L7_PORT_DESC_BCOM_1G_NO_AN},
+};
+
+
 /* PTin added: new switch 56450 (Katana2) - OLT1T0F */
+
 HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_K2_REV_1[] =
 /*portNum
  *------- */
@@ -1907,7 +1427,49 @@ HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_K2
 {    16},
 };
 
-/* PTin added: new switch 56450 (Katana2) - TG16GF */
+HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1[] =
+/* slotNum  portNum bcm_cpuunit bcm_port portName *
+ * -------  ------- ----------- -------- -------- */
+{
+{       0,       0,          0,       1,       "" }, /* 2.5G ETH */
+{       0,       1,          0,       2,       "" },
+{       0,       2,          0,       3,       "" },
+{       0,       3,          0,       4,       "" },
+{       0,       4,          0,       5,       "" },
+{       0,       5,          0,       6,       "" },
+{       0,       6,          0,       7,       "" },
+{       0,       7,          0,       8,       "" },
+{       0,       8,          0,      28,       "" }, /* 1G ETH */
+{       0,       9,          0,      29,       "" },
+{       0,      10,          0,      30,       "" },
+{       0,      11,          0,      31,       "" },
+{       0,      12,          0,      27,       "" }, /* 10G ETH */
+{       0,      13,          0,      25,       "" },
+{       0,      14,          0,      33,       "" },
+{       0,      15,          0,      36,       "" },
+{       0,      16,          0,      40,       "" }, /* GS port for FPGA */
+};
+
+DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1 = {
+hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
+dapiBroadBaseCardSlotMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
+dapiBroadBaseCardPortMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_K2_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_K2_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
+0, NULL, 0,
+};
+
+SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1[]= 
+{
+{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
+{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
+{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},  /* 8xGPON + 4x1G ports + 4x10G + GS */
+{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},
+{L7_PORT_DESC_BCOM_2G5_NO_AN},
+};
+
+
+/* PTin added: new switch 56450 (Katana2) - TG16GF && AG16GA */
+
 HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_16_GIG_4_TENGIG_1_GS_K2_REV_1[] =
 /*portNum
  *------- */
@@ -1934,7 +1496,54 @@ HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_16_GIG_4_TENGIG_1_GS_K2
 {    20},
 };
 
+HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_16_GIG_4_TENGIG_1_GS_56450_REV_1[] =
+/* slotNum  portNum bcm_cpuunit bcm_port portName *
+ * -------  ------- ----------- -------- -------- */
+{
+{       0,       0,          0,       1,       "" }, /* 2.5G ETH */
+{       0,       1,          0,       2,       "" },
+{       0,       2,          0,       3,       "" },
+{       0,       3,          0,       4,       "" },
+{       0,       4,          0,       5,       "" },
+{       0,       5,          0,       6,       "" },
+{       0,       6,          0,       7,       "" },
+{       0,       7,          0,       8,       "" },
+{       0,       8,          0,       9,       "" },
+{       0,       9,          0,      10,       "" },
+{       0,      10,          0,      11,       "" },
+{       0,      11,          0,      12,       "" },
+{       0,      12,          0,      13,       "" },
+{       0,      13,          0,      14,       "" },
+{       0,      14,          0,      15,       "" },
+{       0,      15,          0,      16,       "" },
+{       0,      16,          0,      36,       "" }, /* 10G ETH */
+{       0,      17,          0,      33,       "" },
+{       0,      18,          0,      25,       "" },
+{       0,      19,          0,      27,       "" },
+{       0,      20,          0,      40,       "" }, /* GS port for FPGA */
+};
+
+DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_16_GIG_4_TENGIG_1_GS_56450_REV_1 = {
+hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
+dapiBroadBaseCardSlotMap_CARD_BROAD_16_GIG_4_TENGIG_1_GS_56450_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_16_GIG_4_TENGIG_1_GS_56450_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
+dapiBroadBaseCardPortMap_CARD_BROAD_16_GIG_4_TENGIG_1_GS_K2_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_16_GIG_4_TENGIG_1_GS_K2_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
+0, NULL, 0,
+};
+
+SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_16_GIG_4_TENGIG_1_GS_56450_REV_1[]= 
+{
+{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
+{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
+{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
+{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},  /* 16xGPON + 4x10G + GS */
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_2G5_NO_AN},
+};
+
+
 /* PTin added: new switch 56450 (Katana2) - TT04SXG */
+
 HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_8_TENGIG_1_GS_K2_REV_1[] =
 /*portNum
  *------- */
@@ -1949,572 +1558,28 @@ HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_8_TENGIG_1_GS_K2_REV_1[
 {     8},
 };
 
-
-/* PTin added: new switch 56843 (Trident) */
-HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_40_TENGIG_REV_1[] =
-/*portNum
- *------- */
-{{     0},
-{     1},
-{     2},
-{     3},
-{     4},
-{     5},
-{     6},
-{     7},
-{     8},
-{     9},
-{    10},
-{    11},
-{    12},
-{    13},
-{    14},
-{    15},
-{    16},
-{    17},
-{    18},
-{    19},
-{    20},
-{    21},
-{    22},
-{    23},
-{    24},
-{    25},
-{    26},
-{    27},
-{    28},
-{    29},
-{    30},
-{    31},
-{    32},
-{    33},
-{    34},
-{    35},
-{    36},
-{    37},
-{    38},
-{    39},
-{    40}, /* PTP interface */
+HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_8_TENGIG_1_GS_56450_REV_1[] =
+/* slotNum  portNum bcm_cpuunit bcm_port portName *
+ * -------  ------- ----------- -------- -------- */
+{
+{       0,       0,          0,      27,       "" }, /* 10G ETH to FPGA */
+{       0,       1,          0,      25,       "" },
+{       0,       2,          0,      33,       "" },
+{       0,       3,          0,      36,       "" },
+{       0,       4,          0,      39,       "" }, /* 10G ETH to Backplane (via Cortina) */
+{       0,       5,          0,      30,       "" },
+{       0,       6,          0,      26,       "" },
+{       0,       7,          0,      28,       "" },
+{       0,       8,          0,       1,       "" }, /* GS port for FPGA */
 };
 
-/* PTin added: new switch 56846 (Trident-plus) */
-HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_64_TENGIG_REV_1[] =
-/*portNum
- *------- */
-{{     0},
-{     1},
-{     2},
-{     3},
-{     4},
-{     5},
-{     6},
-{     7},
-{     8},
-{     9},
-{    10},
-{    11},
-{    12},
-{    13},
-{    14},
-{    15},
-{    16},
-{    17},
-{    18},
-{    19},
-{    20},
-{    21},
-{    22},
-{    23},
-{    24},
-{    25},
-{    26},
-{    27},
-{    28},
-{    29},
-{    30},
-{    31},
-{    32},
-{    33},
-{    34},
-{    35},
-{    36},
-{    37},
-{    38},
-{    39},
-{    40},
-{    41},
-{    42},
-{    43},
-{    44},
-{    45},
-{    46},
-{    47},
-#if 1 /* XXXX */
-{    48},
-{    49},
-{    50},
-{    51},
-{    52},
-{    53},
-{    54},
-{    55},
-{    56},
-{    57},
-{    58},
-{    59},
-{    60},
-{    61},
-{    62},
-{    63},
-#endif
-};
-/* PTin end */
-
-HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_20_TENGIG_REV_1[] =
-/*portNum 
- *------- */
-{{     0},
-{     1},
-{     2},
-{     3},
-{     4},
-{     5},
-{     6},
-{     7},
-{     8},
-{     9},
-{    10},
-{    11},
-{    12},
-{    13},
-{    14},
-{    15},
-{    16},
-{    17},
-{    18},
-{    19},
-};
-
-HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_24_TENGIG_4_GIG_REV_1[] =
-/*portNum
- *------- */
-{{     0},
-{     1},
-{     2},
-{     3},
-{     4},
-{     5},
-{     6},
-{     7},
-{     8},
-{     9},
-{    10},
-{    11},
-{    12},
-{    13},
-{    14},
-{    15},
-{    16},
-{    17},
-{    18},
-{    19},
-{    20},
-{    21},
-{    22},
-{    23},
-{    24},
-{    25},
-{    26},
-{    27},
-};
-
-HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_25_TENGIG_6_GIG__56636_REV_1[] =
-/*portNum
- *------- */
-{{     0},
-{     1},
-{     2},
-{     3},
-{     4},
-{     5},
-{     6},
-{     7},
-{     8},
-{     9},
-{    10},
-{    11},
-{    12},
-{    13},
-{    14},
-{    15},
-{    16},
-{    17},
-{    18},
-{    19},
-{    20},
-{    21},
-{    22},
-{    23},
-{    24},
-{    25},
-{    26},
-{    27},
-{    28},
-{    29},
-{    30},
-};
-
-
-/****************************************************************
-*
-*  Line Card Init Variables
-*
-****************************************************************/
-DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_24_GIG_4_TENGIG_REV_1 = {
-
-hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
-dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t), 
-dapiBroadBaseCardPortMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
-0, NULL, 0,
-};
-
-DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_48_GIG_4_TENGIG_REV_1 = {
-hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
-dapiBroadBaseCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
-dapiBroadBaseCardPortMap_CARD_BROAD_48_GIG_4_TENGIG_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_48_GIG_4_TENGIG_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
-0, NULL, 0,
-};
-
-DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_48_GIG_4_TENGIG_56624_REV_1 = {
-hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
-dapiBroadBaseCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_56624_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_56624_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
-dapiBroadBaseCardPortMap_CARD_BROAD_48_GIG_4_TENGIG_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_48_GIG_4_TENGIG_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
-0, NULL, 0,
-};
-
-DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_48_GIG_4_TENGIG_56634_REV_1 = {
-hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
-dapiBroadBaseCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_56634_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_56634_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
-dapiBroadBaseCardPortMap_CARD_BROAD_48_GIG_4_TENGIG_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_48_GIG_4_TENGIG_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
-0, NULL, 0,
-};
-
-DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_24_GIG_4_TENGIG_SINGLE_CHIP_REV_1 = {
-hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
-dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_SINGLE_CHIP_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_SINGLE_CHIP_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
-dapiBroadBaseCardPortMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
-0, NULL, 0,
-};
-
-/* PTin added: new switch 56689 (Valkyrie2) */
-DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_24_GIG_4_TENGIG_56689_REV_1 = {
-hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
-dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_56689_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_56689_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
-dapiBroadBaseCardPortMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
-0, NULL, 0,
-};
-/* PTin added: new switch 5664x (Triumph3) SF */
-DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1 = {
-hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
-dapiBroadBaseCardSlotMap_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
-dapiBroadBaseCardPortMap_CARD_BROAD_4_10G_3_40G_1_GIG_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_4_10G_3_40G_1_GIG_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
-0, NULL, 0,
-#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
-dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56640_REV_1, sizeof(dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56640_REV_1)/sizeof(L7_uint32),
-dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1, sizeof(dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1)/sizeof(HAPI_WC_PORT_MAP_t)
-#endif
-};
-/* PTin added: new switch 5664x (Triumph3) GPON */
-DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_4_TENGIG_4_40GIG_56643_REV_1 = {
-hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
-dapiBroadBaseCardSlotMap_CARD_BROAD_4_TENGIG_4_40GIG_56643_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_4_TENGIG_4_40GIG_56643_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
-dapiBroadBaseCardPortMap_CARD_BROAD_4_TENGIG_4_40GIG_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_4_TENGIG_4_40GIG_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
-0, NULL, 0,
-};
-/* PTin added: new switch 5664x (Triumph3) */
-DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_48_GIG_4_TENGIG_56643_REV_1 = {
-hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
-dapiBroadBaseCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_56643_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_56643_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
-dapiBroadBaseCardPortMap_CARD_BROAD_48_GIG_4_TENGIG_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_48_GIG_4_TENGIG_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
-0, NULL, 0,
-};
-/* PTin added: new switch 56340 (Helix4) */
-DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56340_REV_1 = {
-hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
-dapiBroadBaseCardSlotMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56340_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56340_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
-dapiBroadBaseCardPortMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
-0, NULL, 0,
-};
-/* PTin added: new switch 56450 (Katana2) - OLT1T0F */
-DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1 = {
-hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
-dapiBroadBaseCardSlotMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
-dapiBroadBaseCardPortMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_K2_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_K2_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
-0, NULL, 0,
-};
-/* PTin added: new switch 56450 (Katana2) - TG16GF && AG16GA */
-DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_16_GIG_4_TENGIG_1_GS_56450_REV_1 = {
-hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
-dapiBroadBaseCardSlotMap_CARD_BROAD_16_GIG_4_TENGIG_1_GS_56450_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_16_GIG_4_TENGIG_1_GS_56450_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
-dapiBroadBaseCardPortMap_CARD_BROAD_16_GIG_4_TENGIG_1_GS_K2_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_16_GIG_4_TENGIG_1_GS_K2_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
-0, NULL, 0,
-};
-/* PTin added: new switch 56450 (Katana2) - TT04SXG */
 DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_8_TENGIG_1_GS_56450_REV_1 = {
 hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
 dapiBroadBaseCardSlotMap_CARD_BROAD_8_TENGIG_1_GS_56450_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_8_TENGIG_1_GS_56450_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
 dapiBroadBaseCardPortMap_CARD_BROAD_8_TENGIG_1_GS_K2_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_8_TENGIG_1_GS_56450_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
 0, NULL, 0,
 };
-/* PTin added: new switch 56843 (Trident) */
-DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_40_TENGIG_56843_REV_1 = {
-hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
-dapiBroadBaseCardSlotMap_CARD_BROAD_40_TENGIG_56843_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_40_TENGIG_56843_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
-dapiBroadBaseCardPortMap_CARD_BROAD_40_TENGIG_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_40_TENGIG_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
-0, NULL, 0,
-};
-/* PTin added: new switch 56846 (Trident-plus) */
-DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_64_TENGIG_56846_REV_1 = {
-hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
-dapiBroadBaseCardSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
-dapiBroadBaseCardPortMap_CARD_BROAD_64_TENGIG_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_64_TENGIG_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
-0, NULL, 0,
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
-dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56846_REV_1, sizeof(dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56846_REV_1)/sizeof(L7_uint32),
-dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1, sizeof(dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1)/sizeof(HAPI_WC_PORT_MAP_t)
-#endif
-};
-// PTin end
 
-DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_24_GIG_4_TENGIG_56524_REV_1 = {
-hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
-dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_56524_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_56524_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
-dapiBroadBaseCardPortMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
-0, NULL, 0,
-};
-
-DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_24_GIG_4_TENGIG_56334_REV_1 = {
-hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
-dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_56334_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_56334_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
-dapiBroadBaseCardPortMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
-0, NULL, 0,
-};
-
-DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_25_GIG_6_TENGIG_56636_REV_1 = {
- hapiBroadPhysicalCardInsert,
- hapiBroadCardRemove,
- dapiBroadBaseCardSlotMap_CARD_BROAD_25_GIG_6_TENGIG_56636_REV_1, 
- (sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_25_GIG_6_TENGIG_56636_REV_1) / 
-  sizeof(HAPI_CARD_SLOT_MAP_t)),
- dapiBroadBaseCardPortMap_CARD_BROAD_25_TENGIG_6_GIG__56636_REV_1, 
- (sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_25_TENGIG_6_GIG__56636_REV_1) / 
-  sizeof(HAPI_CARD_PORT_MAP_t)),
- 0, NULL, 0,
-};
-
-
-/****************************************************************
-*
-*  Line Card Init Variables
-*
-****************************************************************/
-DAPI_CARD_ENTRY_t dapiBroadCpuCardEntry_CARD_BROAD_24_GIG_4_TENGIG_REV_1 = {
-
-hapiBroadCpuCardInsert,hapiBroadCardRemove,
-dapiBroadCpuCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1,
-  sizeof(dapiBroadCpuCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
-NULL, 0,
-0, NULL, 0
-};
-
-DAPI_CARD_ENTRY_t dapiBroadCpuCardEntry_CARD_BROAD_48_GIG_4_TENGIG_REV_1 = {
-
-hapiBroadCpuCardInsert,hapiBroadCardRemove,
-dapiBroadCpuCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_REV_1,
-  sizeof(dapiBroadCpuCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
-NULL, 0,
-0, NULL, 0
-};
-
-DAPI_CARD_ENTRY_t dapiBroadCpuCardEntry_CARD_BROAD_48_GIG_4_TENGIG_SINGLE_CHIP_REV_1 = {
-
-hapiBroadCpuCardInsert,hapiBroadCardRemove,
-dapiBroadCpuCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_SINGLE_CHIP_REV_1,
-  sizeof(dapiBroadCpuCardSlotMap_CARD_BROAD_48_GIG_4_TENGIG_SINGLE_CHIP_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
-NULL, 0,
-0, NULL, 0
-};
-
-/****************************************************************
-*
-*  Line Card Init Variables
-*
-****************************************************************/
-DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_20_TENGIG_REV_1 = {
-
-hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
-dapiBroadBaseCardSlotMap_CARD_BROAD_20_TENGIG_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_20_TENGIG_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
-dapiBroadBaseCardPortMap_CARD_BROAD_20_TENGIG_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_20_TENGIG_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
-0, NULL, 0,
-};
-
-DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_24_TENGIG_4_GIG_REV_1 = {
-
-hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
-dapiBroadBaseCardSlotMap_CARD_BROAD_24_TENGIG_4_GIG_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_24_TENGIG_4_GIG_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
-dapiBroadBaseCardPortMap_CARD_BROAD_24_TENGIG_4_GIG_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_24_TENGIG_4_GIG_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
-0, NULL, 0,
-};
-
-/****************************************************************
-*
-*  Line Card Init Variables
-*
-****************************************************************/
-/* PTin added: new switch 56843 (Trident) */
-DAPI_CARD_ENTRY_t dapiBroadCpuCardEntry_CARD_BROAD_40_TENGIG_REV_1 = {
-
-hapiBroadCpuCardInsert,hapiBroadCardRemove,
-dapiBroadCpuCardSlotMap_CARD_BROAD_40_TENGIG_REV_1,
-  sizeof(dapiBroadCpuCardSlotMap_CARD_BROAD_40_TENGIG_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
-NULL, 0,
-0, NULL, 0
-};
-/* PTin added: new switch 56846 (Trident-plus) */
-DAPI_CARD_ENTRY_t dapiBroadCpuCardEntry_CARD_BROAD_64_TENGIG_REV_1 = {
-
-hapiBroadCpuCardInsert,hapiBroadCardRemove,
-dapiBroadCpuCardSlotMap_CARD_BROAD_40_TENGIG_REV_1,
-  sizeof(dapiBroadCpuCardSlotMap_CARD_BROAD_40_TENGIG_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
-NULL, 0,
-0, NULL, 0,
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
-NULL, 0,
-NULL, 0
-#endif
-};
-/* PTin end */
-
-DAPI_CARD_ENTRY_t dapiBroadCpuCardEntry_CARD_BROAD_20_TENGIG_REV_1 = {
-
-hapiBroadCpuCardInsert,hapiBroadCardRemove,
-dapiBroadCpuCardSlotMap_CARD_BROAD_20_TENGIG_REV_1,
-  sizeof(dapiBroadCpuCardSlotMap_CARD_BROAD_20_TENGIG_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
-NULL, 0,
-0, NULL, 0
-};
-
-DAPI_CARD_ENTRY_t dapiBroadCpuCardEntry_CARD_BROAD_24_TENGIG_4_GIG_REV_1 = {
-
-hapiBroadCpuCardInsert,hapiBroadCardRemove,
-dapiBroadCpuCardSlotMap_CARD_BROAD_24_TENGIG_4_GIG_REV_1,
-  sizeof(dapiBroadCpuCardSlotMap_CARD_BROAD_24_TENGIG_4_GIG_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
-NULL, 0,
-0, NULL, 0
-};
-
-
-
-
-/* PTin added: new switch 56689 (Valkyrie2) */
-SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_24_GIG_4_TENGIG_56689_REV_1[]= 
-{
-#if (PTIN_BOARD == PTIN_BOARD_TG16G)
-{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
-{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
-{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
-{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},  /* 12 ports (16xPON + 4x10G */
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},
-{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},
-#else /* TOLT8G */
-{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
-{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},  /* 12 ports (8xPON + 4x10G */
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},
-{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},
-{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},
-{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},
-#endif
-};
-
-/* PTin added: new switch 5664x (Triumph3) SF */
-SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[]= 
-{
-{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},
-{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-/*{L7_PORT_DESC_BCOM_40G_KR4},{L7_PORT_DESC_BCOM_40G_KR4},{L7_PORT_DESC_BCOM_40G_KR4},*/
-{L7_PORT_DESC_BCOM_1G_AN},
-};
-
-/* PTin added: new switch 5664x (Triumph3) GPON */
-SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_4_TENGIG_4_40GIG_56643_REV_1[]= 
-{
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},  /* 8 ports (4x10G + 4x40G) */
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_40G_KR4},{L7_PORT_DESC_BCOM_40G_KR4},
-{L7_PORT_DESC_BCOM_40G_KR4},{L7_PORT_DESC_BCOM_40G_KR4},
-};
-
-/* PTin added: new switch 5664x (Triumph3) */
-SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_48_GIG_4_TENGIG_56643_REV_1[]= 
-{
-{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
-{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
-{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
-{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
-{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
-{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
-{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
-{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
-{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
-{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
-{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
-{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
-{L7_PORT_DESC_BCOM_40G_KR4},{L7_PORT_DESC_BCOM_40G_KR4},  /* 52 ports (48xETH + 4x10G */
-{L7_PORT_DESC_BCOM_40G_KR4},{L7_PORT_DESC_BCOM_40G_KR4},
-};
-
-/* PTin added: new switch 56340 (Helix4) */
-SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56340_REV_1[]= 
-{
-{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
-{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
-{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},  /* 8xGPON + 4x1G ports + 4x10G + GS */
-{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},
-{L7_PORT_DESC_BCOM_XAUI_SGMII_1G},{L7_PORT_DESC_BCOM_1G_NO_AN},
-};
-
-/* PTin added: new switch 56450 (Katana2) - OLT1T0F */
-SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1[]= 
-{
-{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
-{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
-{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},  /* 8xGPON + 4x1G ports + 4x10G + GS */
-{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},
-{L7_PORT_DESC_BCOM_2G5_NO_AN},
-};
-
-/* PTin added: new switch 56450 (Katana2) - TG16GF */
-SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_16_GIG_4_TENGIG_1_GS_56450_REV_1[]= 
-{
-{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
-{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
-{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
-{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},  /* 16xGPON + 4x10G + GS */
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_2G5_NO_AN},
-};
-
-/* PTin added: new switch 56450 (Katana2) - TT04SGX */
 SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_8_TENGIG_1_GS_56450_REV_1[]= 
 {
 {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
@@ -2523,142 +1588,3 @@ SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_8_TENGIG_1_GS_56450_REV
 {L7_PORT_DESC_BCOM_2G5_NO_AN},
 };
 
-/* PTin added: new switch 56843 (Trident) */
-SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_40_TENGIG_56843_REV_1[]= 
-{
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN}, /* PTP interface with FPGA */
-};
-
-/* PTin added: new switch 56846 (Trident-plus) */
-SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_64_TENGIG_56846_REV_1[]= 
-{
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
-/* CXO640G v1 */
-{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},
-{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},{L7_PORT_DESC_BCOM_1G_NO_AN},
-#else
-/* For the future */
-/* CXO640G v2: slots 2,3,18,19 a 20G e o resto a 40G */
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN}
-#endif
-#if 0 /* XXXX */
-{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},
-{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},
-{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},
-{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},
-{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},
-{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},
-{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},
-{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},
-{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},
-{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},
-{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},
-{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},
-{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},
-{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},
-{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},
-{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},{L7_PORT_DESC_BCOM_10G_KR},
-#endif
-};
-/* PTin end */
-
-SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_24_GIG_4_TENGIG_REV_1[]= 
-{
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_XAUI_10G},{L7_PORT_DESC_BCOM_XAUI_10G}, {L7_PORT_DESC_BCOM_XAUI_10G},{L7_PORT_DESC_BCOM_XAUI_10G}
-};
-
-SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_24_GIG_4_TENGIG_56524_REV_1[]= 
-{
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_XAUI_10G},{L7_PORT_DESC_BCOM_XAUI_10G}, {L7_PORT_DESC_BCOM_XAUI_10G},{L7_PORT_DESC_BCOM_XAUI_10G}
-};
-
-SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_48_GIG_4_TENGIG_REV_1[]=
-{
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG}, {L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG}, {L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG}, {L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG}, {L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG}, {L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG}, {L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG}, {L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG}, {L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG}, {L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG}, {L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG}, {L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG}, {L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_XAUI_10G},{L7_PORT_DESC_BCOM_XAUI_10G}, {L7_PORT_DESC_BCOM_XAUI_10G},{L7_PORT_DESC_BCOM_XAUI_10G}
-};
-
-
-SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_20_TENGIG_REV_1[]=
-{
-{L7_PORT_DESC_BCOM_XAUI_10G},{L7_PORT_DESC_BCOM_XAUI_10G}, {L7_PORT_DESC_BCOM_XAUI_10G},{L7_PORT_DESC_BCOM_XAUI_10G},
-{L7_PORT_DESC_BCOM_XAUI_10G},{L7_PORT_DESC_BCOM_XAUI_10G}, {L7_PORT_DESC_BCOM_XAUI_10G},{L7_PORT_DESC_BCOM_XAUI_10G},
-{L7_PORT_DESC_BCOM_XAUI_10G},{L7_PORT_DESC_BCOM_XAUI_10G}, {L7_PORT_DESC_BCOM_XAUI_10G},{L7_PORT_DESC_BCOM_XAUI_10G},
-{L7_PORT_DESC_BCOM_XAUI_10G},{L7_PORT_DESC_BCOM_XAUI_10G}, {L7_PORT_DESC_BCOM_XAUI_10G},{L7_PORT_DESC_BCOM_XAUI_10G},
-{L7_PORT_DESC_BCOM_XAUI_10G},{L7_PORT_DESC_BCOM_XAUI_10G}, {L7_PORT_DESC_BCOM_XAUI_10G},{L7_PORT_DESC_BCOM_XAUI_10G}
-};
-
-SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_24_TENGIG_4_GIG_REV_1[]=
-{
-#ifdef SC_1G_PORTS_FIRST
-{L7_PORT_DESC_BCOM_RJ45_GIG_FD_ONLY},{L7_PORT_DESC_BCOM_RJ45_GIG_FD_ONLY},{L7_PORT_DESC_BCOM_RJ45_GIG_FD_ONLY},{L7_PORT_DESC_BCOM_RJ45_GIG_FD_ONLY},
-#endif
-{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G}, {L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},
-{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G}, {L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},
-{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G}, {L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},
-{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G}, {L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},
-{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G}, {L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},
-{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G}, {L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},
-#ifndef SC_1G_PORTS_FIRST
-{L7_PORT_DESC_BCOM_RJ45_GIG_FD_ONLY},{L7_PORT_DESC_BCOM_RJ45_GIG_FD_ONLY},{L7_PORT_DESC_BCOM_RJ45_GIG_FD_ONLY},{L7_PORT_DESC_BCOM_RJ45_GIG_FD_ONLY}
-#endif
-};
-
-SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_25_GIG_6_TENGIG_56636_REV_1[]=
-{
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},{L7_PORT_DESC_BCOM_RJ45_GIG},
-{L7_PORT_DESC_BCOM_XAUI_10G},{L7_PORT_DESC_BCOM_XAUI_10G}, {L7_PORT_DESC_BCOM_XAUI_10G},{L7_PORT_DESC_BCOM_XAUI_10G},{L7_PORT_DESC_BCOM_XAUI_10G},{L7_PORT_DESC_BCOM_XAUI_10G}
-};
