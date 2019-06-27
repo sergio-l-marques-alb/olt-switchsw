@@ -56,6 +56,10 @@
 #elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
 #include "ptin_mgmd_defs_ta48ge.h"
 
+/* AE48GE */
+#elif (PTIN_BOARD == PTIN_BOARD_AE48GE)
+#include "ptin_mgmd_defs_ae48ge.h"
+
 /* CXO160G */
 #elif (PTIN_BOARD == PTIN_BOARD_CXO160G)
 #include "ptin_mgmd_defs_cxo160g.h"

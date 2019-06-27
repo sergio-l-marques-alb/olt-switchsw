@@ -65,6 +65,10 @@ typedef enum
 #elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
 #include "ptin_fpga_ta48ge.h"
 
+/* AE48GE */
+#elif (PTIN_BOARD == PTIN_BOARD_AE48GE)
+#include "ptin_fpga_ae48ge.h"
+
 /* CXO160G */
 #elif (PTIN_BOARD == PTIN_BOARD_CXO160G)
 #include "ptin_fpga_cxo160g.h"
