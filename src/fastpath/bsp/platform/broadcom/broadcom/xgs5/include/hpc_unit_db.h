@@ -580,6 +580,127 @@
    },
    hpc_data_UNIT_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1        /* pointer to hpc platform specific data */
 },
+/* PTin added: new switch 56170 (Hurricane3/Greyhound2) */
+{
+  {     
+     UNIT_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1_ID, /* unitTypeID */
+     "BCM-56170-00",                                  /* unitModel */
+     "Broadcom Hurricane3-MG 56170 Development System - 24GE+24TENGIG, 4TENGIG",    /* unitDescription */
+     L7_UNITMGR_MGMTFUNC_UNASSIGNED,                 /* managementPreference */
+     "1.3.6.1.4.1.4413",                             /* systemOID */
+     1,                                              /* numPowerSupply */
+     4,                                              /* numFans */
+     0,                                              /* poeSupport */
+     L7_TRUE,                                        /* nsfSupport */
+     1,                                              /* number of physical slots */
+/* do not specify the Logical Routing card as a non-removable card in switching builds */
+#if L7_SWITCHING_PACKAGE == 1
+     2,                                             /* number of static card-slot mapping table entries */
+#elif L7_ROUTING_PACKAGE == 1
+#if L7_RLIM_PACKAGE == 1
+     5,                                             /* number of static card-slot mapping table entries */
+#else
+    4,
+#endif
+#else
+#error __FILE__, __LINE__: Neither L7_SWITCHING_PACKAGE nor L7_ROUTING_PACKAGE defined.
+#endif
+     UNIT_BRXGS_CODE_TARGET_DEVICE, /* codeLoadTargetId - What code to load on this device */
+     UNIT_BRXGS_CONFIG_TARGET_DEVICE, /* configLoadTargetId - What configuration to load on this device */
+     {
+       {L7_CPU_SLOT_NUM, L7_LOGICAL_CARD_CPU_DEFAULT_ID},
+       {L7_LAG_SLOT_NUM, L7_LOGICAL_CARD_LAG_ID}
+#if L7_ROUTING_PACKAGE == 1
+       ,
+       {L7_VLAN_SLOT_NUM, L7_LOGICAL_CARD_VLAN_ROUTER_INTF_ID},
+       {L7_LOOPBACK_SLOT_NUM, L7_LOGICAL_CARD_LOOPBACK_INTF_ID},
+#if L7_RLIM_PACKAGE == 1
+       {L7_TUNNEL_SLOT_NUM, L7_LOGICAL_CARD_TUNNEL_INTF_ID}
+#endif
+#endif
+     },
+     {
+      {
+         0,   /* Slot Number */
+         L7_FALSE,  /* Slot supports pluggable cards */
+         L7_FALSE, /* Slot Can't be powered down */
+         1,    /* This slot supports one card types */
+
+         /* Supported card types.
+         */
+         {CARD_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1_ID}
+       }
+     },
+     8,      /* four stacking ports */
+     {
+         /* First Stacking Port Descriptor */
+         {
+          1,     /* Front Panel Stacking stacking port */
+          0, 48,  /* slot/port for the stacking port */
+          {'0', '/', '4', '8'},  /* Port identifier */
+          10,       /* 10 Gb/s */
+          0,50,0,0  /* Bcm unit, Bcm port, unused, unused */
+         },
+         /* Second Stacking Port Descriptor */
+         {
+          1,     /* Front Panel Stacking stacking port */
+          0, 49,  /* slot/port for the stacking port */
+          {'0', '/', '4', '9'},  /* Port identifier */
+          10,       /* 10 Gb/s */
+          0,51,0,0  /* Bcm unit, Bcm port, unused, unused */
+         },
+         /* third Stacking Port Descriptor */
+         {
+          1,     /* Front Panel Stacking stacking port */
+          0, 50,  /* slot/port for the stacking port */
+          {'0', '/', '5', '0'},  /* Port identifier */
+          10,       /* 10 Gb/s */
+          0,52,0,0  /* Bcm unit, Bcm port, unused, unused */
+         },
+         /* fourth Stacking Port Descriptor */
+         {
+          1,     /* Front Panel Stacking stacking port */
+          0, 51,  /* slot/port for the stacking port */
+          {'0', '/', '5', '1'},  /* Port identifier */
+          10,       /* 10 Gb/s */
+          0,53,0,0  /* Bcm unit, Bcm port, unused, unused */
+         },
+         /* 5th Stacking Port Descriptor */
+         {
+          1,     /* Front Panel Stacking stacking port */
+          0, 52,  /* slot/port for the stacking port */
+          {'0', '/', '5', '2'},  /* Port identifier */
+          10,       /* 10 Gb/s */
+          0,54,0,0  /* Bcm unit, Bcm port, unused, unused */
+         },
+         /* 6th Stacking Port Descriptor */
+         {
+          1,     /* Front Panel Stacking stacking port */
+          0, 53,  /* slot/port for the stacking port */
+          {'0', '/', '5', '3'},  /* Port identifier */
+          10,       /* 10 Gb/s */
+          0,55,0,0  /* Bcm unit, Bcm port, unused, unused */
+         },
+         /* 7th Stacking Port Descriptor */
+         {
+          1,     /* Front Panel Stacking stacking port */
+          0, 54,  /* slot/port for the stacking port */
+          {'0', '/', '5', '4'},  /* Port identifier */
+          10,       /* 10 Gb/s */
+          0,56,0,0  /* Bcm unit, Bcm port, unused, unused */
+         },
+         /* 8th Stacking Port Descriptor */
+         {
+          1,     /* Front Panel Stacking stacking port */
+          0, 55,  /* slot/port for the stacking port */
+          {'0', '/', '5', '5'},  /* Port identifier */
+          10,       /* 10 Gb/s */
+          0,57,0,0  /* Bcm unit, Bcm port, unused, unused */
+         }
+       }
+   },
+   hpc_data_UNIT_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1        /* pointer to hpc platform specific data */
+},
 /* PTin added: new switch 56843 (Trident) */
 {
   {     

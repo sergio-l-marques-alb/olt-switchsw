@@ -113,6 +113,22 @@
         __BROADCOM_56450_ID,
         NO_CONNECTION_LIST
     },
+    /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
+    /* 56170 board */
+    {
+        BCM_SYS_BOARD_56170,
+        /* *soc_brd_info */
+    1, 
+    { 
+        BCM56170_DEVICE_ID,
+    },
+        bcm_sys_id_defl,
+        bcm_sys_sa_init_defl,
+        bcm_sys_pre_stack_defl,
+        UNIT_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1_ID,
+        __BROADCOM_56170_ID,
+        NO_CONNECTION_LIST
+    },
     /* PTin added: new switch 56843 (Trident) */
     /* 56843 board */
     {

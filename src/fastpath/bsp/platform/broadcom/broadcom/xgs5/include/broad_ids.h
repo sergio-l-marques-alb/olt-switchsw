@@ -38,6 +38,7 @@
 #define UNIT_BROAD_48_GIG_4_TENGIG_56450_REV_1_ID           0xB4500001 /* PTin added: new switch 56450 (Katana2) */
 #define UNIT_BROAD_40_TENGIG_56843_REV_1_ID                 0xB8430001 /* PTin added: new switch 56843 (Trident) */
 #define UNIT_BROAD_64_TENGIG_56846_REV_1_ID                 0xB8460001 /* PTin added: new switch 56846 (Trident-plus) */
+#define UNIT_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1_ID     0xB1700001 /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
 
 /*******************************************************************************
 *
@@ -59,6 +60,7 @@
 #define CARD_BROAD_40_TENGIG_56843_REV_1_ID               0x56843001   /* PTin added: new switch 56843 (Trident) */
 #define CARD_BROAD_64_TENGIG_56846_REV_1_ID               0x56846001   /* PTin added: new switch 56846 (Trident-plus) */
 #define CARD_BROAD_48_GIG_4_TENGIG_56646_REV_1_ID         0x56646001   /* PTin added: new switch 56646 (?) */
+#define CARD_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1_ID   0x56170001   /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
 
 /* Logical CPU cards */
 #define L7_LOGICAL_CARD_CPU_DEFAULT_ID                              0xFF010000  /* PTin added: Default CPU at interface 0 */

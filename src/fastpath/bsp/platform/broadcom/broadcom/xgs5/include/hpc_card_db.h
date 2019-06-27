@@ -200,6 +200,23 @@
 }
 ,
 #endif
+/* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) - AE48GE */
+{
+  {
+    CARD_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1_ID,   /* cardtypeID */
+    "BCM56170-24GIG-24+8TENGE",              /* cardModel  */
+    "Broadcom BCM56170 - 24 Port GbE + (24+8) Ten-Gigabit Ethernet Line Card",  /* cardDescription  */
+    SYSAPI_CARD_TYPE_LINE,            /* type       */
+    56,
+    SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
+    SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
+    /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */
+    hpcPortInfoTable_CARD_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1,
+    /* portInfo, refers to table declared above for each card type */
+    &dapiBroadPhysicalCardEntry_CARD_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1 /* dapiCardInfo */
+  }
+}
+,
 /* PTin added: new switch 56843 (Trident) */
 {
   {

@@ -3008,7 +3008,7 @@ L7_RC_t hapiBroadConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g)
   return rc;
 }
 
-L7_RC_t hapiBroadConfigIgmpFilterRaptor(enableFilter)
+L7_RC_t hapiBroadConfigIgmpFilterRaptor(int enableFilter)
 {
 
   L7_RC_t          rc = L7_SUCCESS;
@@ -5798,7 +5798,7 @@ int hapiBroadXgs3HigigPriorityPatch(int unit)
    return valid_rev;
 }
 
-int hapiBroadBcmGroupRequired(unit)
+int hapiBroadBcmGroupRequired(int unit)
 {
   return hapiBroadXgs3HigigPriorityPatch(unit);
 }
