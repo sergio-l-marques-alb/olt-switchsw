@@ -41,6 +41,7 @@
 #define L7_BCM_TRIUMPH3                            8  /* PTin added: new switch 5664x (Triumph3) */
 #define L7_BCM_HELIX4                              9  /* PTin added: new switch 56340 (Helix4) */
 #define L7_BCM_KATANA2                            10  /* PTin added: new switch 56450 (Katana2) */
+#define L7_BCM_HURRICANE3MG                       11  /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
 
 /* PTin added: boards definition */
 #define PTIN_BOARD_OLT7_8CH_B                      0x0001
@@ -49,6 +50,7 @@
 #define PTIN_BOARD_CXP360G                         0x0008
 #define PTIN_BOARD_CXO640G                         0x0010
 #define PTIN_BOARD_TA48GE                          0x0020
+#define PTIN_BOARD_AE48GE                          0x0040   /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
 #define PTIN_BOARD_OLT1T0                          0x0100
 #define PTIN_BOARD_CXO160G                         0x0200
 #define PTIN_BOARD_TG4G                            0x0400
@@ -59,10 +61,10 @@
 
 /* PTin added: board groups definition */
 #define PTIN_BOARD_MATRIX_FAMILY      ( PTIN_BOARD_CXP360G | PTIN_BOARD_CXO640G | PTIN_BOARD_CXO160G )
-#define PTIN_BOARD_LINECARD_FAMILY    ( PTIN_BOARD_TOLT8G | PTIN_BOARD_TG16G | PTIN_BOARD_TG16GF | PTIN_BOARD_TG4G | PTIN_BOARD_TA48GE | PTIN_BOARD_TT04SXG | PTIN_BOARD_AG16GA )
-#define PTIN_BOARD_STANDALONE_FAMILY  ( PTIN_BOARD_OLT7_8CH_B | PTIN_BOARD_OLT1T0 | PTIN_BOARD_OLT1T0F)
-#define PTIN_BOARD_GPON_FAMILY        ( PTIN_BOARD_TOLT8G | PTIN_BOARD_TG16G | PTIN_BOARD_TG16GF | PTIN_BOARD_TG4G | PTIN_BOARD_OLT1T0 | PTIN_BOARD_OLT1T0F | PTIN_BOARD_TT04SXG | PTIN_BOARD_AG16GA)
-#define PTIN_BOARD_ACTIVETH_FAMILY    ( PTIN_BOARD_TA48GE )
+#define PTIN_BOARD_LINECARD_FAMILY    ( PTIN_BOARD_TOLT8G | PTIN_BOARD_TG16G | PTIN_BOARD_TG16GF | PTIN_BOARD_TG4G | PTIN_BOARD_TA48GE | PTIN_BOARD_TT04SXG | PTIN_BOARD_AG16GA | PTIN_BOARD_AE48GE )
+#define PTIN_BOARD_STANDALONE_FAMILY  ( PTIN_BOARD_OLT7_8CH_B | PTIN_BOARD_OLT1T0 | PTIN_BOARD_OLT1T0F )
+#define PTIN_BOARD_GPON_FAMILY        ( PTIN_BOARD_TOLT8G | PTIN_BOARD_TG16G | PTIN_BOARD_TG16GF | PTIN_BOARD_TG4G | PTIN_BOARD_OLT1T0 | PTIN_BOARD_OLT1T0F | PTIN_BOARD_TT04SXG | PTIN_BOARD_AG16GA )
+#define PTIN_BOARD_ACTIVETH_FAMILY    ( PTIN_BOARD_TA48GE | PTIN_BOARD_AE48GE )
 
 #define PTIN_BOARD_IS_MATRIX          ( PTIN_BOARD & PTIN_BOARD_MATRIX_FAMILY )
 #define PTIN_BOARD_IS_LINECARD        ( PTIN_BOARD & PTIN_BOARD_LINECARD_FAMILY )
@@ -162,6 +164,13 @@
 #define L7_MAX_PORTS_PER_SLOT                    52
 #define L7_MAX_PHYSICAL_PORTS_PER_SLOT           52
 #define L7_MAX_PHYSICAL_PORTS_PER_UNIT           52
+
+/* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
+#elif (PTIN_BOARD == PTIN_BOARD_AE48GE)
+#define L7_MAX_PHYSICAL_SLOTS_PER_UNIT           1
+#define L7_MAX_PORTS_PER_SLOT                    56
+#define L7_MAX_PHYSICAL_PORTS_PER_SLOT           56
+#define L7_MAX_PHYSICAL_PORTS_PER_UNIT           56
 
 /* PTin added: new switch 56843 (Trident) */
 #elif (PTIN_BOARD == PTIN_BOARD_CXP360G)
