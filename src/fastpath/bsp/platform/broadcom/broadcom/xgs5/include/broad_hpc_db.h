@@ -54,7 +54,6 @@ extern SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_12_GIG_4_TENGIG_
 extern SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1[];   /* PTin added: new switch 56450 (Katana2) - OLT1T0F */
 extern SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_8_TENGIG_1_GS_56450_REV_1[];          /* PTin added: new switch 56450 (Katana2) - TT04SGX */
 extern SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_16_GIG_4_TENGIG_1_GS_56450_REV_1[];   /* PTin added: new switch 56450 (Katana2) - TG16GF */
-extern SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1[];  /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
 
 extern HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_24_GIG_4_TENGIG_56680_REV_1[];                   /* PTin added: new switch 56689 (Valkyrie2) */
 extern HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_40_TENGIG_56843_REV_1[];                         /* PTin added: new switch 56843 (Trident) */
@@ -64,7 +63,6 @@ extern HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_4_TENGIG_4_40GIG_56643_REV_1[];
 extern HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_48_GIG_4_TENGIG_56643_REV_1[];                   /* PTin added: new switch 5664x (Triumph3) */
 extern HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_12_GIG_4_TENGIG_1_GS_56340_REV_1[];              /* PTin added: new switch 56340 (Helix4) */
 extern HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1[];              /* PTin added: new switch 56450 (Katana2) */
-extern HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1[];             /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
 
 extern DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_24_GIG_4_TENGIG_56689_REV_1;       /* PTin added: new switch 56689 (Valkyrie2) */
 extern DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_40_TENGIG_56843_REV_1;             /* PTin added: new switch 56843 (Trident) */
@@ -76,7 +74,6 @@ extern DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_12_GIG_4_TENGIG_1
 extern DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1;  /* PTin added: new switch 56340 (Katana2) - OLT1T0F */
 extern DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_16_GIG_4_TENGIG_1_GS_56450_REV_1;  /* PTin added: new switch 56340 (Katana2) - TG16GF && AG16GA*/
 extern DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_8_TENGIG_1_GS_56450_REV_1;         /* PTin added: new switch 56340 (Katana2) - TT04SXG */
-extern DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1; /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
 
 extern DAPI_CARD_ENTRY_t dapiBroadCpuCardEntry_CARD_BROAD_DEFAULT;                                /* PTin added: Default CPU card entry */
 extern DAPI_CARD_ENTRY_t dapiBroadCpuCardEntry_CARD_BROAD_64_TENGIG_REV_1;                        /* PTin added: new switch 56846 (Trident-plus) */

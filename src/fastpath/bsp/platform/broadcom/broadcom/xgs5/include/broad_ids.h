@@ -61,7 +61,7 @@
 #define CARD_BROAD_48_GIG_4_TENGIG_56646_REV_1_ID         0x56646001   /* PTin added: new switch 56646 (?) */
 
 /* Logical CPU cards */
-#define L7_LOGICAL_CARD_CPU_DEFAULT_ID                                 0xFF010000  /* PTin added: Default CPU at interface 0 */
+#define L7_LOGICAL_CARD_CPU_DEFAULT_ID                              0xFF010000  /* PTin added: Default CPU at interface 0 */
 #define L7_LOGICAL_CARD_CPU_24_GIG_4_TENGIG_REV_1_ID                0xFF010008
 #define L7_LOGICAL_CARD_CPU_48_GIG_4_TENGIG_4_40GIG_REV_1_ID        0xFF010009  /* PTin modified: new switch 5664x (Triumph3) */
 #define L7_LOGICAL_CARD_CPU_64_TENGIG_REV_1_ID                      0xFF010013  /* PTin added: new switch 56846 (Trident-plus) */
