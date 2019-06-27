@@ -1,0 +1,104 @@
+#!/bin/sh
+
+# The code update proceedure copies the image to flash.
+# This script performs any necessary actions to activate this image
+# on the switch.
+
+# Extract the kernel and rootfs from the .stk file. 
+# Package them into a new u-boot image, and put into a flash partition. 
+
+WORKDIR=/tmp
+FLASHDIR=/mnt/fastpath
+BOOTDEV=/dev/mtd4
+VERBOSE=1
+IMAGE=inexist
+
+if [ $# = 1 ]
+then
+    if [ "$1" = "-q" ]
+    then
+	VERBOSE=0
+    else
+	IMAGE=$1
+    fi
+else
+    if [ $# = 2 ]
+    then
+	if [ "$1" = "-q" ]
+	then
+	    VERBOSE=0
+	else
+	    IMAGE=$1
+	fi
+	if [ "$2" = "-q" ]
+	then
+	    VERBOSE=0
+	else
+	    IMAGE=$2
+	fi
+    fi
+fi
+
+if [ ! -s ${FLASHDIR}/${IMAGE} ] 
+then
+    echo "Image to activate," ${IMAGE} ", does not exist!"
+    exit 2
+fi
+
+if [ "$VERBOSE" = "1" ]
+then
+    echo "Extracting kernel and rootfs from" ${IMAGE}
+fi 
+
+rm -f ${WORKDIR}/kernel.gz
+rm -f ${WORKDIR}/initrd.gz
+rm -f ${WORKDIR}/uImage
+extimage -i ${FLASHDIR}/${IMAGE} -o ${WORKDIR}/kernel.gz -n 0
+extimage -i ${FLASHDIR}/${IMAGE} -o ${WORKDIR}/initrd.gz -n 1
+if [ ! -s ${WORKDIR}/kernel.gz ] 
+then
+    echo "Unable to extract kernel from" ${IMAGE}
+    exit 2
+fi
+if [ ! -s ${WORKDIR}/initrd.gz ] 
+then
+    echo "Unable to extract rootfs from" ${IMAGE}
+    rm -f ${WORKDIR}/kernel.gz
+    exit 2
+fi
+mkimage -A ppc -O linux -T multi -C gzip -a 0 -e 0 -d ${WORKDIR}/kernel.gz:${WORKDIR}/initrd.gz ${WORKDIR}/uImage > /dev/null 2>&1
+rm -f ${WORKDIR}/kernel.gz
+rm -f ${WORKDIR}/initrd.gz
+if [ ! -s ${WORKDIR}/uImage ] 
+then
+    echo "Unable to create uimage from extracted kernel/rootfs"
+    exit 2
+fi
+
+if [ "$VERBOSE" = "1" ]
+then
+    echo "Copying kernel/rootfs uimage to boot flash area"
+fi 
+
+eraseall ${BOOTDEV} > /dev/null 2>&1
+if [ "$?" != "0" ]
+then
+    echo "Error erasing flash"
+    rm -f ${WORKDIR}/uImage
+    exit 2
+fi
+cp ${WORKDIR}/uImage ${BOOTDEV}
+if [ "$?" != "0" ]
+then
+    echo "Error programming flash"
+    rm -f ${WORKDIR}/uImage
+    exit 2
+fi
+
+if [ "$VERBOSE" = "1" ]
+then
+    echo "Activation complete"
+fi 
+
+rm -f ${WORKDIR}/uImage
+exit 0
