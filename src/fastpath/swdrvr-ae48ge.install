@@ -1,0 +1,10 @@
+#!/bin/sh
+
+PLATFORM=AE48GE
+PLATFORM_FOLDER=$PLATFORM
+FILESYSTEM=rootfs
+
+KO_PATH=./output/FastPath-Ent-esw-xgs5-armv7_$PLATFORM/target
+BIN_PATH=./output/FastPath-Ent-esw-xgs5-armv7_$PLATFORM/ipl
+
+. ./swdrvr-common.install
