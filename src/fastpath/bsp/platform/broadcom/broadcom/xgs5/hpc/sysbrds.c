@@ -959,7 +959,7 @@ L7_RC_t hpcConfigBoardSet()
         break;
 
       /* PTin added: new switch 56170 (Hurricane3) */
-      case UNIT_BROAD_48_GIG_80_TENGIG_56170_REV_1_ID:
+      case UNIT_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1_ID:
 #if 0
         /* Memory and clock configuration */
         if (sal_config_set(spn_DDR3_PLL_MHZ,    25)       != 0) return(L7_FAILURE);
