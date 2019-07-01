@@ -731,7 +731,7 @@ L7_RC_t dtlIPProtoRecv (L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
 
 
 #ifdef DTL_USE_TAP
-  if(is_local && (dtl_net_fd >= 0))
+  if((dtl_net_fd >= 0))
   {
     /* added here to check for tagged VLan packet */
     memcpy(&pktEtherType, data + L7_ENET_HDR_SIZE, sizeof(L7_ushort16));
@@ -745,7 +745,7 @@ L7_RC_t dtlIPProtoRecv (L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
        vlan_id &= L7_VLAN_TAG_VLAN_ID_MASK;
        if(vlan_id != simMgmtVlanIdGet())
        {
-          return L7_FAILURE;
+          //return L7_FAILURE;
        }
        memcpy(tmp_buf,data,12);
        memcpy(data+4,tmp_buf,12);
