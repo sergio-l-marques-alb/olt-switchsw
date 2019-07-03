@@ -264,7 +264,7 @@ static L7_RC_t garpTimerListDeleteElement(garpTimerDescr_t *pTimer, garpTimerLis
     if (timerList == L7_NULL)
     {
         L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_GARP_COMPONENT_ID,
-                "Error:Timer Type (%d) of the timer (%x) invalid :timerList cannot be found \n", pTimer->timerType , (L7_uint)pTimer);
+                "Error:Timer Type (%d) of the timer (%x) invalid :timerList cannot be found \n", pTimer->timerType , pTimer);
         return rc;
     }
 
@@ -414,7 +414,7 @@ L7_RC_t garpTimerFree(garpTimerDescr_t *pTimer)
     if (garpTimerListDeleteElement(pTimer,timerList)!= L7_SUCCESS)
     {
         L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_GARP_COMPONENT_ID,
-                "Failed to free timer: timerType %d, port %d, vid %d, status %d, expiry %lld\n",
+                "Failed to free timer: timerType %d, port %d, vid %d, status %d, expiry %d\n",
                 pTimer->timerType, pTimer->port_no, pTimer->vid, pTimer->timer_status,
                 pTimer->expiryTime);
     }
@@ -478,7 +478,7 @@ void garpTimerAdd(L7_uint32 vid, L7_uint32 port_no,
     else
     {
         /* A timer is being added */
-        memset(pTimer, 0, sizeof(*pTimer));
+        memset(pTimer, 0, sizeof(pTimer));
 
         pTimer->timerType    = timer_type;
         pTimer->vid          = vid;
@@ -826,7 +826,7 @@ void garpDebugUnitTestGarpTimerList(L7_uint32 action,L7_uint32 numEntries)
                 pTimer = &timerList[index % 20];
                 index++;
 
-                memset(pTimer, 0, sizeof(*pTimer));
+                memset(pTimer, 0, sizeof(pTimer));
 
                 pTimer->timerType    = 4;
                 pTimer->vid          = 1;

@@ -142,7 +142,7 @@ L7_RC_t hapiBroadLagAsyncDoneWait(L7_int32 timeout)
   {
     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID,
             "Lag async done message send failed on Driver Lag queue 0x%x",
-            (L7_uint32) hapiBroadLagAsyncCmdQueue);
+            hapiBroadLagAsyncCmdQueue);
     return rc;
   }
 
@@ -162,7 +162,7 @@ L7_RC_t hapiBroadLagAsyncDoneWait(L7_int32 timeout)
   {
     L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DRIVER_COMPONENT_ID,
             "Lag Async done message wait timeout on lag queue 0x%x, timeout %d secs",
-            (L7_uint32) hapiBroadLagAsyncCmdQueue, timeout);
+            hapiBroadLagAsyncCmdQueue, timeout);
   }
 
   return rc;
@@ -1708,7 +1708,7 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
                   searchEntry, cond2);
         PT_LOG_DEBUG(LOG_CTX_TRUNKS, "(lagMemberSet[%d].usp.port == cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry].port): %u",
                   searchEntry, cond3);
-        PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Total: %u\n", cond);
+        PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Total: %u\n", __FUNCTION__, __LINE__, cond);
       }
 
       /* This code was never asserted as true, although all the conditions were right... weird! */

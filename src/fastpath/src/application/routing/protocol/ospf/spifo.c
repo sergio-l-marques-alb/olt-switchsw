@@ -347,36 +347,34 @@ Bool IFO_Delete( t_Handle Id, ulng flag)
   TIMER_Delete( p_IFO->WaitTimer );
   TIMER_Delete(p_IFO->grSuppressHelloTimer);
 
-  /* if no more Interfaces in this Area */
-  if (p_ARO && flag)
-  {
-    if (HL_GetFirst(p_ARO->IfoHl, (void *)&p_tmpIfo) != E_OK)
-    {
-        if (p_RTO->Cfg.DelAreaOnLastIfDel)
-          ARO_Delete(p_ARO, 1);
-    
-       /* If the deleted area is not the last one of the router */
-       /* Recalculate the appropriate routing table             */
-       if(p_RTO->AreasNum != 0)
-       {
-          if(HL_FindFirst(p_RTO->RtbHl, (byte *) &zero, (void *)&p_RTB) == E_OK)
-          {
-             /* Start recalculation timer */
-             if(!TIMER_Active(p_RTB->RecalcTimer))
-             {
-               RTB_ComputeCalcDelay(p_RTB, p_RTO);
-               TIMER_StartSec(p_RTB->RecalcTimer, p_RTB->CalcDelay, 0, RecalcTimerExp,
-                              p_RTO->OspfRtbThread.threadHndle);
-             }
-          }
-       }
-    }
-  }
+   /* if no more Interfaces in this Area */
+   if (p_ARO && flag)
+      if (HL_GetFirst(p_ARO->IfoHl, (void *)&p_tmpIfo) != E_OK)
+      {
+          if (p_RTO->Cfg.DelAreaOnLastIfDel)
+            ARO_Delete(p_ARO, 1);
 
-  if (p_IFO->PendingUpdate)
-  {
-    F_Delete(p_IFO->PendingUpdate);
-  }
+         /* If the deleted area is not the last one of the router */
+         /* Recalculate the appropriate routing table             */
+         if(p_RTO->AreasNum != 0)
+         {
+            if(HL_FindFirst(p_RTO->RtbHl, (byte *) &zero, (void *)&p_RTB) == E_OK)
+            {
+               /* Start recalculation timer */
+               if(!TIMER_Active(p_RTB->RecalcTimer))
+               {
+                 RTB_ComputeCalcDelay(p_RTB, p_RTO);
+                 TIMER_StartSec(p_RTB->RecalcTimer, p_RTB->CalcDelay, 0, RecalcTimerExp,
+                                p_RTO->OspfRtbThread.threadHndle);
+               }
+            }
+         }
+      }
+
+      if (p_IFO->PendingUpdate)
+      {
+        F_Delete(p_IFO->PendingUpdate);
+      }
 
 #if L7_OSPF_TE
    /* Free the interface TE Link Lsa instance number   */
@@ -1272,7 +1270,7 @@ void *IFO_AllocPacket(t_IFO *p_IFO, e_S_PckType pktType,
        nimGetIntfName(p_IFO->Cfg.IfIndex, L7_SYSNAME, ifName);
 
        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_OSPF_MAP_COMPONENT_ID,
-               "Max allowed OSPF pkt len on intf %lu, %s is zero", p_IFO->Cfg.IfIndex, ifName);
+               "Max allowed OSPF pkt len on intf %d, %s is zero", p_IFO->Cfg.IfIndex, ifName);
        return NULL;
    }
 

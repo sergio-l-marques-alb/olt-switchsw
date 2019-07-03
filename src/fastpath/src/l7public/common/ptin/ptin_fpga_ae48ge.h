@@ -2,8 +2,8 @@
 #define _PTIN_FPGA_AE48GE_H
 
 /* FPGA AND CPLD BASE ADDRESS */
-//# define MAP_FPGA
-//# define MAP_CPLD
+# define MAP_FPGA
+# define MAP_CPLD
 # define FPGA_BASE_ADDR                0xF8000000
 # define CPLD_BASE_ADDR                0xFF500000
 

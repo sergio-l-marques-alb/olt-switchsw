@@ -131,7 +131,7 @@ char *v2aseLsaTagStr = "Tag";
 char *v2aseLsaOptionsEBitStr = "E-Bit";
 
 /* graceful restart reasons (RFC 3623) */
-static char* restartReasonStr(L7_uint restartReason)
+static char* restartReasonStr(restartReason)
 {
   switch (restartReason)
   {

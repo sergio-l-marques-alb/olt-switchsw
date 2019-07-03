@@ -62,11 +62,7 @@ void pdu_receive_debug_enable(L7_BOOL enable)
 }
 
 static L7_uint8  ptin_debug_dtl = 0;
-
-static inline void ptin_debug_dtl_set(L7_uint8 enable)
-{
-  ptin_debug_dtl = enable;
-};
+inline void ptin_debug_dtl_set(L7_uint8 enable){ptin_debug_dtl = enable;};
 #endif
 
 

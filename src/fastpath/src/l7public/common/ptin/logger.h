@@ -189,7 +189,7 @@ extern int logger_color_set(unsigned int ctx_mask, int color);
  */
 extern int logger_check(log_context_t ctx, log_severity_t sev);
 extern int logger_print(log_context_t ctx, log_severity_t sev, char const *file,
-                         char const *func, int line, char const *fmt, ...) __attribute__((format(printf, 6, 7)));
+                        char const *func, int line, char const *fmt, ...);
 
 
 #define PT_LOG_TRACE(ctx , fmt , args... ) \

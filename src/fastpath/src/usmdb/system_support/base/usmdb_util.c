@@ -470,11 +470,11 @@ L7_RC_t usmDb64BitsToString(L7_ulong64 num, L7_char8 *buf)
 #define MAX_VALUE 4440000U
 
 
-///* If no num */
-//if (&num == NULL)
-//{
-//  return L7_FAILURE;
-//}
+  /* If no num */
+  if (&num == NULL)
+  {
+    return L7_FAILURE;
+  }
 
   /* If only a 32 bit counter */
   if (num.high == 0)
@@ -3345,7 +3345,7 @@ L7_RC_t usmDbConvertTimeTicksToDaysHoursMinutesSeconds(L7_uint32 *timeTicks, L7_
   }
   
   memcpy (&timeInSeconds, timeTicks, sizeof (L7_uint32));
-//  memset (buf, 0, sizeof (buf)); MEDO!!!
+  memset (buf, 0, sizeof (buf));
   
   timeInSeconds = timeInSeconds / 100;  /*to get no of seconds */  
   days = timeInSeconds / 86400;

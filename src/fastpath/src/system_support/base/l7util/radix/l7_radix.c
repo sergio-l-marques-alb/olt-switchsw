@@ -288,11 +288,11 @@ rn_lookup(v_arg, m_arg, head, type)
   if(!keyMatch)
     x = 0;
 
-  if (x && netmask) {
-    /* walk duplicates e.g. for 1.1.1.0/24 and 1.1.1.0/28 */
-    while (x && x->rn_mask != netmask)
-      x = x->rn_dupedkey;
-  }
+    if (x && netmask) {
+        /* walk duplicates e.g. for 1.1.1.0/24 and 1.1.1.0/28 */
+        while (x && x->rn_mask != netmask)
+            x = x->rn_dupedkey;
+    }
 
   /* exact match? */
   if(type == L7_RN_EXACT)
@@ -2161,7 +2161,7 @@ rn_match_count(v_arg, head, rn_bits)
      */
     if (t->rn_flags & RNF_ROOT)
         t = t->rn_dupedkey;
-    return t;
+        return t;
 
 on1:
     /* The search tested the bit specified by rn_bmask (rn_bit)

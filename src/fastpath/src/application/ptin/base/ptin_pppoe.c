@@ -228,7 +228,7 @@ static L7_RC_t ptin_pppoe_clientId_convert(L7_uint32 evc_idx, ptin_client_id_t *
  * INLINE FUNCTIONS
  ***********************************************************/
 
-static inline L7_BOOL pppoe_clientIndex_check_free(L7_uint pppoe_idx)
+inline L7_BOOL pppoe_clientIndex_check_free(L7_uint pppoe_idx)
 {
   /* Validate arguments */
   if (pppoe_idx >= PTIN_SYSTEM_N_PPPOE_INSTANCES)
@@ -241,7 +241,7 @@ static inline L7_BOOL pppoe_clientIndex_check_free(L7_uint pppoe_idx)
           queue_free_clients.n_elems > 0);
 }
 
-static inline L7_int pppoe_clientIndex_allocate(L7_uint pppoe_idx, ptinPppoeClientInfoData_t *infoData)
+inline L7_int pppoe_clientIndex_allocate(L7_uint pppoe_idx, ptinPppoeClientInfoData_t *infoData)
 {
   L7_int  client_idx;
   struct ptin_clientIdx_entry_s  *clientIdx_pool_entry;
@@ -306,7 +306,7 @@ static inline L7_int pppoe_clientIndex_allocate(L7_uint pppoe_idx, ptinPppoeClie
   return client_idx;
 }
 
-static inline void pppoe_clientIndex_release(L7_uint pppoe_idx, L7_uint32 client_idx)
+inline void pppoe_clientIndex_release(L7_uint pppoe_idx, L7_uint32 client_idx)
 {
   struct ptin_clientIdx_entry_s  *clientIdx_pool_entry;
   struct ptin_clientInfo_entry_s *clientInfo_pool_entry;
@@ -2896,7 +2896,6 @@ L7_RC_t ptin_pppoe_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
                               "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
             #endif
                               "}"
-            ,client_idx
             #if (PPPOE_CLIENT_INTERF_SUPPORTED)
             ,clientInfo->pppoeClientDataKey.ptin_port
             #endif

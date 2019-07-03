@@ -484,7 +484,7 @@ void dot3adNimEventCreateCompletionCallback(NIM_NOTIFY_CB_INFO_t retVal)
       default:
         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DOT3AD_COMPONENT_ID,
                 "%s: notification received for unknown event(%d), intf(%s), reason(%d)\n",
-            __FUNCTION__,retVal.event,ifName,retVal.response.reason);
+            retVal.event,ifName,retVal.response.reason);
         /* only care about create for now */
         break;
     }

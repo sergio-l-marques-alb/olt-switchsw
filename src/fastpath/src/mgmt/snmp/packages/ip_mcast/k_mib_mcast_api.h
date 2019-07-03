@@ -297,19 +297,19 @@ snmpMcastMrouteBoundaryStatusSet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_uin
   if(L7_SUCCESS != inetAddressSet(L7_AF_INET, &ipMask, &inetSrcMask))
     return L7_FAILURE;
 
-  switch (val)
-  {
-      case D_ipMRouteBoundaryStatus_active:
-      case D_ipMRouteBoundaryStatus_createAndGo:
-           rc = usmDbMcastMrouteBoundaryAdd(UnitIndex, intIfNum, &inetMRtSrc, &inetSrcMask);
-           break;
+    switch (val)
+    {
+        case D_ipMRouteBoundaryStatus_active:
+        case D_ipMRouteBoundaryStatus_createAndGo:
+			 rc = usmDbMcastMrouteBoundaryAdd(UnitIndex, intIfNum, &inetMRtSrc, &inetSrcMask);
+             break;
 
-      case D_ipMRouteBoundaryStatus_destroy:
-           rc = usmDbMcastMrouteBoundaryDelete(UnitIndex, intIfNum, &inetMRtSrc, &inetSrcMask);
-          break;
-      default:
-           rc = L7_FAILURE;
-  }
+        case D_ipMRouteBoundaryStatus_destroy:
+             rc = usmDbMcastMrouteBoundaryDelete(UnitIndex, intIfNum, &inetMRtSrc, &inetSrcMask);
+	        break;
+        default:
+             rc = L7_FAILURE;
+    }
 
   return rc;
 }

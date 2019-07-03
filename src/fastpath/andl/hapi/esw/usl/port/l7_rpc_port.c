@@ -19,11 +19,6 @@
 *
 **********************************************************************/
 
-#if (__GNUC__ >= 6) /* PTin added */
-#pragma GCC diagnostic ignored "-Waggressive-loop-optimizations"
-#endif
-
-
 #include "l7_common.h"
 #include "log.h"
 #include "sysapi_hpc.h"

@@ -3390,8 +3390,7 @@ static void snoopMgmdSwitchPortOpenProcess(L7_uint32 serviceId, L7_uint32 intIfN
     if( rc != L7_NOT_EXIST)
     {
       if (ptin_debug_igmp_snooping)
-        PT_LOG_ERR(LOG_CTX_IGMP, "Unable to get mcastRootVlan [serviceId:%u portId:%u groupAddr:%s sourceAddr:%s isStatic:%s isProtection:%s]",
-                   serviceId, intIfNum, groupAddrStr, sourceAddrStr, isStatic?"Yes":"No", isProtection?"Yes":"No");
+        PT_LOG_ERR(LOG_CTX_IGMP, "Unable to get mcastRootVlan [serviceId:%u portId:%u groupAddr:%s sourceAddr:%s isStatic:%s isProtection:%s]", mcastRootVlan, serviceId, intIfNum, groupAddrStr, sourceAddrStr, isStatic?"Yes":"No", isProtection?"Yes":"No");
       return;
     }
     if (ptin_debug_igmp_snooping)

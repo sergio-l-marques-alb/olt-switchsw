@@ -94,11 +94,7 @@ static dot3ad_mux_machine_state_t muxStateTable[lacpMuxEvents-lacpPerEvents][MUX
 extern L7_uint32 dot3adBufferPoolId;
 
 static unsigned short int ptin_debug_lacp = 0;
-
-static inline void ptin_debug_lacp_set(unsigned short int enable)
-{
-  ptin_debug_lacp = enable;
-};
+inline void ptin_debug_lacp_set(unsigned short int enable){ptin_debug_lacp = enable;};
 
 /**************************************************************************
 *

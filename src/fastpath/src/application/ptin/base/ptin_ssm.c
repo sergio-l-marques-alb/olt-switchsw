@@ -615,7 +615,7 @@ L7_RC_t ssmPDUProcess(L7_uint32 intf, void *buffer)
 
   if (itu_oui != SSM_ITU_OUI)
   {
-    PT_LOG_ERR(LOG_CTX_SSM,"ITU-T field is not valid: received=0x%x, expected=0x%lx",itu_oui,SSM_ITU_OUI);
+    PT_LOG_ERR(LOG_CTX_SSM,"ITU-T field is not valid: received=0x%x, expected=0x%x",itu_oui,SSM_ITU_OUI);
     bufferPoolFree(ssmBufferPoolId,  buffer);
     return L7_FAILURE;
   }

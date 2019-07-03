@@ -5976,13 +5976,11 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       msgId == CCMSG_MGMD_PORT_SYNC || 
       msgId == CCMSG_APPLICATION_RESOURCES)
   {
-    PT_LOG_TRACE(LOG_CTX_MSGHANDLER,"Message processed: 0x%04X in %u usec [response:%u (bytes) rc=%u res=0x%08x]",
-                 msgId, time_delta, outbuffer->infoDim, rc, res);    
+    PT_LOG_TRACE(LOG_CTX_MSGHANDLER,"Message processed: 0x%04X in %lu usec [response:%u (bytes) rc=%u res=0x%08x]", msgId, outbuffer->infoDim, time_delta, rc, res);
   }
   else
   {
-    PT_LOG_INFO(LOG_CTX_MSGHANDLER,"Message processed: 0x%04X in %u usec  [response:%u (bytes) rc=%u res=0x%08x]",
-                msgId, time_delta, outbuffer->infoDim, rc, res);
+    PT_LOG_INFO(LOG_CTX_MSGHANDLER,"Message processed: 0x%04X in %lu usec  [response:%u (bytes) rc=%u res=0x%08x]", msgId, outbuffer->infoDim, time_delta, rc, res);
   }
 
   /* Message Runtime Meter */

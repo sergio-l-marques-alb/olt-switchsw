@@ -512,7 +512,7 @@ word    F_AddByteToStart( void *p_Frame, byte data)
       {
          /* first buffer has enough space to prepend data */
          frame->frameLen++;
-         (void)B_AddByteToStart( buffer, data );
+         B_AddByteToStart( buffer, data );
          return TRUE;
       }
       p = &buffer->prev;
@@ -527,7 +527,7 @@ word    F_AddByteToStart( void *p_Frame, byte data)
    frame->firstBuf = buffer;
    buffer->useCount = useCount;
    frame->frameLen++;
-   (void)B_AddByteToStart( buffer, data );
+   B_AddByteToStart( buffer, data );
    return TRUE;
 }
 
@@ -654,7 +654,7 @@ word    F_AddByteToEnd( void *p_Frame, byte data)
       {
          /* last buffer has enough space to pospend data */
          frame->frameLen++;
-         (void)B_AddByteToEnd( buffer, data );
+         B_AddByteToEnd( buffer, data );
          return TRUE;
       }
    }
@@ -667,7 +667,7 @@ word    F_AddByteToEnd( void *p_Frame, byte data)
    *p = buf;
    frame->frameLen++;
    buf->prev = buffer;
-   (void)B_AddByteToEnd( buf, data );
+   B_AddByteToEnd( buf, data );
    return TRUE;
 }
 

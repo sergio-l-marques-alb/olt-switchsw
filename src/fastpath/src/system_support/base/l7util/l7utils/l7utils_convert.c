@@ -293,11 +293,11 @@ L7_RC_t l7utilsBitMaskToLeadingOnesCount(L7_uchar8 *pByteArray, L7_uint32 arrayL
 
 L7_uint32 l7utilsBytesToInt(L7_char8 *b)
 {
-//#ifdef PC_LINUX_HOST
+#ifdef PC_LINUX_HOST
   return b[0]<<24 | (b[1]&0xff)<<16 | (b[2]&0xff)<<8 | (b[3]&0xff);
-//#else
-//  return *b<<24 | ((*++b)&0xff)<<16 | ((*++b)&0xff)<<8 | ((*++b)&0xff);
-//#endif
+#else
+  return *b<<24 | ((*++b)&0xff)<<16 | ((*++b)&0xff)<<8 | ((*++b)&0xff);
+#endif
 }
 
 void l7utilsIntToBytes(L7_char8 *b, L7_uint32 i)

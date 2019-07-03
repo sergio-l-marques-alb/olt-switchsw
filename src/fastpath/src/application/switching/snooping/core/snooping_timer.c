@@ -243,7 +243,7 @@ void snoopTimerUpdate(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum,
                             != L7_SUCCESS)
       {
         L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
-               "snoopTimerUpdate: Failed to re-start mrtr timer\n");
+               "snoopTimerUpdate: Failed to re-start mrtr timer\n", timerValue);
       }
     }/* End of mrtr timer data validity check */
   }/* End of timer type check */

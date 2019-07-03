@@ -230,10 +230,10 @@ aclEntry_undo(doList_t *doHead, doList_t *doCur,
     if (data->aclStatus == D_aclStatus_destroy)
       return NO_ERROR;
 
-    /* undoing an add, so delete */
-    data->aclStatus = D_aclStatus_destroy;
-    setdata = data;
-    function = SR_DELETE;
+      /* undoing an add, so delete */
+      data->aclStatus = D_aclStatus_destroy;
+      setdata = data;
+      function = SR_DELETE;
   }
   else
   {
@@ -471,10 +471,10 @@ aclIfEntry_undo(doList_t *doHead, doList_t *doCur,
     if (data->aclIfStatus == D_aclIfStatus_destroy)
       return NO_ERROR;
 
-    /* undoing an add, so delete */
-    data->aclIfStatus = D_aclIfStatus_destroy;
-    setdata = data;
-    function = SR_DELETE;
+      /* undoing an add, so delete */
+      data->aclIfStatus = D_aclIfStatus_destroy;
+      setdata = data;
+      function = SR_DELETE;
   }
   else
   {
@@ -1133,10 +1133,10 @@ aclRuleEntry_undo(doList_t *doHead, doList_t *doCur,
     if (data->aclRuleStatus == D_aclRuleStatus_destroy)
       return NO_ERROR;
 
-    /* undoing an add, so delete */
-    data->aclRuleStatus = D_aclRuleStatus_destroy;
-    setdata = data;
-    function = SR_DELETE;
+      /* undoing an add, so delete */
+      data->aclRuleStatus = D_aclRuleStatus_destroy;
+      setdata = data;
+      function = SR_DELETE;
   }
   else
   {
@@ -1415,10 +1415,10 @@ aclMacEntry_undo(doList_t *doHead, doList_t *doCur,
     if (data->aclMacStatus == D_aclMacStatus_destroy)
       return NO_ERROR;
 
-    /* undoin g an add, so delete */
-    data->aclMacStatus = D_aclMacStatus_destroy;
-    setdata = data;
-    function = SR_DELETE;
+      /* undoin g an add, so delete */
+      data->aclMacStatus = D_aclMacStatus_destroy;
+      setdata = data;
+      function = SR_DELETE;
   }
   else
   {
@@ -2069,10 +2069,10 @@ aclMacRuleEntry_undo(doList_t *doHead, doList_t *doCur,
     if (data->aclMacRuleStatus == D_aclMacRuleStatus_destroy)
       return NO_ERROR;
 
-    /* undoing an add, so delete */
-    data->aclMacRuleStatus = D_aclMacRuleStatus_destroy;
-    setdata = data;
-    function = SR_DELETE;
+      /* undoing an add, so delete */
+      data->aclMacRuleStatus = D_aclMacRuleStatus_destroy;
+      setdata = data;
+      function = SR_DELETE;
   }
   else
   {

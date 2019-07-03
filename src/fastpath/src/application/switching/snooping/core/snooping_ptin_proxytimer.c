@@ -521,7 +521,7 @@ L7_RC_t snoop_ptin_proxytimer_start(snoopPTinProxyTimer_t* pTimer, L7_uint32 tim
     PT_LOG_DEBUG(LOG_CTX_IGMP,"Starting Proxy Group timer (timeout:%u group:%s)",timeout,
               inetAddrPrint(&pTimer->(snoopPTinProxyGroup_t*)(groupData)->key.groupAddr, debug_buf));
 #else
-    PT_LOG_DEBUG(LOG_CTX_IGMP,"Starting Proxy Group timer (timeout:%u",timeout);
+    PT_LOG_DEBUG(LOG_CTX_IGMP,"Starting Proxy Group timer (timeout:%u groupRecord:%u",timeout);
 #endif
   }
 
@@ -555,7 +555,7 @@ L7_RC_t snoop_ptin_proxytimer_start(snoopPTinProxyTimer_t* pTimer, L7_uint32 tim
     }
     pTimer->timer = L7_NULLPTR;
     handleListNodeDelete(handleList, &pTimer->timerHandle);
-    memset(pTimer, 0x00, sizeof(*pTimer));
+    memset(pTimer, 0x00, sizeof(pTimer));
     osapiSemaGive(timerSem);
     PT_LOG_WARN(LOG_CTX_IGMP,"Could not add new timer data node");
     return L7_FAILURE;

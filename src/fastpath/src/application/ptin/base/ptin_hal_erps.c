@@ -583,6 +583,8 @@ L7_RC_t ptin_hal_erps_clear(void)
   L7_uint8 erps_idx;
   L7_RC_t  ret = L7_SUCCESS;
 
+  PT_LOG_TRACE(LOG_CTX_ERPS, "");
+
   for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++) {
     if ((ret=ptin_hal_erps_entry_deinit(erps_idx))!=L7_SUCCESS) {
       PT_LOG_ERR(LOG_CTX_ERPS, "ERROR: (%d) while removing ERPS#%d\n\r", ret, erps_idx);

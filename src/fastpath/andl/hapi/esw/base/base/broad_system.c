@@ -4179,7 +4179,7 @@ L7_RC_t hapiBroadConfigDhcpV4TrapAll(DAPI_t *dapi_g, BROAD_POLICY_t *policy_id)
     result = hapiBroadPolicyCreate(policyType);
     if (result != L7_SUCCESS) break;
 
-    PT_LOG_TRACE(LOG_CTX_HAPI, "Policy created");
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Policy of cell %u created", index);
 
     /* give dhcp frames high priority and trap to the CPU. */
 
@@ -4237,7 +4237,7 @@ L7_RC_t hapiBroadConfigDhcpV4TrapAll(DAPI_t *dapi_g, BROAD_POLICY_t *policy_id)
 
     if (result == L7_SUCCESS)
     {
-      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", policyId);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", *policy_id);
     }
     else
     {
@@ -4315,7 +4315,7 @@ L7_RC_t hapiBroadConfigDhcpV6Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     if (result != L7_SUCCESS)
       break;
 
-    PT_LOG_TRACE(LOG_CTX_HAPI, "Policy created");
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Policy of cell %u created", index);
 
     /* Rate limit */
     if (PTIN_VLAN_IS_QUATTRO(vlanId))
@@ -4400,7 +4400,7 @@ L7_RC_t hapiBroadConfigDhcpV6Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
 
     if (result == L7_SUCCESS)
     {
-      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", policyId);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", *policy_id);
     }
     else
     {
@@ -4475,7 +4475,7 @@ L7_RC_t hapiBroadConfigDhcpV6TrapAll(DAPI_t *dapi_g, BROAD_POLICY_t *policy_id)
     result = hapiBroadPolicyCreate(policyType);
     if (result != L7_SUCCESS) break;
 
-    PT_LOG_TRACE(LOG_CTX_HAPI, "Policy created");
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Policy of cell %u created", index);
 
     /* give dhcp frames high priority and trap to the CPU. */
 
@@ -4531,7 +4531,7 @@ L7_RC_t hapiBroadConfigDhcpV6TrapAll(DAPI_t *dapi_g, BROAD_POLICY_t *policy_id)
 
     if (result == L7_SUCCESS)
     {
-      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", policyId);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", *policy_id);
     }
     else
     {
@@ -4594,7 +4594,7 @@ L7_RC_t hapiBroadConfigPPPoETrap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t 
     if (result != L7_SUCCESS)
       break;
 
-    PT_LOG_TRACE(LOG_CTX_HAPI, "Policy created");
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Policy of cell %u created", index);
 
     /* Rate limit */
     if (PTIN_VLAN_IS_QUATTRO(vlanId))
@@ -4638,7 +4638,7 @@ L7_RC_t hapiBroadConfigPPPoETrap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t 
 
     if (result == L7_SUCCESS)
     {
-      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", policyId);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", *policy_id);
     }
     else
     {
@@ -4696,7 +4696,7 @@ L7_RC_t hapiBroadConfigPPPoETrapAll(DAPI_t *dapi_g,
     if (result != L7_SUCCESS)
       break;
 
-    PT_LOG_TRACE(LOG_CTX_HAPI, "Policy created");
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Policy of cell %u created", index);
 
     meterInfo = ptin_components_meter.pppoe;
  
@@ -4728,7 +4728,7 @@ L7_RC_t hapiBroadConfigPPPoETrapAll(DAPI_t *dapi_g,
 
     if (result == L7_SUCCESS)
     {
-      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", policyId);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", *policy_id);
     }
     else
     {
@@ -4855,7 +4855,7 @@ L7_RC_t hapiBroadConfigApsTrap(/*DAPI_USP_t *usp,*/ L7_uint16 vlanId, L7_uint16 
 
     if (result == L7_SUCCESS)
     {
-      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", policyId);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", *policy_id);
     }
     else
     {
@@ -4977,7 +4977,7 @@ L7_RC_t hapiBroadConfigIpDtl0Trap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_uch
 
     if (result == L7_SUCCESS)
     {
-      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", policyId);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", *policy_id);
     }
     else
     {
@@ -5029,7 +5029,7 @@ L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
   L7_uint16               vlan_match = 0xfff;
   BROAD_METER_ENTRY_t     meterInfo;
   BROAD_POLICY_TYPE_t     policyType = BROAD_POLICY_TYPE_SYSTEM;
-  L7_uint32 index, ccm_index, ccm_index_free;
+  L7_ulong32 index, ccm_index, ccm_index_free;
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "Starting CCM trapping processing\tenable=%d\tvlanId=%u\toam_level=%u", enable, vlanId, oam_level);
 
@@ -7022,7 +7022,7 @@ L7_RC_t hapiBroadIntfFiberDiagTest(DAPI_USP_t *usp,
     else
     {
       L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_DRIVER_COMPONENT_ID, 
-              "\n%s %d: %s(usp=%d.%d.%d, cmd=%d) - Invalid getOrSet Command = %d\n",
+              "\n%s %d: %s(usp=%d.%d.%d, cmd=%d) - Invalid getOrSet Command = %d\n"
               __FILE__, __LINE__, __func__, usp->unit, usp->slot, usp->port, cmd, result);
     }
   }

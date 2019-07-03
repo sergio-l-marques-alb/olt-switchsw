@@ -141,7 +141,6 @@ extern void hpcDebugBcmCpudbShow();
  * We need these routines only when BCM shell is not included.
  */
 
-#if 0
 /*
  * Convert hex digit to hex character and vice-versa
  */
@@ -250,7 +249,6 @@ format_uint64(char *buf, uint64 n)
 
   format_long_integer(buf, val, 2);
 }
-#endif
 #endif
 
 /*********************************************************************

@@ -2187,7 +2187,7 @@ L7_BOOL ptin_evc_intf_isRoot(L7_uint16 intVlan, L7_uint32 intIfNum)
   /* Get interface configuration */
   if (ptin_evc_intf_type_get(intVlan, intIfNum, &intf_type)!=L7_SUCCESS)
   {
-    PT_LOG_WARN(LOG_CTX_DHCP, "Error acquiring from internalVid %u and intIfNum %u", intVlan, intIfNum);
+    PT_LOG_WARN(LOG_CTX_DHCP, "Error acquiring interface %u/%u type from internalVid %u and intIfNum %u", intVlan, intIfNum);
     return L7_FALSE;
   }
   if(intf_type == PTIN_EVC_INTF_ROOT)
@@ -4712,7 +4712,7 @@ int intf_vp_DB(int _0init_1insert_2remove_3find, intf_vp_entry_t *entry)
          if (i*i>=intf_vp_modu) break;
          intf_vp_modu++;
      }
-     PT_LOG_INFO(LOG_CTX_EVC, "IfN_vp_DB init(%d)\tN=%d\tmodu=%lu\tL7_MAX_INTERFACE_COUNT=%d", _0init_1insert_2remove_3find, INTF_VP_MAX, intf_vp_modu, L7_MAX_INTERFACE_COUNT);
+     PT_LOG_INFO(LOG_CTX_EVC, "IfN_vp_DB init(%d)\tN=%lu\tmodu=%lu\tL7_MAX_INTERFACE_COUNT=%lu", _0init_1insert_2remove_3find, INTF_VP_MAX, intf_vp_modu, L7_MAX_INTERFACE_COUNT);
      break;
   case 1:
   case 2:
@@ -4932,7 +4932,7 @@ static int intf_vp_policer(intf_vp_entry_t *intf_vp, ptin_bw_meter_t *meter)
     /* Check if policer exists */
     if (!intf_vp->policer.in_use)
     {
-      PT_LOG_WARN(LOG_CTX_L2, "vport 0x%lx already does not have policer", intf_vp->vport_id);
+      PT_LOG_WARN(LOG_CTX_L2, "vport 0x%x already does not have policer", intf_vp->vport_id);
       return L7_SUCCESS;
     }
 
@@ -5004,7 +5004,7 @@ static int intf_vp_policer(intf_vp_entry_t *intf_vp, ptin_bw_meter_t *meter)
   /* If success... */
   if (rc == L7_SUCCESS)
   {
-    PT_LOG_TRACE(LOG_CTX_L2, "Success updating policer to virtual port 0x%08lx",intf_vp->vport_id);
+    PT_LOG_TRACE(LOG_CTX_L2, "Success updating policer to virtual port 0x%08x",intf_vp->vport_id);
 
     /* Remove policer, if it was that intention */
     if (meter == L7_NULLPTR || meter->cir == (L7_uint32)-1)
@@ -5032,7 +5032,7 @@ static int intf_vp_policer(intf_vp_entry_t *intf_vp, ptin_bw_meter_t *meter)
   }
   else
   {
-    PT_LOG_ERR(LOG_CTX_L2, "Error updating policer to virtual port 0x%08lx",intf_vp->vport_id);
+    PT_LOG_ERR(LOG_CTX_L2, "Error updating policer to virtual port 0x%08x",intf_vp->vport_id);
   }
 
   PT_LOG_TRACE(LOG_CTX_EVC,"Finished");
@@ -5069,7 +5069,7 @@ L7_RC_t ptin_evc_macbridge_client_packages_add(ptin_evc_macbridge_client_package
   /* Input Argument validation */
   if ( ecvFlow  == L7_NULLPTR)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "Invalid arguments");    
+    PT_LOG_ERR(LOG_CTX_EVC, "Invalid arguments [msg:%p noOfMessages:%u]",ecvFlow);    
     return L7_FAILURE;
   }
   
@@ -5177,7 +5177,7 @@ L7_RC_t ptin_evc_macbridge_client_packages_remove(ptin_evc_macbridge_client_pack
   /* Input Argument validation */
   if ( ecvFlow  == L7_NULLPTR)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_EVC, "Invalid arguments [msg:%p noOfMessages:%u]",ecvFlow);    
     return L7_FAILURE;
   }
 
@@ -5547,18 +5547,15 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
     dl_queue_add_tail(&evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t*) pflow); /* add it to the corresponding interface */
     evcs[evc_id].n_clientflows++;
 
-    PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u: flow successfully added (vport_id=%d\tpon=%u/%u(%u)\tgem_id=%u\tvirtual_gport=0x%8.8x)",
+    PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u: flow successfully added (vport_id=%lu\tpon=%u/%u(%lu)\tgem_id=%u\tvirtual_gport=0x%8.8lx)",
              evc_ext_id,
              vport_id & 0xffffff,
-             evcFlow->ptin_intf.intf_type,
-             evcFlow->ptin_intf.intf_id,
-             intIfNum,
-             evcFlow->uni_ovid,
-             vport_id);
+             evcFlow->ptin_intf.intf_type,evcFlow->ptin_intf.intf_id, intIfNum,
+             evcFlow->uni_ovid, vport_id);
   }
   else
   {
-    PT_LOG_WARN(LOG_CTX_EVC, "EVC# %u: GEM id already exists", evc_id);
+    PT_LOG_WARN(LOG_CTX_EVC, "EVC# %u: GEM id already exists", evc_id, evcFlow->uni_ovid, leaf_port);
   }
 
   /* Protocols */
@@ -9600,7 +9597,7 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
       if (rc != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: error removing Mgmd Port [extended_id=%u intIfNum=%u]",
-                evc_id, evcs[evc_id].extended_id, intIfNum);
+                evcs[evc_id].extended_id, intIfNum);
   //    return rc;
       }
       else
@@ -11321,8 +11318,8 @@ static L7_RC_t switching_elan_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_out_
     rc = ptin_xlate_egress_delete(intIfNum, int_vlan, leaf_inner_vlan);
     if (rc != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_EVC, "Error deleting intfIfNum %u xlate Egress entry [Root Int.VLAN %u + Inn.VLAN %u (rc=%d)",
-              intIfNum, int_vlan, leaf_inner_vlan, rc);
+      PT_LOG_ERR(LOG_CTX_EVC, "Error deleting intf %u xlate Egress entry [Root Int.VLAN %u + Inn.VLAN %u (rc=%d)",
+              leaf_intf, int_vlan, leaf_inner_vlan, leaf_out_vlan, rc);
       return rc;
     }
   }
@@ -11421,8 +11418,8 @@ static L7_RC_t switching_mcevc_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_out
     rc = ptin_xlate_egress_delete(intIfNum, int_vlan, 0); 
     if (rc != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_EVC, "Error deleting intfIfNum %u xlate Egress entry [Root Int.VLAN %u (rc=%d)",
-              intIfNum, int_vlan, rc);
+      PT_LOG_ERR(LOG_CTX_EVC, "Error deleting intf %u xlate Egress entry [Root Int.VLAN %u (rc=%d)",
+              leaf_intf, int_vlan, leaf_out_vlan, rc);
       return rc;
     }
   }
@@ -12326,7 +12323,7 @@ L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *profile)
               PT_LOG_ERR(LOG_CTX_EVC,"OVid_in %u does not match to the one in EVC client (%u)", profile->outer_vlan_lookup, pclientFlow->uni_ovid);
               return L7_FAILURE;
             }
-            PT_LOG_TRACE(LOG_CTX_EVC,"OVid_in %u verified for client %u", profile->outer_vlan_lookup, profile->inner_vlan_ingress);
+            PT_LOG_TRACE(LOG_CTX_EVC,"OVid_in %u verified for client %u",ptin_port,profile->outer_vlan_lookup,profile->inner_vlan_ingress);
           }
           /* Removed: for non QUATTRO services, these vlans should be null */
           //profile->outer_vlan_out = pclientFlow->uni_ovid;
@@ -12489,7 +12486,7 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_id, ptin_evcStats_profile_t 
             PT_LOG_ERR(LOG_CTX_EVC,"OVid_in %u does not match to the one in EVC client (%u)",profile->outer_vlan_lookup,pclientFlow->uni_ovid);
             return L7_FAILURE;
           }
-          PT_LOG_TRACE(LOG_CTX_EVC,"OVid_in %u verified for client %u", profile->outer_vlan_lookup, profile->inner_vlan_ingress);
+          PT_LOG_TRACE(LOG_CTX_EVC,"OVid_in %u verified for client %u",ptin_port,profile->outer_vlan_lookup,profile->inner_vlan_ingress);
         }
         profile->outer_vlan_egress = pclientFlow->uni_ovid;
         profile->inner_vlan_egress = 0;                /* No need to consider inner vlan at the egress */

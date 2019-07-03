@@ -5369,7 +5369,7 @@ const L7_char8 *cliShowRunningConfig(EwsContext ewsContext,
   {
     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_CLI_WEB_COMPONENT_ID,
            "Failed to take cliRunCfgSemaphore %x\n",
-            (int)cliRunCfgSema);
+            cliRunCfgSema);
   }
 
   prompt = cliShowRunningConfigGenerate(ewsContext, argv, numArg, chkFile);
@@ -5378,7 +5378,7 @@ const L7_char8 *cliShowRunningConfig(EwsContext ewsContext,
   {
     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_CLI_WEB_COMPONENT_ID,
             "Failed to give cliRunCfgSema %x\n",
-            (int)cliRunCfgSema);
+            cliRunCfgSema);
   }
 
   return prompt;

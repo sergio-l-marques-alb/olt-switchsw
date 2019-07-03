@@ -1558,7 +1558,7 @@ static L7_RC_t ipMapIntfDisable(L7_uint32 intIfNum)
   return rc;
 }
 
-L7_RC_t ptin_ipMapRoutingIntfCreate(L7_uint32 intIfNum)
+L7_RC_t ptin_ipMapRoutingIntfCreate(intIfNum)
 {
   return ipMapRoutingIntfCreate(intIfNum);
 }
@@ -3435,13 +3435,13 @@ L7_RC_t ipMapRtrIntfSecondaryIpAddressRemoveApply(L7_uint32 intIfNum, L7_uint32 
   if (!ipMapMapIntfIsConfigurable(intIfNum, &pCfg))
     return L7_FAILURE;
 
-  if (ipMapTraceFlags & IPMAP_TRACE_SECONDARY)
-  {
-      L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
-      sprintf(traceBuf, "ipMapRtrIntfSecondaryIpAddressRemoveApply: intIfNum %d\n",
-          intIfNum);
-      ipMapTraceWrite(traceBuf);
-  }
+    if (ipMapTraceFlags & IPMAP_TRACE_SECONDARY)
+    {
+        L7_uchar8 traceBuf[IPMAP_TRACE_LEN_MAX];
+        sprintf(traceBuf, "ipMapRtrIntfSecondaryIpAddressRemoveApply: intIfNum %d\n",
+            intIfNum);
+        ipMapTraceWrite(traceBuf);
+    }
 
   /* De-activate static routes and static ARP entries on this subnet. */
   ipMapRtrIntfStaticConfigRemoveApply(intIfNum, ipAddr, ipMask);

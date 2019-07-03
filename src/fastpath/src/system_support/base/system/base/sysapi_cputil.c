@@ -73,7 +73,7 @@ void sysapiCpuUtilLockTake(void)
   if (osapiSemaTake(sysapiCpuUtilTblSema, L7_WAIT_FOREVER) != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_OSAPI_COMPONENT_ID,
-            "Failed to take cpuUtilSema %x\n", (int)sysapiCpuUtilTblSema);
+            "Failed to take cpuUtilSema %x\n", sysapiCpuUtilTblSema);
   }
 }
 
@@ -95,7 +95,7 @@ void sysapiCpuUtilLockGive(void)
   if (osapiSemaGive(sysapiCpuUtilTblSema) != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_OSAPI_COMPONENT_ID,
-            "Failed to give cpuUtilSema %x\n", (int)sysapiCpuUtilTblSema);
+            "Failed to give cpuUtilSema %x\n", sysapiCpuUtilTblSema);
   }
 }
 

@@ -391,7 +391,7 @@ L7_RC_t boxsApiTempStatusTrapEnableGet(L7_BOOL *enable)
   if (boxsCfg == L7_NULLPTR)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_BOX_SERVICES_COMPONENT_ID,
-            "invalid value %d\n", (int)enable);
+            "invalid value %d\n",enable);
     return L7_FAILURE;
   }
   /* we don't need any sync for read operation */
@@ -417,7 +417,7 @@ L7_RC_t boxsApiFanStatusTrapEnableGet(L7_BOOL *enable)
   if (boxsCfg == L7_NULLPTR)
   {
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_BOX_SERVICES_COMPONENT_ID,
-              "invalid value %d\n", (int)enable);
+              "invalid value %d\n",enable);
     return L7_FAILURE;
   }
   /* we don't need any sync for read operation */
@@ -443,7 +443,7 @@ L7_RC_t boxsApiPowSupplyStatusTrapEnableGet(L7_BOOL *enable)
   if (boxsCfg == L7_NULLPTR)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_BOX_SERVICES_COMPONENT_ID,
-            "box services configuration: null pointer\n");
+            "box services configuration: null pointer\n",enable);
     return L7_FAILURE;
   }
   /* we don't need any sync for read operation */
@@ -467,7 +467,7 @@ L7_RC_t boxsApiSfpStatusTrapEnableGet(L7_BOOL *enable)
   if (boxsCfg == L7_NULLPTR)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_BOX_SERVICES_COMPONENT_ID,
-            "box services configuration: null pointer\n");
+            "box services configuration: null pointer\n",enable);
     return L7_FAILURE;
   }
   /* we don't need any sync for read operation */
@@ -491,7 +491,7 @@ L7_RC_t boxsApiXfpStatusTrapEnableGet(L7_BOOL *enable)
   if (boxsCfg == L7_NULLPTR)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_BOX_SERVICES_COMPONENT_ID,
-            "box services configuration: null pointer\n");
+            "box services configuration: null pointer\n",enable);
     return L7_FAILURE;
   }
   /* we don't need any sync for read operation */

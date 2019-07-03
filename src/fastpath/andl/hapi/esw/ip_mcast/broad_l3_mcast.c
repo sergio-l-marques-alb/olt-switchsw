@@ -1784,7 +1784,7 @@ L7_RC_t hapiBroadRoutingIntfMcastSnoopAsyncNotifyProcess(L7_uchar8 *mcastMacAddr
         if (dapiCmd->cmdData.mcastModify.outIntfDirection == DAPI_SNOOP_L3_NOTIFY_INGRESS)
         {
           if (memcmp(&(BroadGroupList[tableIndex].rpf_usp),
-                     outRtrPortUsp, sizeof(*outRtrPortUsp)) == 0)
+                     outRtrPortUsp, sizeof(outRtrPortUsp)) == 0)
           {
             if (dapiCmd->cmdData.mcastModify.snoopVlanOperState == L7_TRUE)
             {
@@ -2236,7 +2236,7 @@ L7_RC_t hapiBroadRoutingIntfMcastAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void 
         /* Delete failed; complain */
         L7_LOGF (L7_LOG_SEVERITY_CRITICAL, L7_DRIVER_COMPONENT_ID,
                  "usl_bcmx_ipmc_remove failed: group = %08X, source = %08X, vlan = %5d, rv = %d\n",
-                 groupIp.addr.ipv4.s_addr, srcAddr.addr.ipv4.s_addr, old_vlan_id, rv);
+                       groupIp, srcAddr, old_vlan_id, rv);
       }
       else /* ((L7_BCMX_OK(rv) != L7_TRUE)) */
       {
@@ -2479,7 +2479,7 @@ L7_RC_t hapiBroadRoutingIntfMcastAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
       /* since we just found it, this could indicate problems, but *maybe* not fatal */
       L7_LOGF (L7_LOG_SEVERITY_ALERT, L7_DRIVER_COMPONENT_ID,
                "usl_bcmx_ipmc_remove failed: group = %x, source = %x, vlan = %d, rv = %d\n",
-               groupIp.addr.ipv4.s_addr, srcAddr.addr.ipv4.s_addr, vlan_id, rv);
+               groupIp, srcAddr, vlan_id, rv);
     }
   }
   if (BroadGroupList[table_index].flags & BROAD_GROUP_ENTRY_FLAGS_IN_HW)

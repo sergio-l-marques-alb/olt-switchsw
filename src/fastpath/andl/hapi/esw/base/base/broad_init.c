@@ -2060,7 +2060,7 @@ L7_RC_t hapiBroadPhysicalPortMapGet(L7_ushort16 unitNum, L7_ushort16 slotNum, DA
       HAPI_BROAD_USP_TO_UPORT(&usp,uport);
       bcmx_uport_set(hapiPortPtr->bcmx_lport, uport);
 
-      PT_LOG_INFO(LOG_CTX_STARTUP,"usp={%d,%d,%d} lport=0x%x uport=0x%x",usp.unit, usp.slot, usp.port, hapiPortPtr->bcmx_lport, (L7_uint32) uport);
+      PT_LOG_INFO(LOG_CTX_STARTUP,"usp={%d,%d,%d} lport=0x%x uport=0x%x",usp.unit, usp.slot, usp.port, hapiPortPtr->bcmx_lport, uport);
 
       hapiPortPtr->bcm_modid = BCM_GPORT_MODPORT_MODID_GET (hapiPortPtr->bcmx_lport);
       mod_port               = BCM_GPORT_MODPORT_PORT_GET(hapiPortPtr->bcmx_lport);
@@ -2068,7 +2068,7 @@ L7_RC_t hapiBroadPhysicalPortMapGet(L7_ushort16 unitNum, L7_ushort16 slotNum, DA
       if ((hapiPortPtr->bcm_modid == HAPI_BROAD_INVALID_MODID) ||
           (mod_port == HAPI_BROAD_INVALID_MODPORT))
       {
-        PT_LOG_ERR(LOG_CTX_STARTUP,"Invalid usp={%d,%d,%d} lport=0x%x uport=0x%x\r\n",usp.unit, usp.slot, usp.port, hapiPortPtr->bcmx_lport, (L7_uint32) uport);
+        PT_LOG_ERR(LOG_CTX_STARTUP,"Invalid usp={%d,%d,%d} lport=0x%x uport=0x%x\r\n",usp.unit, usp.slot, usp.port, hapiPortPtr->bcmx_lport, uport);
         L7_LOG_ERROR(0);
       }
 
@@ -2334,7 +2334,7 @@ L7_RC_t hapiBroadBcmxRegisterUnit(L7_ushort16 unitNum,L7_ushort16 slotNum, DAPI_
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DRIVER_COMPONENT_ID,
-              "Driver: Failed to attach card %d/%d at linkscan, error code %d\n", 
+              "Driver: Failed to attach card %s/%d at linkscan, error code %d\n", 
               unitNum, slotNum, rv);
       result = L7_FAILURE;
       return result;
@@ -2344,7 +2344,7 @@ L7_RC_t hapiBroadBcmxRegisterUnit(L7_ushort16 unitNum,L7_ushort16 slotNum, DAPI_
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DRIVER_COMPONENT_ID,
-              "Driver: Failed to attach card %d/%d in rx subsystem, error code %d\n", 
+              "Driver: Failed to attach card %s/%d in rx subsystem, error code %d\n", 
               unitNum, slotNum, rv);
       result = L7_FAILURE;
       return result;

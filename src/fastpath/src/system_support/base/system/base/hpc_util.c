@@ -1384,7 +1384,7 @@ void hpcDebugBcastMsgSend(void)
   hpcBroadcastMessageSend(test_registrarID, sizeof(payload), payload);
 }
 
-void hpcDebugMsgSend(int unit)
+void hpcDebugMsgSend(unit)
 {
   L7_uchar8 payload[] = "hpcDebugMsgSend test msg";
 

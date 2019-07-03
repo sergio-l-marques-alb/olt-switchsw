@@ -2317,60 +2317,60 @@ L7_RC_t ospfMapExtenIfStatusSet(L7_uint32 intIfNum, L7_int32 val)
    * and compile only the enabled addresses on the interface
    * and inform the vendor code.
    */
-  if ((p_IFO = ifoPtrGet(intIfNum)) == NULL)
-  {
-      return L7_ERROR;
-  }
+    if ((p_IFO = ifoPtrGet(intIfNum)) == NULL)
+    {
+        return L7_ERROR;
+    }
 
-  memcpy(&ifoCfg, &p_IFO->Cfg, sizeof(t_IFO_Cfg));
+    memcpy(&ifoCfg, &p_IFO->Cfg, sizeof(t_IFO_Cfg));
   memcpy((L7_char8 *)prevAddrs, (L7_char8 *)ifoCfg.addrs,
          L7_L3_NUM_IP_ADDRS*sizeof(L7_rtrIntfIpAddr_t));
 
-  if (ipMapRtrIntfIpAddrListGet(intIfNum, addrs) == L7_SUCCESS)
-  {
-  ifoCfg.DupNet[0] = 0;
-  memset((L7_char8 *)ifoCfg.addrs, 0,
-             L7_L3_NUM_IP_ADDRS*(sizeof(L7_rtrIntfIpAddr_t)));
-
-  memcpy((L7_char8 *)(&ifoCfg.addrs[0]), (L7_char8 *)(&addrs[0]),
-         sizeof(L7_rtrIntfIpAddr_t));
-
-  ospfMapIntfEffectiveSecondariesFlagGet(intIfNum, &secondariesFlag);
-  for (i = 1; i < L7_L3_NUM_IP_ADDRS; i++)
-      {
-          ifoCfg.DupNet[i] = 0;
-    if(secondariesFlag & (1<<i))
+    if (ipMapRtrIntfIpAddrListGet(intIfNum, addrs) == L7_SUCCESS)
     {
-      j++;
-      memcpy((L7_char8 *)(&ifoCfg.addrs[j]), (L7_char8 *)(&addrs[i]),
-             sizeof(L7_rtrIntfIpAddr_t));
-    }
-      }
+    ifoCfg.DupNet[0] = 0;
+    memset((L7_char8 *)ifoCfg.addrs, 0,
+               L7_L3_NUM_IP_ADDRS*(sizeof(L7_rtrIntfIpAddr_t)));
 
-      for (i = 0; i < L7_L3_NUM_IP_ADDRS - 1; i++)
+    memcpy((L7_char8 *)(&ifoCfg.addrs[0]), (L7_char8 *)(&addrs[0]),
+           sizeof(L7_rtrIntfIpAddr_t));
+
+    ospfMapIntfEffectiveSecondariesFlagGet(intIfNum, &secondariesFlag);
+    for (i = 1; i < L7_L3_NUM_IP_ADDRS; i++)
+        {
+            ifoCfg.DupNet[i] = 0;
+      if(secondariesFlag & (1<<i))
       {
-          if (addrs[i].ipAddr == 0)
-          {
-              continue;
-          }
-
-          ipNet1 = addrs[i].ipAddr & addrs[i].ipMask;
-          for (j = i+1; j < L7_L3_NUM_IP_ADDRS; j++)
-          {
-              if (addrs[j].ipAddr == 0)
-              {
-                  continue;
-              }
-
-              ipNet2 = addrs[j].ipAddr & addrs[j].ipMask;
-
-              if (ipNet2 == ipNet1)
-              {
-                  ifoCfg.DupNet[j] = 1;
-              }
-          }
+        j++;
+        memcpy((L7_char8 *)(&ifoCfg.addrs[j]), (L7_char8 *)(&addrs[i]),
+               sizeof(L7_rtrIntfIpAddr_t));
       }
-  }
+        }
+
+        for (i = 0; i < L7_L3_NUM_IP_ADDRS - 1; i++)
+        {
+            if (addrs[i].ipAddr == 0)
+            {
+                continue;
+            }
+
+            ipNet1 = addrs[i].ipAddr & addrs[i].ipMask;
+            for (j = i+1; j < L7_L3_NUM_IP_ADDRS; j++)
+            {
+                if (addrs[j].ipAddr == 0)
+                {
+                    continue;
+                }
+
+                ipNet2 = addrs[j].ipAddr & addrs[j].ipMask;
+
+                if (ipNet2 == ipNet1)
+                {
+                    ifoCfg.DupNet[j] = 1;
+                }
+            }
+        }
+    }
 
   /* There is no change in the set of addresses
    * to be informed to the vendor code
@@ -2379,49 +2379,49 @@ L7_RC_t ospfMapExtenIfStatusSet(L7_uint32 intIfNum, L7_int32 val)
      L7_L3_NUM_IP_ADDRS*sizeof(L7_rtrIntfIpAddr_t)) == 0)
     return L7_SUCCESS;
 
-  switch (val)
-  {
-      case L7_OSPF_ROW_ACTIVE:
-          parm = ROW_ACTIVE;
-          break;
+    switch (val)
+    {
+        case L7_OSPF_ROW_ACTIVE:
+            parm = ROW_ACTIVE;
+            break;
 
-      case L7_OSPF_ROW_NOT_IN_SERVICE:
-          parm = ROW_NOT_IN_SERVICE;
-          break;
+        case L7_OSPF_ROW_NOT_IN_SERVICE:
+            parm = ROW_NOT_IN_SERVICE;
+            break;
 
-      case L7_OSPF_ROW_NOT_READY:
-          parm = ROW_NOT_READY;
-          break;
+        case L7_OSPF_ROW_NOT_READY:
+            parm = ROW_NOT_READY;
+            break;
 
-      case L7_OSPF_ROW_CREATE_AND_GO:
-          parm = ROW_CREATE_AND_GO;
-          break;
+        case L7_OSPF_ROW_CREATE_AND_GO:
+            parm = ROW_CREATE_AND_GO;
+            break;
 
-      case L7_OSPF_ROW_CREATE_AND_WAIT:
-          parm = ROW_CREATE_AND_WAIT;
-          break;
+        case L7_OSPF_ROW_CREATE_AND_WAIT:
+            parm = ROW_CREATE_AND_WAIT;
+            break;
 
-      case L7_OSPF_ROW_DESTROY:
-          parm = ROW_DESTROY;
-          break;
+        case L7_OSPF_ROW_DESTROY:
+            parm = ROW_DESTROY;
+            break;
 
-      case L7_OSPF_ROW_CHANGE:
-          parm = ROW_CHANGE;
-          break;
+        case L7_OSPF_ROW_CHANGE:
+            parm = ROW_CHANGE;
+            break;
 
-      default:
-          return L7_FAILURE;
-          break;
-  }
+        default:
+            return L7_FAILURE;
+            break;
+    }
 
-  ifoCfg.IfStatus = parm;
+    ifoCfg.IfStatus = parm;
 
-  if (IFO_Config_Pack((t_Handle)p_IFO, &ifoCfg) != E_OK)
-  {
-      return L7_FAILURE;
-  }
+    if (IFO_Config_Pack((t_Handle)p_IFO, &ifoCfg) != E_OK)
+    {
+        return L7_FAILURE;
+    }
 
-  return L7_SUCCESS;
+    return L7_SUCCESS;
 }
 
 /*********************************************************************
