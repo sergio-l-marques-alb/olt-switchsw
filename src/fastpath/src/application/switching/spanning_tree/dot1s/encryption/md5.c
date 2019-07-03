@@ -143,8 +143,8 @@ void L7_MD5Update (L7_MD5_CTX_t *context, L7_uchar8 *input, L7_uint32 inputLen)
 
   /* Update number of bits */
   if ((context->count[0] += ((L7_uint32)inputLen << 3)) < ((L7_uint32)inputLen << 3))
-	  context->count[1]++;
-	  context->count[1] += ((L7_uint32)inputLen >> 29);
+    context->count[1]++;
+  context->count[1] += ((L7_uint32)inputLen >> 29);
 
   partLen = 64 - index;
 

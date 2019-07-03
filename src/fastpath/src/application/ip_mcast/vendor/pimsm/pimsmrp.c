@@ -689,7 +689,7 @@ L7_RC_t pimsmRpGrpListGrpNodeAdd(pimsmCB_t         *pimsmCb,
     }
 
     /* 2. populate the rp_node */
-    memset(pAddrListNode,0,sizeof(pAddrListNode));
+    memset(pAddrListNode,0,sizeof(*pAddrListNode));
     inetCopy(&pAddrListNode->pimsmIpAddr, &grpAddr);
     pAddrListNode->pimsmCb = pimsmCb;
     pAddrListNode->pimsmOrigin = origin;
@@ -913,7 +913,7 @@ L7_RC_t pimsmRpSetTreeRpNodeAdd(pimsmCB_t         *pimsmCb,
                                 pimsmAddrList_t  **ppAddrListNode)
 {
   pimsmRpBlock_t     *rpBlock;
-  pimsmAddrList_t    *pAddrListNode = L7_NULLPTR,addrListSearchNode;
+  pimsmAddrList_t    *pAddrListNode = L7_NULLPTR, addrListSearchNode;
 
   rpBlock = pimsmCb->pimsmRpInfo;
   /* 1. search for the node in the node's rp list */
@@ -940,7 +940,7 @@ L7_RC_t pimsmRpSetTreeRpNodeAdd(pimsmCB_t         *pimsmCb,
     }
 
     /* 2. populate the pRpGrpNode */
-    memset(pAddrListNode,0,sizeof(pAddrListNode));
+    memset(pAddrListNode,0,sizeof(*pAddrListNode));
     inetCopy(&pAddrListNode->pimsmIpAddr, &rpAddr);
     pAddrListNode->pimsmCb= pimsmCb;
     pAddrListNode->pimsmOrigin = origin;

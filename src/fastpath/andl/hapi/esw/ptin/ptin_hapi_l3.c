@@ -590,7 +590,7 @@ L7_RC_t ptin_hapi_l3_ipmc_reset(void)
   rv = bcm_ipmc_remove_all(0);
   if (BCM_FAILURE(rv))
   {
-    PT_LOG_ERR(LOG_CTX_HAPI,"Error initializing IPMC Table: rv=\"%s\" (rv:%u)", bcm_errmsg(rv));
+    PT_LOG_ERR(LOG_CTX_HAPI,"Error initializing IPMC Table: rv=\"%s\" (rv:%u)", bcm_errmsg(rv), rv);
     return ptin_bcm_to_fp_error_code(rv);
   }
   return rv;

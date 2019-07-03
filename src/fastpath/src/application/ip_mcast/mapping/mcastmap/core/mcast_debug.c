@@ -750,7 +750,7 @@ void mcastDebugPacketRxTxTrace(L7_uchar8 family, L7_BOOL rxTrace,
   }
   else
   {
-    MCAST_USER_TRACE("Sent mcast data pkt %s with Src %s and Grp %s on interface %d/%d/%d of len = %d ",
+    MCAST_USER_TRACE("Sent mcast data pkt with Src %s and Grp %s on interface %d/%d/%d of len = %d ",
                      inetAddrPrint(&srcAddr, srcBuff), inetAddrPrint(&grpAddr, destBuff),
                      usp.unit, usp.slot, usp.port, length);
   }

@@ -1460,6 +1460,6 @@ k_agentRouterVrrpTrackRouteEntry_set(agentRouterVrrpTrackRouteEntry_t *data,
 
 
 
-    return NO_ERROR;
+  return NO_ERROR;
 }
 

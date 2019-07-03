@@ -870,7 +870,7 @@ L7_RC_t ptin_virtual_port_add(L7_uint32 intIfNum,
   {
     if (vport.virtual_gport <= 0)
     {
-      PT_LOG_ERR(LOG_CTX_API, "Finished: Invalid vport id %d (MC group=%d)", rc, vport.virtual_gport, vport.multicast_group);
+      PT_LOG_ERR(LOG_CTX_API, "Finished: Invalid vport id %d (MC group=%d)", vport.virtual_gport, vport.multicast_group);
       return L7_FAILURE;
     }
     /* Return vport id */

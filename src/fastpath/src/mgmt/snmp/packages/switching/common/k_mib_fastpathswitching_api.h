@@ -13425,8 +13425,8 @@ L7_RC_t snmpAgentSwitchVoiceVlanDeviceEntryGet ( L7_uint32 UnitIndex, L7_uint32 
        if (memcmp(deviceMacAddr,macAddress,sizeof(deviceMacAddr))== 0)
        {
          if(voiceVlanDeviceDebugFlag== L7_TRUE)
-          printf("\n %s: Returning success",__FUNCTION__);
-          return L7_SUCCESS;
+           printf("\n %s: Returning success",__FUNCTION__);
+         return L7_SUCCESS;
        }
      }
      else
@@ -13435,11 +13435,11 @@ L7_RC_t snmpAgentSwitchVoiceVlanDeviceEntryGet ( L7_uint32 UnitIndex, L7_uint32 
         while(rc1==L7_SUCCESS)
         {
           if (memcmp(deviceMacAddr,macAddress,sizeof(deviceMacAddr))== 0)
-            {
-              if(voiceVlanDeviceDebugFlag== L7_TRUE)
-                printf("\n %s: Returning success",__FUNCTION__);
-              return L7_SUCCESS;
-            }
+          {
+            if(voiceVlanDeviceDebugFlag== L7_TRUE)
+              printf("\n %s: Returning success",__FUNCTION__);
+            return L7_SUCCESS;
+          }
           rc1 = usmdbVoiceVlanPortDeviceInfoNextGet(UnitIndex,intIfNum,deviceMacAddr);
         }
      }

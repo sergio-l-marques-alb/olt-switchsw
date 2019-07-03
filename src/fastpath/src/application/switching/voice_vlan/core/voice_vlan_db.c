@@ -193,7 +193,7 @@ L7_RC_t voiceVlanDeviceInfoAlloc(L7_uchar8                 *mac_addr,
 
         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_VOICE_VLAN_COMPONENT_ID,
                 "%s:%d Error Adding the node to the Voice Vlan Device Info Tree for mac address: %2.2x:%2.2x:%2.2x:%2.2x:%2.2x:%2.2x ,phyintf %d, %s, voice vlan : %d \n",
-                __FUNCTION__,__FILE__,
+                __FUNCTION__,__LINE__,
                 mac_addr[0],
                 mac_addr[1],
                 mac_addr[2],

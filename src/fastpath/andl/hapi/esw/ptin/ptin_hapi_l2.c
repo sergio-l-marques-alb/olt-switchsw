@@ -826,7 +826,7 @@ L7_RC_t ptin_hapi_vport_maclimit_reset(bcm_gport_t gport)
   }
   else
   {
-    PT_LOG_WARN(LOG_CTX_HAPI, "GPORT is not valid! (vport_id)", vport_id);
+    PT_LOG_WARN(LOG_CTX_HAPI, "GPORT is not valid! (vport_id=0x%x)", vport_id);
     return L7_FAILURE;
   }
 
@@ -1054,7 +1054,7 @@ L7_RC_t ptin_hapi_vport_maclimit_setmax(bcm_gport_t gport, L7_uint8 mac_limit)
   }
   else
   {
-    PT_LOG_WARN(LOG_CTX_HAPI, "GPORT is not valid! (vport_id)", vport_id);
+    PT_LOG_WARN(LOG_CTX_HAPI, "GPORT is not valid! (vport_id=%x)", vport_id);
     return L7_FAILURE;
   }
   return L7_SUCCESS;
@@ -1451,7 +1451,7 @@ L7_RC_t ptin_hapi_vport_maclimit_alarmconfig(bcm_gport_t gport, int bcm_port, L7
       PT_LOG_NOTICE(LOG_CTX_HAPI, "GPORT is out of range! (vport_id=%u max=%u)", vport_id, MAX_GPORTS);
       return L7_FAILURE;
     }
-    PT_LOG_NOTICE(LOG_CTX_HAPI, "(GPORT=0x%x) MAC Learned limit information %u, bcm_port %u, outer_vid %d", gport, bcm_port, outer_vid);
+    PT_LOG_NOTICE(LOG_CTX_HAPI, "(GPORT=0x%x) MAC Learned limit information, bcm_port %u, outer_vid %d", gport, bcm_port, outer_vid);
 
     hapi_ptin_port_get(bcm_port, &port);
 
@@ -1469,7 +1469,7 @@ L7_RC_t ptin_hapi_vport_maclimit_alarmconfig(bcm_gport_t gport, int bcm_port, L7
   }
   else
   {
-    PT_LOG_WARN(LOG_CTX_HAPI, "GPORT is not valid! (vport_id)", vport_id);
+    PT_LOG_WARN(LOG_CTX_HAPI, "GPORT is not valid! (vport_id=0x%x)", vport_id);
     return L7_FAILURE;
   }
   return L7_SUCCESS;

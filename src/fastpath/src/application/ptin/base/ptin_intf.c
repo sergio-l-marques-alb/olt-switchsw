@@ -817,7 +817,7 @@ L7_RC_t ptin_intf_portExt_get(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
   PT_LOG_TRACE(LOG_CTX_INTF," macLearn_stationMove_enable = %u" , mefExt->macLearn_stationMove_enable);
   PT_LOG_TRACE(LOG_CTX_INTF," macLearn_stationMove_prio   = %u" , mefExt->macLearn_stationMove_prio);
   PT_LOG_TRACE(LOG_CTX_INTF," Max Channels      = %u"           , mefExt->maxChannels);
-  PT_LOG_TRACE(LOG_CTX_INTF," Max Bandwidth     = %u"           , mefExt->maxBandwidth);
+  PT_LOG_TRACE(LOG_CTX_INTF," Max Bandwidth     = %llu"         , mefExt->maxBandwidth);
   PT_LOG_TRACE(LOG_CTX_INTF," Interface trusted = %u"           , mefExt->dhcp_trusted);
 
   PT_LOG_TRACE(LOG_CTX_INTF, "Success getting MEF Ext of port %u/%u", ptin_intf->intf_type,ptin_intf->intf_id);
@@ -4997,7 +4997,7 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
   PT_LOG_TRACE(LOG_CTX_INTF,"BWunits      = %u",intfQos->bandwidth_unit);
   PT_LOG_TRACE(LOG_CTX_INTF,"ShapingRate  = %u",intfQos->shaping_rate);
   PT_LOG_TRACE(LOG_CTX_INTF,"WREDDecayExp = %u",intfQos->wred_decay_exponent);
-  PT_LOG_TRACE(LOG_CTX_INTF,"PrioMap.mask   =0x%02x",intfQos->pktprio.mask);
+  PT_LOG_TRACE(LOG_CTX_INTF,"PrioMap.mask   =0x%02x", (L7_uint32)intfQos->pktprio.mask);
   PT_LOG_TRACE(LOG_CTX_INTF,"PrioMap.prio[8]={0x%08x,0x%08x,0x%08x,0x%08x,0x%08x,0x%08x,0x%08x,0x%08x}",
             intfQos->pktprio.cos[0],
             intfQos->pktprio.cos[1],

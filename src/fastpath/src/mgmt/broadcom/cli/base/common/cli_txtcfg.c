@@ -695,7 +695,7 @@ L7_RC_t cliTxtCfgGenerateFile (L7_char8 * filename, L7_BOOL useComp)
   {
     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_CLI_WEB_COMPONENT_ID,
            "Failed to take cliRunCfgSemaphore %x\n",
-            cliRunCfgSema);
+            (int)cliRunCfgSema);
   }
 
   if (strcmp(filename,sysapiTxtRunCfgFileGet()) == 0 )
@@ -749,7 +749,7 @@ L7_RC_t cliTxtCfgGenerateFile (L7_char8 * filename, L7_BOOL useComp)
   {
     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_CLI_WEB_COMPONENT_ID,
             "Failed to give cliRunCfgSema %x\n",
-            cliRunCfgSema);
+            (int)cliRunCfgSema);
   }
 
 

@@ -1419,7 +1419,7 @@ L7_RC_t dsDistillerPolicyEvaluate(L7_uint32 policyIndex, L7_uint32 mode,
             }
             L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,
                     "Policy invalid for service intf: "
-                    "policy \'%s\', intf %s, direction %u."
+                    "policy \'%s\', intf %u, direction %u."
                     " The DiffServ policy definition is not compatible"
                     " with the capabilities of the interface specified.  "
                     "Check the platform release notes for information on "

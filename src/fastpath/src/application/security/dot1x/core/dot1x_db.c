@@ -183,7 +183,7 @@ dot1xLogicalPortInfo_t *dot1xLogicalPortInfoAlloc(L7_uint32 intIfNum)
       {
         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DOT1X_COMPONENT_ID,
                 "%s:%d Error Adding the node to the Dot1x Tree for phyintf %s \n",
-                __FUNCTION__,__FILE__,ifName);
+                __FUNCTION__,__LINE__,ifName);
         return L7_NULLPTR;
       }
       return dot1xLogicalPortInfoGet(lIntIfNum);
@@ -196,7 +196,7 @@ dot1xLogicalPortInfo_t *dot1xLogicalPortInfoAlloc(L7_uint32 intIfNum)
   L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_DOT1X_COMPONENT_ID,
       "%s:%d Error allocating node for phyintf %s as it reached maximum limit per port."
       " Could not allocate memory for client as maximum number of clients  allowed per port"
-      " has been reached.", __FUNCTION__,__FILE__,ifName);
+      " has been reached.", __FUNCTION__,__LINE__,ifName);
   return L7_NULLPTR;
 }
 

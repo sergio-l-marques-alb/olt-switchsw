@@ -41,7 +41,7 @@
 #define PTIN_SYSTEM_MAX_SERVICES_PER_ONU            8
 #define PTIN_SYSTEM_ETH_MTU_SIZE                    9600
 #define PTIN_SYSTEM_PON_MTU_SIZE                    2048
-#define PTIN_SYSTEM_EXT_EVCS_MGMT                   (1UL << 22)     /* 17 bits will be used by management */
+#define PTIN_SYSTEM_EXT_EVCS_MGMT                   (1U << 22)     /* 17 bits will be used by management */
 #define PTIN_SYSTEM_N_EXTENDED_EVCS                 (PTIN_SYSTEM_EXT_EVCS_MGMT + 64)    /* 64 Extra EVCs */
 
 #define PTIN_IS_PORT_PON(p)           ((((unsigned long long)1 << p) & PTIN_SYSTEM_PON_PORTS_MASK) != 0)

@@ -595,7 +595,7 @@ L7_BOOL dsIntfIsSnooping(L7_uint32 intIfNum)
   if (dsIntfInfo[intIfNum].dsNumVlansEnabled > 0)
     return L7_TRUE;
 
-    return L7_FALSE;
+  return L7_FALSE;
 }
 
 /*********************************************************************

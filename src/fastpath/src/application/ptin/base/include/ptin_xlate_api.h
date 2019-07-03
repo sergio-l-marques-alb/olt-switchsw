@@ -20,7 +20,7 @@
 /**
  * Inline functions
  */
-inline char ptin_vlanxlate_action_getchar(ptin_vlanXlate_action_enum action);
+extern char ptin_vlanxlate_action_getchar(ptin_vlanXlate_action_enum action);
 
 /**
  * Module initialization function

@@ -1371,13 +1371,13 @@ void dot1xDebugPacketTrace(L7_uint32 intIfNum, L7_netBufHandle bufHandle,L7_BOOL
       {
         DOT1X_USER_TRACE_RX(DOT1X_DEBUG_PACKET_RX_FORMAT,
                             (L7_uint32)usp.unit, (L7_int32)usp.slot, (L7_int32)usp.port,
-                            intIfNum,ifName,srcMac, destMac, type,code,eapPkt->id);
+                            intIfNum,ifName,srcMac, destMac, type); //,code,eapPkt->id);
       }
       else if ((dot1xDebugPacketTraceTxFlag == L7_TRUE) && (txFlag == L7_TRUE))
       {
         DOT1X_USER_TRACE_TX(DOT1X_DEBUG_PACKET_TX_FORMAT,
                             (L7_uint32)usp.unit, (L7_int32)usp.slot, (L7_int32)usp.port,
-                            intIfNum,ifName,srcMac, destMac, type,code,eapPkt->id);
+                            intIfNum,ifName,srcMac, destMac, type,code); //,eapPkt->id);
       }
     }
   }

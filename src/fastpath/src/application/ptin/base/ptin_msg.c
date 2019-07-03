@@ -1434,8 +1434,8 @@ L7_RC_t ptin_msg_PhyStatus_get(msg_HWEthPhyStatus_t *msgPhyStatus)
 
   /* Output info read */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Port # %u",                   ENDIAN_SWAP8 (msgPhyStatus->Port));
-  PT_LOG_DEBUG(LOG_CTX_MSG, " alarmes          = 0x%04X",  ENDIAN_SWAP32(msgPhyStatus->phy.alarmes));
-  PT_LOG_DEBUG(LOG_CTX_MSG, " alarmes_mask     = 0x%04X",  ENDIAN_SWAP32(msgPhyStatus->phy.alarmes_mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " alarmes          = 0x%04X", ENDIAN_SWAP32(msgPhyStatus->phy.alarmes));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " alarmes_mask     = 0x%04X", ENDIAN_SWAP32(msgPhyStatus->phy.alarmes_mask));
 
   return L7_SUCCESS;
 }
@@ -1913,7 +1913,7 @@ L7_RC_t ptin_msg_portExt_set(msg_HWPortExt_t *portExt, L7_uint nElems)
 #endif // ONE_MULTICAST_VLAN_RING_SUPPORT  
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "Success setting MEF EXT configurations",__FUNCTION__);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Success setting MEF EXT configurations");
 
   return L7_SUCCESS;
 }
@@ -2054,7 +2054,7 @@ L7_RC_t ptin_msg_portMAC_set(msg_HWPortMac_t *portMac, L7_uint nElems)
     }
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "Success setting MAC address",__FUNCTION__);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Success setting MAC address");
 
   return L7_SUCCESS;
 }
@@ -5407,7 +5407,7 @@ L7_RC_t ptin_msg_dai_vlan_config(msg_dai_vlan_settings_t *config, L7_uint nElems
       dai_maxVlans = 1;
       if (ptin_evc_intRootVlan_get(item->service.id_val.evc_id, &dai_intVid_list[0]) != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_MSG, "Cannot get intVlan from eEVC#%u!", item->service.id_val.evc_id, dai_intVid_list[0]);
+        PT_LOG_ERR(LOG_CTX_MSG, "Cannot get intVlan from eEVC#%u!", item->service.id_val.evc_id);
         rc_global = rc_global_failure = L7_FAILURE;
         continue;
       }
@@ -5537,7 +5537,7 @@ L7_RC_t ptin_msg_dai_stats_get(msg_dai_statistics_t *msg_stats, L7_uint nElems)
     PT_LOG_DEBUG(LOG_CTX_MSG," SlotId       = %u", ENDIAN_SWAP8 (item->slotId));
     PT_LOG_DEBUG(LOG_CTX_MSG," EVC id       = %u", ENDIAN_SWAP32(item->evc_idx));
     PT_LOG_DEBUG(LOG_CTX_MSG," VLAN id      = %u", ENDIAN_SWAP16(item->vlan_id));
-    PT_LOG_DEBUG(LOG_CTX_MSG," Intf         = %u", ENDIAN_SWAP8 (item->intf.intf_type), ENDIAN_SWAP8 (item->intf.intf_id));
+    PT_LOG_DEBUG(LOG_CTX_MSG," Intf         = %u/%u", ENDIAN_SWAP8 (item->intf.intf_type), ENDIAN_SWAP8 (item->intf.intf_id));
 
     /* Clear list of VLANs */
     memset(dai_intVid_list, 0x00, sizeof(dai_intVid_list));
@@ -6126,11 +6126,12 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
       ptinEvcConf.intf[index_port].action_outer= PTIN_XLATE_ACTION_REPLACE;
       ptinEvcConf.intf[index_port].action_inner= PTIN_XLATE_ACTION_NONE;
 
-      PT_LOG_DEBUG(LOG_CTX_MSG, "   %s %02u %s VID=%04u/%-04u",
-         ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
-         ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_id,
-         ptinEvcConf.intf[index_port].mef_type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf",
-         ptinEvcConf.intf[index_port].vid,ptinEvcConf.intf[i].vid_inner);
+      PT_LOG_DEBUG(LOG_CTX_MSG, "   %s %02u %s VID=%04u/%-4u",
+                   ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+                   ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_id,
+                   ptinEvcConf.intf[index_port].mef_type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf",
+                   ptinEvcConf.intf[index_port].vid,
+                   ptinEvcConf.intf[i].vid_inner);
       PT_LOG_DEBUG(LOG_CTX_MSG, "PTIN_INTF_TYPE_DEBUG: %u", ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_type);
 
 #ifdef NGPON2_SUPPORTED
@@ -6384,7 +6385,7 @@ L7_RC_t ptin_msg_evc_qos_set(ipc_msg *inbuffer, ipc_msg *outbuffer)
       evc_id = ENDIAN_SWAP32(msgEvcQoS[i].id.id_val.evc_id);
       if (ptin_evc_get_NNIvlan_fromEvcId(evc_id, &nni_vlan) != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining NNI_VLAN %u from EVC %u", evc_id);
+        PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining NNI_VLAN from EVC %u", evc_id);
         return L7_NOT_EXIST;
       }
     }
@@ -7835,9 +7836,9 @@ L7_RC_t ptin_msg_stormControl2_get(msg_HwEthStormControl2_t *msgStormControl)
   PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u",          ENDIAN_SWAP8 (msgStormControl->SlotId));
   PT_LOG_DEBUG(LOG_CTX_MSG," intf   = %u/%u",       ENDIAN_SWAP8 (msgStormControl->intf.intf_type), ENDIAN_SWAP8 (msgStormControl->intf.intf_id));
   PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%02x",      ENDIAN_SWAP8 (msgStormControl->mask));
-  PT_LOG_DEBUG(LOG_CTX_MSG," Broadcast = %ld (%u)", ENDIAN_SWAP32(msgStormControl->broadcast.rate_value),  ENDIAN_SWAP8 (msgStormControl->broadcast.rate_units));
-  PT_LOG_DEBUG(LOG_CTX_MSG," Multicast = %ld (%u)", ENDIAN_SWAP32(msgStormControl->multicast.rate_value),  ENDIAN_SWAP8 (msgStormControl->multicast.rate_units));
-  PT_LOG_DEBUG(LOG_CTX_MSG," UnknownUC = %ld (%u)", ENDIAN_SWAP32(msgStormControl->unknown_uc.rate_value), ENDIAN_SWAP8 (msgStormControl->unknown_uc.rate_units));
+  PT_LOG_DEBUG(LOG_CTX_MSG," Broadcast = %u (%u)",  ENDIAN_SWAP32(msgStormControl->broadcast.rate_value),  ENDIAN_SWAP8 (msgStormControl->broadcast.rate_units));
+  PT_LOG_DEBUG(LOG_CTX_MSG," Multicast = %u (%u)",  ENDIAN_SWAP32(msgStormControl->multicast.rate_value),  ENDIAN_SWAP8 (msgStormControl->multicast.rate_units));
+  PT_LOG_DEBUG(LOG_CTX_MSG," UnknownUC = %u (%u)",  ENDIAN_SWAP32(msgStormControl->unknown_uc.rate_value), ENDIAN_SWAP8 (msgStormControl->unknown_uc.rate_units));
   PT_LOG_DEBUG(LOG_CTX_MSG," Block UC = %u",        ENDIAN_SWAP8 (msgStormControl->block_unicast));
   PT_LOG_DEBUG(LOG_CTX_MSG," Block MC = %u",        ENDIAN_SWAP8 (msgStormControl->block_multicast));
 
@@ -7884,9 +7885,9 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
   PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u",          msgStormControl->SlotId);
   PT_LOG_DEBUG(LOG_CTX_MSG," intf   = %u/%u",       msgStormControl->intf.intf_type, msgStormControl->intf.intf_id);
   PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%02x",      msgStormControl->mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG," Broadcast = %ld (%u)", msgStormControl->broadcast.rate_value,  msgStormControl->broadcast.rate_units);
-  PT_LOG_DEBUG(LOG_CTX_MSG," Multicast = %ld (%u)", msgStormControl->multicast.rate_value,  msgStormControl->multicast.rate_units);
-  PT_LOG_DEBUG(LOG_CTX_MSG," UnknownUC = %ld (%u)", msgStormControl->unknown_uc.rate_value, msgStormControl->unknown_uc.rate_units);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Broadcast = %u (%u)",  msgStormControl->broadcast.rate_value,  msgStormControl->broadcast.rate_units);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Multicast = %u (%u)",  msgStormControl->multicast.rate_value,  msgStormControl->multicast.rate_units);
+  PT_LOG_DEBUG(LOG_CTX_MSG," UnknownUC = %u (%u)",  msgStormControl->unknown_uc.rate_value, msgStormControl->unknown_uc.rate_units);
   PT_LOG_DEBUG(LOG_CTX_MSG," Block UC = %u",        msgStormControl->block_unicast);
   PT_LOG_DEBUG(LOG_CTX_MSG," Block MC = %u",        msgStormControl->block_multicast);
 
@@ -7899,17 +7900,17 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
     if(msgStormControl->broadcast.rate_value == 1 && msgStormControl->broadcast.rate_units == 0 /* PPS */)
     {
       msgStormControl->broadcast.rate_value = 2;
-      PT_LOG_NOTICE(LOG_CTX_MSG," Broadcast = %ld (%u) (changed)", msgStormControl->broadcast.rate_value,  msgStormControl->broadcast.rate_units);
+      PT_LOG_NOTICE(LOG_CTX_MSG," Broadcast = %u (%u) (changed)", msgStormControl->broadcast.rate_value,  msgStormControl->broadcast.rate_units);
     }
     if(msgStormControl->multicast.rate_value == 1 && msgStormControl->multicast.rate_units == 0 /* PPS */)
     {
       msgStormControl->multicast.rate_value = 2;
-      PT_LOG_NOTICE(LOG_CTX_MSG," Multicast = %ld (%u) (changed)", msgStormControl->multicast.rate_value,  msgStormControl->multicast.rate_units);
+      PT_LOG_NOTICE(LOG_CTX_MSG," Multicast = %u (%u) (changed)", msgStormControl->multicast.rate_value,  msgStormControl->multicast.rate_units);
     }
     if(msgStormControl->unknown_uc.rate_value == 1 && msgStormControl->unknown_uc.rate_units == 0 /* PPS */)
     {
       msgStormControl->unknown_uc.rate_value = 2;
-      PT_LOG_NOTICE(LOG_CTX_MSG," UnknownUC = %ld (%u) (changed)", msgStormControl->unknown_uc.rate_value,  msgStormControl->unknown_uc.rate_units);
+      PT_LOG_NOTICE(LOG_CTX_MSG," UnknownUC = %u (%u) (changed)", msgStormControl->unknown_uc.rate_value,  msgStormControl->unknown_uc.rate_units);
     }
   }
 
@@ -10759,7 +10760,7 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
 
     if (McastClient[i].mask > PTIN_MSG_IGMP_CLIENT_MASK_VALID)
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Invalid Mask [mask:0x%02x]",McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels);
+      PT_LOG_ERR(LOG_CTX_MSG, "Invalid Mask [mask:0x%02x]", McastClient[i].mask);
       return L7_FAILURE;
     }
 
@@ -12523,7 +12524,8 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
   #endif
   snoopSyncRequest.portId = protTypebIntfConfig.pairIntfNum;
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "Sending Snoop Sync Request Message [groupAddr:%08X | serviceId:%u | portId:%u] to ipAddr:%08X to Sync the Remaining Snoop Entries", snoopSyncRequest.groupAddr, snoopSyncRequest.serviceId, snoopSyncRequest.portId, ipAddr);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Sending Snoop Sync Request Message [groupAddr:%08X | serviceId:%u | portId:%u] to ipAddr:%08X to Sync the Remaining Snoop Entries",
+               snoopSyncRequest.groupAddr.addr.ipv4, snoopSyncRequest.serviceId, snoopSyncRequest.portId, ipAddr);
 #endif
               
   
@@ -13110,7 +13112,7 @@ L7_RC_t ptin_msg_uplink_prot_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
     PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.OperationMode     = %u", protConf[i].protParams.OperationMode);
     PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.HoldOffTimer      = %u", protConf[i].protParams.HoldOffTimer);
     PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.WaitToRestoreTimer= %u", protConf[i].protParams.WaitToRestoreTimer);
-    PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.alarmsEnFlag      = 0x%08x", protConf[i].protParams.alarmsEnFlag);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.alarmsEnFlag      = 0x%08lx", protConf[i].protParams.alarmsEnFlag);
     PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.flags             = 0x%02x", protConf[i].protParams.flags);
     PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.slotW/portW = %u/%u", protConf[i].protParams.slotW, protConf[i].protParams.portW);
     PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.slotP/portP = %u/%u", protConf[i].protParams.slotP, protConf[i].protParams.portP);
@@ -13264,7 +13266,7 @@ L7_RC_t ptin_msg_uplink_prot_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
     PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.OperationMode     = %u", protConf[i].protParams.OperationMode);
     PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.HoldOffTimer      = %u", protConf[i].protParams.HoldOffTimer);
     PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.WaitToRestoreTimer= %u", protConf[i].protParams.WaitToRestoreTimer);
-    PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.alarmsEnFlag      = 0x%08x", protConf[i].protParams.alarmsEnFlag);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.alarmsEnFlag      = 0x%08lx", protConf[i].protParams.alarmsEnFlag);
     PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.flags             = 0x%02x", protConf[i].protParams.flags);
     PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.slotW/portW = %u/%u", protConf[i].protParams.slotW, protConf[i].protParams.portW);
     PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.slotP/portP = %u/%u", protConf[i].protParams.slotP, protConf[i].protParams.portP);
@@ -13799,7 +13801,7 @@ L7_RC_t ptin_msg_prbs_status(msg_ptin_prbs_request *msg_in, msg_ptin_prbs_status
       rc = ptin_pcs_prbs_errors_get(intIfNum, &rxStatus);
       if (rc != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_MSG,"Error getting PRBS errors from port %u/%u", port);
+        PT_LOG_ERR(LOG_CTX_MSG,"Error getting PRBS errors from port %u", port);
         rc_global = rc;
         continue;
       }
@@ -13846,7 +13848,7 @@ L7_RC_t ptin_msg_prbs_status(msg_ptin_prbs_request *msg_in, msg_ptin_prbs_status
       rc = ptin_pcs_prbs_errors_get(intIfNum, &rxStatus);
       if (rc != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_MSG,"Error getting PRBS errors from port %u/%u", port);
+        PT_LOG_ERR(LOG_CTX_MSG,"Error getting PRBS errors from port %u", port);
         rc_global = rc;
         continue;
       }
@@ -14269,7 +14271,7 @@ L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
 
     if (L7_SUCCESS!=ptin_intf_port2SlotPort(porta, &slot, &port, L7_NULLPTR)) return L7_FAILURE;
     if (slot!=pi[i].tu_slot) {
-        PT_LOG_ERR(LOG_CTX_MSG, "ptin_intf_port=%lu => (slot,port)=(%u,%u) struct_passed_slot=%u", porta, slot, port, pi[i].tu_slot);
+        PT_LOG_ERR(LOG_CTX_MSG, "ptin_intf_port=%u => (slot,port)=(%u,%u) struct_passed_slot=%u", porta, slot, port, pi[i].tu_slot);
         //return L7_FAILURE;
     }
     if (send_also_uplinkprot_traps(1, slot, port, pi[i].bd.vid));// return L7_FAILURE;
@@ -14333,7 +14335,7 @@ L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
        }
      }
     }
-    PT_LOG_DEBUG(LOG_CTX_MSG, "i_MEP#%llu\tporta=%lu\tvid=%llu\tlevel=%lu", pi[i].index, porta, pi[i].bd.vid, pi[i].bd.level);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "i_MEP#%llu\tporta=%u\tvid=%llu\tlevel=%u", pi[i].index, porta, pi[i].bd.vid, pi[i].bd.level);
     break;
   case 2:    r=ERROR_CODE_FULLTABLE;    break;
   case 3:    r=  CCMSG_FLUSH_MEP==inbuff->msgId?   S_OK:   ERROR_CODE_FULLTABLE; break;
@@ -14525,7 +14527,7 @@ L7_RC_t ptin_msg_wr_RMEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
        }
      }
     }
-    PT_LOG_DEBUG(LOG_CTX_MSG, "i_MEP#%lu\ti_RMEP#%lu\tporta=%lu\tvid=%llu\tlevel=%lu", i_mep, i_rmep, pi[i].bd.prt, pi[i].bd.vid, pi[i].bd.level);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "i_MEP#%u\ti_RMEP#%u\tporta=%u\tvid=%llu\tlevel=%u", i_mep, i_rmep, pi[i].bd.prt, pi[i].bd.vid, pi[i].bd.level);
     break;
   case 4:
     if (CCMSG_FLUSH_RMEP==inbuff->msgId)
@@ -14639,7 +14641,7 @@ L7_RC_t ptin_msg_del_RMEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
          }
        }
       }
-      PT_LOG_DEBUG(LOG_CTX_MSG, "i_MEP#%lu\ti_RMEP#%lu\tporta=%lu\tvid=%llu\tlevel=%lu", i_mep, i_rmep, pi[i].bd.prt, pi[i].bd.vid, pi[i].bd.level);
+      PT_LOG_DEBUG(LOG_CTX_MSG, "i_MEP#%u\ti_RMEP#%u\tporta=%u\tvid=%llu\tlevel=%u", i_mep, i_rmep, pi[i].bd.prt, pi[i].bd.vid, pi[i].bd.level);
       break;
     //case 2:    r=HW_RESOURCE_UNAVAILABLE; break;
   default:   r=ERROR_CODE_INVALIDPARAM;
@@ -16444,7 +16446,7 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
 
   if( sessionNum > L7_MIRRORING_MAX_SESSIONS || sessionNum == 0)
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "Invalid Session ID %u, sessionNum");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid Session ID %u", sessionNum);
     return L7_FAILURE;
   }
 
@@ -17683,29 +17685,29 @@ L7_RC_t ptin_msg_get_next_qualRFC2819_inv(L7_int buffer_index, msg_rfc2819_buffe
       buffer[*n_elements].Pkts512to1023Octets   = ENDIAN_SWAP64(ring_buffer.Pkts512to1023Octets);                
       buffer[*n_elements].Pkts1024to1518Octets  = ENDIAN_SWAP64(ring_buffer.Pkts1024to1518Octets);
 			
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].index %d", buffer[*n_elements].index);
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].arg  %d",  buffer[*n_elements].arg );   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].time  %d", buffer[*n_elements].time );   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].path %d",  buffer[*n_elements].path);   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].cTempo %d", buffer[*n_elements].cTempo);   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Octets  %d", buffer[*n_elements].Octets );   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts %d", buffer[*n_elements].Pkts);   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Broadcast %d", buffer[*n_elements].Broadcast);   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Multicast %d", buffer[*n_elements].Multicast);   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].CRCAlignErrors %d", buffer[*n_elements].CRCAlignErrors);   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].UndersizePkts", buffer[*n_elements].UndersizePkts);   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].OversizePkts %d", buffer[*n_elements].OversizePkts);
+      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].index %lu", buffer[*n_elements].index);
+      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].arg  %lu",  buffer[*n_elements].arg );   
+      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].time  %lu", buffer[*n_elements].time );   
+      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].path %lu",  buffer[*n_elements].path);   
+      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].cTempo %lu", buffer[*n_elements].cTempo);   
+      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Octets  %llu", buffer[*n_elements].Octets );   
+      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts %llu", buffer[*n_elements].Pkts);   
+      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Broadcast %llu", buffer[*n_elements].Broadcast);   
+      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Multicast %llu", buffer[*n_elements].Multicast);   
+      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].CRCAlignErrors %llu", buffer[*n_elements].CRCAlignErrors);   
+      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].UndersizePkts %llu", buffer[*n_elements].UndersizePkts);   
+      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].OversizePkts %llu", buffer[*n_elements].OversizePkts);
       
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Fragments  %d", buffer[*n_elements].Fragments );   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Jabbers %d",  buffer[*n_elements].Jabbers);   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Collisions %d", buffer[*n_elements].Collisions);   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Utilization  %d", buffer[*n_elements].Utilization );   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts64Octets %d", buffer[*n_elements].Pkts64Octets);   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts65to127Octets %d", buffer[*n_elements].Pkts65to127Octets);   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts128to255Octets %d", buffer[*n_elements].Pkts128to255Octets);   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts256to511Octets %d", buffer[*n_elements].Pkts256to511Octets);   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts512to1023Octets", buffer[*n_elements].Pkts512to1023Octets);   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts1024to1518Octets %d", buffer[*n_elements].Pkts1024to1518Octets);
+      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Fragments  %llu", buffer[*n_elements].Fragments );   
+      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Jabbers %llu",  buffer[*n_elements].Jabbers);   
+      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Collisions %llu", buffer[*n_elements].Collisions);   
+      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Utilization  %llu", buffer[*n_elements].Utilization );   
+      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts64Octets %llu", buffer[*n_elements].Pkts64Octets);   
+      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts65to127Octets %llu", buffer[*n_elements].Pkts65to127Octets);   
+      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts128to255Octets %llu", buffer[*n_elements].Pkts128to255Octets);   
+      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts256to511Octets %llu", buffer[*n_elements].Pkts256to511Octets);   
+      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts512to1023Octets %llu", buffer[*n_elements].Pkts512to1023Octets);   
+      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts1024to1518Octets %llu", buffer[*n_elements].Pkts1024to1518Octets);
 
       if (first_reg<0) 
       break;
@@ -17749,29 +17751,29 @@ L7_RC_t ptin_msg_get_next_qualRFC2819_inv(L7_int buffer_index, msg_rfc2819_buffe
     buffer[*n_elements].Pkts512to1023Octets   = ENDIAN_SWAP64(ring_buffer.Pkts512to1023Octets);                
     buffer[*n_elements].Pkts1024to1518Octets  = ENDIAN_SWAP64(ring_buffer.Pkts1024to1518Octets);
 
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].index %d", buffer[*n_elements].index);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].arg  %d",  buffer[*n_elements].arg );   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].time  %d", buffer[*n_elements].time );   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].path %d",  buffer[*n_elements].path);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].cTempo %d", buffer[*n_elements].cTempo);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Octets  %d", buffer[*n_elements].Octets );   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts %d", buffer[*n_elements].Pkts);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Broadcast %d", buffer[*n_elements].Broadcast);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Multicast %d", buffer[*n_elements].Multicast);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].CRCAlignErrors %d", buffer[*n_elements].CRCAlignErrors);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].UndersizePkts", buffer[*n_elements].UndersizePkts);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].OversizePkts %d", buffer[*n_elements].OversizePkts);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].index %lu", buffer[*n_elements].index);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].arg  %lu",  buffer[*n_elements].arg );   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].time  %lu", buffer[*n_elements].time );   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].path %lu",  buffer[*n_elements].path);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].cTempo %lu", buffer[*n_elements].cTempo);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Octets  %llu", buffer[*n_elements].Octets );   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts %llu", buffer[*n_elements].Pkts);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Broadcast %llu", buffer[*n_elements].Broadcast);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Multicast %llu", buffer[*n_elements].Multicast);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].CRCAlignErrors %llu", buffer[*n_elements].CRCAlignErrors);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].UndersizePkts %llu", buffer[*n_elements].UndersizePkts);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].OversizePkts %llu", buffer[*n_elements].OversizePkts);
    
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Fragments  %d", buffer[*n_elements].Fragments );   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Jabbers %d",  buffer[*n_elements].Jabbers);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Collisions %d", buffer[*n_elements].Collisions);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Utilization  %d", buffer[*n_elements].Utilization );   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts64Octets %d", buffer[*n_elements].Pkts64Octets);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts65to127Octets %d", buffer[*n_elements].Pkts65to127Octets);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts128to255Octets %d", buffer[*n_elements].Pkts128to255Octets);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts256to511Octets %d", buffer[*n_elements].Pkts256to511Octets);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts512to1023Octets", buffer[*n_elements].Pkts512to1023Octets);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts1024to1518Octets %d", buffer[*n_elements].Pkts1024to1518Octets);	  
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Fragments  %llu", buffer[*n_elements].Fragments );   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Jabbers %llu",  buffer[*n_elements].Jabbers);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Collisions %llu", buffer[*n_elements].Collisions);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Utilization  %llu", buffer[*n_elements].Utilization );   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts64Octets %llu", buffer[*n_elements].Pkts64Octets);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts65to127Octets %llu", buffer[*n_elements].Pkts65to127Octets);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts128to255Octets %llu", buffer[*n_elements].Pkts128to255Octets);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts256to511Octets %llu", buffer[*n_elements].Pkts256to511Octets);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts512to1023Octets %llu", buffer[*n_elements].Pkts512to1023Octets);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts1024to1518Octets %llu", buffer[*n_elements].Pkts1024to1518Octets);	  
     
     if (first_reg<0) 
       break;
@@ -17782,7 +17784,7 @@ L7_RC_t ptin_msg_get_next_qualRFC2819_inv(L7_int buffer_index, msg_rfc2819_buffe
     #endif
   }  
 
-	PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts1024to1518Octets %d", n_elements);
+	PT_LOG_DEBUG(LOG_CTX_MSG, "n_elements=%d", *n_elements);
   return L7_SUCCESS;
 }
 
@@ -17809,59 +17811,59 @@ L7_RC_t ptin_msg_get_next_qualRFC2819(L7_int buffer_index, msg_rfc2819_buffer_t 
     buffer_index=RFC2819_BUFFER_15MIN;
 
 
-    if(ptin_rfc2819_buffer_get(buffer_index, buffer_id, &ring_buffer) <0) 
-    {
-      memset(&buffer[n_elements], 0x00, sizeof(msg_rfc2819_buffer_t)); // When no performance monotoring is avaiable send zeros.
-      return L7_SUCCESS;
-    }
-        
-    buffer[n_elements].index                = ENDIAN_SWAP32(ring_buffer.index);
-    buffer[n_elements].arg                  = ENDIAN_SWAP32(ring_buffer.arg);
-    buffer[n_elements].time                 = ENDIAN_SWAP32(ring_buffer.time);
-    buffer[n_elements].path                 = ENDIAN_SWAP32(ring_buffer.path);
-    buffer[n_elements].cTempo               = ENDIAN_SWAP32(ring_buffer.cTempo);
+  if(ptin_rfc2819_buffer_get(buffer_index, buffer_id, &ring_buffer) <0) 
+  {
+    memset(&buffer[n_elements], 0x00, sizeof(msg_rfc2819_buffer_t)); // When no performance monotoring is avaiable send zeros.
+    return L7_SUCCESS;
+  }
+      
+  buffer[n_elements].index                = ENDIAN_SWAP32(ring_buffer.index);
+  buffer[n_elements].arg                  = ENDIAN_SWAP32(ring_buffer.arg);
+  buffer[n_elements].time                 = ENDIAN_SWAP32(ring_buffer.time);
+  buffer[n_elements].path                 = ENDIAN_SWAP32(ring_buffer.path);
+  buffer[n_elements].cTempo               = ENDIAN_SWAP32(ring_buffer.cTempo);
 
-    buffer[n_elements].Octets               = ENDIAN_SWAP64(ring_buffer.Octets);
-    buffer[n_elements].Pkts                 = ENDIAN_SWAP64(ring_buffer.Pkts);                
-    buffer[n_elements].Broadcast            = ENDIAN_SWAP64(ring_buffer.Broadcast);
-    buffer[n_elements].Multicast            = ENDIAN_SWAP64(ring_buffer.Multicast);           
-    buffer[n_elements].CRCAlignErrors       = ENDIAN_SWAP64(ring_buffer.CRCAlignErrors);      
-    buffer[n_elements].UndersizePkts        = ENDIAN_SWAP64(ring_buffer.UndersizePkts);       
-    buffer[n_elements].OversizePkts         = ENDIAN_SWAP64(ring_buffer.OversizePkts);        
-    buffer[n_elements].Fragments            = ENDIAN_SWAP64(ring_buffer.Fragments);           
-    buffer[n_elements].Jabbers              = ENDIAN_SWAP64(ring_buffer.Jabbers);             
-    buffer[n_elements].Collisions           = ENDIAN_SWAP64(ring_buffer.Collisions);          
-    buffer[n_elements].Utilization          = ENDIAN_SWAP64(ring_buffer.Utilization);         
-    buffer[n_elements].Pkts64Octets         = ENDIAN_SWAP64(ring_buffer.Pkts64Octets);        
-    buffer[n_elements].Pkts65to127Octets    = ENDIAN_SWAP64(ring_buffer.Pkts65to127Octets);   
-    buffer[n_elements].Pkts128to255Octets   = ENDIAN_SWAP64(ring_buffer.Pkts128to255Octets);  
-    buffer[n_elements].Pkts256to511Octets   = ENDIAN_SWAP64(ring_buffer.Pkts256to511Octets);  
-    buffer[n_elements].Pkts512to1023Octets  = ENDIAN_SWAP64(ring_buffer.Pkts512to1023Octets); 
-    buffer[n_elements].Pkts1024to1518Octets = ENDIAN_SWAP64(ring_buffer.Pkts1024to1518Octets);
-   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].index %d", buffer[n_elements].index);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].arg  %d",  buffer[n_elements].arg );   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].time  %d", buffer[n_elements].time );   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].path %d",  buffer[n_elements].path);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].cTempo %d", buffer[n_elements].cTempo);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Octets  %d", buffer[n_elements].Octets );   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts %d", buffer[n_elements].Pkts);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Broadcast %d", buffer[n_elements].Broadcast);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Multicast %d", buffer[n_elements].Multicast);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].CRCAlignErrors %d", buffer[n_elements].CRCAlignErrors);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].UndersizePkts", buffer[n_elements].UndersizePkts);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].OversizePkts %d", buffer[n_elements].OversizePkts);
+  buffer[n_elements].Octets               = ENDIAN_SWAP64(ring_buffer.Octets);
+  buffer[n_elements].Pkts                 = ENDIAN_SWAP64(ring_buffer.Pkts);                
+  buffer[n_elements].Broadcast            = ENDIAN_SWAP64(ring_buffer.Broadcast);
+  buffer[n_elements].Multicast            = ENDIAN_SWAP64(ring_buffer.Multicast);           
+  buffer[n_elements].CRCAlignErrors       = ENDIAN_SWAP64(ring_buffer.CRCAlignErrors);      
+  buffer[n_elements].UndersizePkts        = ENDIAN_SWAP64(ring_buffer.UndersizePkts);       
+  buffer[n_elements].OversizePkts         = ENDIAN_SWAP64(ring_buffer.OversizePkts);        
+  buffer[n_elements].Fragments            = ENDIAN_SWAP64(ring_buffer.Fragments);           
+  buffer[n_elements].Jabbers              = ENDIAN_SWAP64(ring_buffer.Jabbers);             
+  buffer[n_elements].Collisions           = ENDIAN_SWAP64(ring_buffer.Collisions);          
+  buffer[n_elements].Utilization          = ENDIAN_SWAP64(ring_buffer.Utilization);         
+  buffer[n_elements].Pkts64Octets         = ENDIAN_SWAP64(ring_buffer.Pkts64Octets);        
+  buffer[n_elements].Pkts65to127Octets    = ENDIAN_SWAP64(ring_buffer.Pkts65to127Octets);   
+  buffer[n_elements].Pkts128to255Octets   = ENDIAN_SWAP64(ring_buffer.Pkts128to255Octets);  
+  buffer[n_elements].Pkts256to511Octets   = ENDIAN_SWAP64(ring_buffer.Pkts256to511Octets);  
+  buffer[n_elements].Pkts512to1023Octets  = ENDIAN_SWAP64(ring_buffer.Pkts512to1023Octets); 
+  buffer[n_elements].Pkts1024to1518Octets = ENDIAN_SWAP64(ring_buffer.Pkts1024to1518Octets);
+ 
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].index %lu", buffer[n_elements].index);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].arg  %lu",  buffer[n_elements].arg );   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].time  %lu", buffer[n_elements].time );   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].path %lu",  buffer[n_elements].path);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].cTempo %lu", buffer[n_elements].cTempo);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Octets  %llu", buffer[n_elements].Octets );   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts %llu", buffer[n_elements].Pkts);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Broadcast %llu", buffer[n_elements].Broadcast);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Multicast %llu", buffer[n_elements].Multicast);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].CRCAlignErrors %llu", buffer[n_elements].CRCAlignErrors);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].UndersizePkts %llu", buffer[n_elements].UndersizePkts);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].OversizePkts %llu", buffer[n_elements].OversizePkts);
 
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Fragments  %d", buffer[n_elements].Fragments );   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Jabbers %d",  buffer[n_elements].Jabbers);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Collisions %d", buffer[n_elements].Collisions);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Utilization  %d", buffer[n_elements].Utilization );   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts64Octets %d", buffer[n_elements].Pkts64Octets);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts65to127Octets %d", buffer[n_elements].Pkts65to127Octets);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts128to255Octets %d", buffer[n_elements].Pkts128to255Octets);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts256to511Octets %d", buffer[n_elements].Pkts256to511Octets);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts512to1023Octets", buffer[n_elements].Pkts512to1023Octets);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts1024to1518Octets %d", buffer[n_elements].Pkts1024to1518Octets);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Fragments  %llu", buffer[n_elements].Fragments );   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Jabbers %llu",  buffer[n_elements].Jabbers);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Collisions %llu", buffer[n_elements].Collisions);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Utilization  %llu", buffer[n_elements].Utilization );   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts64Octets %llu", buffer[n_elements].Pkts64Octets);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts65to127Octets %llu", buffer[n_elements].Pkts65to127Octets);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts128to255Octets %llu", buffer[n_elements].Pkts128to255Octets);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts256to511Octets %llu", buffer[n_elements].Pkts256to511Octets);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts512to1023Octets %llu", buffer[n_elements].Pkts512to1023Octets);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts1024to1518Octets %llu", buffer[n_elements].Pkts1024to1518Octets);
       
   return L7_SUCCESS;
 }
@@ -19168,7 +19170,7 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client
       if (ENDIAN_SWAP8(msg[messageIterator].onuId) != 0)
       {
         PT_LOG_WARN(LOG_CTX_MSG, "   I'm an Active Ethernet Card. OnuId:%u is different from 0. Going to set it to zero", ENDIAN_SWAP8(msg[messageIterator].onuId));
-        ENDIAN_SWAP8(msg[messageIterator].onuId) = 0;
+        msg[messageIterator].onuId = 0;
       }    
       #endif
 
@@ -19434,7 +19436,11 @@ L7_RC_t ptin_msg_igmp_multicast_service_remove(msg_multicast_service_t *msg, L7_
     {
       /*Input Parameters*/
       PT_LOG_DEBUG(LOG_CTX_MSG, "Input Arguments [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]",
-                ENDIAN_SWAP8(msg[messageIterator].slotId),ENDIAN_SWAP32(msg[messageIterator].evcId), ENDIAN_SWAP8(msg[messageIterator].intf.intf_type), ENDIAN_SWAP8(msg[messageIterator].intf.intf_id), ENDIAN_SWAP8(msg[messageIterator].onuId));
+                   ENDIAN_SWAP8(msg[messageIterator].slotId),
+                   ENDIAN_SWAP32(msg[messageIterator].evcId), 
+                   ENDIAN_SWAP8(msg[messageIterator].intf.intf_type), 
+                   ENDIAN_SWAP8(msg[messageIterator].intf.intf_id), 
+                   ENDIAN_SWAP8(msg[messageIterator].onuId));
 
       /*Copy to ptin intf struct*/
       ptinIntf.intf_type = ENDIAN_SWAP8(msg[messageIterator].intf.intf_type);
@@ -19443,7 +19449,12 @@ L7_RC_t ptin_msg_igmp_multicast_service_remove(msg_multicast_service_t *msg, L7_
       /*Convert from ptin intf to otin port*/
       if ( L7_SUCCESS != (rc = ptin_intf_ptintf2port(&ptinIntf, &ptinPort) ) )
       {
-        PT_LOG_ERR(LOG_CTX_IGMP, "Failed to convert to ptin port [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]");  
+        PT_LOG_ERR(LOG_CTX_IGMP, "Failed to convert to ptin port [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]",
+                   ENDIAN_SWAP8(msg[messageIterator].slotId),
+                   ENDIAN_SWAP32(msg[messageIterator].evcId), 
+                   ENDIAN_SWAP8(msg[messageIterator].intf.intf_type), 
+                   ENDIAN_SWAP8(msg[messageIterator].intf.intf_id), 
+                   ENDIAN_SWAP8(msg[messageIterator].onuId));  
         return rc;
       }
 
@@ -19678,7 +19689,7 @@ L7_RC_t rc;
                     return ERROR_CODE_INVALIDPARAM;
                 }
                 if (L7_SUCCESS!=osapiNetIfConfig(ifName, ip, msk)) {
-                    PT_LOG_ERR(LOG_CTX_MSG,"osapiNetIfConfig(ifName=%s, ip=0x%lx, msk=0x%lx)", ifName, ip, msk);
+                    PT_LOG_ERR(LOG_CTX_MSG,"osapiNetIfConfig(ifName=%s, ip=0x%x, msk=0x%x)", ifName, ip, msk);
                     return ERROR_CODE_INVALIDPARAM;
                 }
                 //sprintf(com, "ifconfig %s %d.%d.%d.%d netmask %d.%d.%d.%d up\n", ifName,
@@ -19691,8 +19702,8 @@ L7_RC_t rc;
 #if (!PTIN_BOARD_IS_STANDALONE)
             rc = ptin_ipdtl0_control(ib->dtl0vid, ib->vid, internalVid, intIfNum, PTIN_IPDTL0_ETH_IPv4_UDP_PTP, enable);
             if (L7_SUCCESS!=rc) {
-                PT_LOG_ERR(LOG_CTX_MSG,"ptin_ipdtl0_control(ib->dtl0vid=%u, ib->vid=%u, internalVid=%u, intIfNum=%lu, PTIN_IPDTL0_ETH_IPv4_UDP_PTP, enable=%u)=%d",
-                                            ib->dtl0vid, ib->vid, internalVid, intIfNum, PTIN_IPDTL0_ETH_IPv4_UDP_PTP, enable, rc);
+                PT_LOG_ERR(LOG_CTX_MSG,"ptin_ipdtl0_control(ib->dtl0vid=%u, ib->vid=%u, internalVid=%u, intIfNum=%u, PTIN_IPDTL0_ETH_IPv4_UDP_PTP=%u, enable=%u)=%d",
+                           ib->dtl0vid, ib->vid, internalVid, intIfNum, PTIN_IPDTL0_ETH_IPv4_UDP_PTP, enable, rc);
                 return ERROR_CODE_INVALIDPARAM;
             }
 #endif

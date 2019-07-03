@@ -95,7 +95,7 @@ L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 workingSlotId, L7_uint8 protectionSl
   {
     if (workingPortId == protectionPortId)
     {
-      PT_LOG_ERR(LOG_CTX_PROTB, "Invalid Configuration: protectionSlotId:%u == workingSlotId:%u && workingPortId == protectionPortId = :%u", protectionSlotId, workingPortId);
+      PT_LOG_ERR(LOG_CTX_PROTB, "Invalid Configuration: protectionSlotId:%u == workingSlotId:%u && workingPortId == protectionPortId = :%u", protectionSlotId, workingSlotId, workingPortId);
       return L7_FAILURE;
     }
   }  
@@ -4086,7 +4086,7 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
   inetAddrPrint(groupAddr, groupAddrStr);
   inetAddrPrint(sourceAddr, sourceAddrStr);
 
-  PT_LOG_DEBUG(LOG_CTX_IGMP, "Context [serviceId:%u portId:%u groupAddr:%s sourceAddr:%s isProtection:%s]", serviceId, intIfNum, groupAddr, sourceAddr, isProtection?"Yes":"No");
+  PT_LOG_DEBUG(LOG_CTX_IGMP, "Context [serviceId:%u portId:%u groupAddr:%s sourceAddr:%s isProtection:%s]", serviceId, intIfNum, groupAddrStr, sourceAddrStr, isProtection?"Yes":"No");
 
 #if !PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
   /*In L2 we do not support forwarding multicast packets based on the Source Address. 
@@ -4119,7 +4119,7 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
   )
   {
 //  if (ptin_debug_igmp_snooping)
-      PT_LOG_NOTICE(LOG_CTX_IGMP, "Ignoring Port Close. This port is standby [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]", serviceId, intIfNum, groupAddr, sourceAddr);
+      PT_LOG_NOTICE(LOG_CTX_IGMP, "Ignoring Port Close. This port is standby [serviceId:%u portId:%u groupAddr:%s sourceAddr:%s]", serviceId, intIfNum, groupAddrStr, sourceAddrStr);
    
     return rc;
   } 
