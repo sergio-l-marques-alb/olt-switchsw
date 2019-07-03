@@ -907,25 +907,26 @@ t_Handle ospfAreaTable_Lookup(t_Handle ospfMibObj, ulng areaId)
  * ********************************************************************/
 e_Err ospfAreaTable_SetTest(word lastOid, ulng newValue, t_Handle p)
 {
-   ospfAreaEntry *p_areaEntry = (ospfAreaEntry *)p;  
+  ospfAreaEntry *p_areaEntry = (ospfAreaEntry *)p;  
 
-   /* The first verification: the new value of the object is in range */
-   if (!CheckValueInRange(ospfAreaTestTable, 
-                            sizeof(ospfAreaTestTable)/sizeof(ospfAreaTestTable[0]),
-                            lastOid, newValue))
+  /* The first verification: the new value of the object is in range */
+  if (!CheckValueInRange(ospfAreaTestTable, 
+                           sizeof(ospfAreaTestTable)/sizeof(ospfAreaTestTable[0]),
+                           lastOid, newValue))
+     return E_FAILED;
+  
+  /* Since OSPF Area configuration parameters are "CREATE_READ" objects, */
+  /* they can be changed (set) only during conceptual row creation.      */
+  /* Rowstatus are "READ_WRITE" objects, so they can be set at any time. */
+
+  if ( lastOid == ospfAreaTableRowStatusSubId)  
+     return E_OK;
+  else
+    if((p_areaEntry->info.rowStatus != notReady) &&
+       (p_areaEntry->info.rowStatus != notInService))
       return E_FAILED;
-   
-   /* Since OSPF Area configuration parameters are "CREATE_READ" objects, */
-   /* they can be changed (set) only during conceptual row creation.      */
-   /* Rowstatus are "READ_WRITE" objects, so they can be set at any time. */
 
-   if ( lastOid == ospfAreaTableRowStatusSubId)  
-      return E_OK;
-   else
-      if((p_areaEntry->info.rowStatus != notReady) &&
-         (p_areaEntry->info.rowStatus != notInService))
-          return E_FAILED;
-      return E_OK;   
+  return E_OK;   
 }
 
 
@@ -4765,32 +4766,32 @@ t_Handle ospfVirtIfTable_GetFirst(t_Handle ospfMibObj, ulng *p_AreaId,
  * ********************************************************************/
 e_Err ospfVirtIfTable_SetTest(word lastOid, ulng newValue, t_Handle p)
 {
-   ospfVirtIfEntry *p_virtIfEntry = (ospfVirtIfEntry *)p;
-   
-   /* The first verification: the new value of the object is in range */
-   if (!CheckValueInRange(ospfVirtIfTestTable,
-                            sizeof(ospfVirtIfTestTable)/
-                            sizeof(ospfVirtIfTestTable[0]),
-                            lastOid, newValue))
-      return E_FAILED;
+  ospfVirtIfEntry *p_virtIfEntry = (ospfVirtIfEntry *)p;
+  
+  /* The first verification: the new value of the object is in range */
+  if (!CheckValueInRange(ospfVirtIfTestTable,
+                           sizeof(ospfVirtIfTestTable)/
+                           sizeof(ospfVirtIfTestTable[0]),
+                           lastOid, newValue))
+     return E_FAILED;
 
-   /* OSPF Virt Interface table fields are "CREATE_READ" objects. */
-   /* Therefore they can be changed (set) only during conceptual  */
-   /* row creation (i.e. before the row status becomes "active"). */
+  /* OSPF Virt Interface table fields are "CREATE_READ" objects. */
+  /* Therefore they can be changed (set) only during conceptual  */
+  /* row creation (i.e. before the row status becomes "active"). */
 
-   if (lastOid == ospfVirtIfTableRowStatusSubId)
-   {
-      if (p_virtIfEntry)
-         if (p_virtIfEntry->info.internalCreated == TRUE)
-            return E_FAILED;
-      return E_OK;
-   }
-   else
-      if((p_virtIfEntry->info.rowStatus != notReady) &&
-         (p_virtIfEntry->info.rowStatus != notInService))
-          return E_FAILED;
+  if (lastOid == ospfVirtIfTableRowStatusSubId)
+  {
+    if (p_virtIfEntry)
+      if (p_virtIfEntry->info.internalCreated == TRUE)
+        return E_FAILED;
+    return E_OK;
+  }
+  else
+     if((p_virtIfEntry->info.rowStatus != notReady) &&
+        (p_virtIfEntry->info.rowStatus != notInService))
+       return E_FAILED;
 
-      return E_OK;   
+  return E_OK;   
 }
 
 
@@ -5502,28 +5503,28 @@ t_Handle ospfNbrTable_GetFirst(t_Handle ospfMibObj, ulng *p_NbrIpAddr,
  * ********************************************************************/
 e_Err ospfNbrTable_SetTest(word lastOid, ulng newValue, t_Handle p)
 {
-   ospfNbrEntry  *p_nbrEntry = (ospfNbrEntry *)p;
-   
-   /* The first verification: the new value of the object is in range */
-   if (!CheckValueInRange(ospfNbrTestTable, 
-                            sizeof(ospfNbrTestTable)/
-                            sizeof(ospfNbrTestTable[0]),
-                            lastOid, newValue))
+  ospfNbrEntry  *p_nbrEntry = (ospfNbrEntry *)p;
+  
+  /* The first verification: the new value of the object is in range */
+  if (!CheckValueInRange(ospfNbrTestTable, 
+                           sizeof(ospfNbrTestTable)/
+                           sizeof(ospfNbrTestTable[0]),
+                           lastOid, newValue))
+     return E_FAILED;
+  
+  /* OSPF Neighbor table fields are "CREATE_READ" objects.         */
+  /* Therefore they can be changed (set) only during conceptual row      */
+  /* creation (i.e. before the row status becomes "active").             */
+  /* Rowstatus are "READ_WRITE" objects, so they can be set at any time. */
+
+  if (lastOid == ospfNbrTableRowStatusSubId)  
+    return E_OK;
+  else
+    if((p_nbrEntry->info.rowStatus != notReady) &&
+       (p_nbrEntry->info.rowStatus != notInService))
       return E_FAILED;
-   
-   /* OSPF Neighbor table fields are "CREATE_READ" objects.         */
-   /* Therefore they can be changed (set) only during conceptual row      */
-   /* creation (i.e. before the row status becomes "active").             */
-   /* Rowstatus are "READ_WRITE" objects, so they can be set at any time. */
 
-   if (lastOid == ospfNbrTableRowStatusSubId)  
-      return E_OK;
-   else
-      if((p_nbrEntry->info.rowStatus != notReady) &&
-         (p_nbrEntry->info.rowStatus != notInService))
-          return E_FAILED;
-
-      return E_OK;   
+  return E_OK;   
 }
 
 

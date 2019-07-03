@@ -3290,7 +3290,8 @@ L7_RC_t snoopPTinAddStaticGroup(L7_uint32 vlanId, L7_uint32 intIfNum,L7_inet_add
 {
   ptin_IgmpProxyCfg_t igmpCfg;  
   L7_uint32 clientIdx;
-  snoopPTinL3InfoData_t  *snoopEntry; 
+  snoopPTinL3InfoData_t  *snoopEntry;
+  L7_uchar8 groupAddrStr[IPV6_DISP_ADDR_LEN];
 
   L7_BOOL newEntry,interfaceProvided=L7_FALSE;
 
@@ -3333,7 +3334,7 @@ L7_RC_t snoopPTinAddStaticGroup(L7_uint32 vlanId, L7_uint32 intIfNum,L7_inet_add
     }
     else
     {
-      PT_LOG_TRACE(LOG_CTX_IGMP, "snoopPTinL3EntryAdd(%u,%u)",groupAddr,vlanId);
+      PT_LOG_TRACE(LOG_CTX_IGMP, "snoopPTinL3EntryAdd(%u,%s)", vlanId, inetAddrPrint(groupAddr, groupAddrStr));
     }
     if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(vlanId, groupAddr, L7_MATCH_EXACT)))
     {

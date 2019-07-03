@@ -486,7 +486,7 @@ L7_RC_t pmlCnfgrUconfigPhase2( L7_CNFGR_RESPONSE_t *pResponse,
     return pmlRC;
   }
 
-  memset(pmlCfgData, 0, sizeof(pmlCfgData));
+  memset(pmlCfgData, 0, sizeof(*pmlCfgData));
 
   pmlCnfgrState = PML_PHASE_WMU;
 

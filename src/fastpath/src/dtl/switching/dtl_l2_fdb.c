@@ -673,7 +673,7 @@ L7_RC_t dtlFdbMacAddrDelete(L7_uchar8 *macAddr,
   L7_RC_t dr;
   nimUSP_t usp;
 
-  PT_LOG_TRACE(LOG_CTX_L2, "vlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x",
+  PT_LOG_TRACE(LOG_CTX_L2, "vlan=%lu, MAC=%02x:%02x:%02x:%02x:%02x:%02x",
             filterDbID,
             macAddr[0], macAddr[1], macAddr[2], macAddr[3], macAddr[4], macAddr[5]);
 

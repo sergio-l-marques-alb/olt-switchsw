@@ -235,7 +235,8 @@ L7_RC_t ptinMacBcastRecv(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
   if (ptin_evc_intfVlan_validate(intIfNum, vlanId)!=L7_SUCCESS)
   {
     if (ptin_packet_debug_enable)
-      PT_LOG_ERR(LOG_CTX_PACKET,"intIfNum %u and vlan %u does not belong to any valid EVC/interface");
+      PT_LOG_ERR(LOG_CTX_PACKET,"intIfNum %u and vlan %u does not belong to any valid EVC/interface",
+                 intIfNum, vlanId);
     return L7_FAILURE;
   }
 

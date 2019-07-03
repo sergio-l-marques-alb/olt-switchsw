@@ -464,11 +464,11 @@ nimMigrateConfigV4V5Convert (nimConfigDataV4_t * pCfgV4,
   for ( ; i <= count; i++)
   {
     MIGRATE_COPY_STRUCT (pCfgV5->cfgPort[i+diff], pCfgV4->cfgPort[i]);
-    if (pCfgV5->cfgPort[i+diff].configIdMaskOffset != 0)
-    {
-      /* Adjust configIdMaskOffset as that contains intIfNum */
-      pCfgV5->cfgPort[i+diff].configIdMaskOffset = pCfgV5->cfgPort[i+diff].configIdMaskOffset + diff;
-    }
+//    if (pCfgV5->cfgPort[i+diff].configIdMaskOffset != 0)
+//    {
+//      /* Adjust configIdMaskOffset as that contains intIfNum */
+//      pCfgV5->cfgPort[i+diff].configIdMaskOffset = pCfgV5->cfgPort[i+diff].configIdMaskOffset + diff;
+//    }
   }
 
 

@@ -3888,18 +3888,20 @@ next_interface:
    {
      t_VpnCos VpnCos = OSPF_PUBLIC_VPN_ID;
      t_RTB *p_RTB = NULL;
-      /* Remove LSA preparsing elements */
-      if (p_DbEntry->ConnList)
-         LsaParseDel(p_ARO, p_DbEntry);
+     /* Remove LSA preparsing elements */
+     if (p_DbEntry->ConnList)
+        LsaParseDel(p_ARO, p_DbEntry);
 
-      if (HL_FindFirst(p_RTO->RtbHl, (byte *) &VpnCos, (void *)&p_RTB) == E_OK)
-      {
-        if(!TIMER_Active(p_RTB->RecalcTimer))
-          /* Start recalculation timer */
-          RTB_ComputeCalcDelay(p_RTB, p_RTO);
-          TIMER_StartSec(p_RTB->RecalcTimer, p_RTB->CalcDelay,
-                         0, RecalcTimerExp, p_RTO->OspfRtbThread.threadHndle);
-      }
+     if (HL_FindFirst(p_RTO->RtbHl, (byte *) &VpnCos, (void *)&p_RTB) == E_OK)
+     {
+       if(!TIMER_Active(p_RTB->RecalcTimer))
+       {
+         /* Start recalculation timer */
+         RTB_ComputeCalcDelay(p_RTB, p_RTO);
+         TIMER_StartSec(p_RTB->RecalcTimer, p_RTB->CalcDelay,
+                        0, RecalcTimerExp, p_RTO->OspfRtbThread.threadHndle);
+       }
+     }
    }
      
    return E_OK;
@@ -4344,7 +4346,7 @@ e_Err FindSummaryOrASExtLsa(t_RTO *p_RTO, t_ARO *p_ARO, e_S_LScodes LsType,
          *p_foundLsa = p_DbEntry;
       if(p_LsId)
          *p_LsId = A_GET_4B(p_DbEntry->Lsa.LsId);
-         return E_OK;
+      return E_OK;
    }
 
    return E_NOT_FOUND;

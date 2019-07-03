@@ -47,9 +47,15 @@ extern "C" {
  * see /usr/include/features.h for the ramifications of setting this
  * ifndef checks avoid redefinition error messages.
  */
+#if ((__GNUC__ == 4 && __GNUC_MINOR__ >= 9) || (__GNUC__ > 4)) /* PTin modified */
+#ifndef _DEFAULT_SOURCE
+ #define _DEFAULT_SOURCE
+#endif /* _DEFAULT_SOURCE */
+#else
 #ifndef _BSD_SOURCE
-#define _BSD_SOURCE
+ #define _BSD_SOURCE
 #endif /* _BSD_SOURCE */
+#endif
 
 #ifndef _POSIX_SOURCE
 #define _POSIX_SOURCE

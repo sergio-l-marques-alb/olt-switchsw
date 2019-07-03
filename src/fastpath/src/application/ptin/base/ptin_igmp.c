@@ -3311,7 +3311,7 @@ L7_RC_t ptin_igmp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
     return L7_FAILURE;
   }
 
-  PT_LOG_TRACE(LOG_CTX_IGMP,"Going to enable trap rule of igmp_idx=%u",evc_idx, igmp_idx);
+  PT_LOG_TRACE(LOG_CTX_IGMP,"Going to enable trap rule of igmp_idx=%u", igmp_idx);
 
   /* Trap rule */
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
@@ -3369,7 +3369,7 @@ L7_RC_t ptin_igmp_evc_remove(L7_uint32 evc_idx)
   /* Check if there is an instance with these parameters */
   if ( ptin_igmp_instance_find(evc_idx, 0 /*Not used*/, &igmp_idx)!=L7_SUCCESS )
   {
-    PT_LOG_WARN(LOG_CTX_IGMP,"There is no instance with [mcEvcId,ucEvcId]=[%u,%u]",evc_idx);
+    PT_LOG_WARN(LOG_CTX_IGMP,"There is no instance with EvcId=%u", evc_idx);
     return L7_SUCCESS;
   }
 
@@ -3974,7 +3974,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
       PT_LOG_DEBUG(LOG_CTX_IGMP, "  CTRL Msg Id              : %08X",      ctrlResMsg.msgId);
       PT_LOG_DEBUG(LOG_CTX_IGMP, "  CTRL Res                 : %u",        ctrlResMsg.res);
       PT_LOG_DEBUG(LOG_CTX_IGMP, "  CTRL Length              : %u", ctrlResMsg.dataLength);
-      PT_LOG_DEBUG(LOG_CTX_IGMP, "  Entry Length             : %u", sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t), ctrlResMsg.dataLength/sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t));
+      PT_LOG_DEBUG(LOG_CTX_IGMP, "  Entry Length             : %u", sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t));
       PT_LOG_DEBUG(LOG_CTX_IGMP, "  Number Of Entries Length : %u", ctrlResMsg.dataLength/sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t));
 
       if (0 != ctrlResMsg.dataLength%sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t))
@@ -7791,7 +7791,8 @@ L7_RC_t ptin_igmp_timer_start(L7_uint32 ptin_port, L7_uint32 client_idx)
   osapiSemaGive(ptin_igmp_timers_sem);
 
   if (ptin_debug_igmp_snooping)
-    PT_LOG_DEBUG(LOG_CTX_IGMP,"Timer Started: ptin_port=%u client_idx=%u timerCB=%p timer=%p timerHandle=%p timeout=%u (s)", ptin_port, client_idx, igmpDeviceClients.timerCB, pTimerData->timer, pTimerData->timerHandle, timeout);
+    PT_LOG_DEBUG(LOG_CTX_IGMP,"Timer Started: ptin_port=%u client_idx=%u timerCB=%p timer=%p timerHandle=%u timeout=%u (s)",
+                 ptin_port, client_idx, igmpDeviceClients.timerCB, pTimerData->timer, pTimerData->timerHandle, timeout);
 
   return L7_SUCCESS;
 }
@@ -7849,7 +7850,8 @@ L7_RC_t ptin_igmp_timer_update(L7_uint32 ptin_port, L7_uint32 client_idx)
   {
     osapiSemaGive(ptin_igmp_timers_sem);
     if (ptin_debug_igmp_snooping)
-      PT_LOG_ERR(LOG_CTX_IGMP,"Client timer not running: ptin_port=%u client_idx=%u timerCB=%p timer=%p timerHandle:%p", ptin_port, client_idx, igmpDeviceClients.timerCB, pTimerData->timer, pTimerData->timerHandle);
+      PT_LOG_ERR(LOG_CTX_IGMP,"Client timer not running: ptin_port=%u client_idx=%u timerCB=%p timer=%p timerHandle:%u",
+                 ptin_port, client_idx, igmpDeviceClients.timerCB, pTimerData->timer, pTimerData->timerHandle);
     return L7_FAILURE;
   }
 
@@ -7860,14 +7862,16 @@ L7_RC_t ptin_igmp_timer_update(L7_uint32 ptin_port, L7_uint32 client_idx)
                      "PTIN_TIMER") != L7_SUCCESS)
   {
     osapiSemaGive(ptin_igmp_timers_sem);
-    PT_LOG_ERR(LOG_CTX_IGMP,"Failed to update client timer: ptin_port=%u client_idx=%u timerCB=%p timer=%p timerHandle=%p timeout=%u (s)", ptin_port, client_idx, igmpDeviceClients.timerCB, pTimerData->timer, pTimerData->timerHandle, timeout);
+    PT_LOG_ERR(LOG_CTX_IGMP,"Failed to update client timer: ptin_port=%u client_idx=%u timerCB=%p timer=%p timerHandle=%u timeout=%u (s)",
+               ptin_port, client_idx, igmpDeviceClients.timerCB, pTimerData->timer, pTimerData->timerHandle, timeout);
     return L7_FAILURE;
   }
 
   osapiSemaGive(ptin_igmp_timers_sem);
 
   if (ptin_debug_igmp_snooping)
-    PT_LOG_DEBUG(LOG_CTX_IGMP,"Timer Updated: ptin_port=%u client_idx=%u timerCB=%p timer=%p timerHandle=%p timeout=%u (s)", ptin_port, client_idx, igmpDeviceClients.timerCB, pTimerData->timer, pTimerData->timerHandle, timeout);
+    PT_LOG_DEBUG(LOG_CTX_IGMP,"Timer Updated: ptin_port=%u client_idx=%u timerCB=%p timer=%p timerHandle=%u timeout=%u (s)",
+                 ptin_port, client_idx, igmpDeviceClients.timerCB, pTimerData->timer, pTimerData->timerHandle, timeout);
 
   return L7_SUCCESS;
 }
@@ -7924,14 +7928,14 @@ L7_uint32 ptin_igmp_timer_timeout_get(L7_uint32 ptin_port, L7_uint32 client_idx)
   {
     osapiSemaGive(ptin_igmp_timers_sem);
     if (ptin_debug_igmp_snooping)
-      PT_LOG_ERR(LOG_CTX_IGMP,"Client timer not running: ptin_port=%u client_idx=%u timerCB=%p timer=%p timerHandle=%p", ptin_port, client_idx, igmpDeviceClients.timerCB, pTimerData->timer, pTimerData->timerHandle);
+      PT_LOG_ERR(LOG_CTX_IGMP,"Client timer not running: ptin_port=%u client_idx=%u timerCB=%p timer=%p timerHandle=%u", ptin_port, client_idx, igmpDeviceClients.timerCB, pTimerData->timer, pTimerData->timerHandle);
     return L7_FAILURE;
   }
 
   appTimerTimeLeftGet(igmpDeviceClients.timerCB, pTimerData->timer, &time_left);
 
   if (ptin_debug_igmp_snooping)
-    PT_LOG_DEBUG(LOG_CTX_IGMP,"Client Timer TimeOut: ptin_port=%u client_idx=%u timerCB=%p timer=%p timerHandle=%p time_left=%u (s))", ptin_port, client_idx, igmpDeviceClients.timerCB, pTimerData->timer, pTimerData->timerHandle, time_left);
+    PT_LOG_DEBUG(LOG_CTX_IGMP,"Client Timer TimeOut: ptin_port=%u client_idx=%u timerCB=%p timer=%p timerHandle=%u time_left=%u (s))", ptin_port, client_idx, igmpDeviceClients.timerCB, pTimerData->timer, pTimerData->timerHandle, time_left);
 
   osapiSemaGive(ptin_igmp_timers_sem);
 
@@ -7980,14 +7984,14 @@ L7_RC_t ptin_igmp_timer_stop(L7_uint32 ptin_port, L7_uint32 client_idx)
   {
     osapiSemaGive(ptin_igmp_timers_sem);
     if (ptin_debug_igmp_snooping)
-      PT_LOG_ERR(LOG_CTX_IGMP,"Failed to delete timer node: ptin_port=%u client_idx=%u timerCB=%p timer=%p timerHandle=%p", ptin_port, client_idx, igmpDeviceClients.timerCB, timerData.timer, timerData.timerHandle);
+      PT_LOG_ERR(LOG_CTX_IGMP,"Failed to delete timer node: ptin_port=%u client_idx=%u timerCB=%p timer=%p timerHandle=%u", ptin_port, client_idx, igmpDeviceClients.timerCB, timerData.timer, timerData.timerHandle);
     return L7_FAILURE;
   }
 
   osapiSemaGive(ptin_igmp_timers_sem);
 
   if (ptin_debug_igmp_snooping)
-    PT_LOG_DEBUG(LOG_CTX_IGMP,"Timer stopped successfully for ptin_port=%u client_idx=%u timerCB=%p timer=%p timerHandle=%p", ptin_port, client_idx, igmpDeviceClients.timerCB, timerData.timer, timerData.timerHandle);
+    PT_LOG_DEBUG(LOG_CTX_IGMP,"Timer stopped successfully for ptin_port=%u client_idx=%u timerCB=%p timer=%p timerHandle=%u", ptin_port, client_idx, igmpDeviceClients.timerCB, timerData.timer, timerData.timerHandle);
 
   return L7_SUCCESS;
 }
@@ -8012,7 +8016,7 @@ void igmp_timer_expiry(void *param)
   igmpTimerData_t *pTimerData;
 
   if (ptin_debug_igmp_snooping)
-    PT_LOG_TRACE(LOG_CTX_IGMP,"Expiration event ocurred for timerHandle %p!",timerHandle);
+    PT_LOG_TRACE(LOG_CTX_IGMP,"Expiration event ocurred for timerHandle %u!",timerHandle);
 
   osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
   osapiSemaTake(ptin_igmp_timers_sem, L7_WAIT_FOREVER);
@@ -8047,7 +8051,7 @@ void igmp_timer_expiry(void *param)
 #endif
 
   if (ptin_debug_igmp_snooping)
-    PT_LOG_TRACE(LOG_CTX_IGMP,"Expiration event ocurred for ptin_port=%u client_idx=%u timerCB=%p timer=%p timerHandle=%p", ptin_port, client_idx, igmpDeviceClients.timerCB, pTimerData->timer, pTimerData->timerHandle);
+    PT_LOG_TRACE(LOG_CTX_IGMP,"Expiration event ocurred for ptin_port=%u client_idx=%u timerCB=%p timer=%p timerHandle=%u", ptin_port, client_idx, igmpDeviceClients.timerCB, pTimerData->timer, pTimerData->timerHandle);
 
 #if 0
   /* Delete timer */
@@ -8624,7 +8628,7 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
       //Only IPv4 is supported!
       if (channel_group->family!=L7_AF_INET || channel_source->family!=L7_AF_INET)
       {
-        PT_LOG_ERR(LOG_CTX_IGMP,"IPv6 not supported for MGMD [UC_EVC=%u MC_EVC]",evc_uc,evc_mc);
+        PT_LOG_ERR(LOG_CTX_IGMP,"IPv6 not supported for MGMD [UC_EVC=%u MC_EVC=%u]", evc_uc, evc_mc);
         return L7_FAILURE;                       
       }
       if (L7_SUCCESS != ptin_igmp_mgmd_whitelist_add(evc_mc,channel_group->addr.ipv4.s_addr,channel_grpMask,channel_source->addr.ipv4.s_addr, channel_srcMask,channelBandwidth))
@@ -8878,7 +8882,8 @@ static L7_RC_t ptin_igmp_channel_to_netmask( L7_inet_addr_t *channel_in, L7_uint
   /*Validate Input Parameters*/
   if (channel_in == L7_NULLPTR || channel_out == L7_NULLPTR || number_of_channels == L7_NULLPTR)
   {
-    PT_LOG_ERR(LOG_CTX_IGMP,"Invalid Input Arguments: channel_in:%p channel_out:%p number_of_channels:%p");
+    PT_LOG_ERR(LOG_CTX_IGMP,"Invalid Input Arguments: channel_in:%p channel_out:%p number_of_channels:%p",
+               (void*)channel_in, (void*)channel_out, (void*)number_of_channels);
     return L7_FAILURE;
   }
 
@@ -14984,12 +14989,14 @@ RC_t ptin_igmp_admission_control_port_set(L7_uint32 ptin_port, L7_uint8 mask, L7
   /*Input Parameters Validation*/
   if (ptin_port >= PTIN_SYSTEM_N_UPLINK_INTERF)
   {
-    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid arguments [ptin_port:%u mask:0x%x maxAllowedChannels:%u maxAllowedBandwidth:%ull]",ptin_port, mask, maxAllowedChannels, maxAllowedBandwidth);    
+    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid arguments [ptin_port:%u mask:0x%x maxAllowedChannels:%u maxAllowedBandwidth:%llu]",
+               ptin_port, mask, maxAllowedChannels, maxAllowedBandwidth);    
     return L7_FAILURE;
   }
 
   if (ptin_debug_igmp_snooping)
-    PT_LOG_TRACE(LOG_CTX_IGMP, "Input arguments [ptin_port:%u mask:0x%x maxAllowedChannels:%u maxAllowedBandwidth:%ull]",ptin_port, mask, maxAllowedChannels, maxAllowedBandwidth);
+    PT_LOG_TRACE(LOG_CTX_IGMP, "Input arguments [ptin_port:%u mask:0x%x maxAllowedChannels:%u maxAllowedBandwidth:%llu]",
+                 ptin_port, mask, maxAllowedChannels, maxAllowedBandwidth);
 
   if ( (mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS)
   {
@@ -15022,7 +15029,11 @@ RC_t ptin_igmp_admission_control_port_set(L7_uint32 ptin_port, L7_uint8 mask, L7
   }
 
   if (ptin_debug_igmp_snooping)
-    PT_LOG_TRACE(LOG_CTX_IGMP, "Output arguments [ptin_port:%u mask:0x%x maxAllowedChannels:%u maxAllowedBandwidth:%ull]",ptin_port, igmpPortAdmissionControl[ptin_port].admissionControl.mask, igmpPortAdmissionControl[ptin_port].admissionControl.maxAllowedChannels, igmpPortAdmissionControl[ptin_port].admissionControl.maxAllowedBandwidth);
+    PT_LOG_TRACE(LOG_CTX_IGMP, "Output arguments [ptin_port:%u mask:0x%x maxAllowedChannels:%u maxAllowedBandwidth:%u]",
+                 ptin_port, 
+                 igmpPortAdmissionControl[ptin_port].admissionControl.mask, 
+                 igmpPortAdmissionControl[ptin_port].admissionControl.maxAllowedChannels, 
+                 igmpPortAdmissionControl[ptin_port].admissionControl.maxAllowedBandwidth);
 
   return L7_SUCCESS;
 }
@@ -15297,12 +15308,13 @@ RC_t ptin_igmp_admission_control_multicast_service_set(ptin_igmp_admission_contr
   if (igmpAdmissionControl->ptin_port >= PTIN_SYSTEM_N_UPLINK_INTERF || igmpAdmissionControl->onuId > PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF || igmpAdmissionControl->mask > PTIN_IGMP_ADMISSION_CONTROL_MASK_VALID ||
       ((L7_uint8) -1) == (internalServiceId = ptin_igmp_admission_control_multicast_internal_id_get(igmpAdmissionControl->serviceId)) || internalServiceId >= PTIN_IGMP_MAX_MULTICAST_INTERNAL_SERVICE_ID)
   {
-    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid arguments [ptin_port:%u onuId:%u serviceId:%u internalServiceId:%u mask:0x%x maxAllowedChannels:%u maxAllowedBandwidth:%ull]",igmpAdmissionControl->ptin_port, igmpAdmissionControl->onuId, igmpAdmissionControl->serviceId, internalServiceId, igmpAdmissionControl->mask, igmpAdmissionControl->maxAllowedChannels, igmpAdmissionControl->maxAllowedBandwidth);    
+    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid arguments [ptin_port:%u onuId:%u serviceId:%u internalServiceId:%u mask:0x%x maxAllowedChannels:%u maxAllowedBandwidth:%llu]",
+               igmpAdmissionControl->ptin_port, igmpAdmissionControl->onuId, igmpAdmissionControl->serviceId, internalServiceId, igmpAdmissionControl->mask, igmpAdmissionControl->maxAllowedChannels, igmpAdmissionControl->maxAllowedBandwidth);    
     return L7_FAILURE;
   }
 
   if (ptin_debug_igmp_snooping)
-    PT_LOG_TRACE(LOG_CTX_IGMP, "Input Arguments [ptin_port:%u onuId:%u serviceId:%u internalServiceId:%u mask:0x%x maxAllowedChannels:%u maxAllowedBandwidth:%ull]",igmpAdmissionControl->ptin_port, igmpAdmissionControl->onuId, igmpAdmissionControl->serviceId, internalServiceId, igmpAdmissionControl->mask, igmpAdmissionControl->maxAllowedChannels, igmpAdmissionControl->maxAllowedBandwidth);
+    PT_LOG_TRACE(LOG_CTX_IGMP, "Input Arguments [ptin_port:%u onuId:%u serviceId:%u internalServiceId:%u mask:0x%x maxAllowedChannels:%u maxAllowedBandwidth:%llu]",igmpAdmissionControl->ptin_port, igmpAdmissionControl->onuId, igmpAdmissionControl->serviceId, internalServiceId, igmpAdmissionControl->mask, igmpAdmissionControl->maxAllowedChannels, igmpAdmissionControl->maxAllowedBandwidth);
 
   if ( (igmpAdmissionControl->mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS)
   {
@@ -17415,8 +17427,8 @@ void ptin_igmp_querier_dump(L7_int evc_idx)
   for (evc_idx=0; evc_idx<PTIN_SYSTEM_N_EXTENDED_EVCS; evc_idx++)
   {
     /* Print this? */
-    if (evc_idx>0)
-      continue;
+//    if (evc_idx>0 && evc_idx!=evc_idx)
+//      continue;
 
     /* EVC must be active */
     if (!ptin_evc_is_in_use(evc_idx))
@@ -18518,13 +18530,14 @@ static RC_t queue_channel_entry_find(L7_uint32 packageId, ptinIgmpChannelInfoDat
   /* Input Argument validation */
   if ( packageId >= PTIN_SYSTEM_IGMP_MAXPACKAGES || channelAvlTreeEntry == L7_NULLPTR  || channelEntry ==  L7_NULLPTR)
   {
-    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid arguments [packageId:%u channelAvlTreeEntry:%p channelEntry:%u]", packageId, channelAvlTreeEntry, channelEntry);    
+    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid arguments [packageId:%u channelAvlTreeEntry:%p channelEntry:%p]",
+               packageId, channelAvlTreeEntry, channelEntry);    
     return L7_FAILURE;
   }
 
   /*Input Parameters*/
   if (ptin_debug_igmp_snooping)
-    PT_LOG_TRACE(LOG_CTX_IGMP, "Input Parameters [packageId:%u channelAvlTreeEntry:%p channelEntry:%u]",
+    PT_LOG_TRACE(LOG_CTX_IGMP, "Input Parameters [packageId:%u channelAvlTreeEntry:%p channelEntry:%p]",
               packageId, channelAvlTreeEntry, channelEntry);
 
   if (multicastPackage[packageId].queueChannel.n_elems != 0)
@@ -18769,13 +18782,14 @@ static RC_t queue_package_entry_find(L7_uint32 packageId, ptinIgmpChannelInfoDat
   /* Input Argument validation */
   if ( packageId >= PTIN_SYSTEM_IGMP_MAXPACKAGES || channelAvlTreeEntry == L7_NULLPTR  || packageEntry ==  L7_NULLPTR)
   {
-    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid arguments [packageId:%u channelAvlTreeEntry:%p channelEntry:%u]", packageId, channelAvlTreeEntry, packageEntry);    
+    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid arguments [packageId:%u channelAvlTreeEntry:%p packageEntry:%p]",
+               packageId, channelAvlTreeEntry, packageEntry);    
     return L7_FAILURE;
   }
 
   /*Input Parameters*/
   if (ptin_debug_igmp_snooping)
-    PT_LOG_TRACE(LOG_CTX_IGMP, "Input Parameters [packageId:%u channelAvlTreeEntry:%p channelEntry:%u]",
+    PT_LOG_TRACE(LOG_CTX_IGMP, "Input Parameters [packageId:%u channelAvlTreeEntry:%p packageEntry:%p]",
               packageId, channelAvlTreeEntry, packageEntry);
 
   if (channelAvlTreeEntry->queuePackage.n_elems != 0)
@@ -19392,9 +19406,11 @@ RC_t ptin_igmp_multicast_channel_service_get(L7_uint32 ptinPort, L7_uint32 devic
   if ( (groupClient = deviceClientId2groupClientPtr(ptinPort, deviceClientId)) == L7_NULLPTR)
   {
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
-    PT_LOG_TRACE(LOG_CTX_IGMP, "Failed to Obtain groupClient [ptinPort:%u deviceClientId:%u serviceId:%u groupAddr:%p sourceAddr:%p serviceId:%p groupClient:%p]",ptinPort, deviceClientId, groupAddr, sourceAddr, serviceId, groupClient);    
+    PT_LOG_TRACE(LOG_CTX_IGMP, "Failed to Obtain groupClient [ptinPort:%u deviceClientId:%u serviceId:%u groupAddr:%p sourceAddr:%p serviceId:%p groupClient:%p]",
+                 ptinPort, deviceClientId, *serviceId, groupAddr, sourceAddr, serviceId, groupClient);    
 #else
-    PT_LOG_ERR(LOG_CTX_IGMP, "Failed to Obtain groupClient [ptinPort:%u deviceClientId:%u serviceId:%u groupAddr:%p sourceAddr:%p serviceId:%p groupClient:%p]",ptinPort, deviceClientId, groupAddr, sourceAddr, serviceId, groupClient);    
+    PT_LOG_ERR(LOG_CTX_IGMP, "Failed to Obtain groupClient [ptinPort:%u deviceClientId:%u serviceId:%u groupAddr:%p sourceAddr:%p serviceId:%p groupClient:%p]",
+               ptinPort, deviceClientId, *serviceId, groupAddr, sourceAddr, serviceId, groupClient);    
 #endif
     return L7_FAILURE;
   }
@@ -19458,8 +19474,16 @@ RC_t ptin_igmp_multicast_channel_service_get(L7_uint32 ptinPort, L7_uint32 devic
     }
     else if (rc != L7_SUCCESS || channelEntry == L7_NULLPTR )
     {
-      PT_LOG_ERR(LOG_CTX_IGMP, "Failed to Search Channel Entry [ptinPort:%u deviceClientId:%u onuId:%u serviceId:%u groupAddr:%p sourceAddr:%p serviceId:%u internalServiceId:%u noOfMulticastServices:%u]", 
-              ptinPort, deviceClientId, onuId, inetAddrPrint(groupAddr, groupAddrStr), inetAddrPrint(sourceAddr, sourceAddrStr), serviceIdAux, internalServiceId, multicastServices[ptinPort][onuId].noOfMulticastServices);    
+      PT_LOG_ERR(LOG_CTX_IGMP, "Failed to Search Channel Entry:");
+      PT_LOG_ERR(LOG_CTX_IGMP, "  ptinPort:       %u", ptinPort);
+      PT_LOG_ERR(LOG_CTX_IGMP, "  deviceClientId: %u", deviceClientId);
+      PT_LOG_ERR(LOG_CTX_IGMP, "  onuId:          %u", onuId);
+      PT_LOG_ERR(LOG_CTX_IGMP, "  serviceId:      %u", serviceIdAux);
+      PT_LOG_ERR(LOG_CTX_IGMP, "  groupAddr:      %p", inetAddrPrint(groupAddr, groupAddrStr));
+      PT_LOG_ERR(LOG_CTX_IGMP, "  sourceAddr:     %p", inetAddrPrint(sourceAddr, sourceAddrStr));
+      PT_LOG_ERR(LOG_CTX_IGMP, "  intServiceId:   %u", internalServiceId);
+      PT_LOG_ERR(LOG_CTX_IGMP, "  Nr MC Services: %u", multicastServices[ptinPort][onuId].noOfMulticastServices);
+
       return L7_FAILURE;
     }
 
@@ -20192,14 +20216,15 @@ RC_t ptin_igmp_multicast_client_package_get(L7_uint32 packageId, ptinIgmpGroupCl
   /* Input Argument validation */
   if ( packageId >= PTIN_SYSTEM_IGMP_MAXPACKAGES || groupClient == L7_NULLPTR  || isBitSet == L7_NULLPTR )
   {
-    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid arguments [packageId:%u groupClient:%p isBitSet:%p]",packageId, groupClient);    
+    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid arguments [packageId:%u groupClient:%p isBitSet:%p]",
+               packageId, groupClient, isBitSet);
     return L7_FAILURE;
   }
 
   /*Input Parameters*/
   if (ptin_debug_igmp_snooping)
     PT_LOG_TRACE(LOG_CTX_IGMP, "Input Parameters [packageId:%u groupClient:%p isBitSet:%p]",
-              packageId, groupClient);
+                packageId, groupClient, isBitSet);
 
   /*Let us Check if this Package is Configured*/
   if (multicastPackage[packageId].inUse == L7_FALSE )
@@ -20423,7 +20448,7 @@ static RC_t ptin_igmp_package_channel_conflict_validation(L7_uint32 packageId, p
   while ( L7_NULLPTR != (channelEntry = queue_channel_entry_get_next(packageId, channelEntry)) && 
           L7_NULLPTR != (channelAvlTreeEntryAux = channelEntry->channelAvlTreeEntry) )
   {
-    if ( channelAvlTreeEntryAux->channelDataKey.evc_mc == channelEntry->channelAvlTreeEntry->channelDataKey.evc_mc)
+    if (channelAvlTreeEntryAux->channelDataKey.evc_mc == channelEntry->channelAvlTreeEntry->channelDataKey.evc_mc)
     {
       /*Move to next Channel*/
       continue;
@@ -20434,7 +20459,7 @@ static RC_t ptin_igmp_package_channel_conflict_validation(L7_uint32 packageId, p
          (L7_INET_ADDR_COMPARE(&channelAvlTreeEntryAux->channelDataKey.channel_source, 
                                &channelAvlTreeEntryAux->channelDataKey.channel_source) == 0) )
     {
-      PT_LOG_ERR(LOG_CTX_IGMP,"Conflict Found: Channel configured within two services [packageId:%u serviceId:%u groupAddr:%s sourceAddr:%s][serviceIdNew:]",
+      PT_LOG_ERR(LOG_CTX_IGMP,"Conflict Found: Channel configured within two services [packageId:%u serviceId:%u groupAddr:%s sourceAddr:%s][serviceIdNew:%u]",
               packageId, channelAvlTreeEntry->channelDataKey.evc_mc, 
               inetAddrPrint(&channelAvlTreeEntry->channelDataKey.channel_group, groupAddrStr), inetAddrPrint(&channelAvlTreeEntry->channelDataKey.channel_source, sourceAddrStr),
               channelAvlTreeEntryAux->channelDataKey.evc_mc);    

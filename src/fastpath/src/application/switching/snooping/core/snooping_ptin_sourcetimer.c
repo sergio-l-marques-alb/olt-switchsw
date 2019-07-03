@@ -403,8 +403,11 @@ void timerCallback(void *param)
 
   osapiSemaGive(timerSem);
 
-  PT_LOG_TRACE(LOG_CTX_IGMP,"Sourcetimer expired (group:%s vlan:%u ifId:%u sourceAddr)", 
-            inetAddrPrint(&(groupData->snoopPTinL3InfoDataKey.mcastGroupAddr), debug_buf), groupData->snoopPTinL3InfoDataKey.vlanId, intIfNum, inetAddrPrint(&sourcePtr->sourceAddr,debug_buf2));
+  PT_LOG_TRACE(LOG_CTX_IGMP,"Sourcetimer expired (group:%s vlan:%u ifId:%u sourceAddr:%s)", 
+               inetAddrPrint(&(groupData->snoopPTinL3InfoDataKey.mcastGroupAddr), debug_buf),
+               groupData->snoopPTinL3InfoDataKey.vlanId,
+               intIfNum,
+               inetAddrPrint(&sourcePtr->sourceAddr,debug_buf2));
 
   /* Check if our handle is OK*/
   if (timerHandle != pTimerData->timerHandle)

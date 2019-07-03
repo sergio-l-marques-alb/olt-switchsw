@@ -799,7 +799,7 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
                       "(%s) Packet ignored, because of ip source (0x%08x)",
                       __FUNCTION__, osapiNtohl(ipHeader->iph_src));
         dsTraceWrite(traceMsg);
-        PT_LOG_TRACE(LOG_CTX_DHCP,"Packet ignored, because of ip source (0x%08x)", osapiNtohl(ipHeader->iph_src));
+        PT_LOG_TRACE(LOG_CTX_DHCP,"Packet ignored, because of ip source (0x%08x)", (L7_uint32)osapiNtohl(ipHeader->iph_src));
       }
 
       return SYSNET_PDU_RC_IGNORED;
@@ -2357,7 +2357,7 @@ L7_RC_t dsv6AddOption18or37(L7_uint32 intIfNum, L7_uchar8 *frame, L7_uint32 *fra
       if(!strlen(circuit_id))
       {
         if (ptin_debug_dhcp_snooping)
-          PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent: Invalid circuit-id string (string length is 0)", circuit_id);
+          PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent: Invalid circuit-id string (string length is 0)");
         return L7_FAILURE;
       }
       if (ptin_debug_dhcp_snooping)
@@ -2377,7 +2377,7 @@ L7_RC_t dsv6AddOption18or37(L7_uint32 intIfNum, L7_uchar8 *frame, L7_uint32 *fra
       if(!strlen(remote_id))
       {
         if (ptin_debug_dhcp_snooping)
-          PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent: Invalid remote-id string (string length is 0)", remote_id);
+          PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent: Invalid remote-id string (string length is 0)");
         return L7_FAILURE;
       }
       if (ptin_debug_dhcp_snooping)
@@ -3586,7 +3586,7 @@ L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
   while ((relayOffset < relayEnd) && (*relayOffset != DHO_END))
   {
     if (ptin_debug_dhcp_snooping)
-      PT_LOG_TRACE(LOG_CTX_DHCP,"Suboption detected? %u (relayOffset=%u)",*relayOffset,relayOffset);
+      PT_LOG_TRACE(LOG_CTX_DHCP,"Suboption detected? (relayOffset=%u)", *relayOffset);
 
     switch (*relayOffset)
     {
@@ -4259,7 +4259,7 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
             dsMacToString(srcMacAddr->addr, srcMacStr);
             L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DHCP_SNOOPING_COMPONENT_ID,
                     "DHCP snooping dropping %s received on "
-                    "interface %s, vlan %u, from %s. Station not in bindings table.",
+                    "interface %s, vlan %u, from %s. Station not in bindings table."
                       " This message appears when DHCP Snooping untrusted port  drops "
                       "DHCP Decline or DHCP release messages for a non-existing entry "
                       "in SNOOPING table.",

@@ -48,6 +48,8 @@ L7_int32 lvl7_internal_hg_trunkid = -1;
 /* by default, no customer topo needs to be registered */
 static cust_topo_brd_f customer_topo_board_program = L7_NULLPTR;
 
+/* Ptin removed */
+#if 0
 /* Returns output stack port on src_unit to get to dest_modid 
    Customized to work with a 2 switch back to back configuration */
 static int _lvl7_board_topomap_48g_stk(int src_unit, int dest_modid,
@@ -271,7 +273,7 @@ lvl7_bcm_board_topo_sdk_dual_cpu (topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
     return BCM_E_NONE;
 }
 #endif
-
+#endif
 
 /*
  * Function:

@@ -159,6 +159,7 @@ static L7_RC_t dnsNameServerOpen(L7_inet_addr_t *serverAddr,
   L7_uint32      opt = 1;
   L7_uint32      broadcastEnable = (L7_INET_IS_ADDR_BROADCAST(&serverAddr))?1:0;
   L7_uchar8      family = 0;
+  L7_uchar8      srvAddr[DNS_INET_ADDR_LEN];
 
   /* Get the family from server address */
   family = L7_INET_GET_FAMILY(serverAddr);
@@ -239,8 +240,9 @@ static L7_RC_t dnsNameServerOpen(L7_inet_addr_t *serverAddr,
       addr.u.sa4.sin_addr.s_addr = L7_INADDR_ANY;
       if (osapiSocketBind(entry->socket,(L7_sockaddr_t *)&addr.u.sa4,sizeof(addr.u.sa4)) != L7_SUCCESS)
       {
+        inetAddrPrint(serverAddr, srvAddr);
         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DNS_CLIENT_COMPONENT_ID,
-                "DNS Client: Bind error on addr 0x%X\n", serverAddr);
+                "DNS Client: Bind error on addr %s\n", srvAddr);
         osapiSocketClose(entry->socket);
         return L7_FAILURE;
       }
@@ -254,8 +256,9 @@ static L7_RC_t dnsNameServerOpen(L7_inet_addr_t *serverAddr,
       addr.u.sa6.sin6_port = osapiHtons(DNS_UDP_PORT);
       if (osapiSocketBind(entry->socket,(L7_sockaddr_t *)&addr.u.sa6,sizeof(addr)) != L7_SUCCESS)
       {
+        inetAddrPrint(serverAddr, srvAddr);
         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DNS_CLIENT_COMPONENT_ID,
-                "DNS Client: Bind error on addr 0x%X\n", serverAddr);
+                "DNS Client: Bind error on addr %s\n", srvAddr);
         osapiSocketClose(entry->socket);
         return L7_FAILURE;
       }
@@ -370,11 +373,12 @@ L7_RC_t dnsNameServerPacketReceive(void)
                               L7_NULL,
                               ( L7_sockaddr_t *)&rx_addr, &addrlen, &length) != L7_SUCCESS)
       {
+        inetAddrPrint(&dnsOprData->serverTbl[i].serverAddr, srvAddr);
         L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DNS_CLIENT_COMPONENT_ID,
-                "DNS Client: osapiSocketRecvFrom returned error for addr 0x%X."
+                "DNS Client: osapiSocketRecvFrom returned error for addr %s."
                 " Indicates there is a stack error in receiving the DNS response"
                 " packet from the server.",
-                inetAddrPrint(&dnsOprData->serverTbl[i].serverAddr, srvAddr));
+                srvAddr);
         continue;
       }
 

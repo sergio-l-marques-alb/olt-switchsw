@@ -661,8 +661,10 @@ static void osapiMallocDetailRecord(FILE *fp,
           (mem_alloc->length > size) &&
           (mem_alloc->time_stamp > time_stamp))
       {
-      if (cnt < sizeAllocBuffer)
-        memcpy(&allocBuffer[cnt++], mem_alloc, sizeof(osapiMemAllocType));
+        if (cnt < sizeAllocBuffer)
+        {
+          memcpy(&allocBuffer[cnt++], mem_alloc, sizeof(osapiMemAllocType));
+        }
 
         total_blocks_match++;
         total_size_match += mem_alloc->length;

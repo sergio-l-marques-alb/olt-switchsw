@@ -2169,7 +2169,7 @@ void garpDebugTrackVlanPrint()
     if ( vlanId > L7_MAX_VLANS)
     {
       L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_GARP_COMPONENT_ID,
-              "\n%s: Vlan Id out of range. Vlan Id : %u",vlanId);
+              "\n%s: Vlan Id out of range. Vlan Id : %u", __FUNCTION__, vlanId);
       return;
     }
 
@@ -2232,7 +2232,7 @@ void garpDebugTrackVlanRecord(L7_uchar8 app_state,Gid_event event,gvrpType type)
    if ((VlanIndx <0 ) || ( VlanIndx > L7_MAX_VLAN_TRACK))
    {
      L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_GARP_COMPONENT_ID,
-             "\n%s: Vlan Id out of range. Vlan Index : %u",VlanIndx);
+             "\n%s: Vlan Id out of range. Vlan Index : %u", __FUNCTION__, VlanIndx);
      return;
    }
 

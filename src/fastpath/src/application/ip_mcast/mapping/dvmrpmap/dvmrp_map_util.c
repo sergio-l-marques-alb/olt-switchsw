@@ -198,7 +198,7 @@ L7_RC_t dvmrpMapIntfAdminModeApply(L7_uint32 intIfNum, L7_uint32 mode)
         != L7_SUCCESS)
     {
       L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_FLEX_DVMRP_MAP_COMPONENT_ID,
-              "DVMRP All Routers Address - %x Delete from the DTL Mcast List "
+              "DVMRP All Routers Address - %lx Delete from the DTL Mcast List "
               "Failed for intf - %s"
               " DMVRP All Routers Address deletion from the local multicast list Failed."
               " As a result of this, DVMRP Multicast packets are still received at the"
@@ -242,7 +242,7 @@ L7_RC_t dvmrpMapIntfAdminModeApply(L7_uint32 intIfNum, L7_uint32 mode)
         != L7_SUCCESS)
     {
       L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_FLEX_DVMRP_MAP_COMPONENT_ID,
-              "DVMRP All Routers Address - %x Add to the DTL Mcast List "
+              "DVMRP All Routers Address - %lx Add to the DTL Mcast List "
               "Failed for intf - %s"
               "DMVRP All Routers Address addition to the local multicast list Failed."
               " As a result of this, DVMRP Multicast packets with this address will not"

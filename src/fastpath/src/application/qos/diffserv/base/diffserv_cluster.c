@@ -2863,7 +2863,7 @@ L7_RC_t diffServClusterConfigVerify(L7_diffServCfg_t *pCfgData)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,
             "%s: Error mapping DiffServ service interface config.\n",
-            __FUNCTION__, dsmibPrvtTableIdStr[tableID]);
+            __FUNCTION__);
     rc = L7_FAILURE;
   }
 

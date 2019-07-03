@@ -644,10 +644,12 @@ L7_BOOL dvlantagIntfConfigEntryGet(L7_uint32 intIfNum, DVLANTAG_INTF_CFG_t **pCf
   if (i < L7_DVLANTAG_MAX_INTERFACE_COUNT)
   {
     dvlantagMapTbl[intIfNum] = i;
+
     if (pCfg != L7_NULLPTR)
-        *pCfg = &dvlantagCfg->intfCfg[i];
-        return L7_TRUE;
-      }
+      *pCfg = &dvlantagCfg->intfCfg[i];
+
+    return L7_TRUE;
+  }
 
   return L7_FALSE;
 }

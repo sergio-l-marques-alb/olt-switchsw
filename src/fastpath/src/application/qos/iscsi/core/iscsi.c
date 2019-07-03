@@ -494,7 +494,7 @@ L7_RC_t iscsiImpTargetTcpPortAdd(L7_uint32 tcpPort, L7_uint32 ipAddress, L7_uint
   else
   {
     L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_FLEX_QOS_ISCSI_COMPONENT_ID,
-            "Error adding iSCSI target TCP port/address: tcpPort = %u, ipAddress=%X, cosQueue=%u, ",
+            "Error adding iSCSI target TCP port/address: tcpPort = %u, ipAddress=%X, cosQueue=%u, "
             "taggingEnabled=%u, tagMode=%u, tagData=%u",
             tcpPort, ipAddress, cosQueue, taggingEnabled, tagMode, tagData);
     return L7_FAILURE;

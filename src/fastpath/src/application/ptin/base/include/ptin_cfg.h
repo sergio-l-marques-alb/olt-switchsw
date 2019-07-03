@@ -42,7 +42,7 @@ extern L7_RC_t ptin_cfg_ntw_connectivity_set(ptin_NtwConnectivity_t *ntwConn);
  * 
  * @return L7_uint16 inBand VID (zero if not configured)
  */
-extern inline L7_uint16 ptin_cfg_inband_vlan_get(void);
+extern L7_uint16 ptin_cfg_inband_vlan_get(void);
 
 /**
  * Creates a bridge between dtl0 interface and a virtual interface eth0.4093 
