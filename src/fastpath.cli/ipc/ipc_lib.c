@@ -20,6 +20,9 @@
 *                                                                       *
 * Autor: Celso Lemos                                                    *
 ************************************************************************/
+#define _GNU_SOURCE
+#include <sched.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sched.h>

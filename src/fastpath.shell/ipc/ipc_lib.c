@@ -20,6 +20,9 @@
 *                                                                       *
 * Autor: Celso Lemos                                                    *
 ************************************************************************/
+#define _GNU_SOURCE  
+#include <sched.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sched.h>
@@ -34,6 +37,7 @@
 #include "memchk.h"
 #include "globals.h"
 #include <sys/socket.h>
+
 //variavel que suporta os canais de comunicacao
 static T_IPC ipc_canais[MAX_CANAIS];
 
