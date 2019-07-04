@@ -326,7 +326,10 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
 
      if ((rv = topo_board_program (system_cpudb, &system_topo)) != BCM_E_NONE)
      {
+       PT_LOG_ERR(LOG_CTX_STARTUP, "Error running topo_board_program: rv=%d", rv);
+#if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
        L7_LOG_ERROR(rv);
+#endif
      }
   }
 #endif

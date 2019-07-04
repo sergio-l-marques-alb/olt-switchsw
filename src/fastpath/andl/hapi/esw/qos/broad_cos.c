@@ -1579,7 +1579,10 @@ static L7_RC_t hapiBroadQosCosWredApply(DAPI_USP_t *usp)
 
     /* Just do nothing if this platform doesn't support WRED */
     if (cnfgrIsFeaturePresent(L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_QUEUE_WRED_SUPPORT_FEATURE_ID) == L7_FALSE) 
+    {
+        PT_LOG_ERR(LOG_CTX_HAPI, "WRED is not supported in this switch (usp={%d,%d,%d})", usp->unit, usp->slot, usp->port);
         return L7_SUCCESS;
+    }
 
     hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
     dapiPortPtr = DAPI_PORT_GET(usp, dapi_g);

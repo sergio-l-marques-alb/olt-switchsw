@@ -340,7 +340,9 @@ L7_RC_t ptin_hapi_switch_init(void)
   if (bcm_switch_control_set(0, bcmSwitchClassBasedMoveFailPktDrop,0x01) != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI,"Error setting bcmSwitchClassBasedMoveFailPktDrop switch_control to 0x01");
+#if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
     rc = L7_FAILURE;
+#endif
   }
 
   /*Enable Forwarding L3 Multicast on the Same VLAN*/
@@ -3100,7 +3102,9 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
       {
         PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmPortControlLearnClassEnable in port {%d,%d,%d} to %u (rv=%d)",
                 dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, macLearn_enable, rv);
+#if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
         return L7_FAILURE;
+#endif
       }
     }
     else
@@ -3203,7 +3207,9 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
     if ((rv=bcmx_l2_learn_class_set(lclass, stationMove_prio, flags))!=BCM_E_NONE)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error setting prio %d to class %d (rv=%d)", stationMove_prio, lclass, rv);
+#if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
       return L7_FAILURE;
+#endif
     }
 
     /* Associate class to the specified interface */
@@ -3211,7 +3217,9 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error setting class %d to port {%d,%d,%d} (rv=%d)",lclass,
               dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, rv);
+#if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
       return L7_FAILURE;
+#endif
     }
   }
 

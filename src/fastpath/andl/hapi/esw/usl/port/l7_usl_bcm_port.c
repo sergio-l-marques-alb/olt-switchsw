@@ -1685,7 +1685,7 @@ int usl_bcm_port_wred_set(int unit, bcm_port_t port,
 
         /* PTin added: new switch 56450 (Katana2) */
         /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
-        if (SOC_IS_KATANA2(unit) || SOC_IS_GREYHOUND2(unit))
+        if (SOC_IS_KATANA2(unit) /*|| SOC_IS_GREYHOUND2(unit)*/)
         {
           /* Configure in cell units (no flags assigned) */
         }
@@ -1777,6 +1777,11 @@ int usl_bcm_port_wred_set(int unit, bcm_port_t port,
     } /* End for each queue */
   }
 
+  if (L7_BCMX_OK(rv) != L7_TRUE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI,"bcm_cosq_gport_discard_set(unit=%d, port=%d, gport 0x%x): rv=%d", unit, port, wredParams->bcm_gport, rv);
+  }
+
   /* Update the USL port database only on non-management units */
   if ((USL_BCM_CONFIGURE_DB(USL_PORT_DB_ID) == L7_TRUE) && 
       (L7_BCMX_OK(rv) == L7_TRUE))
@@ -1785,7 +1790,16 @@ int usl_bcm_port_wred_set(int unit, bcm_port_t port,
     rv = usl_bcm_unit_port_to_gport(unit, port, &gport);
     if (rv == BCM_E_NONE)
     {
-      rv = usl_db_port_wred_set(USL_CURRENT_DB, gport, wredParams); 
+      rv = usl_db_port_wred_set(USL_CURRENT_DB, gport, wredParams);
+
+      if (rv != BCM_E_NONE)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI,"usl_db_port_wred_set(unit=%d, port=%d): rv=%d", unit, port, rv);
+      }
+    }
+    else
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI,"usl_bcm_unit_port_to_gport(unit=%d, port=%d): rv=%d", unit, port, rv);
     }
   }
 
