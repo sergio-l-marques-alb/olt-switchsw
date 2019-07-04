@@ -176,7 +176,8 @@ db_entry_show(const cpudb_entry_t *entry)
 
 /* end - code from Broadcom SDK5 file : $Id: tksdiag.c,v 1.2.2.35 2003/12/04 02:32:18 dtalayco */
 
-
+/* PTin removed for SDK-ALL-6.5.15 or higher */
+#if (SDK_VERSION_IS < SDK_VERSION(6,5,15,0))
 /* start - code from Broadcom SDK5 file : $Id: tksdiag.c,v 1.2.2.35 2003/12/04 02:32:18 dtalayco */
 /* lines 169 - 203 */
 void
@@ -222,6 +223,7 @@ db_dump(cpudb_ref_t db_ref)
 
   fflush(stdout);
 }
+#endif
 
 /* Patch for the XGS3 opcode 0 Issue - original code is in tksdiag.c */
 /*
@@ -258,6 +260,9 @@ db_dump(cpudb_ref_t db_ref)
 #include <bcm/field.h>
 #include <bcm_int/control.h>
 #ifdef BCM_FIELD_SUPPORT
+
+/* PTin removed for SDK-ALL-6.5.15 or higher */
+#if (SDK_VERSION_IS < SDK_VERSION(6,5,15,0))
 int
 mh_opcode0_priority_select(int unit,
                            int group_priority,
@@ -414,6 +419,7 @@ mh_opcode0_priority_clear(int unit,
 
     return BCM_E_NONE;
 }
+#endif
 #endif
 
 /* end - code from Broadcom SDK5 file : $Id: tksdiag.c,v 1.2.2.35 2003/12/04 02:32:18 dtalayco */
