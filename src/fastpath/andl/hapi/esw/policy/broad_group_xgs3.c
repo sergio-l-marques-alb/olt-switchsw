@@ -674,7 +674,10 @@ static uint32 color_map[BROAD_COLOR_LAST] =
     BCM_FIELD_COLOR_RED
 };
 
+/* PTin removed for Hurricane3-MG */
+#if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
 static int policy_udf_id[SOC_MAX_NUM_DEVICES];
+#endif
 
 /* System policies require combination of L2/3/4 fields that are not supported
  * by default, so UDF is required. However, even the UDF is not wide enough
@@ -891,6 +894,8 @@ static int _policy_super_qset_find_free(int unit, int *idx)
     return BCM_E_FAIL;
 }
 
+/* PTin removed for Hurricane3-MG */
+#if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
 static int _policy_super_qset_add_udf(int unit, bcm_field_qualify_t udf)
 {
     int                  rv = BCM_E_NONE;
@@ -1316,6 +1321,7 @@ static int _policy_super_qset_add_udf(int unit, bcm_field_qualify_t udf)
 
     return rv;
 }
+#endif
 
 static int _policy_super_qset_add(int                      unit,
                                   super_qset_definition_t *sqset_def,
@@ -1518,6 +1524,8 @@ static int _policy_super_qset_add(int                      unit,
     return rv;
 }
 
+/* PTin removed for Hurricane3-MG */
+#if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
 static int _policy_udf_init(int unit)
 {
     int rv;
@@ -1534,6 +1542,7 @@ static int _policy_udf_init(int unit)
 
     return rv;
 }
+#endif
 
 static int _policy_super_qset_init_vfp(int unit)
 {
@@ -4724,6 +4733,10 @@ int policy_group_init(int unit)
       }
     }
 
+/* PTin removed for Hurricane3-MG */
+#if (PLAT_BCM_CHIP == L7_BCM_HURRICANE3MG)
+    PT_LOG_WARN(LOG_CTX_STARTUP,"_policy_udf_init will not be executed in Hurricane3-MG");
+#else
     rv = _policy_udf_init(unit);
     if (BCM_E_NONE != rv)
     {
@@ -4731,6 +4744,7 @@ int policy_group_init(int unit)
           sysapiPrintf("_policy_udf_init failed (%d)\n", rv);
       return rv;
     }
+#endif
 
     rv = _policy_super_qset_init(unit);
     if (BCM_E_NONE != rv)
