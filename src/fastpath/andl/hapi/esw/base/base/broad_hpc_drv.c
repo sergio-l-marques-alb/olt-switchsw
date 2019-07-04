@@ -633,17 +633,6 @@ int hapiBroadCpuCosqRateSet(int unit, int cosq, int rate, BROAD_CPU_RATE_LIMIT_T
         }
         else
 #endif /* KATANA2 */
-#if defined (BCM_GREYHOUND2_SUPPORT)
-        /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
-        if (SOC_IS_GREYHOUND2(unit))
-        {
-          extern int bcm_gh2_cosq_port_pps_set(int unit, bcm_port_t port,
-                                               bcm_cos_queue_t cosq, int pps);   
-
-          rv = bcm_gh2_cosq_port_pps_set(unit, CMIC_PORT(unit), cosq, rate);
-        }
-        else
-#endif /* KATANA2 */
 #if defined (BCM_TRIDENT_SUPPORT)
         /* PTin added: new switch 56843 (Trident) */
         if (SOC_IS_TRIDENT(unit)) {
@@ -652,8 +641,17 @@ int hapiBroadCpuCosqRateSet(int unit, int cosq, int rate, BROAD_CPU_RATE_LIMIT_T
         }
         else
 #endif /* TRIDENT */
+#if defined (BCM_GREYHOUND2_SUPPORT)
+        if (SOC_IS_GREYHOUND2(unit))
+        {
+          extern int bcm_td_cosq_port_pps_set(int unit, bcm_port_t port, bcm_cos_queue_t cosq, int pps);
+          rv = bcm_td_cosq_port_pps_set(unit, CMIC_PORT(unit), cosq, rate);
+        }
+        else
+#endif /* GREYHOUND2 */
 #if defined (BCM_TRIUMPH_SUPPORT) || defined (BCM_SCORPION_SUPPORT)
-        if ((SOC_IS_TR_VL(unit) || SOC_IS_SCORPION(unit))) {
+        if (SOC_IS_TR_VL(unit) || SOC_IS_SCORPION(unit))
+        {
           rv = _bcm_tr_cosq_port_packet_bandwidth_set(unit,CMIC_PORT(unit), cosq, rate, rate);
         }
         else
@@ -672,6 +670,11 @@ int hapiBroadCpuCosqRateSet(int unit, int cosq, int rate, BROAD_CPU_RATE_LIMIT_T
       rv = BCM_E_FAIL;
   }
 
+  if (rv != BCM_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_STARTUP, "Error setting rate limit for CPU (rv=%d)",  rv);
+  }
+  
   return rv;
 }
 
@@ -2805,7 +2808,7 @@ L7_RC_t hpcBroadInit()
   int                          rc, rv;
 
   PT_LOG_NOTICE(LOG_CTX_STARTUP,"hpcConfigSet() skipped!");
-  //hpcConfigSet();
+  hpcConfigSet();
 
   total_bcom_units = bde->num_devices(BDE_SWITCH_DEVICES);
 
@@ -2825,6 +2828,7 @@ L7_RC_t hpcBroadInit()
         PT_LOG_FATAL(LOG_CTX_STARTUP,"ERROR: SOC unit %d attach failed!", bcom_unit);
         L7_LOG_ERROR(0);
     }
+    PT_LOG_INFO(LOG_CTX_STARTUP,"SOC unit %d attached! (rv=%d)", bcom_unit, rv);
   } /* for */
 
 #ifndef NO_SAL_APPL
