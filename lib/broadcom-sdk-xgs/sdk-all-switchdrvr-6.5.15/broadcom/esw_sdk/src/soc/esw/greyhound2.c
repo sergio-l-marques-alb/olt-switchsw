@@ -4596,7 +4596,9 @@ static const int tsc_phy_port[] = {58, 62, 66, 70, 74, 78, 82, 86};
 /* 2 QTC */
 static const int qtc_phy_port[] = {26, 42};
 
-#define GH2_PORT_CFG_RENEW_PHY_PORT_MIN 26 /* first physical port of QTC#0 */
+//#define GH2_PORT_CFG_RENEW_PHY_PORT_MIN 26 /* first physical port of QTC#0 */
+//PTIn modified:
+#define GH2_PORT_CFG_RENEW_PHY_PORT_MIN 2 /* first physical port of QTC#0 */
 #define GH2_PORT_CFG_RENEW_PHY_PORT_MAX 89 /* last physical port of TSCF */
 
 /* Option string */
