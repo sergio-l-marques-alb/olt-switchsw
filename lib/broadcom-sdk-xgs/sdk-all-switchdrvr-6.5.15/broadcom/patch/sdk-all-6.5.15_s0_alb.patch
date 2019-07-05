@@ -531,3 +531,59 @@ Index: systems/bde/linux/kernel/linux-kernel-bde.c
  
  err_disable_msi:
  #ifdef CONFIG_PCI_MSI
+Index: src/soc/esw/greyhound2.c
+===================================================================
+--- src/soc/esw/greyhound2.c	(revision 7384)
++++ src/soc/esw/greyhound2.c	(working copy)
+@@ -4593,13 +4593,15 @@ uint32 tdm_table_op12_0[32] = {
+ 
+ /* 8 TSC (TSC0~6, TSCF0) */
+ static const int tsc_phy_port[] = {58, 62, 66, 70, 74, 78, 82, 86};
+ /* 2 QTC */
+ static const int qtc_phy_port[] = {26, 42};
+ 
+-#define GH2_PORT_CFG_RENEW_PHY_PORT_MIN 26 /* first physical port of QTC#0 */
++//#define GH2_PORT_CFG_RENEW_PHY_PORT_MIN 26 /* first physical port of QTC#0 */
++//PTIn modified:
++#define GH2_PORT_CFG_RENEW_PHY_PORT_MIN 2 /* first physical port of QTC#0 */
+ #define GH2_PORT_CFG_RENEW_PHY_PORT_MAX 89 /* last physical port of TSCF */
+ 
+ /* Option string */
+ #define OPTION_1 "op1"
+ #define OPTION_2 "op2"
+ #define OPTION_2A "op2a"
+Index: src/bcmx/bcmx.c
+===================================================================
+--- src/bcmx/bcmx.c	(revision 2503)
++++ src/bcmx/bcmx.c	(revision 2504)
+@@ -969,12 +969,30 @@ bcmx_device_attach(int bcm_unit)
+         LOG_WARN(BSL_LS_BCMX_COMMON,
+                  (BSL_META("BCMX: Could not get port config %d: %s\n"),
+                   rv, bcm_errmsg(rv)));
+         return rv;
+     }
+ 
++    i = 0;
++    BCM_PBMP_ITER(config.all, port) {
++        /*
++         * Set 'lport' value to use gport format.  When a device
++         * does not have a module it, bcm_port_gport_set will fail.
++         * In this case, use DEVPORT format.
++         * 
++         * The gport 'lport' formats would be of type:
++         *     MODPORT  for devices with module-id
++         *     DEVPORT  for devices with no module-id
++         */
++        if (BCM_FAILURE(bcm_port_gport_get(bcm_unit, port, &lport[i]))) {
++            BCM_GPORT_DEVPORT_SET(lport[i], bcm_unit, port);
++        }
++
++        i++;
++    }
++
+     LOG_VERBOSE(BSL_LS_BCMX_COMMON,
+                 (BSL_META("BCMX: Attaching unit %d\n"),
+                  bcm_unit));
+     BCMX_CONFIG_LOCK;
+     /* See if the unit is on the list of those known */
+     for (i = 0; i < bcmx_unit_count; i++) {
