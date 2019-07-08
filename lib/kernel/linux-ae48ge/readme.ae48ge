@@ -6,4 +6,4 @@ make headers_install ARCH=arm INSTALL_HDR_PATH=./headers_dir
 
 In order to compile SDK:
 1. mv headers_dir/include/asm/signal.h headers_dir/include/asm/signal.h.bak
-2. At include/linux/init.h, comment all initcall_*(fn) macros.
+2. At include/linux/init.h, comment all initcall_*(fn) macros: cp ../init.h.mod include/linux/init.h
