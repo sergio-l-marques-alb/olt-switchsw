@@ -694,9 +694,11 @@ bcm_field_qualify_t ptinQsetEgress[] =    /* l2 */
     bcmFieldQualifyPortClass,
 #endif
     bcmFieldQualifyOutPort,
-    bcmFieldQualifyVlanFormat,
     bcmFieldQualifyEtherType,
+    bcmFieldQualifyVlanFormat,
+#if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
     bcmFieldQualifyIntPriority,
+#endif
     bcmFieldQualifyStageEgress
 };
 #define ptinQsetEgressSize (sizeof(ptinQsetEgress) / sizeof(bcm_field_qualify_t))
@@ -719,7 +721,9 @@ bcm_field_qualify_t l2QsetEgress[] =    /* l2 */
     bcmFieldQualifyVlanFormat,
     bcmFieldQualifyDstIp,         /* PTin added: FP */
     bcmFieldQualifyDrop,          /* PTin added: FP */
+#if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
     bcmFieldQualifyIntPriority,   /* PTin added: FP */
+#endif
     bcmFieldQualifyStageEgress
 };
 #define l2QsetEgressSize (sizeof(l2QsetEgress) / sizeof(bcm_field_qualify_t))
@@ -743,7 +747,9 @@ bcm_field_qualify_t l3l4QsetEgress[] =    /* l3/l4 */
     bcmFieldQualifyIp4,
     bcmFieldQualifyVlanFormat,
     bcmFieldQualifyDrop,          /* PTin added: FP */
+#if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
     bcmFieldQualifyIntPriority,   /* PTin added: FP */
+#endif
     bcmFieldQualifyStageEgress
 };
 #define l3l4QsetEgressSize (sizeof(l3l4QsetEgress) / sizeof(bcm_field_qualify_t))
@@ -767,7 +773,9 @@ bcm_field_qualify_t ipv6L3L4QsetEgress[] =  /* includes VLAN ID */
     bcmFieldQualifyOutPort,
     bcmFieldQualifyIp6,
     bcmFieldQualifyDrop,          /* PTin added: FP */
+#if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
     bcmFieldQualifyIntPriority,   /* PTin added: FP */
+#endif
     bcmFieldQualifyStageEgress
 };
 #define ipv6L3L4QsetEgressSize (sizeof(ipv6L3L4QsetEgress) / sizeof(bcm_field_qualify_t))
@@ -858,9 +866,11 @@ static bcm_field_qualify_t llpfQsetLookup[] =    /* llpf specific qset */
     //bcmFieldQualifySnap,      /* PTin modified: FP */
     bcmFieldQualifyOuterVlan,
 
+#if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
     bcmFieldQualifySrcIp6,  /* PTin added: FP */
     //bcmFieldQualifyDstIp,  /* PTin added: FP */
     bcmFieldQualifyDstIp6,  /* PTin added: FP */
+#endif
     bcmFieldQualifyEtherType,  /* PTin added: FP */
 
     bcmFieldQualifyStageLookup
@@ -917,7 +927,7 @@ super_qset_definition_t l2l3SrcQsetDef           = {l2l3SrcQset,           l2l3S
 super_qset_definition_t l2l3DstQsetDef           = {l2l3DstQset,           l2l3DstQsetSize,           0, 0};
 super_qset_definition_t vlanl3QsetDef            = {vlanl3Qset,            vlanl3QsetSize,            0, 0};
 super_qset_definition_t iscsiQsetDef             = {iscsiQset,             iscsiQsetSize,             
-                                                    iscsiCustomQset,       iscsiCustomQsetSize};
+                                                    0 /*iscsiCustomQset*/,       0 /*iscsiCustomQsetSize*/};
 
 /* Doublewide */
 super_qset_definition_t l2l3l4QsetDef            = {l2l3l4Qset,            l2l3l4QsetSize,            0, 0};

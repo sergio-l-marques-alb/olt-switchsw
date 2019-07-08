@@ -644,8 +644,10 @@ int hapiBroadCpuCosqRateSet(int unit, int cosq, int rate, BROAD_CPU_RATE_LIMIT_T
 #if defined (BCM_GREYHOUND2_SUPPORT)
         if (SOC_IS_GREYHOUND2(unit))
         {
-          extern int bcm_td_cosq_port_pps_set(int unit, bcm_port_t port, bcm_cos_queue_t cosq, int pps);
-          rv = bcm_td_cosq_port_pps_set(unit, CMIC_PORT(unit), cosq, rate);
+          //extern int bcm_td_cosq_port_pps_set(int unit, bcm_port_t port, bcm_cos_queue_t cosq, int pps);
+          //rv = bcm_td_cosq_port_pps_set(unit, CMIC_PORT(unit), cosq, rate);
+          PT_LOG_WARN(LOG_CTX_STARTUP, "TODO: Rate Limits for CPU");
+          rv = BCM_E_NONE;
         }
         else
 #endif /* GREYHOUND2 */
@@ -1530,6 +1532,8 @@ void hpcHardwareDefaultConfigApply(void)
 
     PBMP_E_ITER (i, port)
     {
+      PT_LOG_INFO(LOG_CTX_STARTUP, "unit %d: Initializing port %d...", i, port);
+
       if (!SOC_IS_XGS_FABRIC(i))
       {
         if (hpcIsBcmPortStacking (i, port) == L7_FALSE)
@@ -1561,7 +1565,9 @@ void hpcHardwareDefaultConfigApply(void)
           PT_LOG_NOTICE(LOG_CTX_STARTUP,"bcm_port_pfm_set configuration to mode C: unit=%d,port=%d => rv=%d (%s)", i, port, rv, bcm_errmsg(rv));
           if (L7_BCMX_OK(rv) != L7_TRUE && rv != BCM_E_UNAVAIL)
           {
+#if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
             L7_LOG_ERROR(rv);
+#endif
           }
 
           /* Set the spanning-tree state for each front-panel port to
@@ -1578,14 +1584,14 @@ void hpcHardwareDefaultConfigApply(void)
         }
 
 
-#if (PTIN_BOARD == PTIN_BOARD_AG16GA)
+#if (PTIN_BOARD == PTIN_BOARD_AG16GA || PTIN_BOARD == PTIN_BOARD_AE48GE)
         bcm_pbmp_t all_pbmp;
         BCM_PBMP_ASSIGN(all_pbmp, PBMP_PORT_ALL(i));
 
         rv = bcm_vlan_port_remove(i, 1, all_pbmp);
         if (rv < 0)
         {
-          PT_LOG_ERR(LOG_CTX_STARTUP, "bcm_vlan_port_remove failed unit %d, %d, %d \n",all_pbmp);
+          PT_LOG_ERR(LOG_CTX_STARTUP, "bcm_vlan_port_remove failed unit %d", i);
           L7_LOG_ERROR(rv);
         }
 
@@ -1595,12 +1601,13 @@ void hpcHardwareDefaultConfigApply(void)
          in AG16GA for trapping propose*/
         if (port == 1)
         {
+          int vlan;
           bcm_pbmp_t ubmp,pbmp;
           BCM_PBMP_CLEAR(ubmp);
           BCM_PBMP_CLEAR(pbmp);
           BCM_PBMP_PORT_ADD(pbmp,(port-1) /*cpu port*/);
 
-          int vlan;
+          PT_LOG_INFO(LOG_CTX_STARTUP, "unit %d: Creating all VLANs for port %d...", i, port);
 
           for (vlan = 1 ; vlan < 4095; vlan++)
           {
@@ -1613,7 +1620,7 @@ void hpcHardwareDefaultConfigApply(void)
             rv = bcm_vlan_port_add(i, vlan, pbmp, ubmp);
             if (rv < 0)
             {
-              PT_LOG_ERR(LOG_CTX_STARTUP, "bcm_vlan_port_add failed unit %d, %d, %d \n", i, pbmp, ubmp);
+              PT_LOG_ERR(LOG_CTX_STARTUP, "bcm_vlan_port_add failed unit %d", i);
               L7_LOG_ERROR(rv);
             }
           }
