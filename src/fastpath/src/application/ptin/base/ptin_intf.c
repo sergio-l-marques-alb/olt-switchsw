@@ -5824,15 +5824,17 @@ L7_RC_t ptin_QoS_drop_config_set(const ptin_intf_t *ptin_intf, L7_uint8 cos, pti
     rc_global = rc;
   }
 
+#if (PLAT_BCM_CHIP == L7_BCM_HURRICANE3MG)
+  PT_LOG_WARN(LOG_CTX_INTF,"intIfNum %u: usmDbQosCosQueueDropParmsListSet does not work @ Hurricane3-MG", intIfNum);
+#else
   /* Drop params list */
   rc = usmDbQosCosQueueDropParmsListSet(1, intIfNum, &dropParams_list);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF,"Error setting new dropParams list (rc=%d)", rc);
-#if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
     rc_global = rc;
-#endif
   }
+#endif
 
   /* Check result */
   if (rc_global == L7_SUCCESS)

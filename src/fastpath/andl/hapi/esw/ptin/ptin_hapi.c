@@ -3137,7 +3137,9 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
                   dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
                   dapiPortPtr->modeparm.lag.memberSet[i].usp.port,
                   rv);
+#if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
           return L7_FAILURE;
+#endif
         }
       }
     }
@@ -3225,7 +3227,9 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error setting class %d to port {%d,%d,%d} (rv=%d)",lclass,
               dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, rv);
+#if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
       return L7_FAILURE;
+#endif
     }
   }
 
@@ -3287,7 +3291,11 @@ L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_
       {
         PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcmPortControlLearnClassEnable in port {%d,%d,%d}",
                 dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+#if (PLAT_BCM_CHIP == L7_BCM_HURRICANE3MG)
+        enable_global = L7_FALSE;
+#else
         return L7_FAILURE;
+#endif
       }
     }
     /* If port is a lag, get all member port enables. If any has mac learning disabled, return disabled status */
@@ -3316,7 +3324,11 @@ L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_
                   dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
                   dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
                   dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
+#if (PLAT_BCM_CHIP == L7_BCM_HURRICANE3MG)
+          enable = L7_FALSE;
+#else
           return L7_FAILURE;
+#endif
         }
         /* If not enabled, set global enable to FALSE, and break cycle */
         if (!enable)
@@ -3400,7 +3412,11 @@ L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error getting classId from port {%d,%d,%d}",
               dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+#if (PLAT_BCM_CHIP == L7_BCM_HURRICANE3MG)
+      prio = flags = 0;
+#else
       return L7_FAILURE;
+#endif
     }
 
     *stationMove_prio = prio;
