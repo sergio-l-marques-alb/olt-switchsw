@@ -1581,15 +1581,11 @@ L7_RC_t hapiBroadIntfDoubleVlanTagConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *
              (hapiPortPtr->dtag_mode == L7_TRUE))
     {
 
-#if PTIN_BOARD == PTIN_BOARD_AG16GA
-      rv = usl_bcmx_dvlan_mode_set(HAPI_BROAD_DTAG_MODE_INTERNAL);
-#else
       rv = usl_bcmx_dvlan_mode_set(HAPI_BROAD_DTAG_MODE_NONE);
-#endif
-        if (L7_BCMX_OK(rv) != L7_TRUE)
-        {
-          return L7_FAILURE;
-        }
+      if (L7_BCMX_OK(rv) != L7_TRUE)
+      {
+         return L7_FAILURE;
+      }
 #if defined(L7_METRO_PACKAGE) && defined(L7_DOT1AD_PACKAGE)
       if(hapiBroadRoboVariantCheck() == __BROADCOM_53115_ID)
       {
@@ -1715,10 +1711,6 @@ static L7_RC_t hapiBroadPortDoubleVlanTagConfig(DAPI_USP_t *usp,
        */
         dtagMode = HAPI_BROAD_DTAG_MODE_INTERNAL;
     }
-
-#if PTIN_BOARD == PTIN_BOARD_AG16GA
-    dtagMode = HAPI_BROAD_DTAG_MODE_INTERNAL; /* rigid configurations to all the ports*/
-#endif
 
     rc = usl_bcmx_port_dtag_mode_set(hapiPortPtr->bcmx_lport, dtagMode);
 

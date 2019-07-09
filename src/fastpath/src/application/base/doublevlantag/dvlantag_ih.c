@@ -495,6 +495,11 @@ L7_RC_t dvlantagConfigPortApply(L7_uint32 intIfNum,
   L7_RC_t        rc = L7_FAILURE;
   DVLANTAG_DTL_t dTag;
 
+#if (PTIN_BOARD_IS_PASSIVE_LC)
+  PT_LOG_WARN(LOG_CTX_INTF, "dtlDvlantagIntfApply not applied to intIfNum %u (mode %u)", intIfNum, mode);
+  return L7_SUCCESS;
+#endif
+
   dTag.mode = mode;
   dTag.custId = custId;
   dTag.etherMask = etherValMask;

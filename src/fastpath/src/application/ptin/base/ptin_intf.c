@@ -348,16 +348,14 @@ L7_RC_t ptin_intf_post_init(void)
     }
   #endif
 
-#if (PTIN_BOARD == PTIN_BOARD_AG16GA)
-    rc = usmDbDvlantagIntfModeSet(1, map_port2intIfNum[i], L7_DISABLE);  
-#else
-	rc = usmDbDvlantagIntfModeSet(1, map_port2intIfNum[i], L7_ENABLE);
-#endif
+#if (!PTIN_BOARD_IS_PASSIVE_LC)
+    rc = usmDbDvlantagIntfModeSet(1, map_port2intIfNum[i], L7_ENABLE);
     if (rc != L7_SUCCESS)
     {
       PT_LOG_CRITIC(LOG_CTX_INTF, "Failed to enable DVLAN mode on port# %u", i);
       return L7_FAILURE;
     }
+#endif
 
     rc = usmDbDvlantagIntfEthertypeSet(1, map_port2intIfNum[i], PTIN_TPID_OUTER_DEFAULT, L7_TRUE);
     if ((rc != L7_SUCCESS) && (rc != L7_ALREADY_CONFIGURED))
@@ -715,6 +713,7 @@ L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
   }
 
   /* Double tag mode set */
+#if (!PTIN_BOARD_IS_PASSIVE_LC)
   if (mefExt->Mask & MSG_HWPORTEXT_MASK_DTAG_ALL2ONE_BUNDLE)
   {
     if (usmDbDvlantagIntfModeSet(1, intIfNum, mefExt->dtag_all2one_bundle == 0) != L7_SUCCESS)
@@ -723,6 +722,7 @@ L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
       return L7_FAILURE;
     }
   }
+#endif
   
   if (mefExt->Mask & PTIN_HWPORTEXT_MASK_ACCEPTABLE_FRAME_TYPES)
   {
