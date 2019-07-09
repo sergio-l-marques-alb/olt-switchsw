@@ -5794,7 +5794,7 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
   #if (PTIN_BOARD_IS_LINECARD)
     if (!downlink)
     {
-    #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG || PTIN_BOARD == PTIN_BOARD_AG16GA )
+    #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG || PTIN_BOARD == PTIN_BOARD_AG16GA)
       for (i=PTIN_SYSTEM_N_PONS; i<PTIN_SYSTEM_N_PORTS; i++)
       {
         qos_apply.ptin_port[number_of_ports++] = i;
@@ -16663,7 +16663,7 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
       } 
 
       usmDbDvlantagIntfModeSet(0, listDstPorts[0], 0 /* service provider double tag mode*/);  
-        PT_LOG_ERR(LOG_CTX_MSG, "listDstPorts[0] (%d)", listDstPorts[0]);
+      PT_LOG_ERR(LOG_CTX_MSG, "listDstPorts[0] (%d)", listDstPorts[0]);
       usmDbDvlantagIntfModeSet(0, listDstPorts[0], 1 /* service provider double tag mode*/);
     }
   }
