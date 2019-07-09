@@ -2685,7 +2685,8 @@ L7_RC_t ptin_hapi_frame_oversize_set(DAPI_USP_t *usp, L7_uint32 frame_size, DAPI
       }
 
       /* Set oversize packets limite */
-      rv = bcm_port_control_set(hapiPortPtr_member->bcm_unit, hapiPortPtr_member->bcm_port, bcmPortControlStatOversize, frame_size);
+      rv = bcm_port_control_set(hapiPortPtr_member->bcm_unit, hapiPortPtr_member->bcm_port,
+                                bcmPortControlStatOversize, frame_size);
 
       if (rv != BCM_E_NONE)
       {
@@ -2775,7 +2776,8 @@ L7_RC_t ptin_hapi_frame_oversize_get(DAPI_USP_t *usp, L7_uint32 *frame_size, DAP
       }
 
       /* Set oversize packets limite */
-      rv = bcm_port_control_get(hapiPortPtr_member->bcm_unit, hapiPortPtr_member->bcm_port, bcmPortControlStatOversize, &fsize);
+      rv = bcm_port_control_get(hapiPortPtr_member->bcm_unit, hapiPortPtr_member->bcm_port,
+                                bcmPortControlStatOversize, &fsize);
 
       if (rv != BCM_E_NONE)
       {
@@ -3098,7 +3100,8 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
     if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
     {
       /* LearnClass Enable/Disable */
-      if ((rv=bcmx_port_control_set(hapiPortPtr->bcmx_lport, bcmPortControlLearnClassEnable,macLearn_enable & 1))!=BCM_E_NONE)
+      if ((rv = bcm_port_control_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
+                                     bcmPortControlLearnClassEnable, macLearn_enable & 1)) != BCM_E_NONE)
       {
         PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmPortControlLearnClassEnable in port {%d,%d,%d} to %u (rv=%d)",
                 dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, macLearn_enable, rv);
@@ -3124,7 +3127,10 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
           return L7_FAILURE;
         }
         /* Get enable status for member port */
-        if ((rv=bcmx_port_control_set(hapiPortPtr_member->bcmx_lport, bcmPortControlLearnClassEnable, macLearn_enable & 1))!=BCM_E_NONE)
+        if ((rv = bcm_port_control_set(hapiPortPtr_member->bcm_unit,
+                                       hapiPortPtr_member->bcm_port,
+                                       bcmPortControlLearnClassEnable,
+                                       macLearn_enable & 1)) != BCM_E_NONE)
         {
           PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcmPortControlLearnClassEnable in port {%d,%d,%d} (rv=%d)",
                   dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
@@ -3145,7 +3151,8 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
     if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
     {
       /* L2 Station move */
-      if ((rv=bcmx_port_control_set(hapiPortPtr->bcmx_lport, bcmPortControlL2Move, flags))!=BCM_E_NONE)
+      if ((rv = bcm_port_control_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
+                                     bcmPortControlL2Move, flags)) != BCM_E_NONE)
       {
         PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmPortControlL2Move in port {%d,%d,%d} to 0x%02x (rv=%d)",
                 dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, flags, rv);
@@ -3169,7 +3176,8 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
           return L7_FAILURE;
         }
         /* Get enable status for member port */
-        if ((rv=bcmx_port_control_set(hapiPortPtr_member->bcmx_lport, bcmPortControlL2Move, flags))!=BCM_E_NONE)
+        if ((rv = bcm_port_control_set(hapiPortPtr_member->bcm_unit, hapiPortPtr_member->bcm_port,
+                                       bcmPortControlL2Move, flags)) != BCM_E_NONE)
         {
           PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmPortControlL2Move in port {%d,%d,%d} (rv=%d)",
                   dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
@@ -3204,7 +3212,7 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
     lclass = stationMove_prio;
 
     /* Attribute priority to a class */
-    if ((rv=bcmx_l2_learn_class_set(lclass, stationMove_prio, flags))!=BCM_E_NONE)
+    if ((rv = bcm_l2_learn_class_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, stationMove_prio, flags)) != BCM_E_NONE)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error setting prio %d to class %d (rv=%d)", stationMove_prio, lclass, rv);
 #if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
@@ -3213,13 +3221,11 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
     }
 
     /* Associate class to the specified interface */
-    if ((rv=bcmx_l2_learn_port_class_set(hapiPortPtr->bcmx_lport,lclass))!=BCM_E_NONE)
+    if ((rv = bcm_l2_learn_port_class_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, lclass)) != BCM_E_NONE)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error setting class %d to port {%d,%d,%d} (rv=%d)",lclass,
               dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, rv);
-#if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
       return L7_FAILURE;
-#endif
     }
   }
 
@@ -3276,7 +3282,8 @@ L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_
     if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
     {
       /* LearnClass Enable/Disable */
-      if (bcmx_port_control_get(hapiPortPtr->bcmx_lport, bcmPortControlLearnClassEnable,&enable_global)!=BCM_E_NONE)
+      if (bcm_port_control_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
+                               bcmPortControlLearnClassEnable, &enable_global) != BCM_E_NONE)
       {
         PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcmPortControlLearnClassEnable in port {%d,%d,%d}",
                 dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
@@ -3302,7 +3309,8 @@ L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_
           return L7_FAILURE;
         }
         /* Get enable status for member port */
-        if (bcmx_port_control_get(hapiPortPtr_member->bcmx_lport, bcmPortControlLearnClassEnable, &enable)!=BCM_E_NONE)
+        if (bcm_port_control_get(hapiPortPtr_member->bcm_unit, hapiPortPtr_member->bcm_port,
+                                 bcmPortControlLearnClassEnable, &enable) != BCM_E_NONE)
         {
           PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcmPortControlLearnClassEnable in port {%d,%d,%d}",
                   dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
@@ -3327,7 +3335,8 @@ L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_
     if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
     {
       /* L2 Station move */
-      if (bcmx_port_control_get(hapiPortPtr->bcmx_lport, bcmPortControlL2Move, &flags)!=BCM_E_NONE)
+      if (bcm_port_control_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
+                               bcmPortControlL2Move, &flags) != BCM_E_NONE)
       {
         PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcmPortControlL2Move flags in port {%d,%d,%d}",
                 dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
@@ -3354,7 +3363,8 @@ L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_
           return L7_FAILURE;
         }
         /* Get enable status for member port */
-        if (bcmx_port_control_get(hapiPortPtr_member->bcmx_lport, bcmPortControlL2Move, &flags)!=BCM_E_NONE)
+        if (bcm_port_control_get(hapiPortPtr_member->bcm_unit, hapiPortPtr_member->bcm_port,
+                                 bcmPortControlL2Move, &flags) != BCM_E_NONE)
         {
           PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcmPortControlL2Move in port {%d,%d,%d}",
                   dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
@@ -3374,24 +3384,28 @@ L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_
     *stationMove_enable = enable_global;
   }
 
-  if (stationMove_prio!=L7_NULLPTR)
+  if (stationMove_prio != L7_NULLPTR)
   {
     /* Get class id from the specified interface */
-    if (bcmx_l2_learn_port_class_get(hapiPortPtr->bcmx_lport,&lclass)!=BCM_E_NONE)
+    if (bcm_l2_learn_port_class_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &lclass) == BCM_E_NONE)
+    {
+      /* Get priority attribute */
+      if (bcm_l2_learn_class_get(hapiPortPtr->bcm_unit, lclass, &prio, &flags) != BCM_E_NONE)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error getting prio from classId %d",lclass);
+        return L7_FAILURE;
+      }
+    }
+    else
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error getting classId from port {%d,%d,%d}",
               dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
       return L7_FAILURE;
     }
-    /* Get priority attribute */
-    if (bcmx_l2_learn_class_get(lclass, &prio, &flags)!=BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error getting prio from classId %d",lclass);
-      return L7_FAILURE;
-    }
+
     *stationMove_prio = prio;
 
-    if (stationMove_samePrio!=L7_NULLPTR)
+    if (stationMove_samePrio != L7_NULLPTR)
     {
       *stationMove_samePrio = (flags & BCM_L2_LEARN_CLASS_MOVE);
     }
