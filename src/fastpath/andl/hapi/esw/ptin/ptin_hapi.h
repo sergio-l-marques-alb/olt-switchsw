@@ -434,6 +434,8 @@ extern L7_RC_t ptin_hapi_temperature_monitor(ptin_dtl_temperature_monitor_t *tem
  */
 extern L7_RC_t ptin_hapi_linkfaults_enable(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, L7_BOOL local_enable, L7_BOOL remote_enable);
 
+#if (PTIN_BOARD == PTIN_BOARD_AG16GA)
+#if 0
 /**
  * AG16g bck static switching 
  * 
@@ -451,7 +453,43 @@ extern L7_RC_t ag16ga_bck_static_switching();
  * @return L7_RC_t 
  */
 extern L7_RC_t ag16ga_frontal_static_switching();
+#endif
 
+/**
+ * Translation configurations for AG16GA board
+ * 
+ * @author mruas (05/07/19)
+ * 
+ * @param void 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ag16ga_xlate_init(void);
+
+/**
+ * Crossconnect configurations for AG16GA board
+ * 
+ * @author mruas (05/07/19)
+ * 
+ * @param void 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ag16ga_xconnect_init(void);
+#endif
+
+#if (PTIN_BOARD == PTIN_BOARD_AE48GE)
+/**
+ * Crossconnect configurations for AE48GE board
+ * 
+ * @author mruas (05/07/19)
+ * 
+ * @param void 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ae48ge_xconnect_init(void);
+#endif
 
 #endif /*_PTIN_HAPI_H */
 
