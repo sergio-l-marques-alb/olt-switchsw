@@ -1565,9 +1565,7 @@ void hpcHardwareDefaultConfigApply(void)
           PT_LOG_NOTICE(LOG_CTX_STARTUP,"bcm_port_pfm_set configuration to mode C: unit=%d,port=%d => rv=%d (%s)", i, port, rv, bcm_errmsg(rv));
           if (L7_BCMX_OK(rv) != L7_TRUE && rv != BCM_E_UNAVAIL)
           {
-#if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
             L7_LOG_ERROR(rv);
-#endif
           }
 
           /* Set the spanning-tree state for each front-panel port to
