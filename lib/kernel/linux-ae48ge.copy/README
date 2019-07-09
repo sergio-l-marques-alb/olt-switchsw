@@ -1,0 +1,177 @@
+             +++++      ......
+          ++++++++++++  ......
+        +++++++++++++++ ......
+       '''++++++++++++++......               @@        @@
+      ''''+++++++++++++++.....               @@   @@   @@
+     ''''''+++++++++++++++....         @@    @@   @@          @@@     @@
+    '''''''+++    +++++++++...      @@@@@@@  @@  @@@@@ @@   @@@@@@  @@@@@
+   '''''''''        ++++++++..     @@@@@@@@  @@   @@   @@   @@  @@ @@   @@
+   '''''''           +++++++++     @@    @@  @@   @@   @@  @@      @@   @@
+  '''''''             ++++++++     @@    @@  @@   @@   @@  @@      @@@@@@@
+  ''''''               +++++++     @@    @@  @@   @@   @@  @@      @
+  ''''''                +++++++    @@    @@   @@  @@   @@  @@@     @@
+  ''''''                ++++++#     @@@@@@@@  @@@  @@@  @@  @@@@@@  @@@@@@
+  ''''''                ,+++####     @@@   @   @@   @@   @   @@@@    @@@@
+  ''''''                ,,######
+  ''''''                ,,#######
+  ;;;;;;                ,,,#######                        @       @
+  ;;;;;;               ,,,.#######                        @       @     @@
+  ;;;;;;;              ,,,,.#######                       @  @@@  @@@  @
+  ;;;;;;;             ,,,,,,########                      @ @  @  @  @ @@@
+   ;;;;;;;           ,,,,,,, ########                     @ @  @  @  @   @
+   ;;;;;;;;:        ,,,,,,,, #########                     @ @@ @ @@@  @@
+    ;;;;;;;;;;...:::,,,,,,,   ###########
+     ;;;;;;:::::::::,,,,,,     ##########
+      ;;;;:::::::::::,,,,,      #########
+       ;;;:::::::::::,,,         ########
+        :::::::::::::::           #######
+          :::::::::::               #####
+
+		  
+	PROJECT:	AE48GE Board, PCB1454
+	HW WIKI:	https://wiki.ptin.corppt.com/display/PCBUQCQ/Home
+	
+	Author:		Jaime Manuel Silva Pereira 	< jaime-m-pereira@alticelabs.com >
+                        DSR - Alticelabs
+				
+	Date:		06-03-2019
+
+
+###############################  linux-ae48ge ########################################
+
+	Linux Kernel project, source code and patches for the AE48GE board.
+	AE48GE board uses a Broadcom SOC BCM956170, which incorporates an ARM A9
+	dual core CPU.
+
+################################ Getting Started #####################################
+	These instructions will get you a copy of the project for compiling and building
+	on your local machine or remote server. 
+	
+################################# Prerequisites ######################################
+	The cross compiler must be installed on local machine or remote server.
+	Remote server: KOMPILOVAT
+	Cross-compiler installed on:    /opt/broadcom_gh2/
+	For a local machine, pack the toolchain and unpack it on the local machine on the 
+	same root directory:            /opt/broadcom_gh2/
+	
+#################################### Installing ######################################
+	Checkout the project:
+	$ svn checkout http://svn.ptin.corppt.com/repo/netband-libs/trunk/linux-ae48ge
+	
+################################ Directory Hierarchy #################################
+
+	linux-ae48ge/
+	├── build_kernel_ae48ge.sh        -> script to build/compile u-boot
+	├── build_patch_ae48ge.sh         -> script to create developments patch
+	├── dl                            -> downloads folder
+	├── output                        -> output folder for logs, binaries etc...
+	├── patch                         -> patches folder
+	│   ├── kernel-4.14.48.clist      -> broadcom patch changed files list
+	│   ├── kernel-4.14.48.patch      -> broadcom patch from XLDK-5.0.3
+	│   ├── kernel-ae48ge.clist		  -> changed files list from ae48ge patch
+	│   └── kernel-ae48ge.patch       -> patch for ae48ge board, current revision
+	└── README                        -> This README file
+
+	
+################################ Compiling/building ##################################
+	For compiling linux kernel and DTB for the ae48ge board, it should be used the
+	script build_kernel_ae48ge.sh. This script accepts two optional input arguments. 
+	Usage explained below:
+	
+	AlticeLabs linux kernel for AE48GE board v1.0.0 - 22/02/2019
+	Jaime Pereira <jaime-m-pereira@alticelabs.com>
+	Usage: build_kernel_ae48ge.sh
+			-c              - Clean build, othwerwise use existing sources (linux-4.14.48/)
+			-p <patch>      - Patch to be used, otherwise use existent on patch folder
+			-h              - This help, usage
+
+	-c option: with this option, the script will download the linux-4.14.48.tar.xz
+	           then it will unpack it to a folder linux-4.14.48/, apply the broadcom
+		   patch "patch/kernel-4.14.48.patch".
+				
+		   If a previous folder exists with the name "linux-4.14.48" it will be
+		   removed before unpacking and compiling.
+				
+		   without this option the script uses existing sources on the 
+		   linux-4.14.48/ folder. If this folder does not exist the script 
+		   will terminate.
+	
+	-p option: with this option, the user can override the default ae48ge kernel 
+		   patch file that it will be applied, for example for development
+		   purposes.
+				
+		   The user should specify the path to patch file relative to the
+		   script folder. example: output/test-patch.patch
+				
+		   Without this option the default ae48ge u-boot patch will be
+		   applied:	patch/kernel-ae48ge.patch
+	
+	
+######### First time compilation:
+		
+		$ sh build_kernel_ae48ge.sh -c			
+	
+	Three files as a result of the compilation will appear on output folder:
+	output/
+	├── ae48ge.dtb            -> DTB for ae48ge, from arch/arm/boot/dts/ae48ge.dts
+	├── kernel-ae48ge.z       -> kernel for ae48ge
+	└── output.log            -> output log
+
+
+############################## Modifying source code ##################################	
+	As a result of the first compilation the linux kernel sources with the broadcom patch
+	and the ae48ge patch will be located at linux-4.14.48/ folder.
+	
+	You can modify anything and to build the kernel again you simply run:
+
+		$ sh build_kernel_ae48ge.sh   (without the -c option, because we want to use
+		    			       existent sources instead of a clean build.
+
+################################ Creating patches #####################################
+										
+	If you wish to save your developments then you need to create a patch:
+	
+		$ sh build_patch_ae48ge.sh
+		
+	This build_patch_ae48ge.sh script will create the patches and the changed files list.
+	It will save them to the output folder in the form of:
+		- a patch file with the creation date on the name: 
+			ex. kernel-ae48ge-2019-03-06-10:01:19.patch
+		- a changed files list with the creation date on the name:
+		    ex. kernel-ae48ge-2019-03-06-10:01:19.clist
+			
+		- symbolic links to the created patch and change list with a revision:
+			ex. kernel-ae48ge-r0.clist -> kernel-ae48ge-2019-03-06-10:01:19.clist
+			    kernel-ae48ge-r0.patch -> kernel-ae48ge-2019-03-06-10:01:19.patch
+	
+	output/
+	├── ae48ge.dtb
+	├── kernel-ae48ge-2019-03-06-10:01:19.clist
+	├── kernel-ae48ge-2019-03-06-10:01:19.patch
+	├── kernel-ae48ge-2019-03-06-10:01:39.clist
+	├── kernel-ae48ge-2019-03-06-10:01:39.patch
+	├── kernel-ae48ge-2019-03-06-10:05:34.clist
+	├── kernel-ae48ge-2019-03-06-10:05:34.patch
+	├── kernel-ae48ge-r0.clist -> kernel-ae48ge-2019-03-06-10:01:19.clist
+	├── kernel-ae48ge-r0.patch -> kernel-ae48ge-2019-03-06-10:01:19.patch
+	├── kernel-ae48ge-r1.clist -> kernel-ae48ge-2019-03-06-10:01:39.clist
+	├── kernel-ae48ge-r1.patch -> kernel-ae48ge-2019-03-06-10:01:39.patch
+	├── kernel-ae48ge-r2.clist -> kernel-ae48ge-2019-03-06-10:05:34.clist
+	├── kernel-ae48ge-r2.patch -> kernel-ae48ge-2019-03-06-10:05:34.patch
+	├── kernel-ae48ge.z
+	└── output.log
+
+
+
+################################## Saving patches #####################################
+
+	If you wish to commit your developments to the SVN repo then:
+	
+	- copy your resulting patch and change list to the patch folder, overwriting 
+	the existent. For ex.:
+		
+		$ cp output/kernel-ae48ge-r2.patch patch/kernel-ae48ge.patch
+		$ cp output/kernel-ae48ge-r2.clist patch/kernel-ae48ge.clist
+		$ svn commit
+
+
