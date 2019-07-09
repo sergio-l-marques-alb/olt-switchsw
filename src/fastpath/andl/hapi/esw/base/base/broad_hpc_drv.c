@@ -1582,7 +1582,7 @@ void hpcHardwareDefaultConfigApply(void)
         }
 
 
-#if (PTIN_BOARD == PTIN_BOARD_AG16GA || PTIN_BOARD == PTIN_BOARD_AE48GE)
+#if (PTIN_BOARD == PTIN_BOARD_AG16GA)
         bcm_pbmp_t all_pbmp;
         BCM_PBMP_ASSIGN(all_pbmp, PBMP_PORT_ALL(i));
 
