@@ -20,8 +20,8 @@ OLT_DIR      = $(subst /$(FP_FOLDER),,$(shell pwd))
 export TOOLCHAIN_BASE_DIR = /opt/broadcom_gh2/usr
 export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin
 export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
-export CCACHE_TEMPDIR     = /home/disk1/milton-r-silva/ccache
-export CCACHE_DIR         = /home/disk1/milton-r-silva/ccache
+export CCACHE_TEMPDIR     = $(CURRENT_PATH)/.ccache
+export CCACHE_DIR         = $(CURRENT_PATH)/.ccache
 CROSS_COMPILE = arm-linux-
 
 # Kernel and SDK paths
