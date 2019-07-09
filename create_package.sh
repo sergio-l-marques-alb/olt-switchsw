@@ -107,22 +107,19 @@ if [ ! -d $APPS_PATH/image ]; then
   exit 1;
 fi
 
-if [ ! -d $APPS_PATH/image/AG16GA/rootfs ]; then
-  echo "Missing folders 5 in $APPS_PATH/image/$DEV_BOARD_SW/rootfs" >> $LOG_FILE
-  exit 1;
-fi
+#if [ ! -d $APPS_PATH/image/AG16GA/rootfs ]; then
+#  echo "Missing folders 5 in $APPS_PATH/image/$DEV_BOARD_SW/rootfs" >> $LOG_FILE
+#  exit 1;
+#fi
 
-# create swdrv.ver
-cd $APPS_PATH/image/AG16GA/rootfs
-mkdir -pv var/log/switchdrvr/
-mkdir -pv usr/local/scripts/swdrv-scripts/
+# Goto directory with the board files
+cd $APPS_PATH/image/$DEV_BOARD_SW/rootfs
 rm -f *.tgz
 
-cp -uv ../../../../$APPLICATION.ver ./usr/local/scripts/swdrv-scripts/
-cp -uv ../../../../fastpath ./usr/local/ptin/sbin/
-cp -uv ../../../../rcS15 ./usr/local/scripts/
-cp -uv ../../../../startPcapBridge.sh ./usr/local/scripts/
-echo "echo OLTSWITCH md5sum: "`md5sum ./usr/local/ptin/sbin/$MAIN_BIN | awk '{print $1}'` >> ./usr/local/scripts/swdrv-scripts/$APPLICATION.ver
+# create path where LOGs will be located
+mkdir -pv var/log/switchdrvr/
+# Create swdrv.ver with md5sum and version
+echo "echo OLTSWITCH md5sum: "`md5sum ./usr/local/ptin/sbin/$MAIN_BIN | awk '{print $1}'` >> ./usr/local/ptin/sbin/$APPLICATION.ver
 
 # create tgz file
 echo "Preparing tarball for $DEV_BOARD_SW..."
@@ -145,7 +142,5 @@ echo "All done without errors!!"
 echo "" >> $LOG_FILE
 echo "-- end script --" >> $LOG_FILE
 
-
 exit 0
-
 
