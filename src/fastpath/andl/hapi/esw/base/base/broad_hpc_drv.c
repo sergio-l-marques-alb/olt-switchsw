@@ -1578,55 +1578,65 @@ void hpcHardwareDefaultConfigApply(void)
             L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, 
                     "Failed to set port %d/%d state to disable rv %d\n",
                     i, port, rv);
-          }        
-        }
-
-
-#if (PTIN_BOARD == PTIN_BOARD_AG16GA)
-        bcm_pbmp_t all_pbmp;
-        BCM_PBMP_ASSIGN(all_pbmp, PBMP_PORT_ALL(i));
-
-        rv = bcm_vlan_port_remove(i, 1, all_pbmp);
-        if (rv < 0)
-        {
-          PT_LOG_ERR(LOG_CTX_STARTUP, "bcm_vlan_port_remove failed unit %d", i);
-          L7_LOG_ERROR(rv);
-        }
-
-        rv = bcm_port_vlan_member_set(i, port, 0);
-
-        /*Cpu port in added to all the ports 
-         in AG16GA for trapping propose*/
-        if (port == 1)
-        {
-          int vlan;
-          bcm_pbmp_t ubmp,pbmp;
-          BCM_PBMP_CLEAR(ubmp);
-          BCM_PBMP_CLEAR(pbmp);
-          BCM_PBMP_PORT_ADD(pbmp,(port-1) /*cpu port*/);
-
-          PT_LOG_INFO(LOG_CTX_STARTUP, "unit %d: Creating all VLANs for port %d...", i, port);
-
-          for (vlan = 1 ; vlan < 4095; vlan++)
-          {
-            rv = bcm_vlan_create(i, vlan);
-            if ((rv < 0) && (rv != BCM_E_EXISTS))
-            {
-              PT_LOG_ERR(LOG_CTX_STARTUP, "bcm_vlan_create failed unit %d\n", i);
-              L7_LOG_ERROR(rv);
-            }
-            rv = bcm_vlan_port_add(i, vlan, pbmp, ubmp);
-            if (rv < 0)
-            {
-              PT_LOG_ERR(LOG_CTX_STARTUP, "bcm_vlan_port_add failed unit %d", i);
-              L7_LOG_ERROR(rv);
-            }
           }
-        }
-#endif
 
+#if (PTIN_BOARD_IS_PASSIVE_LC)
+          /* PTin added: disable filters */
+          rv = bcm_port_vlan_member_set(i, port, 0);
+          if (L7_BCMX_OK(rv) != L7_TRUE && rv != BCM_E_UNAVAIL)
+          {
+            L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, 
+                    "Failed to set port %d/%d vlan member state to no filters: rv %d\n",
+                    i, port, rv);
+          }
+#endif
+        }
       }
     }
+
+#if (PTIN_BOARD_IS_PASSIVE_LC)
+    {
+      int vlan;
+      bcm_pbmp_t ubmp, pbmp;
+      BCM_PBMP_ASSIGN(pbmp, PBMP_PORT_ALL(i));
+
+      /* Remove all ports from VLAN 1 */
+      rv = bcm_vlan_port_remove(i, 1, pbmp);
+      if (rv < 0)
+      {
+        PT_LOG_ERR(LOG_CTX_STARTUP, "bcm_vlan_port_remove failed unit %d", i);
+        L7_LOG_ERROR(rv);
+      }
+
+      /*Cpu port in added to all the ports 
+       in AG16GA for trapping propose*/
+      BCM_PBMP_CLEAR(ubmp);
+      BCM_PBMP_CLEAR(pbmp);
+      BCM_PBMP_PORT_ADD(pbmp, 0 /*cpu port*/);
+
+      for (vlan = 1 ; 
+#if (PTIN_BOARD_IS_GPON)
+           vlan <= PTIN_SYSTEM_N_PONS
+#elif (PTIN_BOARD_IS_ACTIVETH)
+           vlan <= PTIN_SYSTEM_N_ETH
+#endif
+           ; vlan++)
+      {
+        rv = bcm_vlan_create(i, vlan);
+        if ((rv < 0) && (rv != BCM_E_EXISTS))
+        {
+          PT_LOG_ERR(LOG_CTX_STARTUP, "bcm_vlan_create failed unit %d\n", i);
+          L7_LOG_ERROR(rv);
+        }
+        rv = bcm_vlan_port_add(i, vlan, pbmp, ubmp);
+        if (rv < 0)
+        {
+          PT_LOG_ERR(LOG_CTX_STARTUP, "bcm_vlan_port_add failed unit %d", i);
+          L7_LOG_ERROR(rv);
+        }
+      }
+    }
+#endif
 
     /* Send BPDUs and CPU-MAC to CPU with high priority.
     ** Although we have a filters that set higher priority the 5695 gives preference

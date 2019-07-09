@@ -247,7 +247,7 @@ L7_RC_t ptin_intf_pre_init(void)
       return L7_FAILURE;
     }
 
-#if PTIN_BOARD == PTIN_BOARD_AG16GA
+#if (PTIN_BOARD_IS_PASSIVE_LC)
     if (i == 0)
     {
       rc = ptin_vlan_port_remove(i, 1);
