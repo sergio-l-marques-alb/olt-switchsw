@@ -875,6 +875,9 @@ void ptin_intf_dump(void)
       case PTIN_BOARD_TYPE_TA48GE:
         sprintf(board_id_str,"TA48GE");
         break;
+      case PTIN_BOARD_TYPE_AE48GE:
+        sprintf(board_id_str,"AE48GE");
+        break;
       case PTIN_BOARD_TYPE_TA48GED:
         sprintf(board_id_str,"TA48GED");
         break;
