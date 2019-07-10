@@ -25,7 +25,12 @@ export CCACHE_DIR         = $(CURRENT_PATH)/.ccache
 CROSS_COMPILE = arm-linux-
 
 # Kernel and SDK paths
-KERNEL_PATH = $(OLT_DIR)/../lib/kernel/linux-ae48ge/linux-4.14.48
+ifeq ($(KERNEL_SOURCE_DIR),)
+ KERNEL_PATH = $(OLT_DIR)/../lib/kernel/linux-ae48ge/linux-4.14.48
+else
+ KERNEL_PATH = $(KERNEL_SOURCE_DIR)
+endif
+
 SDK_PATH    = $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.15/broadcom
 
 #NUM_CPUS=1
