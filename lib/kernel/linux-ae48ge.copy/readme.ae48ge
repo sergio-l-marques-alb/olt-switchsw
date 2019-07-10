@@ -1,9 +1,0 @@
-SVN URL: http://svn.ptin.corppt.com/repo/netband-libs/trunk/linux-ae48ge
-
-sh build_kernel_ae48ge.sh -c -p patch/kernel-ae48ge.patch
-cd linux-4.14.48/
-make headers_install ARCH=arm INSTALL_HDR_PATH=./headers_dir
-
-In order to compile SDK:
-1. mv headers_dir/include/asm/signal.h headers_dir/include/asm/signal.h.bak
-2. At include/linux/init.h, comment all initcall_*(fn) macros: cp ../init.h.mod include/linux/init.h
