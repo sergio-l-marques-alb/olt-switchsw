@@ -6329,7 +6329,7 @@ L7_RC_t ae48ge_xconnect_init(void)
     BCM_PBMP_PORT_ADD(pbmp, bcm_port1);
     BCM_PBMP_PORT_ADD(pbmp, bcm_port2);
     BCM_PBMP_PORT_ADD(ubmp, bcm_port1);
-    BCM_PBMP_PORT_ADD(ubmp, bcm_port2);
+    //BCM_PBMP_PORT_ADD(ubmp, bcm_port2);
 
     rv = bcm_vlan_port_add(bcm_unit, vlanId, pbmp, ubmp);
     if (rv != BCM_E_NONE)
