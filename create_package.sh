@@ -136,7 +136,7 @@ mv $image_tgz $DESTDIR/packages/$image_tgz
 cd - >> $LOG_FILE
 echo "Tarball of $DEV_BOARD created and moved to $DESTDIR/packages"
 
-echo "All done without errors!!"
+echo "Success!"
 
 #done without errors
 echo "" >> $LOG_FILE
