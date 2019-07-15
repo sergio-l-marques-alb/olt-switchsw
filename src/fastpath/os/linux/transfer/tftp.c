@@ -33,11 +33,11 @@ L7_int32 osapiTransferOpen (L7_uint32 direction, L7_uint32 fileType)
 
   if (fileType == L7_FILE_TYPE_CODE)
   {
-    filename = "/tmp/code";                 /* PTin modified: paths */
+    filename = FILESYSTEM_TMP_PATH "code";                 /* PTin modified: paths */
   }
   else if (fileType == L7_FILE_TYPE_CONFIG)
   {
-    filename = "/tmp/config";               /* PTin modified: paths */
+    filename = FILESYSTEM_TMP_PATH "config";               /* PTin modified: paths */
   }
   else
   {

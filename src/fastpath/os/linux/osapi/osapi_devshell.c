@@ -277,24 +277,24 @@ L7_uint32 osapiAddressLookup(L7_char8 *funcName) {
    /* The popen call does not work correctly in the mips32 2.4 library */
   /* so use fopen in this case.                                       */
   /* PTin modified: paths */
-  if (WEXITSTATUS(system("zcat /usr/local/ptin/sbin/devshell_symbols.gz > /usr/local/ptin/sbin/devshell_symbols.txt")) != 0)
+  if (WEXITSTATUS(system("zcat " FILESYSTEM_SBIN_PATH "devshell_symbols.gz > " FILESYSTEM_SBIN_PATH "devshell_symbols.txt")) != 0)
   {
     osapiFree(L7_OSAPI_COMPONENT_ID, buf);
     perror("zcat failed");
     return 0;
   }
-  f = fopen("/usr/local/ptin/sbin/devshell_symbols.txt", "r");                      /* PTin modified: paths */
+  f = fopen(FILESYSTEM_SBIN_PATH "devshell_symbols.txt", "r");                      /* PTin modified: paths */
 #else
 
 /* zcat does not work correctly under valgrind*/
 #if defined(L7_TOOL_VALGRIND)
-  f = fopen("/usr/local/ptin/sbin/devshell_symbols", "r");                          /* PTin modified: paths */
+  f = fopen(FILESYSTEM_SBIN_PATH "devshell_symbols", "r");                          /* PTin modified: paths */
   if (f == NULL) {
       /* f is NULL; this may be possible if valgrind is not running, try the zcat */
-      f = popen("zcat /usr/local/ptin/sbin/devshell_symbols.gz 2>/dev/null", "r");  /* PTin modified: paths */
+      f = popen("zcat " FILESYSTEM_SBIN_PATH "devshell_symbols.gz 2>/dev/null", "r");  /* PTin modified: paths */
   }
 #else
-  f = popen("zcat /usr/local/ptin/sbin/devshell_symbols.gz 2>/dev/null", "r");      /* PTin modified: paths */
+  f = popen("zcat " FILESYSTEM_SBIN_PATH "devshell_symbols.gz 2>/dev/null", "r");      /* PTin modified: paths */
 #endif
 #endif
   if (f == NULL) {
@@ -394,7 +394,7 @@ L7_RC_t osapiFunctionLookup(L7_uint32 addr, L7_char8 *funcName,
     osapiFree(L7_OSAPI_COMPONENT_ID, buf);
     return L7_FAILURE;
   }
-  f = popen("zcat /usr/local/ptin/sbin/devshell_symbols.gz 2>/dev/null", "r");      /* PTin modified: paths */
+  f = popen("zcat " FILESYSTEM_SBIN_PATH "devshell_symbols.gz 2>/dev/null", "r");      /* PTin modified: paths */
   if (f == NULL) {
     osapiFree(L7_OSAPI_COMPONENT_ID, buf);
     osapiFree(L7_OSAPI_COMPONENT_ID, candidate_name);
@@ -532,7 +532,7 @@ void osapiLkup(L7_char8 *search_str) {
     perror("malloc failed");
     return;
   }
-  f = popen("zcat /usr/local/ptin/sbin/devshell_symbols.gz 2>/dev/null", "r");        /* PTin modified: paths */
+  f = popen("zcat " FILESYSTEM_SBIN_PATH "devshell_symbols.gz 2>/dev/null", "r");        /* PTin modified: paths */
   if (f == NULL) {
     osapiFree(L7_OSAPI_COMPONENT_ID, buf);
     perror("popen failed");
@@ -577,7 +577,7 @@ int osapiDevshellSymbolsLoad(void) {
     perror("malloc failed");
     return L7_FAILURE;
   }
-  f = popen("zcat /usr/local/ptin/sbin/devshell_symbols.gz 2>/dev/null", "r");        /* PTin modified: paths */
+  f = popen("zcat " FILESYSTEM_SBIN_PATH "devshell_symbols.gz 2>/dev/null", "r");        /* PTin modified: paths */
   if (f == NULL) {
     osapiFree(L7_OSAPI_COMPONENT_ID, buf);
     perror("popen failed");
@@ -604,7 +604,7 @@ int osapiDevshellSymbolsLoad(void) {
     num_symbols = 0;
     return(1);
   }
-  f = popen("zcat /usr/local/ptin/sbin/devshell_symbols.gz 2>/dev/null", "r");        /* PTin modified: paths */
+  f = popen("zcat " FILESYSTEM_SBIN_PATH "devshell_symbols.gz 2>/dev/null", "r");        /* PTin modified: paths */
   if (f == NULL) {
     perror("popen failed");
     osapiFree(L7_OSAPI_COMPONENT_ID, buf);

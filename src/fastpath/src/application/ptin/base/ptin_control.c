@@ -2797,7 +2797,7 @@ void hpcConfigWCmap_test(L7_uint mode)
 {
   L7_RC_t rc;
 
-  rc = hpcConfigWCmap_write("/usr/local/ptin/var/bcm_port_map", &mode, 1);
+  rc = hpcConfigWCmap_write(FILESYSTEM_VAR_PATH "bcm_port_map", &mode, 1);
 
   printf("rc=%d\r\n", rc);
 }

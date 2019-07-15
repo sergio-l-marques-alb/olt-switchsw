@@ -51,7 +51,7 @@ static L7_BOOL backupImageValid = L7_FALSE;
 static L7_BOOL backupImageActivated = L7_FALSE;
 
 #ifdef BOOTENV_SUPPORT
-#define ACTIVE_CFG_FILE                "/usr/local/ptin/sbin/active.cfg"
+#define ACTIVE_CFG_FILE                FILESYSTEM_LOG_PATH "active.cfg"
 /*********************************************************************
  * @purpose  Read the active image file name from the environment variables
  *
@@ -204,7 +204,7 @@ L7_RC_t dimImageActivate(char *fileName)
 #ifdef _L7_OS_LINUX_
   /* A script is included in the .stk file to handle any necessary */
   /* hardware specific requirements to activate the new image.     */
-  if (stat("/usr/sbin/extimage", &st) == 0)
+  if (stat(FILESYSTEM_SBIN_PATH "extimage", &st) == 0)
   {
     snprintf(buf, sizeof(buf), "cd %s ; extimage -i %s -o %sACTIVATE -n 2",
         CONFIG_PATH, fileName, DOWNLOAD_PATH);

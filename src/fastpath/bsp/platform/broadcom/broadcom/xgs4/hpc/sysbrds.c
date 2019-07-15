@@ -47,7 +47,7 @@
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
 #include "broad_hpc_db.h"
 
-#define WC_MAP_FILE "/usr/local/ptin/var/bcm_port_map"
+#define WC_MAP_FILE FILESYSTEM_VAR_PATH "bcm_port_map"
 
 const HAPI_WC_SLOT_MAP_t dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_V1[] =
 /*  WC index  WC group  Inv.Lanes Inv.Pol. SlotIdx *

@@ -2396,7 +2396,7 @@ L7_uchar8 osapiGetChoice()
 }
 
 #ifdef LVL7_DEBUG_BREAKIN
-#define CONSOLE_PIPE "/tmp/consolepipe"
+#define CONSOLE_PIPE FILESYSTEM_TMP_PATH "consolepipe"
 extern void osapiDebugShell(void);
 static L7_uint32 consoleBreakinFlag = L7_TRUE;
 static L7_char8  breakinString[L7_PASSWORD_SIZE];

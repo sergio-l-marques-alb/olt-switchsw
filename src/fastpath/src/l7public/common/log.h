@@ -58,7 +58,7 @@ extern "C" {
 
 /*This is the place where valgrind log files are stored. The file name should be the
  same as specified in rc.fastpath*/
-#define VALG_LOG_PATH                           "/var/log/switchdrvr/bin"      /* PTin modified: paths */
+#define VALG_LOG_PATH                           FILESYSTEM_LOG_PATH      /* PTin modified: paths */
 #define VALG_LOG_FILE_NAME                      "valgrind_run.log.rss"
 
 

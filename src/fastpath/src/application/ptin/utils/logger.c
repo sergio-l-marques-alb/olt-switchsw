@@ -626,7 +626,7 @@ int logger_print(log_context_t ctx, log_severity_t sev, char const *file,
       if(++max_log_lines >= MAX_LOG_LINES)
       {
         /*To be replaced with semaphore  or signal approach*/
-        //system("/usr/local/ptin/sbin/logrotate /etc/logrotate.conf.d&"); 
+        //system(FILESYSTEM_SBIN_PATH "logrotate /etc/logrotate.conf.d&"); 
                 
         max_log_lines = 0;        
       }

@@ -3484,8 +3484,8 @@ extern int soc_robo_mmu_init(int );
         fclose(fp);
     }
 #endif
-    PT_LOG_TRACE(LOG_CTX_STARTUP,"unit %d (%d): Going to load %src.soc file...", unit, SOC_NDEV_IDX2DEV(unit), FILESYSTEM_VAR_PATH);
-    if (sh_rcload_file(SOC_NDEV_IDX2DEV(unit), NULL, FILESYSTEM_VAR_PATH "rc.soc", FALSE) != CMD_OK)
+    PT_LOG_TRACE(LOG_CTX_STARTUP,"unit %d (%d): Going to load %src.soc file...", unit, SOC_NDEV_IDX2DEV(unit), FILESYSTEM_SBIN_PATH);
+    if (sh_rcload_file(SOC_NDEV_IDX2DEV(unit), NULL, FILESYSTEM_SBIN_PATH "rc.soc", FALSE) != CMD_OK)
     {
       PT_LOG_ERR(LOG_CTX_STARTUP,"ERROR loading rc script on unit %d\n", SOC_NDEV_IDX2DEV(unit));
       return L7_FAILURE;

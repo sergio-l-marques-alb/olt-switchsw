@@ -1993,9 +1993,9 @@ L7_RC_t L7_ewsPhaseOneInit(int arg0 /* max connections - use default */
 
 } /* end L7_ewsPhaseOneInit */
 
-#define EMWEB_TXTCFG_WAKEUP_PIPENAME "/tmp/EmWebTxtCfgWakeup"
+#define EMWEB_TXTCFG_WAKEUP_PIPENAME FILESYSTEM_TMP_PATH "EmWebTxtCfgWakeup"
 
-#define EMWEB_PIPE_NAME "/tmp/EmWebPipe"
+#define EMWEB_PIPE_NAME FILESYSTEM_TMP_PATH "EmWebPipe"
 
 /*
  * This pipe is what other applications write to and EmWeb reads from.

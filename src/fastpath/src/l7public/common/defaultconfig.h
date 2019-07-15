@@ -1469,7 +1469,7 @@ extern L7_ushort16 dot1dUserPriorityRegenTable[8][8];
 #define FD_SSHD_PUBKEY_AUTH_MODE     L7_DISABLE
 
 #ifdef _L7_OS_LINUX_
-#define FD_SSHD_PATH_SSH_USER_DIR    "/var/log/switchdrvr/"    /* PTin modified: paths */
+#define FD_SSHD_PATH_SSH_USER_DIR    FILESYSTEM_LOG_PATH    /* PTin modified: paths */
 #endif /* _L7_OS_LINUX_ */
 #ifdef _L7_OS_VXWORKS_
 #define FD_SSHD_PATH_SSH_USER_DIR    ""
@@ -1497,7 +1497,7 @@ extern L7_ushort16 dot1dUserPriorityRegenTable[8][8];
 
 /* file system path */
 #ifdef _L7_OS_LINUX_
-#define FD_LOGO_IMAGE_FILE_DIR    "/var/log/switchdrvr/"       /* PTin modified: paths */
+#define FD_LOGO_IMAGE_FILE_DIR    FILESYSTEM_LOG_PATH       /* PTin modified: paths */
 #endif /* _L7_OS_LINUX_ */
 #ifdef _L7_OS_VXWORKS_
 #define FD_LOGO_IMAGE_FILE_DIR    ""

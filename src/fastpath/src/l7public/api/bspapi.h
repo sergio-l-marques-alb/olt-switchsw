@@ -32,13 +32,13 @@
 /*
  * filesystem path info
  */
-#define CONFIG_PATH     "/var/log/switchdrvr/"              /* PTin modified: paths */
-#define EXEC_PATH       "/usr/local/ptin/sbin/"             /* PTin modified: paths */
+#define CONFIG_PATH     FILESYSTEM_LOG_PATH              /* PTin modified: paths */
+#define EXEC_PATH       FILESYSTEM_SBIN_PATH             /* PTin modified: paths */
 #ifdef _L7_OS_VXWORKS_
-  #define DOWNLOAD_PATH   "/tmp"                            /* PTin modified: paths */
+  #define DOWNLOAD_PATH   FILESYSTEM_TMP_PATH            /* PTin modified: paths */
   #define DOWNLOAD_CODE_FILE  "code.stk"
 #else
-  #define DOWNLOAD_PATH   "/tmp/"                           /* PTin modified: paths */
+  #define DOWNLOAD_PATH   FILESYSTEM_TMP_PATH            /* PTin modified: paths */
 #endif
 
 /* Name of the update script.
@@ -47,7 +47,7 @@
 #define UPDATE_KERNEL_SCRIPT_NAME     "UPDATE_KERNEL"
 #define UPDATE_BOOTROM_SCRIPT_NAME    "UPDATE_BOOTCODE"
 #define VPD_FILE                      "fastpath.vpd"
-#define USYSTEM_FILE                  "/tmp/uSystem"  /* PTin modified: paths */
+#define USYSTEM_FILE                  FILESYSTEM_TMP_PATH "uSystem"  /* PTin modified: paths */
 #define CODE_TIME_SIZE   32
 
 

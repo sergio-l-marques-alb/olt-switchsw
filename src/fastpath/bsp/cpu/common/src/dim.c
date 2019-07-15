@@ -536,7 +536,7 @@ L7_RC_t dimImageActivate(char *fileName)
 #ifdef _L7_OS_LINUX_
   /* A script is included in the .stk file to handle any necessary */
   /* hardware specific requirements to activate the new image.     */
-  if (stat("/usr/sbin/extimage", &st) == 0)
+  if (stat(FILESYSTEM_SBIN_PATH "extimage", &st) == 0)
   {
     snprintf(buf, sizeof(buf), "cd %s ; extimage -i %s -o %sACTIVATE -n 2",
         CONFIG_PATH, bootImage_g[index].fileName, DOWNLOAD_PATH);
@@ -616,7 +616,7 @@ L7_RC_t dimImageAdd(char *srcFileName, char *fileName)
 #ifdef _L7_OS_LINUX_
     /* A script is included in the .stk file to handle any necessary */
     /* hardware specific requirements to activate the new image.     */
-    if (stat("/usr/sbin/extimage", &st) == 0)
+    if (stat(FILESYSTEM_SBIN_PATH "extimage", &st) == 0)
     {
       snprintf(buf, sizeof(buf), "cd %s ; extimage -i %s -o %sACTIVATE -n 2",
           CONFIG_PATH, bootImage_g[index].fileName, DOWNLOAD_PATH);
@@ -648,7 +648,7 @@ L7_RC_t dimImageAdd(char *srcFileName, char *fileName)
          ACTIVATE script */
       if (strcmp(bootImage_g[index].nextState, "active") == 0)
       {
-        if (stat("/usr/sbin/extimage", &st) == 0) {
+        if (stat(FILESYSTEM_SBIN_PATH "extimage", &st) == 0) {
           snprintf(buf, sizeof(buf), "cd %s ; extimage -i %s -o %sACTIVATE -n 2", 
               CONFIG_PATH, bootImage_g[index].fileName, DOWNLOAD_PATH);
           if (WEXITSTATUS(system(buf)) != 0)

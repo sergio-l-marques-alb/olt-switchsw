@@ -2161,7 +2161,7 @@ L7_int32 L7_transfer_task()
              if (WEXITSTATUS(system("mount -t tmpfs tmpfs " DOWNLOAD_PATH
                                     " >/dev/null 2>&1")) != 0) {
 
-               set_result_string("Make sure /tmp/ directory exists!");        /* PTin modified: paths */
+               set_result_string("Make sure " FILESYSTEM_TMP_PATH " directory exists!");        /* PTin modified: paths */
                set_upload_result_code(L7_TRANSFER_CODE_ERROR_STARTING);
                set_download_result_code(L7_TRANSFER_CODE_ERROR_STARTING);
                set_result(L7_TRANSFER_FAILED);
