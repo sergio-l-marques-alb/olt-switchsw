@@ -2234,6 +2234,12 @@ static void ptin_control_linkstatus_report(void)
 #elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
   number_of_ports = 1;
   port_list[0] = (active_matrix == PTIN_SLOT_WORK) ? (PTIN_SYSTEM_N_ETH+1) : (PTIN_SYSTEM_N_ETH);
+#elif (PTIN_BOARD == PTIN_BOARD_AE48GE)
+  number_of_ports = 4;
+  port_list[0] = PTIN_SYSTEM_N_ETH + ((active_matrix == PTIN_SLOT_WORK) ? 4 : 0);
+  port_list[1] = PTIN_SYSTEM_N_ETH + ((active_matrix == PTIN_SLOT_WORK) ? 5 : 1);
+  port_list[2] = PTIN_SYSTEM_N_ETH + ((active_matrix == PTIN_SLOT_WORK) ? 6 : 2);
+  port_list[3] = PTIN_SYSTEM_N_ETH + ((active_matrix == PTIN_SLOT_WORK) ? 7 : 3);
 #else
   return;
 #endif

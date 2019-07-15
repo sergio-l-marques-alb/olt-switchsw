@@ -5547,7 +5547,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;  /* CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE */
     }
 /************************************End Multicast Package Feature********************************************************/
-#if (PTIN_BOARD == PTIN_BOARD_AG16GA || PTIN_BOARD == PTIN_BOARD_AE48GE)
+#if (PTIN_BOARD_IS_PASSIVE_LC)
 
     case CCMSG_AGENT_TRAP_CONFIGURE:
     {

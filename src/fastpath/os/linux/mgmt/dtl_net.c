@@ -1234,7 +1234,7 @@ void dtlNetInit(void)
 
   dtlVlanIfAdd(PTIN_VLAN_PCAP_EXT, "pcap");
 
-  #elif (PTIN_BOARD == PTIN_BOARD_AG16GA || PTIN_BOARD == PTIN_BOARD_AE48GE)
+  #elif (PTIN_BOARD_IS_PASSIVE_LC)
 
   dtlVlanIfAdd(PTIN_VLAN_PCAP_EXT, "dtl0.2046");
 

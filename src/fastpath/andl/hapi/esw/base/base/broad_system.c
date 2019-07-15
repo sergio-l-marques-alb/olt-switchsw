@@ -3524,7 +3524,7 @@ L7_RC_t hapiBroadConfigTrap(DAPI_USP_t *usp, cmdData_snoopConfig_t *snoopConfig,
     PT_LOG_TRACE(LOG_CTX_HAPI, "Null vlan provided: Global enable is applied (enable=%u)", snoopConfig->enable);
   }
 
-#if (PTIN_BOARD == PTIN_BOARD_AG16GA || PTIN_BOARD == PTIN_BOARD_AE48GE)
+#if (PTIN_BOARD_IS_PASSIVE_LC)
 
   ptin_trap_policy[search_index].policyId   = BROAD_POLICY_INVALID;
   /* only for trap all dhcp, igmp packets*/
@@ -3770,7 +3770,7 @@ L7_RC_t hapiBroadConfigIgmpTrap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_BOOL 
     result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
     if (result != L7_SUCCESS)  break;
 
-#if (PTIN_BOARD != PTIN_BOARD_AG16GA && PTIN_BOARD != PTIN_BOARD_AE48GE)
+#if (!PTIN_BOARD_IS_PASSIVE_LC)
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *)&vlan_match);
     if (result != L7_SUCCESS)  break;
 #endif
@@ -4039,7 +4039,7 @@ L7_RC_t hapiBroadConfigDhcpV4Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
     if (result != L7_SUCCESS)  break;
 
-#if (PTIN_BOARD != PTIN_BOARD_AG16GA)
+#if (!PTIN_BOARD_IS_PASSIVE_LC)
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *)&vlan_match);
     if (result != L7_SUCCESS)  break;
 #endif
@@ -4069,7 +4069,7 @@ L7_RC_t hapiBroadConfigDhcpV4Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
     if (result != L7_SUCCESS)  break;
 
-#if (PTIN_BOARD != PTIN_BOARD_AG16GA && PTIN_BOARD != PTIN_BOARD_AE48GE)
+#if (!PTIN_BOARD_IS_PASSIVE_LC)
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *)&vlan_match);
     if (result != L7_SUCCESS)  break;
 #endif
@@ -4334,7 +4334,7 @@ L7_RC_t hapiBroadConfigDhcpV6Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
     if (result != L7_SUCCESS)  break;
 
-#if (PTIN_BOARD != PTIN_BOARD_AG16GA && PTIN_BOARD != PTIN_BOARD_AE48GE)
+#if (!PTIN_BOARD_IS_PASSIVE_LC)
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *)&vlan_match);
     if (result != L7_SUCCESS)  break;
 #endif
@@ -4364,7 +4364,7 @@ L7_RC_t hapiBroadConfigDhcpV6Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
     if (result != L7_SUCCESS)  break;
 
-#if (PTIN_BOARD != PTIN_BOARD_AG16GA && PTIN_BOARD != PTIN_BOARD_AE48GE)
+#if (!PTIN_BOARD_IS_PASSIVE_LC)
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *)&vlan_match);
     if (result != L7_SUCCESS)  break;
 #endif

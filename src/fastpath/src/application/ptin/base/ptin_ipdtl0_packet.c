@@ -76,7 +76,7 @@ void ptin_ipdtl0_debug(L7_BOOL enable)
 /***************************************
  * INTERNAL ROUTINES
  ***************************************/
-#if (PTIN_BOARD == PTIN_BOARD_AG16GA || PTIN_BOARD == PTIN_BOARD_AE48GE)
+#if (PTIN_BOARD_IS_PASSIVE_LC)
 /**
  * Task with infinite loop. 
  * Collects packets from queue and send them to dtl0 
@@ -204,7 +204,7 @@ static void ptin_ipdtl0_task(void)
                 if (msg.vlanId != 2047)
                 {
                  
-				#if (PTIN_BOARD == PTIN_BOARD_AG16GA || PTIN_BOARD == PTIN_BOARD_AE48GE)
+				#if (PTIN_BOARD_IS_PASSIVE_LC)
                   int pcap_vlan = 2046;
 
                   ptin_AddDoubleTag(L7_ETYPE_8021Q, pcap_vlan, L7_ETYPE_8021Q, 
