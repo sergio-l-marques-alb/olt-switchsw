@@ -3,9 +3,9 @@
 thisapp=$0
 mode="run"
 app_name=switchdrvr
-app_path=/usr/local/ptin/sbin/$app_name
-cli=/usr/local/ptin/sbin/fp.cli
-proc_txt=/usr/local/ptin/log/fastpath/proc.txt
+app_path=/usr/local/sbin/$app_name
+cli=/usr/local/sbin/fp.cli
+proc_txt=/usr/local/log/fastpath/proc.txt
 
 insert_modules()
 {
@@ -18,8 +18,8 @@ insert_modules()
     fi
 
     echo "Inserting modules..."
-    insmod /usr/local/ptin/sbin/linux-kernel-bde.ko dmasize=8M debug=1
-    insmod /usr/local/ptin/sbin/linux-user-bde.ko
+    insmod /usr/local/sbin/linux-kernel-bde.ko dmasize=8M debug=1
+    insmod /usr/local/sbin/linux-user-bde.ko
 
     sleep 1
     echo "Modules successfully inserted!"
@@ -90,7 +90,7 @@ elif [ $mode = "boot" ]; then
         if [ $? -lt 0 -o $? -gt 1 ]; then
             echo "Transferring LOGs to Matrix board..."
             echo "Fastpath watchdog fired after 10x12 seconds of inactivity!" > /var/log/system_error_info.log
-            /bin/sh /usr/local/ptin/scripts/transfer_logs.sh
+            /bin/sh /usr/local/scripts/transfer_logs.sh
             echo "FASTPATH NOT RESPONDING: rebooting" 
             /sbin/reboot
             exit;
