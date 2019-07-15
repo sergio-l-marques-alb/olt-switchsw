@@ -22,18 +22,18 @@ for platform in $PLATFORM_FOLDER; do
  mkdir -p $APPS_FOLDER/backup/$platform
 
  rm -rf $APPS_FOLDER/image/$platform
- mkdir -p $APPS_FOLDER/image/$platform/$FILESYSTEM/usr/local/ptin/sbin
- mkdir -p $APPS_FOLDER/image/$platform/$FILESYSTEM/usr/local/ptin/lib
+ mkdir -p $APPS_FOLDER/image/$platform/$FILESYSTEM/usr/local/sbin
+ mkdir -p $APPS_FOLDER/image/$platform/$FILESYSTEM/usr/local/lib
 
  echo "Copying $platform binaries"
  for file in $BIN_FILES; do
-  cp -v $BIN_PATH/$file $APPS_FOLDER/image/$platform/$FILESYSTEM/usr/local/ptin/sbin
+  cp -v $BIN_PATH/$file $APPS_FOLDER/image/$platform/$FILESYSTEM/usr/local/sbin
  done
  for file in $LIB_FILES; do
-  cp -v $BIN_PATH/$file $APPS_FOLDER/image/$platform/$FILESYSTEM/usr/local/ptin/lib
+  cp -v $BIN_PATH/$file $APPS_FOLDER/image/$platform/$FILESYSTEM/usr/local/lib
  done
  for file in $KO_FILES; do
-  cp -v $KO_PATH/$file $APPS_FOLDER/image/$platform/$FILESYSTEM/usr/local/ptin/sbin
+  cp -v $KO_PATH/$file $APPS_FOLDER/image/$platform/$FILESYSTEM/usr/local/sbin
  done
 
  for file in $BACKUP_FILES; do
