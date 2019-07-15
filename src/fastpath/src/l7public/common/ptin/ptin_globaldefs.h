@@ -60,7 +60,7 @@
 
 #define PTIN_INBAND_BRIDGE_SCRIPT     "/bin/sh /usr/local/ptin/scripts/startBridge.sh"  /* Only applicable to CXP640G */
 
-#if PTIN_BOARD != PTIN_BOARD_AG16GA
+#if (PTIN_BOARD != PTIN_BOARD_AG16GA && PTIN_BOARD != PTIN_BOARD_AE48GE)
 #define PTIN_PCAP_BRIDGE_SCRIPT       "/bin/sh /usr/local/ptin/scripts/startPcapBridge.sh"  /* Applicable to CXP640G and Line Cards */
 #else
 #define PTIN_PCAP_BRIDGE_SCRIPT       "/bin/sh /usr/local/scripts/startPcapBridge.sh"  /* Applicable to PTIN_BOARD_AG16GA */

@@ -2387,7 +2387,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
 
   //PTIN Added
   //TO BE DONE - somewhere the under layer is just considering 3 bits for cos (this is NOT an HW issue)
-#if (PTIN_BOARD != PTIN_BOARD_AG16GA)
+#if (PTIN_BOARD != PTIN_BOARD_AG16GA && PTIN_BOARD != PTIN_BOARD_AE48GE)
   if (bcm_pkt->cos == (CPU_TRAPPED_PACKETS_COS_PCAP & 0x07))  // Current workaround just to proceed
 #else
   if (bcm_pkt->prio_int == CPU_TRAPPED_PACKETS_COS_PCAP)
@@ -2566,7 +2566,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
 
   if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL4)
     PT_LOG_TRACE(LOG_CTX_HAPI,"...");
-#if PTIN_BOARD != PTIN_BOARD_AG16GA
+#if (PTIN_BOARD != PTIN_BOARD_AG16GA && PTIN_BOARD != PTIN_BOARD_AE48GE)
   if (hapiBroadGetSystemBoardFamily(&board_family) == L7_SUCCESS)
 #else
   if (0)
@@ -2851,7 +2851,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
      addresses (BPDUs, LACPDUs, GVRP PDUs) */
 
 
-#if PTIN_BOARD != PTIN_BOARD_AG16GA
+#if (PTIN_BOARD != PTIN_BOARD_AG16GA && PTIN_BOARD != PTIN_BOARD_AE48GE)
   if (hapiPortPtr->ingressFilteringEnabled)
 #else
   if (0)
@@ -3238,7 +3238,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
     }
     PT_LOG_TRACE(LOG_CTX_HAPI,"...");
 
-#if PTIN_BOARD != PTIN_BOARD_AG16GA
+#if (PTIN_BOARD != PTIN_BOARD_AG16GA && PTIN_BOARD != PTIN_BOARD_AE48GE)
  cmdInfo.cmdData.receive.innerVlanId = 0;
 #endif
   }
@@ -3247,7 +3247,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   pktRxMsg.rx_untagged = bcm_pkt->rx_untagged;
   cmdInfo.cmdData.receive.timestamp = bcm_pkt->rx_timestamp;       //PTIN added
 
-#if PTIN_BOARD == PTIN_BOARD_AG16GA
+#if (PTIN_BOARD == PTIN_BOARD_AG16GA || PTIN_BOARD == PTIN_BOARD_AE48GE)
   if ((cmdInfo.cmdData.receive.innerVlanId == 0))
   {
     cmdInfo.cmdData.receive.innerVlanId = bcm_pkt->inner_vlan;

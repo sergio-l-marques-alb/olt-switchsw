@@ -1234,7 +1234,7 @@ void dtlNetInit(void)
 
   dtlVlanIfAdd(PTIN_VLAN_PCAP_EXT, "pcap");
 
-  #elif (PTIN_BOARD == PTIN_BOARD_AG16GA)
+  #elif (PTIN_BOARD == PTIN_BOARD_AG16GA || PTIN_BOARD == PTIN_BOARD_AE48GE)
 
   dtlVlanIfAdd(PTIN_VLAN_PCAP_EXT, "dtl0.2046");
 
@@ -1396,7 +1396,13 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
         if ( intfNum <= PTIN_SYSTEM_N_PONS)
         {
           /* Packets US*/
-          intfNum = ((intfNum - 1) / 4) + PTIN_SYSTEM_N_PONS + 1 ;
+#if (PTIN_BOARD == PTIN_BOARD_AG16GA)
+          intfNum = ((intfNum - 1) / 4) + PTIN_SYSTEM_N_PONS + 1;
+#elif (PTIN_BOARD == PTIN_BOARD_AE48GE)
+          intfNum = vlan;
+#else
+          intfNum = intfNum;
+#endif
           if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
           {
             SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Send packet to intfnum %u \n\r", __FUNCTION__, __LINE__, intfNum );
@@ -1405,8 +1411,13 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
         else 
         {
           /* Packets DS*/
+#if (PTIN_BOARD == PTIN_BOARD_AG16GA)
           intfNum = ((intfNum - PTIN_SYSTEM_N_PONS - 1)<<2) + (vlan>>10) + 1;
-
+#elif (PTIN_BOARD == PTIN_BOARD_AE48GE)
+          intfNum = vlan;
+#else
+          intfNum = intfNum;
+#endif
           if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
           {
             SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Send packet t intfnum %u \n\r", __FUNCTION__, __LINE__, intfNum );
