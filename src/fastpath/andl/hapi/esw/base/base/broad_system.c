@@ -4032,7 +4032,11 @@ L7_RC_t hapiBroadConfigDhcpV4Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8 *)&ip_type, exact_match);
     if (result != L7_SUCCESS)  break;
+#if (!PTIN_BOARD_IS_STANDALONE) /* In OLT1T0 the DHCP can't have the same priority of Inband */
+    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_MEDIUM, 0, 0);
+#else
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_DEFAULT, 0, 0);
+#endif
     if (result != L7_SUCCESS)  break;
     /* Trap the frames to CPU, so that they are not switched */
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
@@ -4327,7 +4331,11 @@ L7_RC_t hapiBroadConfigDhcpV6Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8 *)&ip_type, exact_match);
     if (result != L7_SUCCESS)  break;
+#if (!PTIN_BOARD_IS_STANDALONE) /* In OLT1T0 the DHCP can't have the same priority of Inband */
+    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_MEDIUM, 0, 0);
+#else
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_DEFAULT, 0, 0);
+#endif
     if (result != L7_SUCCESS)  break;
     /* Trap the frames to CPU, so that they are not switched */
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
