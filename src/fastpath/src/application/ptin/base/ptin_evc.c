@@ -19,6 +19,7 @@
 #include "ptin_igmp.h"
 #include "ptin_dhcp.h"
 #include "ptin_pppoe.h"
+#include "ptin_control.h"
 
 #include "dtlapi.h"
 #include "dot3ad_api.h"
@@ -707,7 +708,129 @@ L7_RC_t ptin_evc_startup(void)
     PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# %u for Broadlight management purposes", PTIN_EVC_BL2CPU);
     return rc;
   }
+#elif (PTIN_BOARD == PTIN_BOARD_AG16GA)
+
+#elif (PTIN_BOARD == PTIN_BOARD_AE48GE)
+  L7_RC_t rc;
+  L7_uint16 evc_id, lag_id;
+  L7_uint32 port_eth;
+  L7_uint32 intIfNum_eth, intIfNum_lag;
+  ptin_HwEthMef10Evc_t evcConf;
+  ptin_LACPLagConfig_t lagInfo;
+
+  /* Create internal LAGs */
+  for (lag_id = 0; lag_id < 4; lag_id++)
+  {
+    lagInfo.lagId=            lag_id;
+    lagInfo.admin=            1;
+    lagInfo.stp_enable=       0;
+    lagInfo.static_enable=    1;
+    lagInfo.loadBalance_mode= 1;// FIRST=0, SA_VLAN=1, DA_VLAN=2, SDA_VLAN=3, SIP_SPORT=4, DIP_DPORT=5, SDIP_DPORT=6
+    lagInfo.members_pbmp64=   1ULL<<(PTIN_SYSTEM_N_ETH+lag_id) | 1ULL<<(PTIN_SYSTEM_N_ETH+lag_id+4);
+
+    rc = ptin_intf_Lag_create(&lagInfo);
+
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_API, "Error creating LAG %u", lag_id);
+      return rc;
+    }
+  }
+
+  /* Switchover default state is the Working side */
+  rc = ptin_control_mx_switchover(0 /*Working*/);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error switching protection to Working side");
+    return rc;
+  }
+  
+  /* 4 PONs for each backplane interface */
+  for (port_eth = 0; port_eth < PTIN_SYSTEM_N_ETH; port_eth++)
+  {
+    /* Mapping VlanID to backplane port */
+    if (port_eth < PTIN_SYSTEM_N_ETH/2)
+    {
+      lag_id = port_eth / (PTIN_SYSTEM_N_ETH/8);
+    }
+    else
+    {
+      lag_id = (port_eth - (PTIN_SYSTEM_N_ETH/2)) / (PTIN_SYSTEM_N_ETH/8);
+    }
+
+    rc = ptin_intf_port2intIfNum(port_eth, &intIfNum_eth);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_API, "Error converting port_eth %u to intIfNum", port_eth);
+      return rc;
+    }
+    rc = ptin_intf_lag2intIfNum(lag_id, &intIfNum_lag);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_API, "Error converting lag_id %u to intIfNum", lag_id);
+      return rc;
+    }
+  
+    evc_id = port_eth + 1;
+
+    PT_LOG_INFO(LOG_CTX_API, "Creating EVC# %u for AE48GE", evc_id);
+
+    /* Create a new EVC */
+    memset(&evcConf, 0x00, sizeof(evcConf));
+    evcConf.index         = evc_id;
+    evcConf.flags         = PTIN_EVC_MASK_P2P;
+    evcConf.mc_flood      = PTIN_EVC_MC_FLOOD_ALL;
+    evcConf.internal_vlan = /*PTIN_RESERVED_VLAN_MIN +*/ port_eth + 2;
+    evcConf.n_intf        = 2;
+    /* Root port */
+    evcConf.intf[0].intf.format = PTIN_INTF_FORMAT_LAGID;
+    evcConf.intf[0].intf.value.lag_id = lag_id;
+    evcConf.intf[0].mef_type    = PTIN_EVC_INTF_ROOT;
+    evcConf.intf[0].vid         = evc_id;
+    evcConf.intf[0].action_outer= PTIN_XLATE_ACTION_REPLACE;
+    evcConf.intf[0].action_inner= PTIN_XLATE_ACTION_NONE;
+    /* Leaf ports */
+    evcConf.intf[1].intf.format = PTIN_INTF_FORMAT_PORT;
+    evcConf.intf[1].intf.value.ptin_port = port_eth;
+    evcConf.intf[1].mef_type    = PTIN_EVC_INTF_LEAF;
+    evcConf.intf[1].vid         = evc_id;
+    evcConf.intf[1].action_outer= PTIN_XLATE_ACTION_REPLACE;
+    evcConf.intf[1].action_inner= PTIN_XLATE_ACTION_NONE;
+
+    /* Creates EVC for Broadlights management */
+    rc = ptin_evc_create(&evcConf);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# to define Crossconnections");
+      return rc;
+    }
+
+    /* Set default VID */
+    rc = usmDbQportsPVIDSet(1, intIfNum_eth, evcConf.internal_vlan);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Error applying default VID %u to intIfNum %u", evcConf.internal_vlan, intIfNum_eth);
+      return rc;
+    }
+
+    /* Set the interface belonging to this VLAN as untagged */
+    rc = usmDbVlanTaggedSet(1, evcConf.internal_vlan, intIfNum_eth, L7_DOT1Q_UNTAGGED);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Error setting intIfNum %u of VID %u as untagged", intIfNum_eth, evcConf.internal_vlan);
+      return rc;
+    }
+    /* Set the interface belonging to this VLAN as untagged */
+    rc = usmDbVlanTaggedSet(1, evcConf.internal_vlan, intIfNum_lag, L7_DOT1Q_TAGGED);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Error setting intIfNum %u of VID %u as tagged", intIfNum_lag, evcConf.internal_vlan);
+      return rc;
+    }
+
+  }
 #endif
+
 #if (PTIN_BOARD_IS_STANDALONE)
   /* Only configure special EVCs, for CPU-FPGA-Ports connectivity, if OLT1T0-AC equipment */
 #if (PTIN_BOARD == PTIN_BOARD_OLT1T0F)
@@ -2776,7 +2899,11 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u: allocated new internal EVC id %u...", evc_ext_id, evc_id);
 
     /* Allocate queue of free vlans */
+#if (PTIN_BOARD != PTIN_BOARD_AE48GE)
     if (evcConf->internal_vlan < PTIN_VLAN_MIN || evcConf->internal_vlan > PTIN_VLAN_MAX)
+#else
+    if (0)
+#endif
     {
       if (ptin_evc_freeVlanQueue_allocate(evc_id, evcConf->flags, &freeVlan_queue) != L7_SUCCESS) 
       {
@@ -2788,6 +2915,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     else
     {
       PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Internal VLAN %u provided", evc_id, evcConf->internal_vlan);
+#if (PTIN_BOARD != PTIN_BOARD_AE48GE)
       /* Only allow a specific range */
       if (evcConf->internal_vlan < PTIN_RESERVED_VLAN_MIN || evcConf->internal_vlan > PTIN_RESERVED_VLAN_MAX)
       {
@@ -2795,6 +2923,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
                    evc_id, evcConf->internal_vlan, PTIN_RESERVED_VLAN_MIN, PTIN_RESERVED_VLAN_MAX);
         return L7_FAILURE;
       }
+#endif
       /* Assume root vlan */
       root_vlan = evcConf->internal_vlan;
       /* No queue to be used */

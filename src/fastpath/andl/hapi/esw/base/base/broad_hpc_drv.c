@@ -1594,7 +1594,7 @@ void hpcHardwareDefaultConfigApply(void)
       }
     }
 
-#if (PTIN_BOARD_IS_PASSIVE_LC)
+#if (PTIN_BOARD == PTIN_BOARD_AG16GA)
     {
       int vlan;
       bcm_pbmp_t ubmp, pbmp;

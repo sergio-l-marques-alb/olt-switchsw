@@ -292,7 +292,7 @@ L7_RC_t hapi_ptin_config_init(void)
   if (ptin_hapi_phy_init()!=L7_SUCCESS)
     rc = L7_FAILURE;
 
-#if (!PTIN_BOARD_IS_PASSIVE_LC)
+#if (PTIN_BOARD != PTIN_BOARD_AG16GA)
   /* ptin_hapi_xlate initializations */
   if (ptin_hapi_xlate_init()!=L7_SUCCESS)
     rc = L7_FAILURE;
@@ -6237,121 +6237,33 @@ L7_RC_t ag16ga_xconnect_init(void)
  */
 L7_RC_t ae48ge_xconnect_init(void)
 {
-  bcm_vlan_t  vlanId;
-  int port_back, port_eth;
-  bcm_gport_t gport1, gport2;
-  bcm_port_t  bcm_port1, bcm_port2;
-  bcm_vlan_control_vlan_t control;
-  bcm_pbmp_t ubmp, pbmp;
+  int port;
+  bcm_port_t  bcm_port;
   bcm_error_t rv;
 
+  /* Crossconnects are configuired at APPLICATION layer (ptin_evc_startup) */
+
   /* 4 PONs for each backplane interface */
-  for (vlanId = 1; vlanId <= PTIN_SYSTEM_N_ETH; vlanId++)
+  for (port = 0; port < PTIN_SYSTEM_N_PORTS; port++)
   {
-    /* Mapping VlanID to ETH port */
-    port_eth  = vlanId - 1;
-
-    /* Mapping VlanID to backplane port */
-    if (vlanId <= PTIN_SYSTEM_N_ETH/2)
-    {
-      port_back = PTIN_SYSTEM_N_ETH + 4 + (vlanId - 1) / (PTIN_SYSTEM_N_ETH/8);
-    }
-    else
-    {
-      port_back = PTIN_SYSTEM_N_ETH + 4 + (vlanId - (PTIN_SYSTEM_N_ETH/2) - 1) / (PTIN_SYSTEM_N_ETH/8);
-    }
-
     /* Validate port */
-    if (hapi_ptin_bcmPort_get(port_eth, &bcm_port1) != L7_SUCCESS)
+    if (hapi_ptin_bcmPort_get(port, &bcm_port) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcm_port of port %d", port_eth);
-      return L7_FAILURE;
-    }
-    if (hapi_ptin_bcmPort_get(port_back, &bcm_port2) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcm_port of port %d", port_back);
-      return L7_FAILURE;
-    }
-
-    /* Get gports */
-    BCM_GPORT_LOCAL_SET(gport1, bcm_port1);
-    BCM_GPORT_LOCAL_SET(gport2, bcm_port2);
-
-    /* Set Crossconnect mode */
-
-    bcm_vlan_control_vlan_t_init(&control);
-
-    rv = bcm_vlan_control_vlan_get(bcm_unit, vlanId, &control);
-    if (rv != BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error getting vlan control structure! rv=%d (%s)\r\n", rv, bcm_errmsg(rv));
-      return L7_FAILURE;
-    }
-
-    control.flags |= BCM_VLAN_LEARN_DISABLE;
-    control.forwarding_mode = bcmVlanForwardSingleCrossConnect;
-
-    rv = bcm_vlan_control_vlan_set(bcm_unit, vlanId, control);
-    if (rv != BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_vlan_control_vlan_set(vlanID=%u): error=%d (%s)", vlanId, rv, bcm_errmsg(rv));
-      return L7_FAILURE;
-    }
-
-    /* Set default VLAN on PON ports */
-    rv = bcm_port_untagged_vlan_set(bcm_unit, bcm_port1, vlanId);
-    if (rv != BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error default VLAN %u to bcm_port %u: error=%d (%s)", vlanId, bcm_port1, rv, bcm_errmsg(rv));
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcm_port of port %d", port);
       return L7_FAILURE;
     }
 
     /* Always add the default VLAN on PON ports */
-    rv = bcm_port_dtag_mode_set(bcm_unit, bcm_port1, BCM_PORT_DTAG_MODE_EXTERNAL);
+    rv = bcm_port_dtag_mode_set(bcm_unit, bcm_port,
+                                port < PTIN_SYSTEM_N_ETH ? BCM_PORT_DTAG_MODE_EXTERNAL : BCM_PORT_DTAG_MODE_INTERNAL);
     if (rv != BCM_E_NONE)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting customer type to bcm_port %u: error=%d (%s)", bcm_port1, rv, bcm_errmsg(rv));
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting dtag type to bcm_port %u: error=%d (%s)", bcm_port, rv, bcm_errmsg(rv));
       return L7_FAILURE;
     }
-    if ((vlanId-1) % 4 == 0)
-    {
-      rv = bcm_port_dtag_mode_set(bcm_unit, bcm_port2, BCM_PORT_DTAG_MODE_INTERNAL);
-      if (rv != BCM_E_NONE)
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error setting NNI type to bcm_port %u: error=%d (%s)", bcm_port1, rv, bcm_errmsg(rv));
-        return L7_FAILURE;
-      }
-    }
-    
-    /* Add ports to VLAN table */
-    BCM_PBMP_CLEAR(pbmp);
-    BCM_PBMP_CLEAR(ubmp);
-    BCM_PBMP_PORT_ADD(pbmp, bcm_port1);
-    BCM_PBMP_PORT_ADD(pbmp, bcm_port2);
-    BCM_PBMP_PORT_ADD(ubmp, bcm_port1);
-    //BCM_PBMP_PORT_ADD(ubmp, bcm_port2);
-
-    rv = bcm_vlan_port_add(bcm_unit, vlanId, pbmp, ubmp);
-    if (rv != BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error adding bcm_port %u and %u to VLAN Id %u: %d (%s)",
-                 bcm_port1, bcm_port2, vlanId, rv, bcm_errmsg(rv));
-      return L7_FAILURE;
-    }
-
-    /* Configure crossconnects */
-    rv = bcm_vlan_cross_connect_add(bcm_unit, vlanId, BCM_VLAN_INVALID, gport1, gport2);
-    if (rv != BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_vlan_cross_connect_add: %d (%s)", rv, bcm_errmsg(rv));
-      return L7_FAILURE;
-    }
-
-    PT_LOG_INFO(LOG_CTX_HAPI, "Created crossconnect between port %u/bcm_port %u/gport 0x%x <-> port %u/bcm_port %u/gport 0x%x, VLAN %u",
-                port_eth, bcm_port1, gport1, port_back, bcm_port2, gport2, vlanId);
   }
-
-  PT_LOG_INFO(LOG_CTX_HAPI, "Crossconnects configured\r\n");
+  
+  PT_LOG_INFO(LOG_CTX_HAPI, "AE48GE special initialized done!");
 
   return L7_SUCCESS;
 }

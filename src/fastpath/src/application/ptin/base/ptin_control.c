@@ -2313,6 +2313,68 @@ static void ptin_control_linkstatus_report(void)
 #endif /*PTIN_BOARD_IS_LINECARD*/
 
 /**
+ * Execute a SF switchover
+ * 
+ * @author mruas (17/07/19)
+ * 
+ * @param mx_is_protection : 0-Working, 1-Protection
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_control_mx_switchover(L7_uint8 mx_is_protection)
+{
+#if (PTIN_BOARD == PTIN_BOARD_AE48GE)
+  L7_uint32 lag_id, lag_intIfNum, intIfNum_add, intIfNum_del;
+
+  for (lag_id = 0; lag_id < 4; lag_id++)
+  {
+    /* Cannot retrieve lag intIfNum: reset commutation machine */
+    if (ptin_intf_lag2intIfNum(lag_id, &lag_intIfNum) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_CONTROL,"Failed converting lag id %u to intIfNum", lag_id);
+      return L7_FAILURE;
+    }
+
+    if (mx_is_protection)
+    {
+      PT_LOG_INFO(LOG_CTX_CONTROL,"CX is protection");
+      PT_LOG_INFO(LOG_CTX_EVENTS ,"CX is protection");
+
+      if (ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+lag_id+0, &intIfNum_add) != L7_SUCCESS ||
+          ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+lag_id+4, &intIfNum_del) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_CONTROL,"Failure");
+        return L7_FAILURE;
+      }
+    }
+    else
+    {
+      PT_LOG_INFO(LOG_CTX_CONTROL,"CX is working");
+      PT_LOG_INFO(LOG_CTX_EVENTS ,"CX is working");
+
+      if (ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+lag_id+0, &intIfNum_del) != L7_SUCCESS ||
+          ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+lag_id+4, &intIfNum_add) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_CONTROL,"Failure");
+        return L7_FAILURE;
+      }
+    }
+
+    // hashmode: FIRST=0, SA_VLAN=1, DA_VLAN=2, SDA_VLAN=3, SIP_SPORT=4, DIP_DPORT=5, SDIP_DPORT=6
+    if (dtlDot3adInternalPortAdd(lag_intIfNum, 1, &intIfNum_add, 1) != L7_SUCCESS ||
+        dtlDot3adInternalPortDelete(lag_intIfNum, 1, &intIfNum_del, 1) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_CONTROL,"Failure");
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_CONTROL,"Success switching to mx %u", mx_is_protection);
+  }
+#endif
+
+  return L7_SUCCESS;
+}
+
+/**
  * Task that checks for Interface changes
  * 
  * @param numArgs 
