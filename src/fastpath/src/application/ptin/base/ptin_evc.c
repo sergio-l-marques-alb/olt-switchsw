@@ -772,7 +772,7 @@ L7_RC_t ptin_evc_startup(void)
     evcConf.index         = evc_id;
     evcConf.flags         = PTIN_EVC_MASK_P2P | PTIN_EVC_MASK_CPU_TRAPPING;
     evcConf.mc_flood      = PTIN_EVC_MC_FLOOD_ALL;
-    evcConf.internal_vlan = /*PTIN_RESERVED_VLAN_MIN +*/ port_eth + 2;
+    evcConf.internal_vlan = PTIN_SYSTEM_BASE_INTERNAL_VLAN + port_eth;
     evcConf.n_intf        = 2;
     /* Root port */
     evcConf.intf[0].intf.format = PTIN_INTF_FORMAT_LAGID;
