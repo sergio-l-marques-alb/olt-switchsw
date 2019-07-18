@@ -40,6 +40,9 @@
 # define PTIN_SYSTEM_10G_PORTS_MASK    0x000F000000000000ULL
 # define PTIN_SYSTEM_PORTS_MASK        (PTIN_SYSTEM_PON_PORTS_MASK | PTIN_SYSTEM_ETH_PORTS_MASK | PTIN_SYSTEM_10G_PORTS_MASK)
 
+/* Internal VLAN for the first EVC */
+#define PTIN_SYSTEM_BASE_INTERNAL_VLAN  100
+
 # define PTIN_SYSTEM_N_EVCS            4002  /* Maximum nr of EVCs allowed in this equipment */
 # define PTIN_SYSTEM_N_CLIENTS         8192  /* 1 client per interface */
 # define PTIN_SYSTEM_N_FLOWS_MAX       8192  /* Maximum nr of flows (total) */
