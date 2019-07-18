@@ -85,7 +85,7 @@ void ptin_ipdtl0_debug(L7_BOOL enable)
  */
 
 /* PTin added: inband */
-static void ptin_AddDoubleTag(L7_ushort16 outer_tpid, L7_ushort16 outer_vlanId, L7_ushort16 inner_tpid, 
+void ptin_AddDoubleTag(L7_ushort16 outer_tpid, L7_ushort16 outer_vlanId, L7_ushort16 inner_tpid, 
                        L7_ushort16 inner_vlanId, L7_uchar8 *data, L7_uint32 *data_length)
 {
   L7_int i;
@@ -197,29 +197,42 @@ static void ptin_ipdtl0_task(void)
                 pduInfo.rxPort = msg.intIfNum;
                 pduInfo.vlanId = msg.vlanId;
 
+                if (ptin_ipdtl0_debug_enable)
+                {
+                    PT_LOG_TRACE(LOG_CTX_API, "Converting Internal VLAN ID (%d) to dtl0 VLAN ID (%d)\n\r", msg.vlanId, ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid);
+                }
+
 
                 // TODO - It would be interesting if instead of replacing the internal VLAN ID with PTIN_VLAN_PCAP_EXT (2048),
                 // we add/push to the packet the external VLAN(s) according to the info on IXLATE for the ingress port
 
                 if (msg.vlanId != 2047)
                 {
-                 
-				#if (PTIN_BOARD_IS_PASSIVE_LC)
-                  int pcap_vlan = 2046;
-
-                  ptin_AddDoubleTag(L7_ETYPE_8021Q, pcap_vlan, L7_ETYPE_8021Q, 
-                                    msg.intIfNum, msg.payload, &msg.payloadLen);
-
-
-				#else
-				/* Convert Internal VLAN ID to dtl0 VLAN ID */
-                  msg.payload[14] = (PTIN_VLAN_PCAP_EXT >> 8) & 0x0F;
-                  msg.payload[15] = (PTIN_VLAN_PCAP_EXT)      & 0xFF;
-				#endif
+                    int pcap_vlan = 2046;
+                    if (ptin_ipdtl0_debug_enable)
+                    {
+                        PT_LOG_TRACE(LOG_CTX_API, "Converting Internal VLAN ID (%d) to dtl0 VLAN ID (%d)\n\r", msg.vlanId, ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid);
+                    }                
+#if (PTIN_BOARD == PTIN_BOARD_AG16GA)
+                    ptin_AddDoubleTag(L7_ETYPE_8021Q, pcap_vlan, L7_ETYPE_8021Q,
+                                      msg.intIfNum, msg.payload, &msg.payloadLen);
+#elif (PTIN_BOARD == PTIN_BOARD_AE48GE)
+                    extern void ptin_AddTag(L7_ushort16 tpid, L7_ushort16 vlanId, L7_uchar8 *data, L7_uint32 *data_length);
+                    ptin_AddTag(L7_ETYPE_8021Q, pcap_vlan, msg.payload, &msg.payloadLen);
+#else
+                    /* Convert Internal VLAN ID to dtl0 VLAN ID */
+                    msg.payload[14] = (PTIN_VLAN_PCAP_EXT >> 8) & 0x0F;
+                    msg.payload[15] = (PTIN_VLAN_PCAP_EXT)&0xFF;
+#endif
                   dtlIPProtoRecvAny(msg.bufHandle, msg.payload, msg.payloadLen, &pduInfo, L7_FALSE);
                 }
                 else
                 {
+                 if (ptin_ipdtl0_debug_enable)
+                 {
+                     PT_LOG_TRACE(LOG_CTX_API, "Converting Internal VLAN ID (%d) to dtl0 VLAN ID (%d)\n\r", msg.vlanId, ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid);
+                 }
+
                   /* Convert Internal VLAN ID to dtl0 VLAN ID */
                   msg.payload[14] = (ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid >> 8) & 0x0F;
                   msg.payload[15] = (ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid)      & 0xFF; 

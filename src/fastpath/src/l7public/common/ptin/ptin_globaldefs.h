@@ -194,7 +194,7 @@ extern int ptin_sys_number_of_ports;
 #define PTIN_RESERVED_VLAN_MIN        2016
 #define PTIN_RESERVED_VLAN_MAX        2047
 #define PTIN_RESERVED_VLANS           (PTIN_RESERVED_VLAN_MAX - PTIN_RESERVED_VLAN_MIN + 1)
-#if PTIN_BOARD != PTIN_BOARD_AG16GA
+#if (!PTIN_BOARD_IS_PASSIVE_LC)
 #define PTIN_VLAN_PCAP_EXT            2048  /* L7_DOT1Q_MAX_VLAN_ID - Reserved VLAN for packet capture. Only used on Linux interfaces (dtl0 and eth0) */
 #else
 #define PTIN_VLAN_PCAP_EXT            2046
@@ -253,7 +253,7 @@ extern int ptin_sys_number_of_ports;
 
 /* CoS assigned to trapped packets */
 #define CPU_TRAPPED_PACKETS_COS_DEFAULT HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS8     /* For IGMP/DHCP/PPPoE/APS/... */
-#define CPU_TRAPPED_PACKETS_COS_INBAND  HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS9     /* For Inband packets */
+#define CPU_TRAPPED_PACKETS_COS_INBAND  HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS9     /* For Inband and DHCP packets on line cards  */
 #define CPU_TRAPPED_PACKETS_COS_HIPRIO  HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS10    /* High priority */
 #define CPU_TRAPPED_PACKETS_COS_PCAP    HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS11    /* For Packet Capture */
 

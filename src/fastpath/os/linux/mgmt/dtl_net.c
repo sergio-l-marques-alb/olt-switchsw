@@ -1291,160 +1291,150 @@ void ptin_ReplaceTag(L7_ushort16 tpid, L7_ushort16 vlanId, L7_uchar8 *data)
  */
 void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtlInfo *info)
 {
-   L7_uchar8 *data;
-   L7_uint32 data_length;
-   L7_ushort16 etype = 0;
-   L7_uint32 intIfNum;
-   L7_uint32 activeState;
-   char dtlIfName[32];
-   register L7_ipHeader_t *ip_header;
-   sysnet_pdu_info_t pduInfo;
-   SYSNET_PDU_RC_t hookAction;
+  L7_uchar8 *data;
+  L7_uint32 data_length;
+  L7_ushort16 etype = 0;
+  L7_uint32 intIfNum;
+  L7_uint32 activeState;
+  char dtlIfName[32];
+  register L7_ipHeader_t *ip_header;
+  sysnet_pdu_info_t pduInfo;
+  SYSNET_PDU_RC_t hookAction;
 
-   /* PTin added: inband */
-   L7_uint16    vid = 0;                        
-   L7_BOOL      isTaggedPacket = L7_FALSE;      
-   L7_BOOL      isInbandVidPacket = L7_FALSE;   
-   L7_uint16    dtl0Vid = 0;
-   L7_uchar8    etype_8021q[] = {0x81,0x00};    /* L7_ETYPE_8021Q */
+  /* PTin added: inband */
+  L7_uint16    vid = 0;
+  L7_BOOL      isTaggedPacket = L7_FALSE;
+  L7_BOOL      isInbandVidPacket = L7_FALSE;
+  L7_uint16    dtl0Vid = 0;
+  L7_uchar8    etype_8021q[] = { 0x81, 0x00 };    /* L7_ETYPE_8021Q */
 
-   /* PTin added: Initialize L2 flags */
-   info->dtlCmdInfo.cmdType.L2.flags = 0;
+  /* PTin added: Initialize L2 flags */
+  info->dtlCmdInfo.cmdType.L2.flags = 0;
 
-   /* Register a PTP TS */
-   ptin_PptTsRecord_t ptpTs;
-   ptpTs.validTsRecord = L7_FALSE;
+  /* Register a PTP TS */
+  ptin_PptTsRecord_t ptpTs;
+  ptpTs.validTsRecord = L7_FALSE;
 
-   /*
-    *zero out the dtlCmd structure
-    */
-   memset(&info->dtlCmdInfo,0,sizeof(DTL_CMD_TX_INFO_t));
-   info->discard = L7_TRUE;
+  /*
+   *zero out the dtlCmd structure
+   */
+  memset(&info->dtlCmdInfo, 0, sizeof(DTL_CMD_TX_INFO_t));
+  info->discard = L7_TRUE;
 
-   /*
-    *get the data start and length of this header
-    */
-   SYSAPI_NET_MBUF_GET_DATASTART(handle,data);
-   SYSAPI_NET_MBUF_GET_DATALENGTH(handle,data_length);
+  /*
+   *get the data start and length of this header
+   */
+  SYSAPI_NET_MBUF_GET_DATASTART(handle, data);
+  SYSAPI_NET_MBUF_GET_DATALENGTH(handle, data_length);
 
-   if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
-   {
-      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Sending Packet...\n\r", __FUNCTION__, __LINE__);
+  if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
+  {
+    SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Sending Packet...\n\r", __FUNCTION__, __LINE__);
 
-     if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL4)
-     {
-        int i;
-        for (i=0; i<data_length && i<128; i++)
-        {
-           if (i%16==0)
-           {
-             if (i!=0)
-               SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "\r\n");
-             SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, " 0x%02X:",i);
-           }
-           SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, " %02X ", data[i]);
-        }
-        if (data_length > 128)
-          SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "...");
-        SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "\n\r");
-     }
-   }
-
-   /* PTin added: Is this a 802.1Q packet? */
-   if (memcmp(&data[12], etype_8021q, 2) == 0)
-   {
-      dtl0Vid = ((data[14]<<8) & 0x0F00) | (data[15] & 0x00FF);
-
-      isTaggedPacket = L7_TRUE;
-
-      if (dtl0Vid == DTL0INBANDVID)
+    if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL4)
+    {
+      int i;
+      for (i = 0; i < data_length && i < 128; i++)
       {
-         isInbandVidPacket = L7_TRUE;
-
-         vid = ptin_cfg_inband_vlan_get();            /* This is the packet outer VID */
-         if (vid == 0)
-         {
-            vid = simMgmtVlanIdGet();
-         }
-
-         ptin_ReplaceTag(L7_ETYPE_8021Q, vid, data);
-
-         /* Set PCP = 7 */
-         data[14] |= (L7_uchar8) 7 << 5;
-
-         if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
-         {
-           SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Repaced original packet VID %u with %u\n\r", __FUNCTION__, __LINE__, dtl0Vid, vid);
-         }
-
-         vid = simMgmtVlanIdGet();                    /* This is the internal VID */
+        if (i % 16 == 0)
+        {
+          if (i != 0) SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "\r\n");
+          SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, " 0x%02X:", i);
+        }
+        SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, " %02X ", data[i]);
       }
-      else if (dtl0Vid == PTIN_VLAN_PCAP_EXT)
-      {            
-        /* Remove PTIN_VLAN_PCAP_EXT TAG*/
-        ptin_RemoveTag(data, &data_length);
+      if (data_length > 128) SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "...");
+      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "\n\r");
+    }
+  }
 
-        /* Get IntfNum from agent (were the packet were receive)*/
-        int intfNum =((data[14]<<8) & 0x0F00) | (data[15] & 0x00FF);
-        int vlan = ((data[18]<<8) & 0x0F00) | (data[19] & 0x00FF);
+  /* PTin added: Is this a 802.1Q packet? */
+  if (memcmp(&data[12], etype_8021q, 2) == 0)
+  {
+    dtl0Vid = ((data[14] << 8) & 0x0F00) | (data[15] & 0x00FF);
 
-        if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
-        {
-          SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Initial intfnum %u \n\r", __FUNCTION__, __LINE__, intfNum );
-        }
-        /* static switching, where is calculate the intfNum to send*/
-        if ( intfNum <= PTIN_SYSTEM_N_PONS)
-        {
-          /* Packets US*/
-#if (PTIN_BOARD == PTIN_BOARD_AG16GA)
-          intfNum = ((intfNum - 1) / 4) + PTIN_SYSTEM_N_PONS + 1;
-#elif (PTIN_BOARD == PTIN_BOARD_AE48GE)
-          intfNum = vlan;
-#else
-          intfNum = intfNum;
-#endif
-          if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
-          {
-            SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Send packet to intfnum %u \n\r", __FUNCTION__, __LINE__, intfNum );
-          }
-        }
-        else 
-        {
-          /* Packets DS*/
-#if (PTIN_BOARD == PTIN_BOARD_AG16GA)
-          intfNum = ((intfNum - PTIN_SYSTEM_N_PONS - 1)<<2) + (vlan>>10) + 1;
-#elif (PTIN_BOARD == PTIN_BOARD_AE48GE)
-          intfNum = vlan;
-#else
-          intfNum = intfNum;
-#endif
-          if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
-          {
-            SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Send packet t intfnum %u \n\r", __FUNCTION__, __LINE__, intfNum );
-          }
-        }
+    SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): dl0vid %u \n\r", __FUNCTION__, __LINE__, dtl0Vid);
+    isTaggedPacket = L7_TRUE;
 
+    if (dtl0Vid == DTL0INBANDVID)
+    {
+      isInbandVidPacket = L7_TRUE;
 
-        if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
-        {
-          SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Replaced original packet VID %u with %u\n\r", __FUNCTION__, __LINE__, intfNum, vlan);
-        }
-
-        info->dtlCmdInfo.intfNum = intfNum;
-        info->dtlCmdInfo.priority = 0;
-        info->dtlCmdInfo.typeToSend = DTL_L2RAW_UNICAST;
-        info->dtlCmdInfo.cmdType.L2.domainId = vlan;       /* This is the internal VID */
-        info->dtlCmdInfo.cmdType.L2.vlanId = vlan;
-        info->dtlCmdInfo.cmdType.L2.flags = 0;
-        info->dtlCmd = DTL_CMD_TX_L2;
-        info->discard = L7_FALSE;
-
-        /*
-        *we are done
-        */
-        info->discard = L7_FALSE;
-        goto dtlSendCmdExit;
+      vid = ptin_cfg_inband_vlan_get();            /* This is the packet outer VID */
+      if (vid == 0)
+      {
+        vid = simMgmtVlanIdGet();
       }
+
+      ptin_ReplaceTag(L7_ETYPE_8021Q, vid, data);
+
+      /* Set PCP = 7 */
+      data[14] |= (L7_uchar8)7 << 5;
+
+      if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
+      {
+        SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Repaced original packet VID %u with %u\n\r", __FUNCTION__, __LINE__, dtl0Vid, vid);
+      }
+
+      vid = simMgmtVlanIdGet();                    /* This is the internal VID */
+    } 
+    else if (dtl0Vid == PTIN_VLAN_PCAP_EXT)
+    {
+      /* Remove PTIN_VLAN_PCAP_EXT TAG*/
+      ptin_RemoveTag(data, &data_length);
+      int vlan = ((data[18] << 8) & 0x0F00) | (data[19] & 0x00FF);
+      /* Get IntfNum from agent (were the packet were receive)*/
+      int intfNum = ((data[14] << 8) & 0x0F00) | (data[15] & 0x00FF);
+
+      if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
+      {
+        SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Initial intfnum %u \n\r", __FUNCTION__, __LINE__, intfNum);
+      }
+
+#if (PTIN_BOARD == PTIN_BOARD_AG16GA)
+      /* static switching, where is calculate the intfNum to send*/
+      if (intfNum <= PTIN_SYSTEM_N_PONS)
+      {
+        /* Packets US*/
+        intfNum = ((intfNum - 1) / 4) + PTIN_SYSTEM_N_PONS + 1;
+      } 
+      else
+      {
+        intfNum = ((intfNum - PTIN_SYSTEM_N_PONS - 1) << 2) + (vlan >> 10) + 1;
+      }
+#elif (PTIN_BOARD == PTIN_BOARD_AE48GE)
+      if (intfNum & 0x40)
+      {
+        intfNum = intfNum & 0x3F;
+      } 
+      else
+      {
+        intfNum = intfNum;
+      }
+#else
+      intfNum = intfNum;
+#endif
+      if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
+      {
+        SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Send packet to intfnum %u \n\r", __FUNCTION__, __LINE__, intfNum);
+      }
+
+    info->dtlCmdInfo.intfNum = intfNum;
+    info->dtlCmdInfo.priority = 0;
+    info->dtlCmdInfo.typeToSend = DTL_L2RAW_UNICAST;
+    info->dtlCmdInfo.cmdType.L2.domainId = vlan;       /* This is the internal VID */
+    info->dtlCmdInfo.cmdType.L2.vlanId = vlan;
+    info->dtlCmdInfo.cmdType.L2.flags = 0;
+    info->dtlCmd = DTL_CMD_TX_L2;
+    info->discard = L7_FALSE;
+
+    /*
+    *we are done
+    */
+    info->discard = L7_FALSE;
+    goto dtlSendCmdExit;
+  }
+
       else
       {
          vid = ptin_ipdtl0_outerVid_get(dtl0Vid);     /* This is the packet outer VID */
