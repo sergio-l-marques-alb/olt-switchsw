@@ -66,12 +66,19 @@ L7_RC_t ptin_hapi_xlate_init(void)
     /* Enable translations? */
     enable = L7_TRUE;
     /* Disable for FPGA port of OLT1T0 */
-    #if (PTIN_BOARD == PTIN_BOARD_OLT1T0 || PTIN_BOARD == PTIN_BOARD_OLT1T0F)
+#if (PTIN_BOARD == PTIN_BOARD_OLT1T0 || PTIN_BOARD == PTIN_BOARD_OLT1T0F)
     if (port == PTIN_PORT_FPGA)
     {
       enable = L7_FALSE;
     }
-    #endif
+#elif (PTIN_BOARD == PTIN_BOARD_AE48GE)
+    if (port < PTIN_SYSTEM_N_ETH)
+    {
+        enable = L7_FALSE;
+    }
+#elif (PTIN_BOARD == PTIN_BOARD_AG16GA)
+    enable = L7_FALSE;
+#endif
 
     if (hapi_ptin_bcmPort_get(port, &bcm_port) != L7_SUCCESS)
     {
@@ -1129,6 +1136,12 @@ L7_RC_t ptin_hapi_xlate_ingress_add(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
             xlate->outerVlanId, xlate->innerVlanId,
             xlate->newOuterVlanId, xlate->outerVlanAction, xlate->newInnerVlanId, xlate->innerVlanAction);
 
+  if (xlate->outerVlanAction == PTIN_XLATE_ACTION_NONE &&
+      xlate->innerVlanAction == PTIN_XLATE_ACTION_NONE)
+  {
+      return L7_SUCCESS;
+  }
+
   /* Validate dapiPort */
   if (dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0)
   {
@@ -1272,6 +1285,12 @@ L7_RC_t ptin_hapi_xlate_ingress_delete(ptin_dapi_port_t *dapiPort, ptin_hapi_xla
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "dapiPort={%d,%d,%d} oVlanId=%u iVlanId=%u",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, xlate->outerVlanId, xlate->innerVlanId);
+
+  if (xlate->outerVlanAction == PTIN_XLATE_ACTION_NONE &&
+      xlate->innerVlanAction == PTIN_XLATE_ACTION_NONE)
+  {
+      return L7_SUCCESS;
+  }
 
   /* Validate dapiPort */
   if (dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0)
@@ -1417,6 +1436,12 @@ L7_RC_t ptin_hapi_xlate_egress_add(L7_uint32 portgroup, ptin_hapi_xlate_t *xlate
             xlate->newOuterVlanId,xlate->outerVlanAction,
             xlate->newInnerVlanId,xlate->innerVlanAction);
 
+  if (xlate->outerVlanAction == PTIN_XLATE_ACTION_NONE &&
+      xlate->innerVlanAction == PTIN_XLATE_ACTION_NONE)
+  {
+      return L7_SUCCESS;
+  }
+  
   /* Do not allow ADD operation for double-tagged packets */
 //if (xlate->innerVlanId!=0 &&
 //    (xlate->outerAction==PTIN_XLATE_ACTION_ADD || xlate->innerAction==PTIN_XLATE_ACTION_ADD))
@@ -1531,6 +1556,12 @@ L7_RC_t ptin_hapi_xlate_egress_delete(L7_uint32 portgroup, ptin_hapi_xlate_t *xl
   int error;
 
   PT_LOG_TRACE(LOG_CTX_HAPI,"portgroup=%u oVlanId=%u iVlanId=%u", portgroup, xlate->outerVlanId, xlate->innerVlanId);
+
+  if (xlate->outerVlanAction == PTIN_XLATE_ACTION_NONE &&
+      xlate->innerVlanAction == PTIN_XLATE_ACTION_NONE)
+  {
+      return L7_SUCCESS;
+  }
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_egress_action_delete(0,%d,%u,%u)", portgroup, xlate->outerVlanId, xlate->innerVlanId);
 

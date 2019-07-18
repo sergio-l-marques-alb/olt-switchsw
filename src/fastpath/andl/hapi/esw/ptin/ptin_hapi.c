@@ -292,11 +292,9 @@ L7_RC_t hapi_ptin_config_init(void)
   if (ptin_hapi_phy_init()!=L7_SUCCESS)
     rc = L7_FAILURE;
 
-#if (PTIN_BOARD != PTIN_BOARD_AG16GA)
   /* ptin_hapi_xlate initializations */
   if (ptin_hapi_xlate_init()!=L7_SUCCESS)
     rc = L7_FAILURE;
-#endif
 
   /* ptin_hapi_bridge initializations */
   if (ptin_hapi_bridge_init()!=L7_SUCCESS)
