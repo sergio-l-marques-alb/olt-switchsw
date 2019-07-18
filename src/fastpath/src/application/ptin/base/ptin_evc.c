@@ -770,7 +770,7 @@ L7_RC_t ptin_evc_startup(void)
     /* Create a new EVC */
     memset(&evcConf, 0x00, sizeof(evcConf));
     evcConf.index         = evc_id;
-    evcConf.flags         = PTIN_EVC_MASK_P2P;
+    evcConf.flags         = PTIN_EVC_MASK_P2P | PTIN_EVC_MASK_CPU_TRAPPING;
     evcConf.mc_flood      = PTIN_EVC_MC_FLOOD_ALL;
     evcConf.internal_vlan = /*PTIN_RESERVED_VLAN_MIN +*/ port_eth + 2;
     evcConf.n_intf        = 2;
@@ -2705,7 +2705,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   L7_BOOL   is_p2p, is_quattro, is_stacked;
   L7_BOOL   maclearning;
   L7_BOOL   dhcpv4_enabled, dhcpv6_enabled, igmp_enabled, pppoe_enabled, iptv_enabled;
-  L7_BOOL   cpu_trap;
+  L7_BOOL   cpu_trap, use_crossconnect;
   L7_BOOL   new_evc = L7_FALSE;
   L7_uint   n_roots;
   L7_uint   n_leafs;
@@ -2781,6 +2781,13 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   {
     evc_type = (evcConf->flags & PTIN_EVC_MASK_P2P) ? PTIN_EVC_TYPE_STD_P2P : PTIN_EVC_TYPE_STD_P2MP;
   }
+
+#if (PTIN_BOARD == PTIN_BOARD_AE48GE)
+  use_crossconnect = (evc_type==PTIN_EVC_TYPE_STD_P2P);
+#else
+  use_crossconnect = (evc_type==PTIN_EVC_TYPE_STD_P2P && !cpu_trap);
+#endif
+
 
   /* Check if this EVC is allowd to be QUATTRO type */
   if (is_quattro)
@@ -2954,7 +2961,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u: Enabling cross-connects?", evc_ext_id);
 
     /* For stacked EVCs, we need to enable forwarding mode to OVID(+IVID) */
-    ptin_crossconnect_enable(root_vlan, (evc_type==PTIN_EVC_TYPE_STD_P2P && !cpu_trap) /* Bitstream services */, is_stacked);
+    ptin_crossconnect_enable(root_vlan, use_crossconnect /* Bitstream services */, is_stacked);
 
     /* Virtual ports: Create Multicast group */
     multicast_group = -1;
@@ -3050,7 +3057,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       }
 
       /* For EVCs point-to-point unstacked, create now the crossconnection */
-      if ((evc_type==PTIN_EVC_TYPE_STD_P2P && !cpu_trap) /* Bitstream */ && !is_stacked)
+      if (use_crossconnect /* Bitstream */ && !is_stacked)
       {
         PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u: Configuring P2P unstacked bridge", evc_ext_id);
 
@@ -3299,7 +3306,7 @@ _ptin_evc_create1:
       ptin_evc_etree_intf_remove_all(evc_id);
     }
     /* For unstacked P2P EVCs, remove single vlan cross-connection */
-    else if (evc_type==PTIN_EVC_TYPE_STD_P2P && !cpu_trap /* Bitstream */ && !is_stacked)
+    else if (use_crossconnect /* Bitstream */ && !is_stacked)
     {
       /* Add bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
       switching_p2p_bridge_remove(p2p_port1, evcs[evc_id].intf[p2p_port1].int_vlan,
@@ -10607,7 +10614,7 @@ static L7_RC_t switching_root_add(ptin_HwEthMef10Intf_t *intf_cfg, L7_uint16 int
     intf_vlan_set.mef_type      = intf_cfg->mef_type;
     intf_vlan_set.vid           = int_vlan;
     intf_vlan_set.vid_inner     = new_innerVlan;
-    intf_vlan_set.action_outer  = PTIN_XLATE_ACTION_REPLACE;
+    intf_vlan_set.action_outer  = (intf_cfg->action_outer == PTIN_XLATE_ACTION_ADD) ? PTIN_XLATE_ACTION_DELETE : intf_cfg->action_outer;
     intf_vlan_set.action_inner  = (egress_del_ivlan) ? PTIN_XLATE_ACTION_DELETE : intf_cfg->action_inner;
 
     rc = ptin_xlate_egress_add(&intf_vlan_set,
