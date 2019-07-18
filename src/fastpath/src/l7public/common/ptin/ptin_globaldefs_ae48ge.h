@@ -128,5 +128,20 @@
 # define IPC_MX_IPADDR_PROTECTION   0xC0A8C802  /* 192.168.200.2: Protection Matrix */
 # define IPC_MX_IPADDR              ((CPLD_SLOT_MATRIX_GET() & 1) ? IPC_MX_IPADDR_WORKING : IPC_MX_IPADDR_PROTECTION)
 
+/* Mapping from sysintf (id) to virtual port index (for AE48GE) */
+#define SYSINTF_TO_VPORT_MAP_AE48GEA    \
+    {  0,  1,  2,  3,  4,  5,           \
+      12, 13, 14, 15, 16, 17,           \
+      24, 25, 26, 27, 28, 29,           \
+      36, 37, 38, 39, 40, 41,           \
+       6,  7,  8,  9, 10, 11,           \
+      18, 19, 20, 21, 22, 23,           \
+      30, 31, 32, 33, 34, 35,           \
+      42, 43, 44, 45, 46, 47 }
+#define SYSINTF_TO_VPORT(sysintf)   sysintf_to_vport_map_ae48ge[sysintf]
+#define VPORT_TO_INTLAG(vport)      ((vport) / (PTIN_SYSTEM_N_ETH/4))
+#define SYSINTF_TO_INTLAG(sysintf)  VPORT_TO_INTLAG(SYSINTF_TO_VPORT(sysintf))
+extern int sysintf_to_vport_map_ae48ge[];
+
 #endif /* _PTIN_GLOBALDEFS_AE48GE_H */
 

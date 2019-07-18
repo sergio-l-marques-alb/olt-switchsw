@@ -748,15 +748,7 @@ L7_RC_t ptin_evc_startup(void)
   /* 4 PONs for each backplane interface */
   for (port_eth = 0; port_eth < PTIN_SYSTEM_N_ETH; port_eth++)
   {
-    /* Mapping VlanID to backplane port */
-    if (port_eth < PTIN_SYSTEM_N_ETH/2)
-    {
-      lag_id = port_eth / (PTIN_SYSTEM_N_ETH/8);
-    }
-    else
-    {
-      lag_id = (port_eth - (PTIN_SYSTEM_N_ETH/2)) / (PTIN_SYSTEM_N_ETH/8);
-    }
+    lag_id = SYSINTF_TO_INTLAG(port_eth);
 
     rc = ptin_intf_port2intIfNum(port_eth, &intIfNum_eth);
     if (rc != L7_SUCCESS)

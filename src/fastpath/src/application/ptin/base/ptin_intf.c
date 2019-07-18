@@ -32,6 +32,11 @@
 #include "ptin_fpga_api.h"
 #include "ptin_msg.h"
 
+#if (PTIN_BOARD == PTIN_BOARD_AE48GE)
+/* Mapping from sysintf (id) to virtual port index (for AE48GE) */
+int sysintf_to_vport_map_ae48ge[] = SYSINTF_TO_VPORT_MAP_AE48GEA;
+#endif
+
 #define LINKSCAN_MANAGEABLE_BOARD (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
 
 #ifdef NGPON2_SUPPORTED 
