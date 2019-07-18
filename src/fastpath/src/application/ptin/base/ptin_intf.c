@@ -3652,12 +3652,14 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       PT_LOG_TRACE(LOG_CTX_INTF, " Intf# %02u removed from VLAN# 1", lag_intf);
     }
 
+#if (!PTIN_BOARD_IS_PASSIVE_LC)
     /* Enable DVLAN mode */
     if (usmDbDvlantagIntfModeSet(0, lag_intf, L7_ENABLE) != L7_SUCCESS)
     {
       PT_LOG_CRITIC(LOG_CTX_INTF, "Failed to enable DVLAN mode on LAG# %u", lag_idx);
       rc = L7_FAILURE;
     }
+#endif
 
     if (lagEtherType != 0)
     {

@@ -96,6 +96,11 @@ L7_RC_t dvlantagIntfModeApply(L7_uint32 intIfNum, L7_uint32 mode)
   if (dvlantagIntfIsAcquired(intIfNum) == L7_TRUE)
     return L7_SUCCESS;
 
+#if (PTIN_BOARD_IS_PASSIVE_LC)
+  PT_LOG_WARN(LOG_CTX_INTF, "dtlDvlantagIntfApply not applied to intIfNum %u (mode %u)", intIfNum, mode);
+  return L7_SUCCESS;
+#endif
+
   dTag.mode = mode;
   dTag.etherMask = pCfg->etherValMask;
   dTag.custId = pCfg->custId;
@@ -238,6 +243,11 @@ L7_RC_t dvlantagIntfCustIdApply(L7_uint32 intIfNum, L7_uint32 custId)
 
   if (dvlantagIntfIsAcquired(intIfNum) == L7_TRUE)
     return L7_SUCCESS;
+
+#if (PTIN_BOARD_IS_PASSIVE_LC)
+  PT_LOG_WARN(LOG_CTX_INTF, "dtlDvlantagIntfApply not applied to intIfNum %u (mode %u)", intIfNum, pCfg->mode);
+  return L7_SUCCESS;
+#endif
 
   dTag.custId = custId;
   dTag.etherMask = pCfg->etherValMask;

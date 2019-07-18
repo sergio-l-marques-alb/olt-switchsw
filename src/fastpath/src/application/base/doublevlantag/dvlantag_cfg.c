@@ -313,11 +313,6 @@ L7_RC_t dvlantagApplyIntfConfigData(L7_uint32 intIfNum)
   L7_uint32 cfgIndex = dvlantagMapTbl[intIfNum];
   L7_uint32 tmp;
 
-#if (PTIN_BOARD_IS_PASSIVE_LC)
-  PT_LOG_WARN(LOG_CTX_INTF, "dtlDvlantagIntfApply not applied to intIfNum %u", intIfNum);
-  return L7_SUCCESS;
-#endif
-
   if (dvlantagIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
     return L7_SUCCESS;
 

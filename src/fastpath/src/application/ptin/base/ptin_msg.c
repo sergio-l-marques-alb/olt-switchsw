@@ -16662,9 +16662,11 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
         PT_LOG_ERR(LOG_CTX_MSG, "Some error occurred (%d)", rc);     
       } 
 
+#if (!PTIN_BOARD_IS_PASSIVE_LC)
       usmDbDvlantagIntfModeSet(0, listDstPorts[0], 0 /* service provider double tag mode*/);  
       PT_LOG_ERR(LOG_CTX_MSG, "listDstPorts[0] (%d)", listDstPorts[0]);
       usmDbDvlantagIntfModeSet(0, listDstPorts[0], 1 /* service provider double tag mode*/);
+#endif
     }
   }
 
