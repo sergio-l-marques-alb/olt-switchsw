@@ -1136,6 +1136,27 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     }
     break;
 
+    case CCMSG_MX_PROTECTION_SWITCH:
+    {
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_MX_PROTECTION_SWITCH (0x%04X)", msgId);
+
+      CHECK_INFO_SIZE_ABS(sizeof(uint8_t));
+
+      /* Execute command */
+      rc = ptin_msg_mx_protection_switchover(inbuffer, outbuffer);
+
+      if (L7_SUCCESS != rc)
+      {
+        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+    }
+    break;
+
     case CCMSG_ETH_PHY_STATUS_GET:
     {
       PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_PHY_STATUS_GET (0x%04X)", msgId);

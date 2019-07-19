@@ -1489,6 +1489,32 @@ L7_RC_t ptin_msg_oltd_hw_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
   return rc;
 }
 
+/**
+ * MX Protection Switchover
+ * 
+ * @author mruas (19/07/19)
+ * 
+ * @param inbuffer 
+ * @param outbuffer 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_mx_protection_switchover(ipc_msg *inbuffer, ipc_msg *outbuffer)
+{
+  L7_RC_t rc;
+
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Switching to %u side", inbuffer->info[0]);
+
+  rc = ptin_control_mx_switchover(inbuffer->info[0]);
+
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_MSG, "Error switching to %u side", inbuffer->info[0]);
+  }
+
+  return rc;
+}
+
 /* Phy Counters Functions *****************************************************/
 /**
  * Read PHY counters

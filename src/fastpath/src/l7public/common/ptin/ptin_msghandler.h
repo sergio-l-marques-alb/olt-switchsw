@@ -40,6 +40,8 @@
 
 #define CCMSG_ETH_OLTD_HW_CONFIG            0x900B  // struct msg_OLTDHWConfig_t
 
+#define CCMSG_MX_PROTECTION_SWITCH          0x900C	// struct msg_HwGenReq_t
+
 #define CCMSG_ETH_PHY_CONFIG_SET            0x9010  // struct msg_HWEthPhyConf_t
 #define CCMSG_ETH_PHY_CONFIG_GET            0x9011  // struct msg_HWEthPhyConf_t
 #define CCMSG_ETH_PHY_STATE_GET             0x9012  // struct msg_HWEthPhyState_t

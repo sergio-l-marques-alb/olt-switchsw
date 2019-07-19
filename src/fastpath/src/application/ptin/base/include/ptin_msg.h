@@ -206,6 +206,18 @@ extern L7_RC_t ptin_msg_PhyStatus_get(msg_HWEthPhyStatus_t *msgPhyStatus);
  */
 extern L7_RC_t ptin_msg_oltd_hw_config(ipc_msg *inbuffer, ipc_msg *outbuffer);
 
+/**
+ * MX Protection Switchover
+ * 
+ * @author mruas (19/07/19)
+ * 
+ * @param inbuffer 
+ * @param outbuffer 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_msg_mx_protection_switchover(ipc_msg *inbuffer, ipc_msg *outbuffer);
+
 /* Counters Manipulation Functions ********************************************/ 
 /**
  * Read PHY counters
