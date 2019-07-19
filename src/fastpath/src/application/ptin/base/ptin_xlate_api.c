@@ -1262,7 +1262,6 @@ L7_RC_t ptin_xlate_egress_add( ptin_HwEthMef10Intf_t *intf_vlan,
   L7_uint32 intIfNum, class_id;
   ptin_vlanXlate_t xlate;
   L7_RC_t rc = L7_SUCCESS;
-  L7_uint32 unit = 0;
 
   if (ptin_debug_xlate)
     PT_LOG_TRACE(LOG_CTX_XLATE, "intIfNum=%u, outerVlanId=%u, innerVlanId=%u, newOuterVlanId=%u, newInnerVlanId=%u, newOuterPrio=%u, newInnerPrio=%u",
@@ -1362,19 +1361,21 @@ L7_RC_t ptin_xlate_egress_add( ptin_HwEthMef10Intf_t *intf_vlan,
 //}
 #endif
 
+#if (PTIN_BOARD != PTIN_BOARD_AE48GE)
   /* Remove VLANs? */
   xlate.remove_VLANs = (xlate_table_pvid[intIfNum] == newOuterVlanId);
 
   if (xlate.remove_VLANs)
   {
     /* Set untagged port */
-    rc = usmDbVlanTaggedSet(unit, intf_vlan->vid, intIfNum, L7_DOT1Q_UNTAGGED);
+    rc = usmDbVlanTaggedSet(1, intf_vlan->vid, intIfNum, L7_DOT1Q_UNTAGGED);
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_EVC, "Error setting intIfNum# %u internal VLAN %u as UNtagged (rc=%d)", intIfNum, intf_vlan->vid, rc);
       return L7_FAILURE;
     }
   }
+#endif
 
   /* DTL call */
   rc = ptin_xlate_operation(DAPI_CMD_SET, L7_ALL_INTERFACES, &xlate);
