@@ -217,7 +217,7 @@ L7_RC_t ptin_remote_laser_control(L7_uint32 intIfNum, L7_int txdisable)
   L7_uint16 slot, port, board_type;
   L7_uint32 i, members_configured, members_number, intIfNum_list[PTIN_SYSTEM_N_PORTS], intIfNum_member;
   L7_uint32 ipAddr = 0;
-  L7_uint32 try, answer, answer_size;
+  L7_uint32 answer_size;
   int ret = 0;
 
   PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u, txDisable=%d", intIfNum, txdisable);
@@ -272,25 +272,56 @@ L7_RC_t ptin_remote_laser_control(L7_uint32 intIfNum, L7_int txdisable)
       ptin_intf_linkfaults_enable(intIfNum_member, L7_FALSE /*Local faults*/,  L7_FALSE /*Remote faults*/);
     }
 
-    /* 3 tentatives will be made, at the worst case */
-    try = 0;
-    do
+    ret = -1;
+    /* Convert to */
+    if (ptin_intf_intIfNum2SlotPort(intIfNum_member, &slot, &port, &board_type) != L7_SUCCESS)
     {
-      ret = -1;
+      PT_LOG_ERR(LOG_CTX_INTF, "Error converting intIfNum %u to slot/port", intIfNum);
+      break;
+    }
 
-      /* Convert to */
-      if (ptin_intf_intIfNum2SlotPort(intIfNum_member, &slot, &port, &board_type) != L7_SUCCESS)
+    PT_LOG_DEBUG(LOG_CTX_INTF, "Validating intIfNum_member %u / slot %u + port %u", intIfNum_member, slot, port);
+
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+    if (slot < PTIN_SYS_LC_SLOT_MIN || slot > PTIN_SYS_LC_SLOT_MAX || port >= PTIN_SYS_INTFS_PER_SLOT_MAX)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "OLT1T3: Invalid slot (%u) / port (%u)", slot, port);
+      break;
+    }
+    /* Only apply it to TU40G boards */
+    if (board_type != PTIN_BOARD_TYPE_TU40G && board_type != PTIN_BOARD_TYPE_TU40GR)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "OLT1T3: Invalid board type %u for intIfNum_member %u", board_type, intIfNum_member);
+      break;
+    }
+#if 0
+    /* Check if board is present */
+    if (pfw_shm != L7_NULLPTR && !pfw_shm->BoardPresent[slot-1])
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Board not present at slot %u (intIfNum_member %u)", slot, intIfNum_member);
+      break;
+    }
+#endif
+#elif (PTIN_BOARD == PTIN_BOARD_CXO160G)
+    /* Is a local port? */
+    if (slot == 0)
+    {
+      if (port >= PTIN_SYSTEM_N_LOCAL_PORTS)
       {
-        PT_LOG_ERR(LOG_CTX_INTF, "Error converting intIfNum %u to slot/port", intIfNum);
+        PT_LOG_ERR(LOG_CTX_INTF, "CXO160G: Invalid local port (%u)", port);
         break;
       }
-
-      PT_LOG_DEBUG(LOG_CTX_INTF, "Validating intIfNum_member %u / slot %u + port %u", intIfNum_member, slot, port);
-
-    #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
-      if (slot < PTIN_SYS_LC_SLOT_MIN || slot > PTIN_SYS_LC_SLOT_MAX || port >= PTIN_SYS_INTFS_PER_SLOT_MAX)
+      /* Correct slot id, in order to obtain successfully its IP address */
+      slot = (port >= PTIN_SYSTEM_N_LOCAL_PORTS / 2) ? 5 : 1;
+      /* Correct port id: range 0-3 to 0-1 */
+      port %= (PTIN_SYSTEM_N_LOCAL_PORTS / 2);
+    }
+    /* If intIfNum refers to another slot, it should be a TU40G */
+    else if (slot >= PTIN_SYS_LC_SLOT_MIN && slot <= PTIN_SYS_LC_SLOT_MAX)
+    {
+      if (port >= PTIN_SYS_INTFS_PER_SLOT_MAX)
       {
-        PT_LOG_ERR(LOG_CTX_INTF, "OLT1T3: Invalid slot (%u) / port (%u)", slot, port);
+        PT_LOG_ERR(LOG_CTX_INTF, "OLT1T3: Invalid port (%u) for slot %u", port, slot);
         break;
       }
       /* Only apply it to TU40G boards */
@@ -305,114 +336,69 @@ L7_RC_t ptin_remote_laser_control(L7_uint32 intIfNum, L7_int txdisable)
       {
         PT_LOG_ERR(LOG_CTX_INTF, "Board not present at slot %u (intIfNum_member %u)", slot, intIfNum_member);
         break;
-      }
 #endif
-    #elif (PTIN_BOARD == PTIN_BOARD_CXO160G)
-      /* Is a local port? */
-      if (slot == 0)
-      {
-        if (port >= PTIN_SYSTEM_N_LOCAL_PORTS)
-        {
-          PT_LOG_ERR(LOG_CTX_INTF, "CXO160G: Invalid local port (%u)", port);
-          break;
-        }
-        /* Correct slot id, in order to obtain successfully its IP address */
-        slot = (port >= PTIN_SYSTEM_N_LOCAL_PORTS/2) ? 5 : 1;
-        /* Correct port id: range 0-3 to 0-1 */
-        port %= (PTIN_SYSTEM_N_LOCAL_PORTS/2);
-      }
-      /* If intIfNum refers to another slot, it should be a TU40G */
-      else if (slot >= PTIN_SYS_LC_SLOT_MIN && slot <= PTIN_SYS_LC_SLOT_MAX)
-      {
-        if (port >= PTIN_SYS_INTFS_PER_SLOT_MAX)
-        {
-          PT_LOG_ERR(LOG_CTX_INTF, "OLT1T3: Invalid port (%u) for slot %u", port, slot);
-          break;
-        }
-        /* Only apply it to TU40G boards */
-        if (board_type != PTIN_BOARD_TYPE_TU40G && board_type != PTIN_BOARD_TYPE_TU40GR)
-        {
-          PT_LOG_ERR(LOG_CTX_INTF, "OLT1T3: Invalid board type %u for intIfNum_member %u", board_type, intIfNum_member);
-          break;
-        }
-#if 0
-        /* Check if board is present */
-        if (pfw_shm != L7_NULLPTR && !pfw_shm->BoardPresent[slot-1])
-        {
-          PT_LOG_ERR(LOG_CTX_INTF, "Board not present at slot %u (intIfNum_member %u)", slot, intIfNum_member);
-          break;
-#endif
-      }
-      /* Invalid slot */
-      else
-      {
-        PT_LOG_ERR(LOG_CTX_INTF, "CXO160G: Invalid slot (%u)", slot);
-        break;
-      }
-    #elif (PTIN_BOARD_IS_STANDALONE)
-      if (slot != 0 || port >= ptin_sys_number_of_ports)
-      {
-        PT_LOG_ERR(LOG_CTX_INTF, "OLT1T0: Invalid slot (%u) / port (%u)", slot, port);
-        break;
-      }
-      slot = 1;
-    #else
-      PT_LOG_ERR(LOG_CTX_INTF, "Unknown board");
-      break;
-    #endif
-      
-      PT_LOG_DEBUG(LOG_CTX_INTF, "Going to configure intIfNum_member %u / slot %u + port %u", intIfNum_member, slot, port);
-
-    #if (PTIN_BOARD_IS_STANDALONE)
-      ipAddr = simGetIpcIpAddr();
-    #else
-      /* Determine the IP address of the working port/slot */
-      if (L7_SUCCESS != ptin_fpga_slot_ip_addr_get(slot, &ipAddr))
-      {
-        PT_LOG_ERR(LOG_CTX_INTF, "Failed to obtain ipAddress of slotId:%u", slot);
-        break;
-      }
-    #endif      
-
-      /* Prepare message contents */
-      memset(&cfg_msg, 0x00, sizeof(msg_HwEthernet_t));
-      cfg_msg.slotIndex = ENDIAN_SWAP8(slot);
-      cfg_msg.BoardType = ENDIAN_SWAP8(0);
-      cfg_msg.InterfaceIndex = ENDIAN_SWAP8(port);
-      cfg_msg.conf_mask = ENDIAN_SWAP16(0x1800);
-      if (txdisable < 0)
-      {
-        cfg_msg.optico.laserON_OFF = ENDIAN_SWAP8(L7_TRUE);
-        cfg_msg.optico.stmALSConf  = ENDIAN_SWAP8(L7_TRUE);
-      }
-      else
-      {
-        cfg_msg.optico.laserON_OFF = ENDIAN_SWAP8(!(txdisable & 1));
-        cfg_msg.optico.stmALSConf  = ENDIAN_SWAP8(L7_FALSE);
-      }
-      
-      PT_LOG_DEBUG(LOG_CTX_INTF, "Try %u: Sending message to slotId %u / ipAddr 0x%08x", try, slot, ipAddr);
-
-      answer_size = sizeof(L7_uint32);
-      ret = send_ipc_message(IPC_HW_PORTO_MSG_CXP,
-                             ipAddr,
-                             CHMSG_TUxG_ETH_CONFIG,
-                             (char *) &cfg_msg,
-                             (char *) &answer,
-                             sizeof(msg_HwEthernet_t),
-                             &answer_size);
-
-      if (ret != 0)
-      {
-        PT_LOG_ERR(LOG_CTX_INTF, "Try %u: Error communicating to slotId %u / ipAddr 0x%08x", try, slot, ipAddr);
-      }
     }
-    while ((try++) < 3 && ret != 0);
+    /* Invalid slot */
+    else
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "CXO160G: Invalid slot (%u)", slot);
+      break;
+    }
+#elif (PTIN_BOARD_IS_STANDALONE)
+    if (slot != 0 || port >= ptin_sys_number_of_ports)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "OLT1T0: Invalid slot (%u) / port (%u)", slot, port);
+      break;
+    }
+    slot = 1;
+#else
+    PT_LOG_ERR(LOG_CTX_INTF, "Unknown board");
+    break;
+#endif
+
+    PT_LOG_DEBUG(LOG_CTX_INTF, "Going to configure intIfNum_member %u / slot %u + port %u", intIfNum_member, slot, port);
+
+#if (PTIN_BOARD_IS_STANDALONE)
+    ipAddr = simGetIpcIpAddr();
+#else
+    /* Determine the IP address of the working port/slot */
+    if (L7_SUCCESS != ptin_fpga_slot_ip_addr_get(slot, &ipAddr))
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Failed to obtain ipAddress of slotId:%u", slot);
+      break;
+    }
+#endif
+
+    /* Prepare message contents */
+    memset(&cfg_msg, 0x00, sizeof(msg_HwEthernet_t));
+    cfg_msg.slotIndex = ENDIAN_SWAP8(slot);
+    cfg_msg.BoardType = ENDIAN_SWAP8(0);
+    cfg_msg.InterfaceIndex = ENDIAN_SWAP8(port);
+    cfg_msg.conf_mask = ENDIAN_SWAP16(0x1800);
+    if (txdisable < 0)
+    {
+      cfg_msg.optico.laserON_OFF = ENDIAN_SWAP8(L7_TRUE);
+      cfg_msg.optico.stmALSConf  = ENDIAN_SWAP8(L7_TRUE);
+    } else
+    {
+      cfg_msg.optico.laserON_OFF = ENDIAN_SWAP8(!(txdisable & 1));
+      cfg_msg.optico.stmALSConf  = ENDIAN_SWAP8(L7_FALSE);
+    }
+
+    PT_LOG_DEBUG(LOG_CTX_INTF, " Sending message to slotId %u / ipAddr 0x%08x" , slot, ipAddr);
+
+    answer_size = sizeof(L7_uint32);
+    ret = send_ipc_message(IPC_HW_PORTO_MSG_CXP,
+                           ipAddr,
+                           CHMSG_TUxG_ETH_CONFIG,
+                           (char *)&cfg_msg,
+                           NULL,
+                           sizeof(msg_HwEthernet_t),
+                           NULL);
 
     if (ret != 0)
     {
-      PT_LOG_ERR(LOG_CTX_INTF, "Failed configuring intIfNum_member %u / slot %u + port %u", intIfNum_member, slot, port);
-      break;
+      PT_LOG_ERR(LOG_CTX_INTF, "Error communicating to slotId %u / ipAddr 0x%08x", slot, ipAddr);
     }
 
     members_configured++;
