@@ -3644,7 +3644,7 @@ L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
   /* PTin added: new switch 56450 (Katana2) */
   /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
   else if (SOC_IS_TRIDENT(unit) || SOC_IS_TRIUMPH3(unit) ||
-           SOC_IS_KATANA2(unit) || SOC_IS_GREYHOUND2(unit))
+           SOC_IS_KATANA2(unit))
   {
     /* Rx counters */
     soc_counter_get(unit, port, RMTUEr, 0, &mtuePkts);                              /* Packets > MTU bytes (good and bad) */
@@ -3723,6 +3723,211 @@ L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
     tx->etherStatsPkts1519toMaxOctets = pkts1519to2047 + pkts2048to4095 + pkts4096to9216 + pkts9217to16383;
 
     soc_counter_get_rate(unit, port, TBYTr , 0, &tx->Throughput);                   /* Throughput */
+  }
+  /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
+  else if (SOC_IS_GREYHOUND2(unit))
+  {
+    /* 1G front ports */
+    if (port < PTIN_SYSTEM_N_ETH / 2)
+    {
+      /* Rx counters */
+      soc_counter_get(unit, port, GRMTUEr, 0, &mtuePkts);                              /* Packets > MTU bytes (good and bad) */
+      soc_counter_get(unit, port, DROP_PKT_CNT_INGr, 0, &rx->etherStatsDropEvents);    /* Drop Events */
+      soc_counter_get(unit, port, GRBYTr , 0, &rx->etherStatsOctets);
+      soc_counter_get(unit, port, GRPKTr , 0, &rx->etherStatsPkts);                    /* Packets (>=64 bytes) */
+      soc_counter_get(unit, port, GRBCAr , 0, &rx->etherStatsBroadcastPkts);           /* Broadcasts */
+      soc_counter_get(unit, port, GRMCAr , 0, &rx->etherStatsMulticastPkts);           /* Muilticast */
+      soc_counter_get(unit, port, GRFCSr , 0, &rx->etherStatsCRCAlignErrors);          /* FCS Errors (64-1518 bytes)*/
+      rx->etherStatsCollisions = 0;                                                    /* Collisions */
+      soc_counter_get(unit, port, GRUNDr , 0, &rx->etherStatsUndersizePkts);           /* Undersize */
+      soc_counter_get(unit, port, GROVRr,  0, &rx->etherStatsOversizePkts);            /* Oversize: 1523-MTU bytes */
+      rx->etherStatsOversizePkts += mtuePkts;                                          /* Oversize: >MTU bytes */
+      soc_counter_get(unit, port, GRFRGr , 0, &rx->etherStatsFragments);               /* Fragments */
+      soc_counter_get(unit, port, GRJBRr , 0, &rx->etherStatsJabbers);                 /* Jabbers */
+      soc_counter_get(unit, port, GR64r  , 0, &rx->etherStatsPkts64Octets);            /* 64B packets */
+      soc_counter_get(unit, port, GR127r , 0, &rx->etherStatsPkts65to127Octets);       /* 65-127B packets */
+      soc_counter_get(unit, port, GR255r , 0, &rx->etherStatsPkts128to255Octets);      /* 128-255B packets */
+      soc_counter_get(unit, port, GR511r , 0, &rx->etherStatsPkts256to511Octets);      /* 256-511B packets */
+      soc_counter_get(unit, port, GR1023r, 0, &rx->etherStatsPkts512to1023Octets);     /* 512-1023B packets */
+      soc_counter_get(unit, port, GR1518r, 0, &rx->etherStatsPkts1024to1518Octets);    /* 1024-1518B packets */
+
+      soc_counter_get(unit, port, GR2047r, 0, &pkts1519to2047);                        /* 1519-2047 Bytes packets */
+      soc_counter_get(unit, port, GR4095r, 0, &pkts2048to4095);                        /* 2048-4095 Bytes packets */
+      soc_counter_get(unit, port, GR9216r, 0, &pkts4096to9216);                        /* 4096-9216 Bytes packets */
+      pkts9217to16383 = 0;
+      rx->etherStatsPkts1519toMaxOctets = pkts1519to2047 + pkts2048to4095 + pkts4096to9216 + pkts9217to16383;
+
+      soc_counter_get_rate(unit, port, GRBYTr , 0, &rx->Throughput);                   /* Throughput */
+
+      // Tx counters
+      tmp1 = 0;
+      for (cos = 0; cos < 8; cos++)
+      {
+        if (soc_counter_get(unit, port, SOC_COUNTER_NON_DMA_COSQ_DROP_PKT, cos, &tmp) == SOC_E_NONE)
+        {
+          tmp1 += tmp;
+        }
+      }
+      tx->etherStatsDropEvents = tmp1;                                                /* Drop Events */
+      soc_counter_get(unit, port, GTBYTr , 0, &tx->etherStatsOctets);                  /* Octets */                   
+      soc_counter_get(unit, port, GTPKTr , 0, &tx->etherStatsPkts);                    /* Packets */                  
+      soc_counter_get(unit, port, GTBCAr , 0, &tx->etherStatsBroadcastPkts);           /* Broadcasts */               
+      soc_counter_get(unit, port, GTMCAr , 0, &tx->etherStatsMulticastPkts);           /* Muilticast */               
+      soc_counter_get(unit, port, GTFCSr , 0, &tx->etherStatsCRCAlignErrors);          /* FCS Errors (64-1518 bytes)*/
+      tx->etherStatsCollisions = 0;                                                   /* Collisions */               
+      tx->etherStatsUndersizePkts = 0;                                                /* Undersize */                
+      soc_counter_get(unit, port, GTOVRr,  0, &tx->etherStatsOversizePkts);            /* Oversize: 1523-MTU bytes */
+      soc_counter_get(unit, port, GTFRGr , 0, &tx->etherStatsFragments);               /* Fragments */               
+      soc_counter_get(unit, port, GTJBRr , 0, &tx->etherStatsJabbers);                 /* Jabbers */                 
+      soc_counter_get(unit, port, GT64r  , 0, &tx->etherStatsPkts64Octets);            /* 64B packets */             
+      soc_counter_get(unit, port, GT127r , 0, &tx->etherStatsPkts65to127Octets);       /* 65-127B packets */         
+      soc_counter_get(unit, port, GT255r , 0, &tx->etherStatsPkts128to255Octets);      /* 128-255B packets */        
+      soc_counter_get(unit, port, GT511r , 0, &tx->etherStatsPkts256to511Octets);      /* 256-511B packets */        
+      soc_counter_get(unit, port, GT1023r, 0, &tx->etherStatsPkts512to1023Octets);     /* 512-1023B packets */       
+      soc_counter_get(unit, port, GT1518r, 0, &tx->etherStatsPkts1024to1518Octets);    /* 1024-1518B packets */
+
+      soc_counter_get(unit, port, GT2047r, 0, &pkts1519to2047);                        /* 1519-2047 Bytes packets */
+      soc_counter_get(unit, port, GT4095r, 0, &pkts2048to4095);                        /* 2048-4095 Bytes packets */
+      soc_counter_get(unit, port, GT9216r, 0, &pkts4096to9216);                        /* 4096-9216 Bytes packets */
+      pkts9217to16383 = 0;
+      tx->etherStatsPkts1519toMaxOctets = pkts1519to2047 + pkts2048to4095 + pkts4096to9216 + pkts9217to16383;
+
+      soc_counter_get_rate(unit, port, GTBYTr , 0, &tx->Throughput);                   /* Throughput */
+    }
+    /* 10G front ports */
+    else if (port < PTIN_SYSTEM_N_ETH)
+    {
+      /* Rx counters */
+      soc_counter_get(unit, port, XLMIB_RMTUEr, 0, &mtuePkts);                              /* Packets > MTU bytes (good and bad) */
+      soc_counter_get(unit, port, DROP_PKT_CNT_INGr, 0, &rx->etherStatsDropEvents);         /* Drop Events */
+      soc_counter_get(unit, port, XLMIB_RBYTr , 0, &rx->etherStatsOctets);
+      soc_counter_get(unit, port, XLMIB_RPKTr , 0, &rx->etherStatsPkts);                    /* Packets (>=64 bytes) */
+      soc_counter_get(unit, port, XLMIB_RBCAr , 0, &rx->etherStatsBroadcastPkts);           /* Broadcasts */
+      soc_counter_get(unit, port, XLMIB_RMCAr , 0, &rx->etherStatsMulticastPkts);           /* Muilticast */
+      soc_counter_get(unit, port, XLMIB_RFCSr , 0, &rx->etherStatsCRCAlignErrors);          /* FCS Errors (64-1518 bytes)*/
+      rx->etherStatsCollisions = 0;                                                         /* Collisions */
+      soc_counter_get(unit, port, XLMIB_RUNDr , 0, &rx->etherStatsUndersizePkts);           /* Undersize */
+      soc_counter_get(unit, port, XLMIB_ROVRr,  0, &rx->etherStatsOversizePkts);            /* Oversize: 1523-MTU bytes */
+      rx->etherStatsOversizePkts += mtuePkts;                                               /* Oversize: >MTU bytes */
+      soc_counter_get(unit, port, XLMIB_RFRGr , 0, &rx->etherStatsFragments);               /* Fragments */
+      soc_counter_get(unit, port, XLMIB_RJBRr , 0, &rx->etherStatsJabbers);                 /* Jabbers */
+      soc_counter_get(unit, port, XLMIB_R64r  , 0, &rx->etherStatsPkts64Octets);            /* 64B packets */
+      soc_counter_get(unit, port, XLMIB_R127r , 0, &rx->etherStatsPkts65to127Octets);       /* 65-127B packets */
+      soc_counter_get(unit, port, XLMIB_R255r , 0, &rx->etherStatsPkts128to255Octets);      /* 128-255B packets */
+      soc_counter_get(unit, port, XLMIB_R511r , 0, &rx->etherStatsPkts256to511Octets);      /* 256-511B packets */
+      soc_counter_get(unit, port, XLMIB_R1023r, 0, &rx->etherStatsPkts512to1023Octets);     /* 512-1023B packets */
+      soc_counter_get(unit, port, XLMIB_R1518r, 0, &rx->etherStatsPkts1024to1518Octets);    /* 1024-1518B packets */
+
+      soc_counter_get(unit, port, XLMIB_R2047r, 0, &pkts1519to2047);                        /* 1519-2047 Bytes packets */
+      soc_counter_get(unit, port, XLMIB_R4095r, 0, &pkts2048to4095);                        /* 2048-4095 Bytes packets */
+      soc_counter_get(unit, port, XLMIB_R9216r, 0, &pkts4096to9216);                        /* 4096-9216 Bytes packets */
+      pkts9217to16383 = 0;
+      rx->etherStatsPkts1519toMaxOctets = pkts1519to2047 + pkts2048to4095 + pkts4096to9216 + pkts9217to16383;
+
+      soc_counter_get_rate(unit, port, XLMIB_RBYTr , 0, &rx->Throughput);                   /* Throughput */
+
+      // Tx counters
+      tmp1 = 0;
+      for (cos = 0; cos < 8; cos++)
+      {
+        if (soc_counter_get(unit, port, SOC_COUNTER_NON_DMA_COSQ_DROP_PKT, cos, &tmp) == SOC_E_NONE)
+        {
+          tmp1 += tmp;
+        }
+      }
+      tx->etherStatsDropEvents = tmp1;                                                      /* Drop Events */
+      soc_counter_get(unit, port, XLMIB_TBYTr , 0, &tx->etherStatsOctets);                  /* Octets */                   
+      soc_counter_get(unit, port, XLMIB_TPKTr , 0, &tx->etherStatsPkts);                    /* Packets */                  
+      soc_counter_get(unit, port, XLMIB_TBCAr , 0, &tx->etherStatsBroadcastPkts);           /* Broadcasts */               
+      soc_counter_get(unit, port, XLMIB_TMCAr , 0, &tx->etherStatsMulticastPkts);           /* Muilticast */               
+      soc_counter_get(unit, port, XLMIB_TFCSr , 0, &tx->etherStatsCRCAlignErrors);          /* FCS Errors (64-1518 bytes)*/
+      tx->etherStatsCollisions = 0;                                                         /* Collisions */               
+      tx->etherStatsUndersizePkts = 0;                                                      /* Undersize */                
+      soc_counter_get(unit, port, XLMIB_TOVRr,  0, &tx->etherStatsOversizePkts);            /* Oversize: 1523-MTU bytes */
+      soc_counter_get(unit, port, XLMIB_TFRGr , 0, &tx->etherStatsFragments);               /* Fragments */               
+      soc_counter_get(unit, port, XLMIB_TJBRr , 0, &tx->etherStatsJabbers);                 /* Jabbers */                 
+      soc_counter_get(unit, port, XLMIB_T64r  , 0, &tx->etherStatsPkts64Octets);            /* 64B packets */             
+      soc_counter_get(unit, port, XLMIB_T127r , 0, &tx->etherStatsPkts65to127Octets);       /* 65-127B packets */         
+      soc_counter_get(unit, port, XLMIB_T255r , 0, &tx->etherStatsPkts128to255Octets);      /* 128-255B packets */        
+      soc_counter_get(unit, port, XLMIB_T511r , 0, &tx->etherStatsPkts256to511Octets);      /* 256-511B packets */        
+      soc_counter_get(unit, port, XLMIB_T1023r, 0, &tx->etherStatsPkts512to1023Octets);     /* 512-1023B packets */       
+      soc_counter_get(unit, port, XLMIB_T1518r, 0, &tx->etherStatsPkts1024to1518Octets);    /* 1024-1518B packets */
+
+      soc_counter_get(unit, port, XLMIB_T2047r, 0, &pkts1519to2047);                        /* 1519-2047 Bytes packets */
+      soc_counter_get(unit, port, XLMIB_T4095r, 0, &pkts2048to4095);                        /* 2048-4095 Bytes packets */
+      soc_counter_get(unit, port, XLMIB_T9216r, 0, &pkts4096to9216);                        /* 4096-9216 Bytes packets */
+      pkts9217to16383 = 0;
+      tx->etherStatsPkts1519toMaxOctets = pkts1519to2047 + pkts2048to4095 + pkts4096to9216 + pkts9217to16383;
+
+      soc_counter_get_rate(unit, port, XLMIB_TBYTr , 0, &tx->Throughput);                   /* Throughput */
+    }
+    /* 10G back ports */
+    else
+    {
+      /* Rx counters */
+      soc_counter_get(unit, port, CLMIB_RMTUEr, 0, &mtuePkts);                              /* Packets > MTU bytes (good and bad) */
+      soc_counter_get(unit, port, DROP_PKT_CNT_INGr, 0, &rx->etherStatsDropEvents);         /* Drop Events */
+      soc_counter_get(unit, port, CLMIB_RBYTr , 0, &rx->etherStatsOctets);
+      soc_counter_get(unit, port, CLMIB_RPKTr , 0, &rx->etherStatsPkts);                    /* Packets (>=64 bytes) */
+      soc_counter_get(unit, port, CLMIB_RBCAr , 0, &rx->etherStatsBroadcastPkts);           /* Broadcasts */
+      soc_counter_get(unit, port, CLMIB_RMCAr , 0, &rx->etherStatsMulticastPkts);           /* Muilticast */
+      soc_counter_get(unit, port, CLMIB_RFCSr , 0, &rx->etherStatsCRCAlignErrors);          /* FCS Errors (64-1518 bytes)*/
+      rx->etherStatsCollisions = 0;                                                         /* Collisions */
+      soc_counter_get(unit, port, CLMIB_RUNDr , 0, &rx->etherStatsUndersizePkts);           /* Undersize */
+      soc_counter_get(unit, port, CLMIB_ROVRr,  0, &rx->etherStatsOversizePkts);            /* Oversize: 1523-MTU bytes */
+      rx->etherStatsOversizePkts += mtuePkts;                                               /* Oversize: >MTU bytes */
+      soc_counter_get(unit, port, CLMIB_RFRGr , 0, &rx->etherStatsFragments);               /* Fragments */
+      soc_counter_get(unit, port, CLMIB_RJBRr , 0, &rx->etherStatsJabbers);                 /* Jabbers */
+      soc_counter_get(unit, port, CLMIB_R64r  , 0, &rx->etherStatsPkts64Octets);            /* 64B packets */
+      soc_counter_get(unit, port, CLMIB_R127r , 0, &rx->etherStatsPkts65to127Octets);       /* 65-127B packets */
+      soc_counter_get(unit, port, CLMIB_R255r , 0, &rx->etherStatsPkts128to255Octets);      /* 128-255B packets */
+      soc_counter_get(unit, port, CLMIB_R511r , 0, &rx->etherStatsPkts256to511Octets);      /* 256-511B packets */
+      soc_counter_get(unit, port, CLMIB_R1023r, 0, &rx->etherStatsPkts512to1023Octets);     /* 512-1023B packets */
+      soc_counter_get(unit, port, CLMIB_R1518r, 0, &rx->etherStatsPkts1024to1518Octets);    /* 1024-1518B packets */
+
+      soc_counter_get(unit, port, CLMIB_R2047r, 0, &pkts1519to2047);                        /* 1519-2047 Bytes packets */
+      soc_counter_get(unit, port, CLMIB_R4095r, 0, &pkts2048to4095);                        /* 2048-4095 Bytes packets */
+      soc_counter_get(unit, port, CLMIB_R9216r, 0, &pkts4096to9216);                        /* 4096-9216 Bytes packets */
+      pkts9217to16383 = 0;
+      rx->etherStatsPkts1519toMaxOctets = pkts1519to2047 + pkts2048to4095 + pkts4096to9216 + pkts9217to16383;
+
+      soc_counter_get_rate(unit, port, CLMIB_RBYTr , 0, &rx->Throughput);                   /* Throughput */
+
+      // Tx counters
+      tmp1 = 0;
+      for (cos = 0; cos < 8; cos++)
+      {
+        if (soc_counter_get(unit, port, SOC_COUNTER_NON_DMA_COSQ_DROP_PKT, cos, &tmp) == SOC_E_NONE)
+        {
+          tmp1 += tmp;
+        }
+      }
+      tx->etherStatsDropEvents = tmp1;                                                /* Drop Events */
+      soc_counter_get(unit, port, CLMIB_TBYTr , 0, &tx->etherStatsOctets);                  /* Octets */                   
+      soc_counter_get(unit, port, CLMIB_TPKTr , 0, &tx->etherStatsPkts);                    /* Packets */                  
+      soc_counter_get(unit, port, CLMIB_TBCAr , 0, &tx->etherStatsBroadcastPkts);           /* Broadcasts */               
+      soc_counter_get(unit, port, CLMIB_TMCAr , 0, &tx->etherStatsMulticastPkts);           /* Muilticast */               
+      soc_counter_get(unit, port, CLMIB_TFCSr , 0, &tx->etherStatsCRCAlignErrors);          /* FCS Errors (64-1518 bytes)*/
+      tx->etherStatsCollisions = 0;                                                   /* Collisions */               
+      tx->etherStatsUndersizePkts = 0;                                                /* Undersize */                
+      soc_counter_get(unit, port, CLMIB_TOVRr,  0, &tx->etherStatsOversizePkts);            /* Oversize: 1523-MTU bytes */
+      soc_counter_get(unit, port, CLMIB_TFRGr , 0, &tx->etherStatsFragments);               /* Fragments */               
+      soc_counter_get(unit, port, CLMIB_TJBRr , 0, &tx->etherStatsJabbers);                 /* Jabbers */                 
+      soc_counter_get(unit, port, CLMIB_T64r  , 0, &tx->etherStatsPkts64Octets);            /* 64B packets */             
+      soc_counter_get(unit, port, CLMIB_T127r , 0, &tx->etherStatsPkts65to127Octets);       /* 65-127B packets */         
+      soc_counter_get(unit, port, CLMIB_T255r , 0, &tx->etherStatsPkts128to255Octets);      /* 128-255B packets */        
+      soc_counter_get(unit, port, CLMIB_T511r , 0, &tx->etherStatsPkts256to511Octets);      /* 256-511B packets */        
+      soc_counter_get(unit, port, CLMIB_T1023r, 0, &tx->etherStatsPkts512to1023Octets);     /* 512-1023B packets */       
+      soc_counter_get(unit, port, CLMIB_T1518r, 0, &tx->etherStatsPkts1024to1518Octets);    /* 1024-1518B packets */
+
+      soc_counter_get(unit, port, CLMIB_T2047r, 0, &pkts1519to2047);                        /* 1519-2047 Bytes packets */
+      soc_counter_get(unit, port, CLMIB_T4095r, 0, &pkts2048to4095);                        /* 2048-4095 Bytes packets */
+      soc_counter_get(unit, port, CLMIB_T9216r, 0, &pkts4096to9216);                        /* 4096-9216 Bytes packets */
+      pkts9217to16383 = 0;
+      tx->etherStatsPkts1519toMaxOctets = pkts1519to2047 + pkts2048to4095 + pkts4096to9216 + pkts9217to16383;
+
+      soc_counter_get_rate(unit, port, CLMIB_TBYTr , 0, &tx->Throughput);                   /* Throughput */
+    }
   }
   else
   {
@@ -3859,7 +4064,7 @@ L7_RC_t hapi_ptin_counters_clear(L7_uint phyPort)
   /* PTin added: new switch 56450 (Katana2) */
   /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
   else if (SOC_IS_TRIDENT(unit) || SOC_IS_TRIUMPH3(unit) ||
-           SOC_IS_KATANA2(unit) || SOC_IS_GREYHOUND2(unit))
+           SOC_IS_KATANA2(unit))
   {
     /* Rx counters */
     soc_counter_set(unit, port, RMTUEr, 0, 0);
@@ -3900,6 +4105,135 @@ L7_RC_t hapi_ptin_counters_clear(L7_uint phyPort)
     soc_counter_set(unit, port, T511r , 0, 0);
     soc_counter_set(unit, port, T1023r, 0, 0);
     soc_counter_set(unit, port, T1518r, 0, 0);
+  }
+  else if (SOC_IS_GREYHOUND2(unit))
+  {
+    /* 1G front ports */
+    if (port < PTIN_SYSTEM_N_ETH / 2)
+    {
+      /* Rx counters */
+      soc_counter_set(unit, port, GRMTUEr, 0, 0);
+      soc_counter_set(unit, port, DROP_PKT_CNTr , 0, 0);
+      soc_counter_set(unit, port, GRBYTr , 0, 0);
+      soc_counter_set(unit, port, GRPKTr , 0, 0);
+      soc_counter_set(unit, port, GRBCAr , 0, 0);
+      soc_counter_set(unit, port, GRMCAr , 0, 0);
+      soc_counter_set(unit, port, GRFCSr , 0, 0);
+      soc_counter_set(unit, port, GRUNDr , 0, 0);
+      soc_counter_set(unit, port, GROVRr , 0, 0);
+      soc_counter_set(unit, port, GRFRGr , 0, 0);
+      soc_counter_set(unit, port, GRJBRr , 0, 0);
+      soc_counter_set(unit, port, GR64r  , 0, 0);
+      soc_counter_set(unit, port, GR127r , 0, 0);
+      soc_counter_set(unit, port, GR255r , 0, 0);
+      soc_counter_set(unit, port, GR511r , 0, 0);
+      soc_counter_set(unit, port, GR1023r, 0, 0);
+      soc_counter_set(unit, port, GR1518r, 0, 0);
+
+      /* Tx counters */
+      soc_counter_set(unit, port, DROP_PKT_CNTr,  0, 0);
+      soc_counter_set(unit, port, EGRDROPPKTCOUNTr,  0, 0);
+      //soc_counter_set(unit, port, HOLDr ,  0, 0);
+      soc_counter_set(unit, port, GTBYTr , 0, 0);
+      soc_counter_set(unit, port, GTPKTr , 0, 0);
+      soc_counter_set(unit, port, GTBCAr , 0, 0);
+      soc_counter_set(unit, port, GTMCAr , 0, 0);
+      soc_counter_set(unit, port, GTFCSr , 0, 0);
+      //soc_counter_set(unit, port, GTXCLr , 0, 0);
+      soc_counter_set(unit, port, GTOVRr , 0, 0);
+      soc_counter_set(unit, port, GTFRGr , 0, 0);
+      //soc_counter_set(unit, port, GTJBRr , 0, 0);
+      soc_counter_set(unit, port, GT64r  , 0, 0);
+      soc_counter_set(unit, port, GT127r , 0, 0);
+      soc_counter_set(unit, port, GT255r , 0, 0);
+      soc_counter_set(unit, port, GT511r , 0, 0);
+      soc_counter_set(unit, port, GT1023r, 0, 0);
+      soc_counter_set(unit, port, GT1518r, 0, 0);
+    }
+    /* 10G front ports */
+    else if (port < PTIN_SYSTEM_N_ETH)
+    {
+      /* Rx counters */
+      soc_counter_set(unit, port, XLMIB_RMTUEr, 0, 0);
+      soc_counter_set(unit, port, DROP_PKT_CNTr , 0, 0);
+      soc_counter_set(unit, port, XLMIB_RBYTr , 0, 0);
+      soc_counter_set(unit, port, XLMIB_RPKTr , 0, 0);
+      soc_counter_set(unit, port, XLMIB_RBCAr , 0, 0);
+      soc_counter_set(unit, port, XLMIB_RMCAr , 0, 0);
+      soc_counter_set(unit, port, XLMIB_RFCSr , 0, 0);
+      soc_counter_set(unit, port, XLMIB_RUNDr , 0, 0);
+      soc_counter_set(unit, port, XLMIB_ROVRr , 0, 0);
+      soc_counter_set(unit, port, XLMIB_RFRGr , 0, 0);
+      soc_counter_set(unit, port, XLMIB_RJBRr , 0, 0);
+      soc_counter_set(unit, port, XLMIB_R64r  , 0, 0);
+      soc_counter_set(unit, port, XLMIB_R127r , 0, 0);
+      soc_counter_set(unit, port, XLMIB_R255r , 0, 0);
+      soc_counter_set(unit, port, XLMIB_R511r , 0, 0);
+      soc_counter_set(unit, port, XLMIB_R1023r, 0, 0);
+      soc_counter_set(unit, port, XLMIB_R1518r, 0, 0);
+
+      /* Tx counters */
+      soc_counter_set(unit, port, DROP_PKT_CNTr,  0, 0);
+      soc_counter_set(unit, port, EGRDROPPKTCOUNTr,  0, 0);
+      //soc_counter_set(unit, port, HOLDr ,  0, 0);
+      soc_counter_set(unit, port, XLMIB_TBYTr , 0, 0);
+      soc_counter_set(unit, port, XLMIB_TPKTr , 0, 0);
+      soc_counter_set(unit, port, XLMIB_TBCAr , 0, 0);
+      soc_counter_set(unit, port, XLMIB_TMCAr , 0, 0);
+      soc_counter_set(unit, port, XLMIB_TFCSr , 0, 0);
+      //soc_counter_set(unit, port, XLMIB_TXCLr , 0, 0);
+      soc_counter_set(unit, port, XLMIB_TOVRr , 0, 0);
+      soc_counter_set(unit, port, XLMIB_TFRGr , 0, 0);
+      //soc_counter_set(unit, port, XLMIB_TJBRr , 0, 0);
+      soc_counter_set(unit, port, XLMIB_T64r  , 0, 0);
+      soc_counter_set(unit, port, XLMIB_T127r , 0, 0);
+      soc_counter_set(unit, port, XLMIB_T255r , 0, 0);
+      soc_counter_set(unit, port, XLMIB_T511r , 0, 0);
+      soc_counter_set(unit, port, XLMIB_T1023r, 0, 0);
+      soc_counter_set(unit, port, XLMIB_T1518r, 0, 0);
+    }
+    /* 10G back ports */
+    else
+    {
+      /* Rx counters */
+      soc_counter_set(unit, port, CLMIB_RMTUEr, 0, 0);
+      soc_counter_set(unit, port, DROP_PKT_CNTr , 0, 0);
+      soc_counter_set(unit, port, CLMIB_RBYTr , 0, 0);
+      soc_counter_set(unit, port, CLMIB_RPKTr , 0, 0);
+      soc_counter_set(unit, port, CLMIB_RBCAr , 0, 0);
+      soc_counter_set(unit, port, CLMIB_RMCAr , 0, 0);
+      soc_counter_set(unit, port, CLMIB_RFCSr , 0, 0);
+      soc_counter_set(unit, port, CLMIB_RUNDr , 0, 0);
+      soc_counter_set(unit, port, CLMIB_ROVRr , 0, 0);
+      soc_counter_set(unit, port, CLMIB_RFRGr , 0, 0);
+      soc_counter_set(unit, port, CLMIB_RJBRr , 0, 0);
+      soc_counter_set(unit, port, CLMIB_R64r  , 0, 0);
+      soc_counter_set(unit, port, CLMIB_R127r , 0, 0);
+      soc_counter_set(unit, port, CLMIB_R255r , 0, 0);
+      soc_counter_set(unit, port, CLMIB_R511r , 0, 0);
+      soc_counter_set(unit, port, CLMIB_R1023r, 0, 0);
+      soc_counter_set(unit, port, CLMIB_R1518r, 0, 0);
+
+      /* Tx counters */
+      soc_counter_set(unit, port, DROP_PKT_CNTr,  0, 0);
+      soc_counter_set(unit, port, EGRDROPPKTCOUNTr,  0, 0);
+      //soc_counter_set(unit, port, HOLDr ,  0, 0);
+      soc_counter_set(unit, port, CLMIB_TBYTr , 0, 0);
+      soc_counter_set(unit, port, CLMIB_TPKTr , 0, 0);
+      soc_counter_set(unit, port, CLMIB_TBCAr , 0, 0);
+      soc_counter_set(unit, port, CLMIB_TMCAr , 0, 0);
+      soc_counter_set(unit, port, CLMIB_TFCSr , 0, 0);
+      //soc_counter_set(unit, port, CLMIB_TXCLr , 0, 0);
+      soc_counter_set(unit, port, CLMIB_TOVRr , 0, 0);
+      soc_counter_set(unit, port, CLMIB_TFRGr , 0, 0);
+      //soc_counter_set(unit, port, CLMIB_TJBRr , 0, 0);
+      soc_counter_set(unit, port, CLMIB_T64r  , 0, 0);
+      soc_counter_set(unit, port, CLMIB_T127r , 0, 0);
+      soc_counter_set(unit, port, CLMIB_T255r , 0, 0);
+      soc_counter_set(unit, port, CLMIB_T511r , 0, 0);
+      soc_counter_set(unit, port, CLMIB_T1023r, 0, 0);
+      soc_counter_set(unit, port, CLMIB_T1518r, 0, 0);
+    }
   }
   else
   {
@@ -4067,9 +4401,8 @@ L7_RC_t hapi_ptin_counters_activity_get(ptin_HWEth_PortsActivity_t *portsActivit
     /* PTin added: new switch 5664x (Triumph3) */
     /* PTin added: new switch 56843 (Trident) */
     /* PTin added: new switch 56450 (Katana2) */
-    /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
     else if (SOC_IS_TRIDENT(unit) || SOC_IS_TRIUMPH3(unit) ||
-             SOC_IS_KATANA2(unit) || SOC_IS_GREYHOUND2(unit))
+             SOC_IS_KATANA2(unit))
     {
       if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) {
         soc_counter_get_rate(unit, port_remap, RBYTr , 0, &rate);
@@ -4118,6 +4451,63 @@ L7_RC_t hapi_ptin_counters_activity_get(ptin_HWEth_PortsActivity_t *portsActivit
         if (rate > 0)
           portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS;
       }
+    }
+    /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
+    else if (SOC_IS_GREYHOUND2(unit))
+    {
+      int i;
+      soc_reg_t ctr_reg[8];
+
+      /* 1G front ports */
+      if (port < PTIN_SYSTEM_N_ETH / 2)
+      {
+        ctr_reg[0] = GRBYTr;        /* PTIN_PORTACTIVITY_MASK_RX_ACTIVITY */
+        ctr_reg[1] = GTBYTr;        /* PTIN_PORTACTIVITY_MASK_TX_ACTIVITY */
+        ctr_reg[2] = GTXCLr;        /* PTIN_PORTACTIVITY_MASK_TX_COLLISIONS */
+        ctr_reg[3] = GRFCSr;        /* PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS */
+        ctr_reg[4] = GRJBRr;        /* PTIN_PORTACTIVITY_MASK_RX_JABBERS */
+        ctr_reg[5] = GRFRGr;        /* PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS */
+        ctr_reg[6] = GROVRr;        /* PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS */
+        ctr_reg[7] = GRUNDr;        /* PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS */
+      }
+      /* 10G front ports */
+      else if (port < PTIN_SYSTEM_N_ETH)
+      {
+        ctr_reg[0] = XLMIB_RBYTr;   /* PTIN_PORTACTIVITY_MASK_RX_ACTIVITY */        
+        ctr_reg[1] = XLMIB_TBYTr;   /* PTIN_PORTACTIVITY_MASK_TX_ACTIVITY */        
+        ctr_reg[2] = XLMIB_TXCLr;   /* PTIN_PORTACTIVITY_MASK_TX_COLLISIONS */      
+        ctr_reg[3] = XLMIB_RFCSr;   /* PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS */      
+        ctr_reg[4] = XLMIB_RJBRr;   /* PTIN_PORTACTIVITY_MASK_RX_JABBERS */         
+        ctr_reg[5] = XLMIB_RFRGr;   /* PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS */       
+        ctr_reg[6] = XLMIB_ROVRr;   /* PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS */ 
+        ctr_reg[7] = XLMIB_RUNDr;   /* PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS */
+      }
+      /* 10G back ports */
+      else
+      {
+        ctr_reg[0] = CLMIB_RBYTr;   /* PTIN_PORTACTIVITY_MASK_RX_ACTIVITY */        
+        ctr_reg[1] = CLMIB_TBYTr;   /* PTIN_PORTACTIVITY_MASK_TX_ACTIVITY */        
+        ctr_reg[2] = CLMIB_TXCLr;   /* PTIN_PORTACTIVITY_MASK_TX_COLLISIONS */      
+        ctr_reg[3] = CLMIB_RFCSr;   /* PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS */      
+        ctr_reg[4] = CLMIB_RJBRr;   /* PTIN_PORTACTIVITY_MASK_RX_JABBERS */         
+        ctr_reg[5] = CLMIB_RFRGr;   /* PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS */       
+        ctr_reg[6] = CLMIB_ROVRr;   /* PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS */ 
+        ctr_reg[7] = CLMIB_RUNDr;   /* PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS */
+      }
+
+#if 1
+      for (i = 0; i < 8; i++)
+      {
+        if (portsActivity->activity_mask & (1 << i))
+        {
+          soc_counter_get_rate(unit, port_remap, ctr_reg[i] , 0, &rate);
+          if (rate > 0)
+            portsActivity->activity_bmap[port] |= (1 << i);
+        }
+      }
+#else
+      portsActivity->activity_bmap[port] = 0;
+#endif
     }
     else
     {

@@ -17,7 +17,7 @@
 #include "dapi_db.h"
 #include "bcmx/vlan.h"
 #include "logger.h"
-
+#include <soc/counter.h>
 
 int ptin_port_stat(bcm_port_t bcm_port)
 {
@@ -307,12 +307,30 @@ int ptin_counter_get(int bcm_port, unsigned int ctr_reg, unsigned int index)
   if ( rv != SOC_E_NONE)
   {
     printf("Error reading register: rv=%d\r\n", rv);
-    //return -1;
+    return rv;
   }
 
   printf("Counter = %llu\r\n",  value);
 
   return 0;
+}
+
+int ptin_counter_get_rate(int bcm_port, unsigned int ctr_reg, unsigned int index)
+{
+    uint64 value = 0;
+    int rv;
+
+    rv = soc_counter_get_rate(0, bcm_port, ctr_reg, index, &value);
+
+    if ( rv != SOC_E_NONE)
+    {
+      printf("Error reading register: rv=%d\r\n", rv);
+      return rv;
+    }
+
+    printf("Counter = %llu\r\n",  value);
+
+    return 0;
 }
 
 void ptin_mem_mod(uint32 mem, uint32 field, uint32 i, uint32 val)
