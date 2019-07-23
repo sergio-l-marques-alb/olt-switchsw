@@ -137,7 +137,7 @@ typedef struct {
 
 //*****************************************************************************
 
-#if ( defined(SYNC_SSM_IS_SUPPORTED) || PTIN_BOARD_IS_STANDALONE )
+#ifdef SHMEM_IS_IN_USE
 _VAR_ t_fw_shm  fw_shm;
 _VAR_ t_fw_shm  *pfw_shm;
 #endif

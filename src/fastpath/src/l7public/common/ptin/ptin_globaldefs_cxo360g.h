@@ -7,6 +7,7 @@
 
 /* If SSM is not supported, comment this line */
 #define SYNC_SSM_IS_SUPPORTED
+#define SHMEM_IS_IN_USE
 
 #define PTIN_PTP_PORT               41  /* PTP interface port nr (xe40) */
 

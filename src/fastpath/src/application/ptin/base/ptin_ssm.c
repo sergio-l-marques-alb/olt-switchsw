@@ -92,10 +92,14 @@ void ptin_debug_ssm_enable(L7_BOOL enable)
   ssm_debug_enable = enable & 1;
 }
 
+#ifdef SHMEM_IS_IN_USE
 #if (PTIN_BOARD_IS_MATRIX)
  #define SHMEM(slot,intf)   pfw_shm->intf[slot][intf]
 #else
  #define SHMEM(slot,intf)   pfw_shm->intf[intf]
+#endif
+#else
+ #define SHMEM(slot,intf)
 #endif
 
 #endif
@@ -961,12 +965,14 @@ L7_RC_t ssmPduHeaderTagRemove(L7_netBufHandle bufHandle)
  */
 L7_RC_t ssmCodesInit(void)
 {
+#ifdef SHMEM_IS_IN_USE
   /* Initialize shared memory */
   if (pfw_shm != L7_NULLPTR)
   {
     /* Initialize data structure */
     memset(pfw_shm->intf, 0x00, sizeof(pfw_shm->intf));
   }
+#endif
 
   /* Initialize timers */
   memset(ssm_timer, 0x00, sizeof(ssm_timer));
@@ -991,7 +997,8 @@ L7_RC_t ssmTimersUpdate(void)
   L7_uint16 slot, intf;
 #if (!PTIN_BOARD_IS_STANDALONE)
   L7_uint32 intIfNum, ptin_port;
-  L7_uint32 linkState;
+  L7_uint32 adminState, linkState;
+  L7_uint32 linkUp, rxActivity, txActivity;
 #endif
 
   osapiSemaTake(ssmTimersSyncSema, L7_WAIT_FOREVER);
@@ -1011,21 +1018,40 @@ L7_RC_t ssmTimersUpdate(void)
     #if (!PTIN_BOARD_IS_STANDALONE)
       if (ptin_intf_slotPort2port(slot+1, intf, &ptin_port) == L7_SUCCESS &&
           ptin_intf_port2intIfNum(ptin_port, &intIfNum) == L7_SUCCESS &&
+          nimGetIntfAdminState(intIfNum, &adminState) == L7_SUCCESS &&
           nimGetIntfLinkState(intIfNum, &linkState) == L7_SUCCESS)
       {
-        SHMEM(slot,intf).link  = (linkState==L7_UP);
+        linkUp = (adminState == L7_ENABLE && linkState == L7_UP);
 
-        /* Update activity status (only for SF local ports -> slot 0) */
-        if ((PTIN_SYSTEM_ETH_PORTS_MASK >> ptin_port) & 1)
+        rxActivity = txActivity = 0;
+        if (adminState == L7_ENABLE)
         {
-          SHMEM(slot,intf).link |=
-               (((ptin_control_port_activity[ptin_port] & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) == PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) << 1) |
-               (((ptin_control_port_activity[ptin_port] & PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) == PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) << 2);
+          /* Update activity status (only for SF local ports -> slot 0) */
+          if ((PTIN_SYSTEM_ETH_PORTS_MASK >> ptin_port) & 1)
+          {
+            rxActivity = ((ptin_control_port_activity[ptin_port] & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) == PTIN_PORTACTIVITY_MASK_RX_ACTIVITY);
+            txActivity = ((ptin_control_port_activity[ptin_port] & PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) == PTIN_PORTACTIVITY_MASK_TX_ACTIVITY);
+          }
         }
+
+        if (linkUp)
+          SHMEM(slot, intf).link |= (1U << 0);
+        else
+          SHMEM(slot, intf).link &= ~(1U << 0);
+
+        if (rxActivity)
+          SHMEM(slot, intf).link |= (1 << 1);
+        else
+          SHMEM(slot, intf).link &= ~(1U << 1);
+
+        if (txActivity)
+          SHMEM(slot, intf).link |= (1 << 2);
+        else
+          SHMEM(slot, intf).link &= ~(1U << 2);
       }
       else
       {
-        SHMEM(slot,intf).link = L7_FALSE;
+        SHMEM(slot,intf).link = 0;
       }
     #endif
 
@@ -1094,6 +1120,7 @@ L7_RC_t ssmCodeUpdate(L7_uint32 intIfNum, L7_uint16 ssm_code)
 
 void ssm_debug_dump(void)
 {
+#ifdef SHMEM_IS_IN_USE
   L7_uint slot, intf;
 
   if (pfw_shm == L7_NULLPTR)
@@ -1115,12 +1142,14 @@ void ssm_debug_dump(void)
     }
     printf("}\r\n");
   }
+#endif
 
   fflush(stdout);
 }
 
 void ssm_debug_write(L7_uint16 slot, L7_uint16 intf, L7_uint32 ssm_rx, L7_uint32 ssm_tx, L7_uint32 link)
 {
+#ifdef SHMEM_IS_IN_USE
   if (pfw_shm == L7_NULLPTR)
   {
     printf("Shared memory not defined!\r\n");
@@ -1139,6 +1168,7 @@ void ssm_debug_write(L7_uint16 slot, L7_uint16 intf, L7_uint32 ssm_rx, L7_uint32
   SHMEM(slot,intf).link   = link;
 
   printf("Done!\r\n");
+#endif
 }
 
 #endif

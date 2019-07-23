@@ -35,10 +35,7 @@
 #include "ptin_msg.h"
 #include "ptin_fpga_api.h"
 #include "ptin_prot_uplink.h"
-
-#if ( PTIN_BOARD_IS_STANDALONE || PTIN_BOARD_IS_MATRIX )
 #include "fw_shm.h"
-#endif
 
 #include <usmdb_sim_api.h>
 
@@ -728,15 +725,17 @@ static void monitor_alarms(void)
     /* Clear Link alarm */
     linkStatus_alarm[intf/32] &= ~((L7_uint32) 1 << (intf%32));
 
-  #if ( PTIN_BOARD_IS_STANDALONE )
+#ifdef SHMEM_IS_IN_USE
+#if (PTIN_BOARD_IS_STANDALONE)
     if (port<PTIN_SYSTEM_N_PORTS)
     {
       pfw_shm->intf[port].link  = link;
-      pfw_shm->intf[port].link |= 
+      pfw_shm->intf[port].link |=
         (((ptin_control_port_activity[port] & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) == PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) << 1) |
         (((ptin_control_port_activity[port] & PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) == PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) << 2);
     }
-  #endif
+#endif
+#endif
 
     if (linkStatus_history[port] != link)
     {
@@ -2617,6 +2616,7 @@ void ptinIntfStartupCallback(NIM_STARTUP_PHASE_t startupPhase)
  */
 static void ptin_control_syncE(void)
 {
+#ifdef SHMEM_IS_IN_USE
 #if defined (SYNC_SSM_IS_SUPPORTED) && (PTIN_BOARD_IS_STANDALONE)
   static int recovery_clock_h[2] = { -1, -1 };
 
@@ -2652,6 +2652,7 @@ static void ptin_control_syncE(void)
     }
   }
 #endif
+#endif
 }
 
 /**
@@ -2659,6 +2660,7 @@ static void ptin_control_syncE(void)
  */
 void ptin_reclk_dump(void)
 {
+#ifdef SHMEM_IS_IN_USE
 #if defined (SYNC_SSM_IS_SUPPORTED) && (PTIN_BOARD_IS_STANDALONE)
   /* If shared memory is not defined, do nothing */
   if (pfw_shm == L7_NULLPTR || pfw_shm == &fw_shm)
@@ -2674,6 +2676,7 @@ void ptin_reclk_dump(void)
 #else
   printf("Platform does not support sync-E!\r\n");
 #endif
+#endif
   fflush(stdout);
 }
 
@@ -2682,6 +2685,7 @@ void ptin_reclk_dump(void)
  */
 void ptin_reclk_write(L7_int primary, L7_int backup)
 {
+#ifdef SHMEM_IS_IN_USE
 #if defined (SYNC_SSM_IS_SUPPORTED) && (PTIN_BOARD_IS_STANDALONE)
   /* If shared memory is not defined, do nothing */
   if (pfw_shm == L7_NULLPTR || pfw_shm == &fw_shm)
@@ -2703,6 +2707,7 @@ void ptin_reclk_write(L7_int primary, L7_int backup)
   }
 #else
   printf("Platform does not support sync-E!\r\n");
+#endif
 #endif
   fflush(stdout);
 }
@@ -2787,6 +2792,7 @@ static void ptin_control_sysMacAddr(void)
 {
   L7_uchar8 ptin_macAddr[6] = {0x00, 0x06, 0x91, 0, 0, 0};
 
+#ifdef SHMEM_IS_IN_USE
   if (pfw_shm != L7_NULLPTR)
   {
     PT_LOG_INFO(LOG_CTX_CNFGR, "MAC address at shared memory: %02x-%02x-%02x-%02x-%02x-%02x",
@@ -2801,6 +2807,7 @@ static void ptin_control_sysMacAddr(void)
     memcpy(ptin_macAddr, pfw_shm->sysMacAddr, 6);
   }
   else
+#endif
   {
     /* Get default system MAC address */
     usmDbSwDevCtrlBurnedInMacAddrGet(1, ptin_macAddr);

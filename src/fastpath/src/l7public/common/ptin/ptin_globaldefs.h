@@ -191,7 +191,7 @@ extern int ptin_sys_number_of_ports;
 
 #define PTIN_VLAN_MIN                 L7_DOT1Q_MIN_VLAN_ID_CREATE
 #define PTIN_VLAN_MAX                 L7_DOT1Q_MAX_VLAN_ID
-#define PTIN_RESERVED_VLAN_MIN        2016
+#define PTIN_RESERVED_VLAN_MIN        1984
 #define PTIN_RESERVED_VLAN_MAX        2047
 #define PTIN_RESERVED_VLANS           (PTIN_RESERVED_VLAN_MAX - PTIN_RESERVED_VLAN_MIN + 1)
 #if (!PTIN_BOARD_IS_PASSIVE_LC)

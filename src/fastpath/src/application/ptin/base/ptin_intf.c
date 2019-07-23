@@ -989,10 +989,12 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
         PT_LOG_TRACE(LOG_CTX_INTF, " State:       %s", phyConf->PortEnable ? "Enabled":"Disabled");
       }
     }
-  #if ( PTIN_BOARD_IS_STANDALONE )
+#ifdef SHMEM_IS_IN_USE
+#if (PTIN_BOARD_IS_STANDALONE || (PTIN_BOARD_IS_PASSIVE_LC && PTIN_BOARD_IS_ACTIVETH))
     /* Update shared memory */
     pfw_shm->intf[port].admin = phyConf->PortEnable & 1;
-  #endif
+#endif
+#endif
   }
   
   /* MaxFrame */
@@ -6023,10 +6025,12 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf)
     phyConf->Mask |= 0x0020;
     phyConf->PortEnable = value;
 
-  #if ( PTIN_BOARD_IS_STANDALONE )
+#ifdef SHMEM_IS_IN_USE
+#if (PTIN_BOARD_IS_STANDALONE || (PTIN_BOARD_IS_PASSIVE_LC && PTIN_BOARD_IS_ACTIVETH))
     /* Update shared memory */
     pfw_shm->intf[port].admin = value & 1;
-  #endif
+#endif
+#endif
     PT_LOG_TRACE(LOG_CTX_INTF, " State:       %s", phyConf->PortEnable ? "Enabled":"Disabled");
   }
 
@@ -7417,12 +7421,12 @@ L7_BOOL ptin_intf_los_get(L7_uint32 ptin_port)
     return L7_FALSE;
   }
 
-  #if (PTIN_BOARD_IS_STANDALONE)
+#if (defined (SHMEM_IS_IN_USE) && (PTIN_BOARD_IS_STANDALONE || (PTIN_BOARD_IS_PASSIVE_LC && PTIN_BOARD_IS_ACTIVETH)))
   los = pfw_shm->intf[ptin_port].port_state & 1;
-  #elif (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+#elif (PTIN_BOARD_IS_MATRIX)
   //los = ptin_intf_link_get(ptin_port)? 0: 1;
   return ptin_intf_link_get(ptin_port)? L7_FALSE: L7_TRUE;
-  #endif
+#endif
 
   return los;
 }

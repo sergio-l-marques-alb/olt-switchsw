@@ -3,6 +3,7 @@
 
 /* If SSM is not supported, comment this line */
 #define SYNC_SSM_IS_SUPPORTED
+#define SHMEM_IS_IN_USE
 
 /* NGPON2 support */
 #define NGPON2_SUPPORTED

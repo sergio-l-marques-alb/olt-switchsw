@@ -51,9 +51,7 @@
 #include "ptin_packet.h"
 #endif
 
-#if ( PTIN_BOARD_IS_STANDALONE || defined(SYNC_SSM_IS_SUPPORTED))
 #include "fw_shm.h"
-#endif
 
 //#include "sirerrors.h"
 //#include "traces.h"
@@ -385,7 +383,7 @@ L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
   /* Initialize Type-B Protection data structures */
   ptin_prottypeb_init();
 
-#if (PTIN_BOARD_IS_STANDALONE || PTIN_BOARD_IS_MATRIX || defined(SYNC_SSM_IS_SUPPORTED))
+#ifdef SHMEM_IS_IN_USE
   /* Open shared memory to communicate with the GPON application */
   if (fw_shm_open() != 0)
   {
