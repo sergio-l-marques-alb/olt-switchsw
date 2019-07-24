@@ -325,7 +325,7 @@ extern L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portS
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t hapi_ptin_counters_clear(L7_uint phyPort);
+extern L7_RC_t hapi_ptin_counters_clear(L7_uint ptin_port);
 
 /**
  * Get counters activity (physical interfaces)
