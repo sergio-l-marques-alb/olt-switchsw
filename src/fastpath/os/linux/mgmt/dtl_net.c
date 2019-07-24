@@ -1558,11 +1558,19 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
            else
            {
              /* MAC not found! Discard this packet*/
-             dtlStats.stale_flushes++;
-             dtlDeleteAll();
-             sprintf( dtlIfName, "%s%d", L7_DTL_PORT_IF, 0 );
-             osapiArpFlush(dtlIfName);
+             info->dtlCmdInfo.intfNum = 0;
+             info->dtlCmdInfo.priority = 0;
+             info->dtlCmdInfo.typeToSend = DTL_VLAN_MULTICAST;
+             info->dtlCmdInfo.cmdType.L2.domainId = vid;       /* This is the internal VID */
+             info->dtlCmdInfo.cmdType.L2.flags = 0;
+             info->dtlCmd = DTL_CMD_TX_L2;
+
+             /*
+              *we are done
+             */
+             info->discard = L7_FALSE;
              goto dtlSendCmdExit;
+
            }
          }
 
