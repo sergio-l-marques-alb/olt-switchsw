@@ -8186,6 +8186,13 @@ int dapi_usp_is_internal_lag_member(DAPI_USP_t *dusp)
    {
      return L7_TRUE;
    }
+#elif ( PTIN_BOARD == PTIN_BOARD_AE48GE )
+   /* Internal LAG */
+   if (1 == dusp->unit && 1 == dusp->slot &&
+       dusp->port >= 0 && dusp->port < 4)
+   {
+     return L7_TRUE;
+   }
 #elif ( PTIN_BOARD_IS_MATRIX )
    nimUSP_t usp;
    L7_uint32 intIfNum;
