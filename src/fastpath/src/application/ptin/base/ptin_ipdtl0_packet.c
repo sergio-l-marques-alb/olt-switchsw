@@ -202,27 +202,48 @@ static void ptin_ipdtl0_task(void)
                     PT_LOG_TRACE(LOG_CTX_API, "Converting Internal VLAN ID (%d) to dtl0 VLAN ID (%d)\n\r", msg.vlanId, ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid);
                 }
 
-
                 // TODO - It would be interesting if instead of replacing the internal VLAN ID with PTIN_VLAN_PCAP_EXT (2048),
                 // we add/push to the packet the external VLAN(s) according to the info on IXLATE for the ingress port
 
+                /* Packets trap and send towards the Agent */
                 if (msg.vlanId != 2047)
                 {
                     int pcap_vlan = 2046;
-                    if (ptin_ipdtl0_debug_enable)
-                    {
-                        PT_LOG_TRACE(LOG_CTX_API, "Converting Internal VLAN ID (%d) to dtl0 VLAN ID (%d)\n\r", msg.vlanId, ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid);
-                    }                
 #if (PTIN_BOARD == PTIN_BOARD_AG16GA)
+                    /* Add 2046 VLAN and intfNum vlan to the packet reach toa agent with the interface information*/
                     ptin_AddDoubleTag(L7_ETYPE_8021Q, pcap_vlan, L7_ETYPE_8021Q,
                                       msg.intIfNum, msg.payload, &msg.payloadLen);
 #elif (PTIN_BOARD == PTIN_BOARD_AE48GE)
+                    int inner_vlan;
+                    /* Convert Internal VLAN ID to auxiliar intfNum VLAN ID for agent
+                       Add 64 to identify that the packet was received from a bck port*/
+
+                    /* Convert Internal VLAN ID to dtl0 VLAN ID */
+                    inner_vlan = (msg.vlanId - PTIN_SYSTEM_BASE_INTERNAL_VLAN);
+
+                    /* Added 64 to Agent know that the packet came from bck ports*/
+                    if (msg.intIfNum > PTIN_SYSTEM_N_ETH)
+                    {
+                        inner_vlan = inner_vlan + 64;
+                    }
+                    /* Add one to represent sysport*/
+                    inner_vlan = inner_vlan + 1;
+                    msg.payload[14] = (inner_vlan >> 8) & 0x0F;
+                    msg.payload[15] = (inner_vlan) & 0xFF;
+                    if (ptin_ipdtl0_debug_enable)
+                    {
+                        PT_LOG_TRACE(LOG_CTX_API, "Converting Internal VLAN ID (%d) to inner VLAN ID (%d) \n\r", 
+                                     msg.vlanId, inner_vlan);
+                    }                
+
+                    /* FIX ME -  extern function
+                       Add 2046 vlan to the packet in order to reach agent */
                     extern void ptin_AddTag(L7_ushort16 tpid, L7_ushort16 vlanId, L7_uchar8 *data, L7_uint32 *data_length);
                     ptin_AddTag(L7_ETYPE_8021Q, pcap_vlan, msg.payload, &msg.payloadLen);
 #else
                     /* Convert Internal VLAN ID to dtl0 VLAN ID */
                     msg.payload[14] = (PTIN_VLAN_PCAP_EXT >> 8) & 0x0F;
-                    msg.payload[15] = (PTIN_VLAN_PCAP_EXT)&0xFF;
+                    msg.payload[15] = (PTIN_VLAN_PCAP_EXT) & 0xFF;
 #endif
                   dtlIPProtoRecvAny(msg.bufHandle, msg.payload, msg.payloadLen, &pduInfo, L7_FALSE);
                 }

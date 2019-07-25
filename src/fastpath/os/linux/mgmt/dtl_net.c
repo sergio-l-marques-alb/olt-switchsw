@@ -68,7 +68,7 @@
 #endif
 
 extern L7_uint16 ptin_cfg_inband_vlan_get(void);
-
+extern L7_RC_t ptin_intf_lag2intIfNum(L7_uint32 lag_idx, L7_uint32 *intIfNum);
 extern L7_uint16 ptin_ipdtl0_dtl0Vid_get(L7_uint16 intVid);
 extern L7_uint16 ptin_ipdtl0_internalVid_get(L7_uint16 dtl0Vid);
 extern L7_uint16 ptin_ipdtl0_outerVid_get(L7_uint16 dtl0Vid);
@@ -1352,8 +1352,6 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
   if (memcmp(&data[12], etype_8021q, 2) == 0)
   {
     dtl0Vid = ((data[14] << 8) & 0x0F00) | (data[15] & 0x00FF);
-
-    SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): dl0vid %u \n\r", __FUNCTION__, __LINE__, dtl0Vid);
     isTaggedPacket = L7_TRUE;
 
     if (dtl0Vid == DTL0INBANDVID)
@@ -1384,11 +1382,13 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
       ptin_RemoveTag(data, &data_length);
       int vlan = ((data[18] << 8) & 0x0F00) | (data[19] & 0x00FF);
       /* Get IntfNum from agent (were the packet were receive)*/
-      int intfNum = ((data[14] << 8) & 0x0F00) | (data[15] & 0x00FF);
+      int intfNum = (((data[14] << 8) & 0x0F00) | (data[15] & 0x00FF)) + 1;
+      int sysintf = 0, lag_id = 0;
 
       if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
       {
-        SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Initial intfnum %u \n\r", __FUNCTION__, __LINE__, intfNum);
+        SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Initial intfnum %u and vlan %d \n\r", __FUNCTION__, __LINE__, 
+                      intfNum, vlan);
       }
 
 #if (PTIN_BOARD == PTIN_BOARD_AG16GA)
@@ -1403,21 +1403,69 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
         intfNum = ((intfNum - PTIN_SYSTEM_N_PONS - 1) << 2) + (vlan >> 10) + 1;
       }
 #elif (PTIN_BOARD == PTIN_BOARD_AE48GE)
+      /* Packet received from Agent*/
+      L7_RC_t rc;
+
+      /* Packets from agent to bck interfaces*/
       if (intfNum & 0x40)
       {
-        intfNum = intfNum & 0x3F;
+        /* Reset bit set by Agent*/
+        intfNum = (intfNum & 0x3F);
+        /* Get sysintf*/
+        sysintf = intfNum;
+
+        if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
+        {
+          SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): sysintf %d\n\r", __FUNCTION__, __LINE__, sysintf);
+        }
+
+        /* internal Vlan is equal to (frontal port + (PTIN_SYSTEM_BASE_INTERNAL_VLAN-1))*/
+        vlan = (intfNum + (PTIN_SYSTEM_BASE_INTERNAL_VLAN - 1));
+        /*Replace the outer VLAN. SF is expecting sysinf (where the packet was received) as outer vlan*/
+        ptin_ReplaceTag(L7_ETYPE_8021Q, sysintf, data);
+        /* Replace the outer VLAN. SF is expecting sysinf (where the packet was received) as outer vlan*/
+        ptin_AddTag(L7_ETYPE_8021Q, sysintf, data, &data_length);
+
+        if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
+        {
+          SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): vlan id %d\n\r", __FUNCTION__, __LINE__, vlan);
+        }
+
+        /* Get lag bck lag id to send the packet*/
+        lag_id = SYSINTF_TO_INTLAG(sysintf);
+        rc = ptin_intf_lag2intIfNum(lag_id, &intfNum);
+
+        if (rc != L7_SUCCESS)
+        {
+          info->discard = L7_TRUE;
+          goto dtlSendCmdExit;
+        }
+
+        if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
+        {
+          SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Changed intfnum %u and lag id %d\n\r", __FUNCTION__, __LINE__, intfNum, lag_id);
+        }
       } 
+      /* Packets from agent to frontal ports*/
       else
       {
-        intfNum = intfNum;
+        sysintf = intfNum;
+        
+        /* Internal vlan is equal to (intfNum (where the packet was received i.e frontal port) + PTIN_SYSTEM_BASE_INTERNAL_VLAN -1)*/
+        vlan = (intfNum + (PTIN_SYSTEM_BASE_INTERNAL_VLAN - 1));
+
+        if(dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
+        {
+          SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Changed intfnum %u and vlan %d\n\r", __FUNCTION__, __LINE__, intfNum, vlan);
+        }
       }
 #else
       intfNum = intfNum;
 #endif
-      if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
-      {
-        SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Send packet to intfnum %u \n\r", __FUNCTION__, __LINE__, intfNum);
-      }
+    if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
+    {
+      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Send packet to intfnum %u \n\r", __FUNCTION__, __LINE__, intfNum);
+    }
 
     info->dtlCmdInfo.intfNum = intfNum;
     info->dtlCmdInfo.priority = 0;
@@ -1435,26 +1483,24 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
     goto dtlSendCmdExit;
   }
 
-      else
+    else
+    {
+      vid = ptin_ipdtl0_outerVid_get(dtl0Vid);     /* This is the packet outer VID */
+
+      ptin_ReplaceTag(L7_ETYPE_8021Q, vid, data);
+
+      vid = ptin_ipdtl0_internalVid_get(dtl0Vid);  /* This is the internal VID */
+
+      if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1) SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Replaced original packet VID %u with %u\n\r", __FUNCTION__, __LINE__, dtl0Vid, vid);
+
+      if (vid == 0)
       {
-         vid = ptin_ipdtl0_outerVid_get(dtl0Vid);     /* This is the packet outer VID */
+        if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1) SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Packet discarded due to unconfigured translation to the internal VID \n\r", __FUNCTION__, __LINE__);
 
-         ptin_ReplaceTag(L7_ETYPE_8021Q, vid, data);
-
-         vid = ptin_ipdtl0_internalVid_get(dtl0Vid);  /* This is the internal VID */
-
-         if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
-           SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Replaced original packet VID %u with %u\n\r", __FUNCTION__, __LINE__, dtl0Vid, vid);
-
-         if (vid == 0)
-         {
-            if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
-              SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Packet discarded due to unconfigured translation to the internal VID \n\r", __FUNCTION__, __LINE__);
-
-            info->discard = L7_TRUE;
-            goto dtlSendCmdExit;
-         }
+        info->discard = L7_TRUE;
+        goto dtlSendCmdExit;
       }
+    }
    }
    else
    {
