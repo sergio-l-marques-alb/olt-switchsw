@@ -1382,7 +1382,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
       ptin_RemoveTag(data, &data_length);
       int vlan = ((data[18] << 8) & 0x0F00) | (data[19] & 0x00FF);
       /* Get IntfNum from agent (were the packet were receive)*/
-      int intfNum = (((data[14] << 8) & 0x0F00) | (data[15] & 0x00FF)) + 1;
+      int intfNum = (((data[14] << 8) & 0x0F00) | (data[15] & 0x00FF));
       int sysintf = 0, lag_id = 0;
 
       if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
