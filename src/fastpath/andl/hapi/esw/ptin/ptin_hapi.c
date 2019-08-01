@@ -39,6 +39,7 @@
 #if 0//Required to init L3 Modules. Not used since FP is already performing the init of those Modules
 #include <bcm/init.h>
 #endif
+#include "unitmgr_api.h"
 
 /********************************************************************
  * DEFINES
@@ -58,6 +59,8 @@ extern L7_uint64 hapiBroadReceice_mld_count;
 extern L7_uint64 hapiBroadReceice_dhcpv4_count;
 extern L7_uint64 hapiBroadReceice_dhcpv6_count;
 extern L7_uint64 hapiBroadReceice_pppoe_count;
+
+extern DAPI_t *dapi_g;
 
 BROAD_POLICY_t lacp_policyId   = BROAD_POLICY_INVALID;
 BROAD_POLICY_t bl2cpu_policyId[3] = {BROAD_POLICY_INVALID, BROAD_POLICY_INVALID, BROAD_POLICY_INVALID};
@@ -1314,33 +1317,6 @@ L7_RC_t ptin_hapi_phy_init_olt1t0(void)
     PT_LOG_TRACE(LOG_CTX_STARTUP, "Cancellation rule applied to all ports");
 #endif
 
-  #if 0
-  /* SFI mode for 10G ports */
-  for (port_index = PTIN_SYSTEM_N_PONS; port_index < PTIN_SYSTEM_N_PORTS-1; port_index++)
-  {
-    /* Get bcm_port */
-    if (hapi_ptin_bcmPort_get(port_index, &bcm_port) != L7_SUCCESS)
-      return L7_FAILURE;
-
-    if ((1ULL << port_index) & PTIN_SYSTEM_10G_PORTS_MASK)
-    {
-      rc = bcm_port_speed_set(0, bcm_port, 10000);
-      if (L7_BCMX_OK(rc) != L7_TRUE)
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcm_port %u at 10G speed", bcm_port);
-        return L7_FAILURE;
-      }
-      rc = bcm_port_interface_set(0, bcm_port, BCM_PORT_IF_SFI);
-      if (L7_BCMX_OK(rc) != L7_TRUE)
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcm_port %u at SFI mode", bcm_port);
-        return L7_FAILURE;
-      }
-      PT_LOG_TRACE(LOG_CTX_STARTUP, "Port %u set to SFI mode", port_index);
-    }
-  }
-  #endif
-
 #else
   rc = L7_NOT_SUPPORTED;
 #endif
@@ -1681,22 +1657,31 @@ L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable)
  */
 L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier)
 {
-  int i, unit=0;
+  int i, usp_unit;
   bcm_port_t bcm_port;
   bcmx_lport_t lport_cpu;
   bcm_port_t bcm_port_cpu;
+  DAPI_USP_t  usp;
+  BROAD_PORT_t *hapiPortPtr;
+  int rv;
+
+  unitMgrNumberGet(&usp_unit);
+  usp.unit = (L7_int8) usp_unit;
+  usp.slot = 0;   /* Default hapi usp slot number to phy. intfs. */
+
+  /* Validate dapi_g pointers */
+  if (dapi_g == L7_NULLPTR ||
+      dapi_g->unit[usp.unit] == L7_NULLPTR ||
+      dapi_g->unit[usp.unit]->slot[usp.slot] == L7_NULLPTR)
+  {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "dapi_g is not initialized");
+      return L7_FAILURE;
+  }
 
   /* Validate arguments */
   if (port_frontier>=ptin_sys_number_of_ports)
   {
     PT_LOG_ERR(LOG_CTX_HAPI,"Invalid port frontier (%u)",port_frontier);
-    return L7_FAILURE;
-  }
-
-  /* Switch unit */
-  if (hapi_ptin_bcmUnit_get(&unit) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI,"bcm_port map not initialized!");
     return L7_FAILURE;
   }
 
@@ -1755,36 +1740,27 @@ L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier)
   }
 
   /* PON ports: egress ports are the ethernet ones only */
-  for (i=0; i<port_frontier; i++)
+  for (usp.port = 0;
+       usp.port < dapi_g->unit[usp.unit]->slot[usp.slot]->numOfPortsInSlot;
+       usp.port++)
   {
-    if (hapi_ptin_bcmPort_get(i, &bcm_port) != L7_SUCCESS)
+    hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+
+    /* Hardware configuration protection */
+    if (L7_FALSE == hapiPortPtr -> is_hw_mapped)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI,"Error getting bcm_port for port %u",i);
-      return L7_FAILURE;
+        continue;
     }
+
     /* Configure egress ports list */
-    if (bcm_port_egress_set(unit, bcm_port, 0, pbm_egress_root_ports)!=BCM_E_NONE)
+    rv = bcm_port_egress_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, 0, 
+                             (usp.port < port_frontier) ? pbm_egress_root_ports : pbm_egress_all_ports);
+    if (rv != BCM_E_NONE)
     {
       PT_LOG_ERR(LOG_CTX_HAPI,"Error setting egress bitmap for port %u",i);
       return L7_FAILURE;
     }
-    PT_LOG_DEBUG(LOG_CTX_HAPI,"Egress bitmap configured for PON port %u (bcm_port=%u)",i, bcm_port);
-  }
-  /* ETH ports */
-  for (i=port_frontier; i<ptin_sys_number_of_ports; i++)
-  {
-    if (hapi_ptin_bcmPort_get(i, &bcm_port) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI,"Error getting bcm_port for port %u",i);
-      return L7_FAILURE;
-    }
-    /* Configure egress ports list */
-    if (bcm_port_egress_set(unit, bcm_port, 0, pbm_egress_all_ports)!=BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI,"Error setting egress bitmap for port %u",i);
-      return L7_FAILURE;
-    }
-    PT_LOG_DEBUG(LOG_CTX_HAPI,"Egress bitmap configured for ETH port %u (bcm_port=%u)",i,bcm_port);
+    PT_LOG_DEBUG(LOG_CTX_HAPI,"Egress bitmap configured for port %u (bcm_port=%u)", i, hapiPortPtr->bcm_port);
   }
 
   PT_LOG_DEBUG(LOG_CTX_HAPI,"Egress bitmap configured for all ports");
@@ -1822,6 +1798,12 @@ L7_RC_t ptin_hapi_linkfaults_enable(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, L7_BOOL l
   dapiPortPtr = DAPI_PORT_GET( ddUsp, dapi_g );
   hapiPortPtr = HAPI_PORT_GET( ddUsp, dapi_g );
 
+  if (L7_FALSE == hapiPortPtr->is_hw_mapped)
+  {
+    PT_LOG_WARN(LOG_CTX_INTF, "usp {%u,%u,%u} is not physically mapped", ddUsp->unit, ddUsp->slot, ddUsp->port);
+    return L7_SUCCESS;
+  }
+  
   /* Check if hapiPortPtr pointer is valid */
   if (hapiPortPtr == L7_NULLPTR)
   {
@@ -2226,6 +2208,12 @@ L7_RC_t ptin_hapi_linkscan_set(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
     return L7_NOT_SUPPORTED;
   }
 
+  if (L7_FALSE == hapiPortPtr->is_hw_mapped)
+  {
+    PT_LOG_WARN(LOG_CTX_INTF, "usp {%u,%u,%u} is not physically mapped", usp->unit, usp->slot, usp->port);
+    return L7_SUCCESS;
+  }
+
   /* Validate bcm port */
   if (hapi_ptin_port_get(hapiPortPtr->bcm_port, &ptin_port)!=L7_SUCCESS)
   {
@@ -2346,6 +2334,12 @@ L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_
   {
     PT_LOG_WARN(LOG_CTX_HAPI, "Port {%d,%d,%d} is not physical", usp->unit, usp->slot, usp->port);
     return L7_NOT_SUPPORTED;
+  }
+
+  if (L7_FALSE == hapiPortPtr->is_hw_mapped)
+  {
+    PT_LOG_WARN(LOG_CTX_INTF, "usp {%u,%u,%u} is not physically mapped", usp->unit, usp->slot, usp->port);
+    return L7_SUCCESS;
   }
 
   /* Validate bcm port */
@@ -2682,31 +2676,37 @@ L7_RC_t ptin_hapi_frame_oversize_set(DAPI_USP_t *usp, L7_uint32 frame_size, DAPI
         return L7_FAILURE;
       }
 
-      /* Set oversize packets limite */
-      rv = bcm_port_control_set(hapiPortPtr_member->bcm_unit, hapiPortPtr_member->bcm_port,
-                                bcmPortControlStatOversize, frame_size);
-
-      if (rv != BCM_E_NONE)
+      if (hapiPortPtr_member->is_hw_mapped)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error setting oversize frame limite at port {%d,%d,%d} (rv=%d)",
-                dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
-                dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
-                dapiPortPtr->modeparm.lag.memberSet[i].usp.port,
-                rv);
-        return L7_FAILURE;
+        /* Set oversize packets limite */
+        rv = bcm_port_control_set(hapiPortPtr_member->bcm_unit, hapiPortPtr_member->bcm_port,
+                                  bcmPortControlStatOversize, frame_size);
+
+        if (rv != BCM_E_NONE)
+        {
+          PT_LOG_ERR(LOG_CTX_HAPI, "Error setting oversize frame limite at port {%d,%d,%d} (rv=%d)",
+                  dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
+                  dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
+                  dapiPortPtr->modeparm.lag.memberSet[i].usp.port,
+                  rv);
+          return L7_FAILURE;
+        }
       }
     }
   }
   else if ( IS_PORT_TYPE_PHYSICAL(dapiPortPtr) )
   {
-    /* Set oversize packets limite */
-    rv = bcm_port_control_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmPortControlStatOversize, frame_size);
-
-    if (rv != BCM_E_NONE)
+    if (hapiPortPtr->is_hw_mapped)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting oversize frame limite at port {%d,%d,%d} (rv=%d)",
-              usp->unit, usp->slot, usp->port, rv);
-      return L7_FAILURE;
+      /* Set oversize packets limite */
+      rv = bcm_port_control_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmPortControlStatOversize, frame_size);
+
+      if (rv != BCM_E_NONE)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error setting oversize frame limite at port {%d,%d,%d} (rv=%d)",
+                usp->unit, usp->slot, usp->port, rv);
+        return L7_FAILURE;
+      }
     }
   }
   else
@@ -2773,40 +2773,46 @@ L7_RC_t ptin_hapi_frame_oversize_get(DAPI_USP_t *usp, L7_uint32 *frame_size, DAP
         return L7_FAILURE;
       }
 
-      /* Set oversize packets limite */
-      rv = bcm_port_control_get(hapiPortPtr_member->bcm_unit, hapiPortPtr_member->bcm_port,
-                                bcmPortControlStatOversize, &fsize);
+      if (hapiPortPtr_member->is_hw_mapped)
+      {
+        /* Set oversize packets limite */
+        rv = bcm_port_control_get(hapiPortPtr_member->bcm_unit, hapiPortPtr_member->bcm_port,
+                                  bcmPortControlStatOversize, &fsize);
 
-      if (rv != BCM_E_NONE)
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error setting oversize frame limite at port {%d,%d,%d} (rv=%d)",
-                dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
-                dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
-                dapiPortPtr->modeparm.lag.memberSet[i].usp.port,
-                rv);
-        return L7_FAILURE;
-      }
-      else if (fsize < fsize_res)
-      {
-        /* Update frame size (select minimum) */
-        fsize_res = fsize;
+        if (rv != BCM_E_NONE)
+        {
+          PT_LOG_ERR(LOG_CTX_HAPI, "Error setting oversize frame limite at port {%d,%d,%d} (rv=%d)",
+                  dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
+                  dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
+                  dapiPortPtr->modeparm.lag.memberSet[i].usp.port,
+                  rv);
+          return L7_FAILURE;
+        }
+        else if (fsize < fsize_res)
+        {
+          /* Update frame size (select minimum) */
+          fsize_res = fsize;
+        }
       }
     }
   }
   else if ( IS_PORT_TYPE_PHYSICAL(dapiPortPtr) )
   {
-    /* Set oversize packets limite */
-    rv = bcm_port_control_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmPortControlStatOversize, &fsize);
+    if (hapiPortPtr->is_hw_mapped)
+    {
+      /* Set oversize packets limite */
+      rv = bcm_port_control_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmPortControlStatOversize, &fsize);
 
-    if (rv != BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting oversize frame limite at port {%d,%d,%d} (rv=%d)",
-              usp->unit, usp->slot, usp->port, rv);
-      return L7_FAILURE;
-    }
-    else
-    {
-      fsize_res = fsize;
+      if (rv != BCM_E_NONE)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error setting oversize frame limite at port {%d,%d,%d} (rv=%d)",
+                usp->unit, usp->slot, usp->port, rv);
+        return L7_FAILURE;
+      }
+      else
+      {
+        fsize_res = fsize;
+      }
     }
   }
   else
@@ -2931,22 +2937,25 @@ L7_RC_t hapi_ptin_egress_port_type_set(ptin_dapi_port_t *dapiPort, L7_int port_t
   /* Physical port */
   if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
   {
-    if (port_type == PTIN_PORT_EGRESS_TYPE_ISOLATED)
+    if (hapiPortPtr->is_hw_mapped)
     {
-      BCM_PBMP_PORT_REMOVE(pbm_egress_root_ports, hapiPortPtr->bcm_port);
-      BCM_PBMP_PORT_REMOVE(pbm_egress_community_ports, hapiPortPtr->bcm_port);
-    }
-    else if (port_type == PTIN_PORT_EGRESS_TYPE_COMMUNITY)
-    {
-      /* Port used only as community port */
-      BCM_PBMP_PORT_REMOVE(pbm_egress_root_ports, hapiPortPtr->bcm_port);
-      BCM_PBMP_PORT_ADD(pbm_egress_community_ports, hapiPortPtr->bcm_port);
-    }
-    else
-    {
-      /* Port used as root and community port */
-      BCM_PBMP_PORT_ADD(pbm_egress_root_ports, hapiPortPtr->bcm_port);
-      BCM_PBMP_PORT_ADD(pbm_egress_community_ports, hapiPortPtr->bcm_port);
+      if (port_type == PTIN_PORT_EGRESS_TYPE_ISOLATED)
+      {
+        BCM_PBMP_PORT_REMOVE(pbm_egress_root_ports, hapiPortPtr->bcm_port);
+        BCM_PBMP_PORT_REMOVE(pbm_egress_community_ports, hapiPortPtr->bcm_port);
+      }
+      else if (port_type == PTIN_PORT_EGRESS_TYPE_COMMUNITY)
+      {
+        /* Port used only as community port */
+        BCM_PBMP_PORT_REMOVE(pbm_egress_root_ports, hapiPortPtr->bcm_port);
+        BCM_PBMP_PORT_ADD(pbm_egress_community_ports, hapiPortPtr->bcm_port);
+      }
+      else
+      {
+        /* Port used as root and community port */
+        BCM_PBMP_PORT_ADD(pbm_egress_root_ports, hapiPortPtr->bcm_port);
+        BCM_PBMP_PORT_ADD(pbm_egress_community_ports, hapiPortPtr->bcm_port);
+      }
     }
   }
   /* LAG port */
@@ -2967,22 +2976,25 @@ L7_RC_t hapi_ptin_egress_port_type_set(ptin_dapi_port_t *dapiPort, L7_int port_t
         return L7_FAILURE;
       }
 
-      if (port_type == PTIN_PORT_EGRESS_TYPE_ISOLATED)
+      if (hapiPortPtr_member->is_hw_mapped)
       {
-        BCM_PBMP_PORT_REMOVE(pbm_egress_root_ports, hapiPortPtr_member->bcm_port);
-        BCM_PBMP_PORT_REMOVE(pbm_egress_community_ports, hapiPortPtr_member->bcm_port);
-      }
-      else if (port_type == PTIN_PORT_EGRESS_TYPE_COMMUNITY)
-      {
-        /* Port used only as community port */
-        BCM_PBMP_PORT_REMOVE(pbm_egress_root_ports, hapiPortPtr_member->bcm_port);
-        BCM_PBMP_PORT_ADD(pbm_egress_community_ports, hapiPortPtr_member->bcm_port);
-      }
-      else
-      {
-        /* Port used as root and community port */
-        BCM_PBMP_PORT_ADD(pbm_egress_root_ports, hapiPortPtr_member->bcm_port);
-        BCM_PBMP_PORT_ADD(pbm_egress_community_ports, hapiPortPtr_member->bcm_port);
+        if (port_type == PTIN_PORT_EGRESS_TYPE_ISOLATED)
+        {
+          BCM_PBMP_PORT_REMOVE(pbm_egress_root_ports, hapiPortPtr_member->bcm_port);
+          BCM_PBMP_PORT_REMOVE(pbm_egress_community_ports, hapiPortPtr_member->bcm_port);
+        }
+        else if (port_type == PTIN_PORT_EGRESS_TYPE_COMMUNITY)
+        {
+          /* Port used only as community port */
+          BCM_PBMP_PORT_REMOVE(pbm_egress_root_ports, hapiPortPtr_member->bcm_port);
+          BCM_PBMP_PORT_ADD(pbm_egress_community_ports, hapiPortPtr_member->bcm_port);
+        }
+        else
+        {
+          /* Port used as root and community port */
+          BCM_PBMP_PORT_ADD(pbm_egress_root_ports, hapiPortPtr_member->bcm_port);
+          BCM_PBMP_PORT_ADD(pbm_egress_community_ports, hapiPortPtr_member->bcm_port);
+        }
       }
     }
   }
@@ -3097,15 +3109,18 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
   {
     if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
     {
-      /* LearnClass Enable/Disable */
-      if ((rv = bcm_port_control_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
-                                     bcmPortControlLearnClassEnable, macLearn_enable & 1)) != BCM_E_NONE)
+      if (hapiPortPtr->is_hw_mapped)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmPortControlLearnClassEnable in port {%d,%d,%d} to %u (rv=%d)",
-                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, macLearn_enable, rv);
+        /* LearnClass Enable/Disable */
+        if ((rv = bcm_port_control_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
+                                       bcmPortControlLearnClassEnable, macLearn_enable & 1)) != BCM_E_NONE)
+        {
+          PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmPortControlLearnClassEnable in port {%d,%d,%d} to %u (rv=%d)",
+                  dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, macLearn_enable, rv);
 #if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
-        return L7_FAILURE;
+          return L7_FAILURE;
 #endif
+        }
       }
     }
     else
@@ -3124,20 +3139,24 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
                   dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
           return L7_FAILURE;
         }
-        /* Get enable status for member port */
-        if ((rv = bcm_port_control_set(hapiPortPtr_member->bcm_unit,
-                                       hapiPortPtr_member->bcm_port,
-                                       bcmPortControlLearnClassEnable,
-                                       macLearn_enable & 1)) != BCM_E_NONE)
+
+        if (hapiPortPtr_member->is_hw_mapped)
         {
-          PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcmPortControlLearnClassEnable in port {%d,%d,%d} (rv=%d)",
-                  dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
-                  dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
-                  dapiPortPtr->modeparm.lag.memberSet[i].usp.port,
-                  rv);
+          /* Get enable status for member port */
+          if ((rv = bcm_port_control_set(hapiPortPtr_member->bcm_unit,
+                                         hapiPortPtr_member->bcm_port,
+                                         bcmPortControlLearnClassEnable,
+                                         macLearn_enable & 1)) != BCM_E_NONE)
+          {
+            PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcmPortControlLearnClassEnable in port {%d,%d,%d} (rv=%d)",
+                    dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
+                    dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
+                    dapiPortPtr->modeparm.lag.memberSet[i].usp.port,
+                    rv);
 #if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
-          return L7_FAILURE;
+            return L7_FAILURE;
 #endif
+          }
         }
       }
     }
@@ -3150,13 +3169,16 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
 
     if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
     {
-      /* L2 Station move */
-      if ((rv = bcm_port_control_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
-                                     bcmPortControlL2Move, flags)) != BCM_E_NONE)
+      if (hapiPortPtr->is_hw_mapped)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmPortControlL2Move in port {%d,%d,%d} to 0x%02x (rv=%d)",
-                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, flags, rv);
-        return L7_FAILURE;
+        /* L2 Station move */
+        if ((rv = bcm_port_control_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
+                                       bcmPortControlL2Move, flags)) != BCM_E_NONE)
+        {
+          PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmPortControlL2Move in port {%d,%d,%d} to 0x%02x (rv=%d)",
+                  dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, flags, rv);
+          return L7_FAILURE;
+        }
       }
     }
     else
@@ -3175,16 +3197,20 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
                   dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
           return L7_FAILURE;
         }
-        /* Get enable status for member port */
-        if ((rv = bcm_port_control_set(hapiPortPtr_member->bcm_unit, hapiPortPtr_member->bcm_port,
-                                       bcmPortControlL2Move, flags)) != BCM_E_NONE)
+
+        if (hapiPortPtr_member->is_hw_mapped)
         {
-          PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmPortControlL2Move in port {%d,%d,%d} (rv=%d)",
-                  dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
-                  dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
-                  dapiPortPtr->modeparm.lag.memberSet[i].usp.port,
-                  rv);
-          return L7_FAILURE;
+          /* Get enable status for member port */
+          if ((rv = bcm_port_control_set(hapiPortPtr_member->bcm_unit, hapiPortPtr_member->bcm_port,
+                                         bcmPortControlL2Move, flags)) != BCM_E_NONE)
+          {
+            PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmPortControlL2Move in port {%d,%d,%d} (rv=%d)",
+                    dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
+                    dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
+                    dapiPortPtr->modeparm.lag.memberSet[i].usp.port,
+                    rv);
+            return L7_FAILURE;
+          }
         }
       }
     }
@@ -3283,17 +3309,20 @@ L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_
   {
     if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
     {
-      /* LearnClass Enable/Disable */
-      if (bcm_port_control_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
-                               bcmPortControlLearnClassEnable, &enable_global) != BCM_E_NONE)
+      if (hapiPortPtr->is_hw_mapped)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcmPortControlLearnClassEnable in port {%d,%d,%d}",
-                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+        /* LearnClass Enable/Disable */
+        if (bcm_port_control_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
+                                 bcmPortControlLearnClassEnable, &enable_global) != BCM_E_NONE)
+        {
+          PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcmPortControlLearnClassEnable in port {%d,%d,%d}",
+                  dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
 #if (PLAT_BCM_CHIP == L7_BCM_HURRICANE3MG)
-        enable_global = L7_FALSE;
+          enable_global = L7_FALSE;
 #else
-        return L7_FAILURE;
+          return L7_FAILURE;
 #endif
+        }
       }
     }
     /* If port is a lag, get all member port enables. If any has mac learning disabled, return disabled status */
@@ -3314,19 +3343,23 @@ L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_
                   dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
           return L7_FAILURE;
         }
-        /* Get enable status for member port */
-        if (bcm_port_control_get(hapiPortPtr_member->bcm_unit, hapiPortPtr_member->bcm_port,
-                                 bcmPortControlLearnClassEnable, &enable) != BCM_E_NONE)
+
+        if (hapiPortPtr_member->is_hw_mapped)
         {
-          PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcmPortControlLearnClassEnable in port {%d,%d,%d}",
-                  dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
-                  dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
-                  dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
+          /* Get enable status for member port */
+          if (bcm_port_control_get(hapiPortPtr_member->bcm_unit, hapiPortPtr_member->bcm_port,
+                                   bcmPortControlLearnClassEnable, &enable) != BCM_E_NONE)
+          {
+            PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcmPortControlLearnClassEnable in port {%d,%d,%d}",
+                    dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
+                    dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
+                    dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
 #if (PLAT_BCM_CHIP == L7_BCM_HURRICANE3MG)
-          enable = L7_FALSE;
+            enable = L7_FALSE;
 #else
-          return L7_FAILURE;
+            return L7_FAILURE;
 #endif
+          }
         }
         /* If not enabled, set global enable to FALSE, and break cycle */
         if (!enable)
@@ -3344,15 +3377,18 @@ L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_
   {
     if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
     {
-      /* L2 Station move */
-      if (bcm_port_control_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
-                               bcmPortControlL2Move, &flags) != BCM_E_NONE)
+      if (hapiPortPtr->is_hw_mapped)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcmPortControlL2Move flags in port {%d,%d,%d}",
-                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
-        return L7_FAILURE;
+        /* L2 Station move */
+        if (bcm_port_control_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
+                                 bcmPortControlL2Move, &flags) != BCM_E_NONE)
+        {
+          PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcmPortControlL2Move flags in port {%d,%d,%d}",
+                  dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+          return L7_FAILURE;
+        }
+        enable_global = (flags & BCM_PORT_LEARN_ARL);
       }
-      enable_global = (flags & BCM_PORT_LEARN_ARL);
     }
     /* If port is a lag, get all member port enables. If any has mac learning disabled, return disabled status */
     else
@@ -3372,21 +3408,26 @@ L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_
                   dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
           return L7_FAILURE;
         }
-        /* Get enable status for member port */
-        if (bcm_port_control_get(hapiPortPtr_member->bcm_unit, hapiPortPtr_member->bcm_port,
-                                 bcmPortControlL2Move, &flags) != BCM_E_NONE)
+
+        if (hapiPortPtr_member->is_hw_mapped)
         {
-          PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcmPortControlL2Move in port {%d,%d,%d}",
-                  dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
-                  dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
-                  dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
-          return L7_FAILURE;
-        }
-        /* If not enabled, set global enable to FALSE, and break cycle */
-        if (!(flags & BCM_PORT_LEARN_ARL))
-        {
-          enable_global = 0;
-          break;
+          /* Get enable status for member port */
+          if (bcm_port_control_get(hapiPortPtr_member->bcm_unit, hapiPortPtr_member->bcm_port,
+                                   bcmPortControlL2Move, &flags) != BCM_E_NONE)
+          {
+            PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcmPortControlL2Move in port {%d,%d,%d}",
+                    dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
+                    dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
+                    dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
+            return L7_FAILURE;
+          }
+
+          /* If not enabled, set global enable to FALSE, and break cycle */
+          if (!(flags & BCM_PORT_LEARN_ARL))
+          {
+            enable_global = 0;
+            break;
+          }
         }
       }
     }
@@ -3449,6 +3490,9 @@ L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
   L7_uint64 mtuePkts=0;
   L7_uint64 pkts1519to2047, pkts2048to4095, pkts4096to9216, pkts9217to16383;
   L7_uint cos, bcm_port, bcm_unit;
+  int         usp_unit;
+  DAPI_USP_t  usp;
+  BROAD_PORT_t *hapiPortPtr;
 
   if (portStats->Port >= ptin_sys_number_of_ports)
     return L7_FAILURE;
@@ -3457,8 +3501,30 @@ L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
   memset(&portStats->Rx, 0x00, sizeof(portStats->Rx));
   memset(&portStats->Tx, 0x00, sizeof(portStats->Tx));
 
-  bcm_port = usp_map[portStats->Port].port;
-  bcm_unit = usp_map[portStats->Port].unit;
+  unitMgrNumberGet(&usp_unit);
+  usp.unit = (L7_int8) usp_unit;
+  usp.slot = 0;   /* Default hapi usp slot number to phy. intfs. */
+  usp.port = portStats->Port;
+
+  /* Validate dapi_g pointers */
+  if (dapi_g == L7_NULLPTR ||
+      dapi_g->unit[usp.unit] == L7_NULLPTR ||
+      dapi_g->unit[usp.unit]->slot[usp.slot] == L7_NULLPTR)
+  {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "dapi_g is not initialized");
+      return L7_FAILURE;
+  }
+
+  hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+  
+  if (L7_FALSE == hapiPortPtr->is_hw_mapped)
+  {
+    PT_LOG_WARN(LOG_CTX_INTF, "usp {%u,%u,%u} is not physically mapped", usp.unit, usp.slot, usp.port);
+    return L7_SUCCESS;
+  }
+  
+  bcm_port = hapiPortPtr->bcm_port;
+  bcm_unit = hapiPortPtr->bcm_unit;
   rx = &portStats->Rx;
   tx = &portStats->Tx;
 
@@ -3968,12 +4034,34 @@ L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
 L7_RC_t hapi_ptin_counters_clear(L7_uint ptin_port)
 {
   L7_uint bcm_port, bcm_unit;
+  int         usp_unit;
+  DAPI_USP_t  usp;
+  BROAD_PORT_t *hapiPortPtr;
 
-  if (ptin_port >= ptin_sys_number_of_ports)
-    return L7_FAILURE;
+  unitMgrNumberGet(&usp_unit);
+  usp.unit = (L7_int8) usp_unit;
+  usp.slot = 0;   /* Default hapi usp slot number to phy. intfs. */
+  usp.port = ptin_port;
 
-  bcm_port = usp_map[ptin_port].port;
-  bcm_unit = usp_map[ptin_port].unit;
+  /* Validate dapi_g pointers */
+  if (dapi_g == L7_NULLPTR ||
+      dapi_g->unit[usp.unit] == L7_NULLPTR ||
+      dapi_g->unit[usp.unit]->slot[usp.slot] == L7_NULLPTR)
+  {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "dapi_g is not initialized");
+      return L7_FAILURE;
+  }
+
+  hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+  
+  if (L7_FALSE == hapiPortPtr->is_hw_mapped)
+  {
+    PT_LOG_WARN(LOG_CTX_INTF, "usp {%u,%u,%u} is not physically mapped", usp.unit, usp.slot, usp.port);
+    return L7_SUCCESS;
+  }
+
+  bcm_port = hapiPortPtr->bcm_port;
+  bcm_unit = hapiPortPtr->bcm_unit;
 
   /* 1G or 2.5G Ethernet bcm_port ? */
   if (SOC_IS_VALKYRIE2(bcm_unit))
@@ -4272,17 +4360,43 @@ L7_RC_t hapi_ptin_counters_activity_get(ptin_HWEth_PortsActivity_t *portsActivit
   L7_uint bcm_port, bcm_unit;
   L7_uint64 old_mask;
   L7_uint64 rate;
+  int         usp_unit;
+  DAPI_USP_t  usp;
+  BROAD_PORT_t *hapiPortPtr;
+
+  unitMgrNumberGet(&usp_unit);
+  usp.unit = (L7_int8) usp_unit;
+  usp.slot = 0;   /* Default hapi usp slot number to phy. intfs. */
+
+  /* Validate dapi_g pointers */
+  if (dapi_g == L7_NULLPTR ||
+      dapi_g->unit[usp.unit] == L7_NULLPTR ||
+      dapi_g->unit[usp.unit]->slot[usp.slot] == L7_NULLPTR)
+  {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "dapi_g is not initialized");
+      return L7_FAILURE;
+  }
 
   old_mask = portsActivity->ports_mask;
   portsActivity->ports_mask = 0;
 
-  for (ptin_port=0; ptin_port < ptin_sys_number_of_ports && ptin_port < PTIN_SYSTEM_N_PORTS; ptin_port++)
+  /* Run all usp ports */
+  for (usp.port = 0;
+       usp.port < dapi_g->unit[usp.unit]->slot[usp.slot]->numOfPortsInSlot;
+       usp.port++)
   {
-    if (! (old_mask & ((L7_uint64) 1 << ptin_port)))
-      continue;
+    hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
 
-    bcm_port = usp_map[ptin_port].port;
-    bcm_unit = usp_map[ptin_port].unit;
+    /* Hardware configuration protection */
+    if (L7_FALSE == hapiPortPtr -> is_hw_mapped)
+    {
+        continue;
+    }
+
+    ptin_port = usp.port;
+    bcm_unit = hapiPortPtr->bcm_unit;
+    bcm_port = hapiPortPtr->bcm_port;
+
     portsActivity->ports_mask |= (L7_uint64) 1 << ptin_port;
     portsActivity->activity_bmap[ptin_port] = 0;
 
@@ -5649,13 +5763,27 @@ L7_RC_t hapiBroadSystemInstallPtin_preInit(void)
  */
 L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
 {
-  L7_uint8    port, prio;
   L7_BOOL     remark_pbits;
-  bcm_port_t  bcm_port;
+  int         usp_unit, prio;
+  DAPI_USP_t  usp;
+  BROAD_PORT_t *hapiPortPtr;
   bcm_error_t rv;
   L7_RC_t     rc;
 
   rc = L7_SUCCESS;
+
+  unitMgrNumberGet(&usp_unit);
+  usp.unit = (L7_int8) usp_unit;
+  usp.slot = 0;   /* Default hapi usp slot number to phy. intfs. */
+
+  /* Validate dapi_g pointers */
+  if (dapi_g == L7_NULLPTR ||
+      dapi_g->unit[usp.unit] == L7_NULLPTR ||
+      dapi_g->unit[usp.unit]->slot[usp.slot] == L7_NULLPTR)
+  {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "dapi_g is not initialized");
+      return L7_FAILURE;
+  }
 
   /* For OLT1T0 */
 #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
@@ -5760,23 +5888,28 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
   }
 
   /* Apply prio/color (un)mapping */
-  for (port=0; port<ptin_sys_number_of_ports; port++)
+
+  /* Run all usp ports */
+  for (usp.port = 0;
+       usp.port < dapi_g->unit[usp.unit]->slot[usp.slot]->numOfPortsInSlot;
+       usp.port++)
   {
-    // Get bcm_port format
-    if (hapi_ptin_bcmPort_get(port, &bcm_port)!=BCM_E_NONE) 
+    hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+
+    /* Hardware configuration protection */
+    if (L7_FALSE == hapiPortPtr -> is_hw_mapped)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error obtaining bcm_port for port %u", port);
-      continue;
+        continue;
     }
 
     //INGRESS STAGE
-    rv = bcm_port_cfi_color_set(0, bcm_port, 0, bcmColorGreen);
+    rv = bcm_port_cfi_color_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, 0, bcmColorGreen);
     if (rv != BCM_E_NONE)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_cfi_color_set(GREEN): %u", rv);
       return L7_FAILURE; 
     }
-    rv = bcm_port_cfi_color_set(0, bcm_port, 1, bcmColorYellow);
+    rv = bcm_port_cfi_color_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, 1, bcmColorYellow);
     if (rv != BCM_E_NONE)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_cfi_color_set(YELLOW): %u", rv);
@@ -5786,13 +5919,13 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     //EGRESS STAGE
     for (prio=0; prio<8; prio++)
     {
-      rv = bcm_port_vlan_priority_unmap_set(0, bcm_port, prio, bcmColorGreen, prio, 0);
+      rv = bcm_port_vlan_priority_unmap_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, prio, bcmColorGreen, prio, 0);
       if (rv != BCM_E_NONE)
       {
         PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_vlan_priority_unmap_set(GREEN): %u", rv);
         return L7_FAILURE; 
       }
-      rv = bcm_port_vlan_priority_unmap_set(0, bcm_port, prio, bcmColorYellow, prio, 1);
+      rv = bcm_port_vlan_priority_unmap_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, prio, bcmColorYellow, prio, 1);
       if (rv != BCM_E_NONE)
       {
         PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_vlan_priority_unmap_set(YELLOW): %u", rv);
@@ -5805,7 +5938,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
 
     /* For linecard uplink ports, or CXO160G downlink ports, remark should be active */
     #if ((PTIN_BOARD_IS_LINECARD) || (PTIN_BOARD == PTIN_BOARD_CXO160G))
-    if ((PTIN_SYSTEM_10G_PORTS_MASK >> port) & 1)
+    if ((PTIN_SYSTEM_10G_PORTS_MASK >> usp.port) & 1)
     /* For standalone equipments (OLT1T0), remark should be active for all ports */
     #elif (PTIN_BOARD_IS_STANDALONE)
     if (1)
@@ -5818,7 +5951,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
       remark_pbits = L7_TRUE;
     }
     /* Apply remark configuration: this will affect PCP and CFI bits */
-    rv = bcm_port_control_set(0, bcm_port, bcmPortControlEgressVlanPriUsesPktPri, !remark_pbits);
+    rv = bcm_port_control_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmPortControlEgressVlanPriUsesPktPri, !remark_pbits);
     if (rv != BCM_E_NONE)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_control_set: %u", rv);
@@ -5947,37 +6080,6 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
       hapiBroadPolicyCreateCancel();
       return L7_FAILURE;
     }
-
-
-    #if 0
-    /* Only apply to downlink interfaces */
-    rc = hapiBroadPolicyRemoveFromAll(policyId);
-    if (rc != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_STARTUP, "Error removing all interfaces");
-      hapiBroadPolicyDelete(policyId);
-      return L7_FAILURE;
-    }
-    for (port = 0; port < max(PTIN_SYSTEM_N_PONS, PTIN_SYSTEM_N_ETH); port++)
-    //for (port = 0; port < PTIN_SYSTEM_N_PORTS -1; port++)
-    {
-      rc = hapi_ptin_bcmPort_get(port, &bcm_port);
-      if (rc != L7_SUCCESS)  break;
-
-      lport = bcmx_unit_port_to_lport(bcm_unit, bcm_port);
-
-      rc = hapiBroadPolicyApplyToIface(policyId, lport);
-      if (rc != L7_SUCCESS)  break;
-
-      PT_LOG_TRACE(LOG_CTX_STARTUP, "Port %u / bcm_port %u / lport 0x%x added to outer->inner prio copy rule", port, bcm_port, lport);
-    }
-    if (rc != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding ports");
-      hapiBroadPolicyDelete(policyId);
-      return L7_FAILURE;
-    }
-    #endif
   }
    
 #endif
@@ -6201,212 +6303,6 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
 }
 
 #if (PTIN_BOARD == PTIN_BOARD_AG16GA)
-#if 0
-/**
- * AG16g static switching 
- * 
- * @author Rui Fernandes (19/06/2018)
- * 
- * @return L7_RC_t 
- */
-L7_RC_t ag16ga_bck_static_switching()
-{
-  L7_RC_t             rc;
-  L7_uint32           port, i = 0, j = 0;
-
-  /*  VLANs only (0-1023) */
-  L7_uint16 vlan_value[] = { 0x0000, 0x0400, 0x0800, 0x0800 };
-  L7_uint16 vlan_mask[] =  { 0xFC00, 0xFC00, 0xFC00, 0xF800 };
-
-  /* BCK ports */
-  for (port = PTIN_SYSTEM_N_PONS, i = 0; port < (PTIN_SYSTEM_N_PORTS - 1); port++, i++)
-  {
-    for (j = 0; j < 4; j++)
-    {
-      BROAD_POLICY_t      policyId;
-      BROAD_POLICY_RULE_t ruleId;
-      bcm_port_t          bcm_port;
-      pbmp_t              pbm, pbm_mask;
-
-      rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
-
-      if (rc != L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
-        return L7_FAILURE;
-      }
-
-      /* Ingress stage */
-      if (hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_INGRESS) != L7_SUCCESS)
-      {
-        printf("Error creating a egress policy\r\n");
-        hapiBroadPolicyCreateCancel();
-        return L7_FAILURE;
-      }
-
-      do
-      {
-
-        rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT);
-        if (rc != L7_SUCCESS)  break;
-
-
-        if (port >= 0)
-        {
-          printf("Port %d was given\r\n", port);
-
-          /* Validate port */
-          if (hapi_ptin_bcmPort_get(port, &bcm_port) != L7_SUCCESS)
-          {
-            printf("Error getting bcm_port of port %d\r\n", port);
-            return L7_FAILURE;
-          }
-
-          printf("bcm_port = %d\r\n", bcm_port);
-
-        }
-
-        /* Define port bitmap */
-        BCM_PBMP_CLEAR(pbm);
-        BCM_PBMP_PORT_ADD(pbm, bcm_port);
-        hapi_ptin_allportsbmp_get(&pbm_mask);
-
-        rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INPORTS, (L7_uchar8 *)&pbm, (L7_uchar8 *)&pbm_mask);
-        if (rc != L7_SUCCESS)  break;
-
-        int index = i * 4 + j;
-
-        rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlan_value[j], (L7_uchar8 *)&vlan_mask[j]);
-        if (rc != L7_SUCCESS)  break;
-
-        L7_short16 port_aux = (usp_map[index].port-1);
-
-        rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_REDIRECT, 1 /*unit*/, 0 /*slot*/, port_aux);
-        if (rc != L7_SUCCESS)
-        {
-          PT_LOG_ERR(LOG_CTX_STARTUP, "Error configuring rule");
-          hapiBroadPolicyCreateCancel();
-          return L7_FAILURE;
-        }
-
-        /* Apply rules */
-        rc = hapiBroadPolicyCommit(&policyId);
-        if (rc != L7_SUCCESS)
-        {
-          PT_LOG_ERR(LOG_CTX_STARTUP, "Error commiting policy");
-          hapiBroadPolicyCreateCancel();
-          return L7_FAILURE;
-        }
-
-      } while (0);
-
-
-      PT_LOG_TRACE(LOG_CTX_STARTUP, "PolicyId=%u", policyId);
-
-    }
-
-  }
-
-  return L7_SUCCESS;
-}
-
-/**
- * AG16g static switching 
- * 
- * @author Rui Fernandes (19/06/2018)
- * 
- * @return L7_RC_t 
- */
-L7_RC_t ag16ga_frontal_static_switching()
-{
-  L7_RC_t             rc;
-  L7_uint32           port, i = 0, j = 0;
-
-  /* BCK ports */
-  for (port = PTIN_SYSTEM_N_PONS, i = 0; port < (PTIN_SYSTEM_N_PONS + 4); port++, i++)
-  {
-    BROAD_POLICY_t      policyId;
-    BROAD_POLICY_RULE_t ruleId;
-    bcm_port_t          bcm_port;
-    pbmp_t              pbm, pbm_mask;
-
-    rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
-
-    if (rc != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
-      return L7_FAILURE;
-    }
-
-    /* Ingress stage */
-    if (hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_INGRESS) != L7_SUCCESS)
-    {
-      printf("Error creating a egress policy\r\n");
-      hapiBroadPolicyCreateCancel();
-      return L7_FAILURE;
-    }
-
-    do
-    {
-
-      rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT);
-      if (rc != L7_SUCCESS)  break;
-
-      BCM_PBMP_CLEAR(pbm);
-
-      for (j = 0; j < 4; j++)
-      {
-
-        PT_LOG_ERR(LOG_CTX_STARTUP,"Port %d was given\r\n", port);
-
-        int index = (i * 4) + j;
-
-        /* Validate port */
-        if (hapi_ptin_bcmPort_get(index, &bcm_port) != L7_SUCCESS)
-        {
-          PT_LOG_ERR(LOG_CTX_STARTUP,"Error getting bcm_port of port %d\r\n", port);
-          return L7_FAILURE;
-        }
-
-        PT_LOG_ERR(LOG_CTX_STARTUP,"bcm_port = %d\r\n", bcm_port);
-
-        /* Define port bitmap */
-        BCM_PBMP_PORT_ADD(pbm, bcm_port);
-        hapi_ptin_allportsbmp_get(&pbm_mask);
-
-      }
-
-      rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INPORTS, (L7_uchar8 *)&pbm, (L7_uchar8 *)&pbm_mask);
-      if (rc != L7_SUCCESS)  break;
-
-      rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_REDIRECT, 1/*unit*/, 0 /*slot*/, port);
-
-      if (rc != L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_STARTUP, "Error configuring rule");
-        hapiBroadPolicyCreateCancel();
-        return L7_FAILURE;
-      }
-
-      /* Apply rules */
-      rc = hapiBroadPolicyCommit(&policyId);
-      if (rc != L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_STARTUP, "Error commiting policy");
-        hapiBroadPolicyCreateCancel();
-        return L7_FAILURE;
-      }
-
-    } while (0);
-
-    PT_LOG_TRACE(LOG_CTX_STARTUP, "PolicyId=%u", policyId);
-
-  }
-
-  return L7_SUCCESS;
-}
-#endif
-
 /**
  * Translation configurations for AG16GA board
  * 
@@ -6418,26 +6314,44 @@ L7_RC_t ag16ga_frontal_static_switching()
  */
 L7_RC_t ag16ga_xlate_init(void)
 {
-  int vid_base, vid_new, port, i;
-  bcm_gport_t gport;
-  bcm_port_t bcm_port;
+  int vid_base, vid_new, i;
   bcm_vlan_action_set_t action;
+  int         usp_unit;
+  DAPI_USP_t  usp;
+  BROAD_PORT_t *hapiPortPtr;
   bcm_error_t rv;
 
-  /* BCK ports */
-  for (port = PTIN_SYSTEM_N_PONS; port < (PTIN_SYSTEM_N_PORTS - 1); port++)
+  unitMgrNumberGet(&usp_unit);
+  usp.unit = (L7_int8) usp_unit;
+  usp.slot = 0;   /* Default hapi usp slot number to phy. intfs. */
+
+  /* Validate dapi_g pointers */
+  if (dapi_g == L7_NULLPTR ||
+      dapi_g->unit[usp.unit] == L7_NULLPTR ||
+      dapi_g->unit[usp.unit]->slot[usp.slot] == L7_NULLPTR)
   {
-    /* Validate port */
-    if (hapi_ptin_bcmPort_get(port, &bcm_port) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcm_port of port %d", port);
+      PT_LOG_ERR(LOG_CTX_STARTUP, "dapi_g is not initialized");
       return L7_FAILURE;
+  }
+
+  /* BCK ports */
+  /* Run all usp ports */
+  for (usp.port = 0;
+       usp.port < dapi_g->unit[usp.unit]->slot[usp.slot]->numOfPortsInSlot;
+       usp.port++)
+  {
+    hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+
+    /* Hardware configuration protection */
+    if (L7_FALSE == hapiPortPtr -> is_hw_mapped)
+    {
+        continue;
     }
 
     /* First key: First do a lookup for port + outerVlan + innerVlan.
        Second key: If failed do a second lookup for port + outerVlan */
-    if ( ((rv=bcm_vlan_control_port_set( bcm_unit, bcm_port, bcmVlanPortTranslateKeyFirst , bcmVlanTranslateKeyPortOuter)) != BCM_E_NONE) ||
-         ((rv=bcm_vlan_control_port_set( bcm_unit, bcm_port, bcmVlanPortTranslateKeySecond, bcmVlanTranslateKeyPortOuter)) != BCM_E_NONE) )
+    if ( ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanPortTranslateKeyFirst , bcmVlanTranslateKeyPortOuter)) != BCM_E_NONE) ||
+         ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanPortTranslateKeySecond, bcmVlanTranslateKeyPortOuter)) != BCM_E_NONE) )
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error setting translation keys (rv=%d)", rv);
       return L7_FAILURE;
@@ -6445,10 +6359,10 @@ L7_RC_t ag16ga_xlate_init(void)
 
     /* Enable ingress and egress translations.
        Also, drop packets that do not fullfil any translation entry. */
-    if ( ((rv=bcm_vlan_control_port_set(bcm_unit, bcm_port, bcmVlanTranslateIngressEnable,   1)) != BCM_E_NONE) ||
-         ((rv=bcm_vlan_control_port_set(bcm_unit, bcm_port, bcmVlanTranslateIngressMissDrop, 1)) != BCM_E_NONE) /*||
-         ((rv=bcm_vlan_control_port_set(bcm_unit, bcm_port, bcmVlanTranslateEgressEnable,    1)) != BCM_E_NONE) ||
-         ((rv=bcm_vlan_control_port_set(bcm_unit, bcm_port, bcmVlanTranslateEgressMissDrop,  1)) != BCM_E_NONE)*/ )
+    if ( ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanTranslateIngressEnable,   1)) != BCM_E_NONE) ||
+         ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanTranslateIngressMissDrop, 1)) != BCM_E_NONE) /*||
+         ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, bcm_port, bcmVlanTranslateEgressEnable,    1)) != BCM_E_NONE) ||
+         ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, bcm_port, bcmVlanTranslateEgressMissDrop,  1)) != BCM_E_NONE)*/ )
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error setting translation enables");
       return L7_FAILURE;
@@ -6458,7 +6372,7 @@ L7_RC_t ag16ga_xlate_init(void)
     for (i = 0; i < 4; i++)
     {
       vid_base = 1024*i;
-      vid_new  = (port-PTIN_SYSTEM_N_PONS)*4 + i + 1;
+      vid_new  = (usp.port - PTIN_SYSTEM_N_PONS) * 4 + i + 1;
 
       bcm_vlan_action_set_t_init(&action);
 
@@ -6469,11 +6383,9 @@ L7_RC_t ag16ga_xlate_init(void)
       action.ot_inner      = bcmVlanActionNone;
       action.new_outer_vlan= vid_new;
 
-      BCM_GPORT_LOCAL_SET(gport, bcm_port);
+      PT_LOG_INFO(LOG_CTX_HAPI, "Configuring bcm_port %u / gport 0x%x with vid %u..%u => %u", hapiPortPtr->bcm_port, hapiPortPtr->bcmx_lport, vid_base, vid_base + 1024 - 1, vid_new);
 
-      PT_LOG_INFO(LOG_CTX_HAPI, "Configuring bcm_port %u / gport 0x%x with vid %u..%u => %u", bcm_port, gport, vid_base, vid_base+1024-1, vid_new);
-
-      rv = bcm_vlan_translate_action_range_add(bcm_unit, gport, vid_base, vid_base+1024-1, BCM_VLAN_INVALID, BCM_VLAN_INVALID, &action);
+      rv = bcm_vlan_translate_action_range_add(hapiPortPtr->bcm_unit, hapiPortPtr->bcmx_lport, vid_base, vid_base + 1024 - 1, BCM_VLAN_INVALID, BCM_VLAN_INVALID, &action);
 
       if (rv == BCM_E_EXISTS)
       {
@@ -6491,7 +6403,7 @@ L7_RC_t ag16ga_xlate_init(void)
         return L7_FAILURE;
       }
 
-      PT_LOG_INFO(LOG_CTX_HAPI, "Success configuring bcm_port %u / gport %u with vid %u..%u => %u", bcm_port, gport, vid_base, vid_base+1024-1, vid_new);
+      PT_LOG_INFO(LOG_CTX_HAPI, "Success configuring bcm_port %u / gport %u with vid %u..%u => %u", hapiPortPtr->bcm_port, hapiPortPtr->bcmx_lport, vid_base, vid_base + 1024 - 1, vid_new);
     }
   }
 
@@ -6633,28 +6545,46 @@ L7_RC_t ag16ga_xconnect_init(void)
  */
 L7_RC_t ae48ge_xconnect_init(void)
 {
-  int port;
-  bcm_port_t  bcm_port;
+  int         usp_unit;
+  DAPI_USP_t  usp;
+  BROAD_PORT_t *hapiPortPtr;
   bcm_error_t rv;
 
   /* Crossconnects are configuired at APPLICATION layer (ptin_evc_startup) */
 
-  /* 4 PONs for each backplane interface */
-  for (port = 0; port < PTIN_SYSTEM_N_PORTS; port++)
+  unitMgrNumberGet(&usp_unit);
+  usp.unit = (L7_int8) usp_unit;
+  usp.slot = 0;   /* Default hapi usp slot number to phy. intfs. */
+
+  /* Validate dapi_g pointers */
+  if (dapi_g == L7_NULLPTR ||
+      dapi_g->unit[usp.unit] == L7_NULLPTR ||
+      dapi_g->unit[usp.unit]->slot[usp.slot] == L7_NULLPTR)
   {
-    /* Validate port */
-    if (hapi_ptin_bcmPort_get(port, &bcm_port) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcm_port of port %d", port);
+      PT_LOG_ERR(LOG_CTX_STARTUP, "dapi_g is not initialized");
       return L7_FAILURE;
+  }
+
+  /* 4 PONs for each backplane interface */
+  /* Run all usp ports */
+  for (usp.port = 0;
+       usp.port < dapi_g->unit[usp.unit]->slot[usp.slot]->numOfPortsInSlot;
+       usp.port++)
+  {
+    hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+
+    /* Hardware configuration protection */
+    if (L7_FALSE == hapiPortPtr -> is_hw_mapped)
+    {
+        continue;
     }
 
     /* Always add the default VLAN on PON ports */
-    rv = bcm_port_dtag_mode_set(bcm_unit, bcm_port,
-                                port < PTIN_SYSTEM_N_ETH ? BCM_PORT_DTAG_MODE_EXTERNAL : BCM_PORT_DTAG_MODE_INTERNAL);
+    rv = bcm_port_dtag_mode_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
+                                usp.port < PTIN_SYSTEM_N_ETH ? BCM_PORT_DTAG_MODE_EXTERNAL : BCM_PORT_DTAG_MODE_INTERNAL);
     if (rv != BCM_E_NONE)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting dtag type to bcm_port %u: error=%d (%s)", bcm_port, rv, bcm_errmsg(rv));
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting dtag type to bcm_port %u: error=%d (%s)", hapiPortPtr->bcm_port, rv, bcm_errmsg(rv));
       return L7_FAILURE;
     }
   }
@@ -6933,35 +6863,6 @@ L7_RC_t teste_case(void)
   }
 
   PT_LOG_TRACE(LOG_CTX_STARTUP, "PolicyId=%u", policyId);
-
-#if 0
-  /* First, remoe all ports */
-  if (hapiBroadPolicyRemoveFromAll(policyId) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_STARTUP, "Error removing all ports");
-    hapiBroadPolicyDelete(policyId);
-    return L7_FAILURE;
-  }
-  /* Add only PON ports */
-  for (port = 0; port < ptin_sys_number_of_ports; port++)
-  {
-    if (hapi_ptin_bcmPort_get(port, &bcm_port) == L7_SUCCESS)
-    {
-      lport = bcmx_unit_port_to_lport(0, bcm_port);
-
-      if ((PTIN_SYSTEM_PON_PORTS_MASK >> port) & 1)
-      {
-        if (hapiBroadPolicyApplyToIface(policyId, lport) != L7_SUCCESS)
-        {
-          PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding port %u", port);
-          hapiBroadPolicyDelete(policyId);
-          return L7_FAILURE;
-        }
-        PT_LOG_TRACE(LOG_CTX_STARTUP, "Port %u / bcm_port %u / lport 0x%x added to Pbit=0 force rule", port, bcm_port, lport);
-      }
-    }
-  }
-#endif
 
   return L7_SUCCESS;
 }
@@ -7928,6 +7829,12 @@ bcm_error_t time_interface_enable(DAPI_USP_t *usp, void *stru, DAPI_t *dapi_g) {
   //dapiPortPtr = DAPI_PORT_GET( usp, dapi_g );
   hapiPortPtr = HAPI_PORT_GET( usp, dapi_g );
 
+  if (L7_FALSE == hapiPortPtr->is_hw_mapped)
+  {
+    PT_LOG_WARN(LOG_CTX_INTF, "usp {%u,%u,%u} is not physically mapped", usp->unit, usp->slot, usp->port);
+    return BCM_E_NONE;
+  }
+  
  {
   int unit=0;
   int port_min=hapiPortPtr->bcm_port;//0;

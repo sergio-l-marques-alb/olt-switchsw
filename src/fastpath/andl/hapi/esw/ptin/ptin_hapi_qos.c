@@ -20,6 +20,7 @@
 
 #include "broad_policy.h"
 #include "broad_group_bcm.h"
+#include "unitmgr_api.h"
 
 #define PTIN_HAPI_QOS_TABLE_SIZE    128   /* Maximum number of services */
 #define PTIN_HAPI_QOS_VLAN_ENTRIES  32    /* Maximum number of rules per service */
@@ -92,6 +93,8 @@ static struct classId_entry_s  classId_pool[MAX_CLASS_ID];
 /* Queues */
 static dl_queue_t queue_free_classIds;    /* Queue of free Class ID entries */
 
+extern DAPI_t *dapi_g;
+
 
 /**
  * Get pbm format por ports
@@ -146,16 +149,22 @@ static L7_RC_t ptin_hapi_port_bitmap_get(ptin_dapi_port_t *dapiPort, L7_uint64 p
           return L7_FAILURE;
         }
 
-        /* Add this physical port to bitmap */
-        BCM_PBMP_PORT_ADD(*pbm, hapiPortPtr_member->bcm_port);
-        PT_LOG_TRACE(LOG_CTX_HAPI,"bcm_port %d added", hapiPortPtr_member->bcm_port);
+        if (hapiPortPtr_member->is_hw_mapped)
+        {
+          /* Add this physical port to bitmap */
+          BCM_PBMP_PORT_ADD(*pbm, hapiPortPtr_member->bcm_port);
+          PT_LOG_TRACE(LOG_CTX_HAPI,"bcm_port %d added", hapiPortPtr_member->bcm_port);
+        }
       }
     }
     /* Extract Physical port */
     else if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
     {
-      BCM_PBMP_PORT_ADD(*pbm, hapiPortPtr->bcm_port);
-      PT_LOG_TRACE(LOG_CTX_HAPI,"bcm_port %d considered", hapiPortPtr->bcm_port);
+      if (hapiPortPtr->is_hw_mapped)
+      {
+        BCM_PBMP_PORT_ADD(*pbm, hapiPortPtr->bcm_port);
+        PT_LOG_TRACE(LOG_CTX_HAPI,"bcm_port %d considered", hapiPortPtr->bcm_port);
+      }
     }
     /* Not valid type */
     else
@@ -664,17 +673,20 @@ L7_RC_t ptin_hapi_qos_egress_pbits_remark(ptin_dapi_port_t *dapiPort, L7_BOOL en
   /* Port is physical? */
   if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
   {
-    rv = bcm_port_control_set(0, hapiPortPtr->bcm_port, bcmPortControlEgressVlanPriUsesPktPri, !enable);
-    if (rv != BCM_E_NONE)
+    if (hapiPortPtr->is_hw_mapped)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmPortControlEgressVlanPriUsesPktPri in port {%d,%d,%d} to %u (rv=%d)",
-              dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, !enable, rv);
-      return L7_FAILURE;
-    }
-    else
-    {
-      PT_LOG_TRACE(LOG_CTX_HAPI, "bcmPortControlEgressVlanPriUsesPktPri of port {%d,%d,%d} set to %u",
-                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, !enable);
+      rv = bcm_port_control_set(0, hapiPortPtr->bcm_port, bcmPortControlEgressVlanPriUsesPktPri, !enable);
+      if (rv != BCM_E_NONE)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmPortControlEgressVlanPriUsesPktPri in port {%d,%d,%d} to %u (rv=%d)",
+                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, !enable, rv);
+        return L7_FAILURE;
+      }
+      else
+      {
+        PT_LOG_TRACE(LOG_CTX_HAPI, "bcmPortControlEgressVlanPriUsesPktPri of port {%d,%d,%d} set to %u",
+                  dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, !enable);
+      }
     }
   }
   else
@@ -693,24 +705,28 @@ L7_RC_t ptin_hapi_qos_egress_pbits_remark(ptin_dapi_port_t *dapiPort, L7_BOOL en
                 dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
         return L7_FAILURE;
       }
-      /* Get enable status for member port */
-      rv = bcm_port_control_set(0, hapiPortPtr_member->bcm_port, bcmPortControlEgressVlanPriUsesPktPri, !enable);
-      if (rv != BCM_E_NONE)
+
+      if (hapiPortPtr_member->is_hw_mapped)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmPortControlEgressVlanPriUsesPktPri in port {%d,%d,%d} to %u (rv=%d)",
-                dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
-                dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
-                dapiPortPtr->modeparm.lag.memberSet[i].usp.port,
-                !enable, rv);
-        return L7_FAILURE;
-      }
-      else
-      {
-        PT_LOG_TRACE(LOG_CTX_HAPI, "bcmPortControlEgressVlanPriUsesPktPri of port {%d,%d,%d} set to %u",
+        /* Get enable status for member port */
+        rv = bcm_port_control_set(0, hapiPortPtr_member->bcm_port, bcmPortControlEgressVlanPriUsesPktPri, !enable);
+        if (rv != BCM_E_NONE)
+        {
+          PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmPortControlEgressVlanPriUsesPktPri in port {%d,%d,%d} to %u (rv=%d)",
                   dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
                   dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
                   dapiPortPtr->modeparm.lag.memberSet[i].usp.port,
-                  !enable);
+                  !enable, rv);
+          return L7_FAILURE;
+        }
+        else
+        {
+          PT_LOG_TRACE(LOG_CTX_HAPI, "bcmPortControlEgressVlanPriUsesPktPri of port {%d,%d,%d} set to %u",
+                    dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
+                    dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
+                    dapiPortPtr->modeparm.lag.memberSet[i].usp.port,
+                    !enable);
+        }
       }
     }
   }
@@ -1307,14 +1323,38 @@ L7_RC_t ptin_hapi_qos_entry_remove(ptin_dtl_qos_t *qos_cfg)
  */
 L7_RC_t ptin_hapi_qos_shaper_max_burst_config(int unit, L7_uint32 ptin_port, L7_uint32 max_rate, L7_uint32 burst_size)
 {
+  int          usp_unit;
+  DAPI_USP_t   usp;
+  BROAD_PORT_t *hapiPortPtr;
   L7_RC_t rc = L7_SUCCESS;
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "ptin_port:  %u", ptin_port);
   PT_LOG_TRACE(LOG_CTX_HAPI, "max_rate:   %u", max_rate);
   PT_LOG_TRACE(LOG_CTX_HAPI, "burst_size: %u", burst_size);
 
-  unit = 0;
-  rc = bcm_port_rate_egress_set(unit, ptin_port, max_rate, burst_size);
+  unitMgrNumberGet(&usp_unit);
+  usp.unit = (L7_int8) usp_unit;
+  usp.slot = 0;   /* Default hapi usp slot number to phy. intfs. */
+  usp.port = ptin_port;
+
+  /* Validate dapi_g pointers */
+  if (dapi_g == L7_NULLPTR ||
+      dapi_g->unit[usp.unit] == L7_NULLPTR ||
+      dapi_g->unit[usp.unit]->slot[usp.slot] == L7_NULLPTR)
+  {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "dapi_g is not initialized");
+      return L7_FAILURE;
+  }
+
+  hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+  
+  if (L7_FALSE == hapiPortPtr->is_hw_mapped)
+  {
+    PT_LOG_WARN(LOG_CTX_INTF, "usp {%u,%u,%u} is not physically mapped", usp.unit, usp.slot, usp.port);
+    return L7_SUCCESS;
+  }
+
+  rc = bcm_port_rate_egress_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, max_rate, burst_size);
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "rc: %u", rc);
 
@@ -1333,13 +1373,36 @@ L7_RC_t ptin_hapi_qos_shaper_max_burst_config(int unit, L7_uint32 ptin_port, L7_
  */
 L7_RC_t ptin_hapi_qos_shaper_max_burst_get(int unit, L7_uint32 ptin_port, L7_uint32 *max_rate, L7_uint32 *burst_size)
 {
+  int          usp_unit;
+  DAPI_USP_t   usp;
+  BROAD_PORT_t *hapiPortPtr;
   L7_RC_t rc = L7_SUCCESS;
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "ptin_port:  %u", ptin_port);
 
-  unit = 0;
-  rc = bcm_port_rate_egress_get(unit, ptin_port, max_rate, burst_size);
+  unitMgrNumberGet(&usp_unit);
+  usp.unit = (L7_int8) usp_unit;
+  usp.slot = 0;   /* Default hapi usp slot number to phy. intfs. */
+  usp.port = ptin_port;
 
+  /* Validate dapi_g pointers */
+  if (dapi_g == L7_NULLPTR ||
+      dapi_g->unit[usp.unit] == L7_NULLPTR ||
+      dapi_g->unit[usp.unit]->slot[usp.slot] == L7_NULLPTR)
+  {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "dapi_g is not initialized");
+      return L7_FAILURE;
+  }
+
+  hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+
+  if (L7_FALSE == hapiPortPtr->is_hw_mapped)
+  {
+    PT_LOG_WARN(LOG_CTX_INTF, "usp {%u,%u,%u} is not physically mapped", usp.unit, usp.slot, usp.port);
+    return L7_SUCCESS;
+  }
+
+  rc = bcm_port_rate_egress_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, max_rate, burst_size);
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "max_rate:   %u", *max_rate);
   PT_LOG_TRACE(LOG_CTX_HAPI, "burst_size: %u", *burst_size);

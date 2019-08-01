@@ -4,6 +4,9 @@
 #include "broad_policy.h"
 #include "ptin_hapi_xlate.h"
 #include "logger.h"
+#include "unitmgr_api.h"
+
+extern DAPI_t *dapi_g;
 
 /********************************************************************
  * DEFINES
@@ -57,12 +60,38 @@ static L7_RC_t ptin_hapi_xlate_egress_portsGroup_init(void);
 L7_RC_t ptin_hapi_xlate_init(void)
 {
   L7_BOOL enable;
-  L7_int port, bcm_port;
+  int         usp_unit, port;
+  DAPI_USP_t  usp;
+  BROAD_PORT_t *hapiPortPtr;
   L7_RC_t rc = L7_SUCCESS;
 
-  /* Change Ingress Vlan Translate Keys for all physical ports (LAGs are included through their physical ports) */
-  for (port=0; port<ptin_sys_number_of_ports; port++)
+  unitMgrNumberGet(&usp_unit);
+  usp.unit = (L7_int8) usp_unit;
+  usp.slot = 0;   /* Default hapi usp slot number to phy. intfs. */
+
+  /* Validate dapi_g pointers */
+  if (dapi_g == L7_NULLPTR ||
+      dapi_g->unit[usp.unit] == L7_NULLPTR ||
+      dapi_g->unit[usp.unit]->slot[usp.slot] == L7_NULLPTR)
   {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "dapi_g is not initialized");
+      return L7_FAILURE;
+  }
+
+  /* Change Ingress Vlan Translate Keys for all physical ports (LAGs are included through their physical ports) */
+  for (port = 0;
+       port < dapi_g->unit[usp.unit]->slot[usp.slot]->numOfPortsInSlot;
+       port++)
+  {
+    usp.port = port;
+    hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+
+    /* Hardware configuration protection */
+    if (L7_FALSE == hapiPortPtr->is_hw_mapped)
+    {
+        continue;
+    }
+
     /* Enable translations? */
     enable = L7_TRUE;
     /* Disable for FPGA port of OLT1T0 */
@@ -80,17 +109,10 @@ L7_RC_t ptin_hapi_xlate_init(void)
     enable = L7_FALSE;
 #endif
 
-    if (hapi_ptin_bcmPort_get(port, &bcm_port) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcm unit id");
-      rc = L7_FAILURE;
-      continue;
-    }
-
     /* First key: First do a lookup for port + outerVlan + innerVlan.
        Second key: If failed do a second lookup for port + outerVlan */
-    if ( (bcm_vlan_control_port_set( bcm_unit, bcm_port,bcmVlanPortTranslateKeyFirst, bcmVlanTranslateKeyPortDouble) != L7_SUCCESS) ||
-         (bcm_vlan_control_port_set( bcm_unit, bcm_port,bcmVlanPortTranslateKeySecond, bcmVlanTranslateKeyPortOuter) != L7_SUCCESS) )
+    if ( (bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanPortTranslateKeyFirst, bcmVlanTranslateKeyPortDouble) != L7_SUCCESS) ||
+         (bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanPortTranslateKeySecond, bcmVlanTranslateKeyPortOuter) != L7_SUCCESS) )
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error setting translation keys");
       rc = L7_FAILURE;
@@ -99,10 +121,10 @@ L7_RC_t ptin_hapi_xlate_init(void)
 
     /* Enable ingress and egress translations.
        Also, drop packets that do not fullfil any translation entry. */
-    if ((bcm_vlan_control_port_set( bcm_unit, bcm_port, bcmVlanTranslateIngressEnable,   enable) != L7_SUCCESS) ||
-        (bcm_vlan_control_port_set( bcm_unit, bcm_port, bcmVlanTranslateIngressMissDrop, enable) != L7_SUCCESS) ||
-        (bcm_vlan_control_port_set( bcm_unit, bcm_port, bcmVlanTranslateEgressEnable,    enable) != L7_SUCCESS) ||
-        (bcm_vlan_control_port_set( bcm_unit, bcm_port, bcmVlanTranslateEgressMissDrop,  enable) != L7_SUCCESS) )
+    if ((bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanTranslateIngressEnable,   enable) != L7_SUCCESS) ||
+        (bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanTranslateIngressMissDrop, enable) != L7_SUCCESS) ||
+        (bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanTranslateEgressEnable,    enable) != L7_SUCCESS) ||
+        (bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanTranslateEgressMissDrop,  enable) != L7_SUCCESS) )
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error setting translation enables");
       rc = L7_FAILURE;
@@ -194,6 +216,13 @@ L7_RC_t ptin_hapi_xlate_singletag_action_add(ptin_dapi_port_t *dapiPort, L7_uint
     return L7_FAILURE;
   }
 
+  if (!hapiPortPtr->port_is_lag && !hapiPortPtr->is_hw_mapped)
+  {
+    PT_LOG_WARN(LOG_CTX_INTF, "usp {%d,%d,%d} is not physically mapped",
+                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    return L7_SUCCESS;
+  }
+  
   keyType = bcmVlanTranslateKeyPortOuter;
 
   bcm_vlan_action_set_t_init(&action);
@@ -274,6 +303,13 @@ L7_RC_t ptin_hapi_xlate_singletag_action_delete(ptin_dapi_port_t *dapiPort, L7_u
     return L7_FAILURE;
   }
 
+  if (!hapiPortPtr->port_is_lag && !hapiPortPtr->is_hw_mapped)
+  {
+    PT_LOG_WARN(LOG_CTX_INTF, "usp {%d,%d,%d} is not physically mapped",
+                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    return L7_SUCCESS;
+  }
+
   keyType = bcmVlanTranslateKeyPortOuter;
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_delete(0, 0x%08X[%d], %u, %u, %u)",
@@ -334,6 +370,13 @@ L7_RC_t ptin_hapi_xlate_doubletag_action_add(ptin_dapi_port_t *dapiPort, L7_uint
     PT_LOG_ERR(LOG_CTX_HAPI, " ERROR: Port {%d,%d,%d} is not physical neither logical lag",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
     return L7_FAILURE;
+  }
+
+  if (!hapiPortPtr->port_is_lag && !hapiPortPtr->is_hw_mapped)
+  {
+    PT_LOG_WARN(LOG_CTX_INTF, "usp {%d,%d,%d} is not physically mapped",
+                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    return L7_SUCCESS;
   }
 
   keyType = bcmVlanTranslateKeyPortDouble;
@@ -417,6 +460,13 @@ L7_RC_t ptin_hapi_xlate_doubletag_action_delete(ptin_dapi_port_t *dapiPort, L7_u
     return L7_FAILURE;
   }
 
+  if (!hapiPortPtr->port_is_lag && !hapiPortPtr->is_hw_mapped)
+  {
+    PT_LOG_WARN(LOG_CTX_INTF, "usp {%d,%d,%d} is not physically mapped",
+                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    return L7_SUCCESS;
+  }
+
   keyType = bcmVlanTranslateKeyPortDouble;
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_delete(0, 0x%08X[%d], %u, %u, %u)",
@@ -483,6 +533,13 @@ L7_RC_t ptin_hapi_xlate_ingress_action_get(ptin_dapi_port_t *dapiPort, L7_uint16
     PT_LOG_ERR(LOG_CTX_HAPI, "Port {%d,%d,%d} is not physical neither logical lag",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
     return L7_FAILURE;
+  }
+
+  if (!hapiPortPtr->port_is_lag && !hapiPortPtr->is_hw_mapped)
+  {
+    PT_LOG_WARN(LOG_CTX_INTF, "usp {%d,%d,%d} is not physically mapped",
+                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    return L7_SUCCESS;
   }
 
   /* For double tagged packets */
@@ -555,6 +612,13 @@ L7_RC_t ptin_hapi_xlate_ingress_action_add(ptin_dapi_port_t *dapiPort, L7_uint16
     PT_LOG_ERR(LOG_CTX_HAPI, "Port {%d,%d,%d} is not physical neither logical lag (usp=)",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
     return L7_FAILURE;
+  }
+
+  if (!hapiPortPtr->port_is_lag && !hapiPortPtr->is_hw_mapped)
+  {
+    PT_LOG_WARN(LOG_CTX_INTF, "usp {%d,%d,%d} is not physically mapped",
+                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    return L7_SUCCESS;
   }
 
   /* For double tagged packets */
@@ -645,6 +709,13 @@ L7_RC_t ptin_hapi_xlate_ingress_action_delete(ptin_dapi_port_t *dapiPort, L7_uin
     PT_LOG_ERR(LOG_CTX_HAPI, "Port {%d,%d,%d} is not physical neither logical lag",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
     return L7_FAILURE;
+  }
+
+  if (!hapiPortPtr->port_is_lag && !hapiPortPtr->is_hw_mapped)
+  {
+    PT_LOG_WARN(LOG_CTX_INTF, "usp {%d,%d,%d} is not physically mapped",
+                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    return L7_SUCCESS;
   }
 
   /* For double tagged packets */
@@ -917,6 +988,13 @@ L7_RC_t ptin_hapi_xlate_ingress_replaceOVid_addIVid(ptin_dapi_port_t *dapiPort, 
     return L7_FAILURE;
   }
 
+  if (!hapiPortPtr->port_is_lag && !hapiPortPtr->is_hw_mapped)
+  {
+    PT_LOG_WARN(LOG_CTX_INTF, "usp {%d,%d,%d} is not physically mapped",
+                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    return L7_SUCCESS;
+  }
+
   /* Only look for interface and outar tag */
   keyType = bcmVlanTranslateKeyPortOuter;
 
@@ -1070,6 +1148,13 @@ L7_RC_t ptin_hapi_xlate_ingress_get(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
     return L7_FAILURE;
   }
 
+  if (!hapiPortPtr->port_is_lag && !hapiPortPtr->is_hw_mapped)
+  {
+    PT_LOG_WARN(LOG_CTX_INTF, "usp {%d,%d,%d} is not physically mapped",
+                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    return L7_SUCCESS;
+  }
+
   /* For double tagged packets */
   if ( xlate->innerVlanId != 0 )
   {
@@ -1157,6 +1242,13 @@ L7_RC_t ptin_hapi_xlate_ingress_add(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
     PT_LOG_ERR(LOG_CTX_HAPI, "Port {%d,%d,%d} is not physical neither logical lag (usp=)",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
     return L7_FAILURE;
+  }
+
+  if (!hapiPortPtr->port_is_lag && !hapiPortPtr->is_hw_mapped)
+  {
+    PT_LOG_WARN(LOG_CTX_INTF, "usp {%d,%d,%d} is not physically mapped",
+                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    return L7_SUCCESS;
   }
 
   /* For double tagged packets */
@@ -1307,6 +1399,13 @@ L7_RC_t ptin_hapi_xlate_ingress_delete(ptin_dapi_port_t *dapiPort, ptin_hapi_xla
     PT_LOG_ERR(LOG_CTX_HAPI, "Port {%d,%d,%d} is not physical neither logical lag",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
     return L7_FAILURE;
+  }
+
+  if (!hapiPortPtr->port_is_lag && !hapiPortPtr->is_hw_mapped)
+  {
+    PT_LOG_WARN(LOG_CTX_INTF, "usp {%d,%d,%d} is not physically mapped",
+                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    return L7_SUCCESS;
   }
 
   /* For double tagged packets */
@@ -1667,6 +1766,13 @@ L7_RC_t ptin_hapi_xlate_egress_portsGroup_set(L7_uint32 portgroup, DAPI_USP_t *u
       continue;
     }
 
+    if (!hapiPortPtr->port_is_lag && !hapiPortPtr->is_hw_mapped)
+    {
+      PT_LOG_WARN(LOG_CTX_INTF, "usp {%d,%d,%d} is not physically mapped",
+                  usp_list[index]->unit, usp_list[index]->slot, usp_list[index]->port);
+      return L7_SUCCESS;
+    }
+
     PT_LOG_TRACE(LOG_CTX_HAPI, "Setting class id %d to single port {%d,%d,%d}",
               portgroup, usp_list[index]->unit, usp_list[index]->slot, usp_list[index]->port);
     if (bcmx_port_class_set(hapiPortPtr->bcmx_lport, bcmPortClassVlanTranslateEgress, (L7_uint32) portgroup ) != BCM_E_NONE)
@@ -1726,6 +1832,13 @@ L7_RC_t ptin_hapi_xlate_egress_portsGroup_get(L7_uint32 *portgroup, DAPI_USP_t *
     return L7_FAILURE;
   }
 
+  if (L7_FALSE == hapiPortPtr->is_hw_mapped)
+  {
+    PT_LOG_WARN(LOG_CTX_INTF, "usp {%d,%d,%d} is not physically mapped",
+                usp->unit, usp->slot, usp->port);
+    return L7_SUCCESS;
+  }
+
   /* Extract class id */
   if (bcmx_port_class_get(hapiPortPtr->bcmx_lport, bcmPortClassVlanTranslateEgress, &classId ) != BCM_E_NONE)
   {
@@ -1755,30 +1868,46 @@ L7_RC_t ptin_hapi_xlate_egress_portsGroup_get(L7_uint32 *portgroup, DAPI_USP_t *
  */
 static L7_RC_t ptin_hapi_xlate_egress_portsGroup_init(void)
 {
-  L7_int port;
-  bcm_port_t bcm_port;
+  int         usp_unit;
+  DAPI_USP_t  usp;
+  BROAD_PORT_t *hapiPortPtr;
   L7_RC_t rc = L7_SUCCESS;
   
-  /* Change Ingress Vlan Translate Keys for all physical ports (LAGs are included through their physical ports) */
-  for (port=0; port<ptin_sys_number_of_ports; port++)
+  unitMgrNumberGet(&usp_unit);
+  usp.unit = (L7_int8) usp_unit;
+  usp.slot = 0;   /* Default hapi usp slot number to phy. intfs. */
+  /* Validate dapi_g pointers */
+  if (dapi_g == L7_NULLPTR ||
+      dapi_g->unit[usp.unit] == L7_NULLPTR ||
+      dapi_g->unit[usp.unit]->slot[usp.slot] == L7_NULLPTR)
   {
-    if (hapi_ptin_bcmPort_get(port, &bcm_port) != L7_SUCCESS)
+      PT_LOG_ERR(LOG_CTX_STARTUP, "dapi_g is not initialized");
+      return L7_FAILURE;
+  }
+
+  /* Run all usp ports */
+  for (usp.port = 0;
+       usp.port < dapi_g->unit[usp.unit]->slot[usp.slot]->numOfPortsInSlot;
+       usp.port++)
+  {
+    hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+
+    /* Hardware configuration protection */
+    if (L7_FALSE == hapiPortPtr->is_hw_mapped)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcm unit id");
-      rc = L7_FAILURE;
-      continue;
+        continue;
     }
 
     /* Default class ids is port+1 */
-    if (bcm_port_class_set(bcm_unit, bcm_port, bcmPortClassVlanTranslateEgress, port+1 ) != BCM_E_NONE)
+    if (bcm_port_class_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmPortClassVlanTranslateEgress, usp.port+1 ) != BCM_E_NONE)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting class id %u to port %d [VLAN XLATE]", port+1, port);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting class id %u to port %d [VLAN XLATE]", usp.port+1, usp.port);
       rc = L7_FAILURE;
       continue;
     }
     /* PTin removed: Let Fastpath to manage EFP Class ids */
     #if 0
-    if (bcm_port_class_set(bcm_unit, bcm_port, bcmPortClassFieldEgress, port+1 ) != BCM_E_NONE)
+    if (bcm_port_class_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmPortClassFieldEgress, port+1 ) != BCM_E_NONE)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error setting class id %u to port %d [ECAP]", port+1, port);
       rc = L7_FAILURE;

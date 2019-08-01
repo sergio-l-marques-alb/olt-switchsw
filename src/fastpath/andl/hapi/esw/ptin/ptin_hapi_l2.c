@@ -1104,11 +1104,18 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
 
   /* Extract lport */
   PT_LOG_TRACE(LOG_CTX_HAPI,"Analysing interface {%d,%d,%d}: lport=0x%08x", ddUsp->unit, ddUsp->slot, ddUsp->port, hapiPortPtr->bcmx_lport);
-
+  
   /* Extract Physical port */
   if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
   {
     L7_uint  physical_port = -1;
+
+    if (L7_FALSE == hapiPortPtr->is_hw_mapped)
+    {
+      PT_LOG_WARN(LOG_CTX_INTF, "usp {%d,%d,%d} is not physically mapped",
+                  ddUsp->unit, ddUsp->slot, ddUsp->port);
+      return L7_SUCCESS;
+    }
 
     hapi_ptin_port_get((bcm_port_t) hapiPortPtr->bcm_port, &physical_port);
     if ( (physical_port < 0) || (physical_port >= L7_MAX_PORT_COUNT) )
@@ -1381,6 +1388,13 @@ L7_RC_t ptin_hapi_maclimit_status(DAPI_USP_t *ddUsp, L7_uint32 *mac_learned, L7_
   /* Extract Physical port */
   else if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
   {
+    if (L7_FALSE == hapiPortPtr->is_hw_mapped)
+    {
+      PT_LOG_WARN(LOG_CTX_INTF, "usp {%d,%d,%d} is not physically mapped",
+                  ddUsp->unit, ddUsp->slot, ddUsp->port);
+      return L7_FAILURE;
+    }
+
     bcm_port = hapiPortPtr->bcm_port;
     hapi_ptin_port_get(bcm_port, &physical_port);
     PT_LOG_TRACE(LOG_CTX_HAPI,"Interface {%d,%d,%d} is a port: bcm_port = %d", ddUsp->unit, ddUsp->slot, ddUsp->port, bcm_port);

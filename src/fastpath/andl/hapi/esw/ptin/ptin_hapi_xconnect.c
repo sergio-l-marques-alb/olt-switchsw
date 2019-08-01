@@ -376,6 +376,15 @@ L7_RC_t ptin_hapi_bridge_crossconnect_add(L7_uint16 outerVlanId, L7_uint16 inner
     return L7_FAILURE;
   }
 
+  if ((!hapiPortPtr1->port_is_lag && !hapiPortPtr1->is_hw_mapped) ||
+      (!hapiPortPtr2->port_is_lag && !hapiPortPtr2->is_hw_mapped))
+  {
+    PT_LOG_WARN(LOG_CTX_INTF, "usp {%d,%d,%d} or {%d,%d,%d} are not physically mapped",
+                dapiPort1->usp->unit, dapiPort1->usp->slot, dapiPort1->usp->port,
+                dapiPort2->usp->unit, dapiPort2->usp->slot, dapiPort2->usp->port);
+    return L7_SUCCESS;
+  }
+  
   /* Validate vlans */
   if ( outerVlanId==0 || outerVlanId>4095 )
   {
@@ -842,6 +851,13 @@ L7_RC_t ptin_hapi_multicast_egress_port_add(L7_int *mcast_group, L7_uint32 multi
     return L7_FAILURE;
   }
 
+  if (!hapiPortPtr->port_is_lag && !hapiPortPtr->is_hw_mapped)
+  {
+    PT_LOG_WARN(LOG_CTX_INTF, "usp {%d,%d,%d} is not physically mapped",
+                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    return L7_SUCCESS;
+  }
+
   /* Get given MC group id */
   mc_group = *mcast_group;
 
@@ -935,6 +951,13 @@ L7_RC_t ptin_hapi_multicast_egress_port_remove(L7_int mcast_group, L7_uint32 mul
     PT_LOG_ERR(LOG_CTX_HAPI, "ERROR: Port {%d,%d,%d} are not physical nor logical",
             dapiPort->usp->unit,dapiPort->usp->slot,dapiPort->usp->port);
     return L7_FAILURE;
+  }
+
+  if (!hapiPortPtr->port_is_lag && !hapiPortPtr->is_hw_mapped)
+  {
+    PT_LOG_WARN(LOG_CTX_INTF, "usp {%d,%d,%d} is not physically mapped",
+                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    return L7_SUCCESS;
   }
 
   switch (multicast_flag)
