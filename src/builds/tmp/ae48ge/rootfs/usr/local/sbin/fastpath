@@ -7,6 +7,19 @@ app_path=/usr/local/sbin/$app_name
 cli=/usr/local/sbin/fp.cli
 proc_txt=/usr/local/log/fastpath/proc.txt
 
+select_config_mode()
+{
+    # Select config.bcm                                                
+    rm /usr/local/sbin/config.bcm                                      
+    if [ $BOARD_CONFIG_MODE -eq 1 ]; then                              
+      ln -s /usr/local/sbin/config.bcm_mode1 /usr/local/sbin/config.bcm
+    elif [ $BOARD_CONFIG_MODE -eq 2 ]; then                            
+      ln -s /usr/local/sbin/config.bcm_mode2 /usr/local/sbin/config.bcm
+    else                                                               
+      ln -s /usr/local/sbin/config.bcm_mode0 /usr/local/sbin/config.bcm
+    fi
+}
+
 insert_modules()
 {
     echo "Creating character device..."
@@ -28,6 +41,9 @@ insert_modules()
 startup()
 {
     mkdir -p /var/log/switchdrvr
+
+    # Select config mode
+    select_config_mode;
 
     # Insert modules
     insert_modules;
@@ -120,6 +136,9 @@ else
         echo "There is already a deamon responsible to startup $app_name ($nproc2)"
         exit 1
     fi
+
+    # Select config mode
+    select_config_mode;
 
     # Launch app
     echo "Starting switchdrvr..."
