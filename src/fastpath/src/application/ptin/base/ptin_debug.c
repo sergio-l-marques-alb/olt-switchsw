@@ -698,6 +698,11 @@ void ptin_intf_dump(void)
   printf("+-------+------+------+---------+----------+-----------+-----+------+-------+-----------+------------------------+------------------------+\r\n");
   for (port=0; port<ptin_sys_number_of_ports; port++)
   {
+    if (!hapiSlotMapPtr[port].is_hw_mapped)
+    {
+      continue;
+    }
+    
     #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
     if (!KERNEL_NODE_IS("OLT1T0-AC"))
     {
