@@ -56,6 +56,7 @@
 #include "logger.h"
 #include "ptin_fpga_api.h"
 #include "ptin_globaldefs.h"
+#include "ptin_env_api.h"
 #include <sys/resource.h>
 /* PTin end */
 
@@ -280,10 +281,18 @@ int fp_main(int argc, char *argv[])
     printf("Dual Image Manager Initialization failed. \n\n");
   }
 
+  rc = ptin_env_init();
+  if (rc != L7_SUCCESS)
+  {
+    return L7_FAILURE;
+  }
+
   /* PTin added: CPLD and FPGA mapping */
   rc = ptin_fpga_init();
   if (rc != L7_SUCCESS)
+  {
     return L7_FAILURE;
+  }
 
   /* Initialize file system, timers, event log, HPC, and other
   ** system services.
