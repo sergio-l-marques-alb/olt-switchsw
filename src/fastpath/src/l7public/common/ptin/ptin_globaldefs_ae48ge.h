@@ -27,7 +27,7 @@
 # define PTIN_SLOT_WORK                0
 # define PTIN_SLOT_PROT                1
 
-# define PTIN_SYSTEM_N_PORTS           56
+# define PTIN_SYSTEM_N_PORTS           64
 # define PTIN_SYSTEM_N_PONS            0
 # define PTIN_SYSTEM_N_ETH             48
 # define PTIN_SYSTEM_N_LAGS_EXTERNAL   0
@@ -133,19 +133,63 @@
 # define IPC_MX_IPADDR              ((CPLD_SLOT_MATRIX_GET() & 1) ? IPC_MX_IPADDR_WORKING : IPC_MX_IPADDR_PROTECTION)
 
 /* Mapping from sysintf (id) to virtual port index (for AE48GE) */
-#define SYSINTF_TO_VPORT_MAP_AE48GEA    \
-    {  0,  1,  2,  3,  4,  5,           \
-      12, 13, 14, 15, 16, 17,           \
-      24, 25, 26, 27, 28, 29,           \
-      36, 37, 38, 39, 40, 41,           \
-       6,  7,  8,  9, 10, 11,           \
-      18, 19, 20, 21, 22, 23,           \
-      30, 31, 32, 33, 34, 35,           \
-      42, 43, 44, 45, 46, 47 }
-#define SYSINTF_TO_VPORT(sysintf)   sysintf_to_vport_map_ae48ge[sysintf]
-#define VPORT_TO_INTLAG(vport)      ((vport) / (PTIN_SYSTEM_N_ETH/4))
+#define SYSINTF_TO_VPORT_MAP_AE48GE     \
+  {                                     \
+    {  0,  1,  2,  3,  4,  5,           /* 1G */ \
+      12, 13, 14, 15, 16, 17,           /* 1G */ \
+      24, 25, 26, 27, 28, 29,           /* 1G */ \
+      36, 37, 38, 39, 40, 41,           /* 1G */ \
+       6,  7,  8,  9, 10, 11,           /* 10G */ \
+      18, 19, 20, 21, 22, 23,           /* 10G */ \
+      30, 31, 32, 33, 34, 35,           /* 10G */ \
+      42, 43, 44, 45, 46, 47            /* 10G */ \
+    },                                  \
+    {  0,  1,  2,  3,  4,  5,  6,  7,   /* 1G */ \
+       8,  9, 10, 11, 12, 13, 14, 15,   /* 1G */ \
+      16, 17, 18, 19, 20, 21, 22, 23,   /* 1G */ \
+      24, 25, 26, 27, 28, 29, 30, 31,   /* 1G */ \
+      32, 33, 34, 35, 36, 37, 38, 39,   /* 1G */ \
+      40, 41, 42, 43, 44, 45, 46, 47    /* 1G */ \
+    },                                  \
+    {  0,  1,  6,  7, 12, 13, 18, 19,   /* 1G */ \
+      24, 25, 30, 31, 36, 37, 42, 43,   /* 1G */ \
+       2,  3,  8,  9, 14, 15, 20, 21,   /* 10G/1G */ \
+      26, 27, 32, 33, 38, 39, 44, 45,   /* 10G/1G */ \
+       4,  5, 10, 11, 16, 17, 22, 23,   /* 10G */ \
+      28, 29, 34, 35, 40, 41, 46, 47    /* 10G */ \
+    }                                   \
+  }
+
+#define VPORT_TO_INTLAG_MAP_AE48GE      \
+  {                                     \
+    {  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,   \
+       5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,   \
+       6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,   \
+       7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7    \
+    },                                  \
+    {  0,  0,  0,  0,  0,  0,  0,  0,   \
+       1,  1,  1,  1,  1,  1,  1,  1,   \
+       4,  4,  4,  4,  4,  4,  4,  4,   \
+       5,  5,  5,  5,  5,  5,  5,  5,   \
+       6,  6,  6,  6,  6,  6,  6,  6,   \
+       7,  7,  7,  7,  7,  7,  7,  7    \
+    },                                  \
+    {  0,  0,  0,  0,  0,  0,           \
+       1,  1,  1,  1,  1,  1,           \
+       2,  2,  2,  2,  2,  2,           \
+       3,  3,  3,  3,  3,  3,           \
+       4,  4,  4,  4,  4,  4,           \
+       5,  5,  5,  5,  5,  5,           \
+       6,  6,  6,  6,  6,  6,           \
+       7,  7,  7,  7,  7,  7            \
+    }                                   \
+  }
+
+#define SYSINTF_TO_VPORT(sysintf)   sysintf_to_vport_map_ae48ge[ptin_env_board_config_mode_get()][sysintf]
+#define VPORT_TO_INTLAG(vport)      vport_to_intlag_map_ae48ge[ptin_env_board_config_mode_get()][vport]
 #define SYSINTF_TO_INTLAG(sysintf)  VPORT_TO_INTLAG(SYSINTF_TO_VPORT(sysintf))
-extern int sysintf_to_vport_map_ae48ge[];
+extern int sysintf_to_vport_map_ae48ge[][PTIN_SYSTEM_N_ETH];
+extern int vport_to_intlag_map_ae48ge[][PTIN_SYSTEM_N_ETH];
 
 #endif /* _PTIN_GLOBALDEFS_AE48GE_H */
 

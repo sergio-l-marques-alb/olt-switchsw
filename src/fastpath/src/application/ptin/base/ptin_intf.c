@@ -34,7 +34,8 @@
 
 #if (PTIN_BOARD == PTIN_BOARD_AE48GE)
 /* Mapping from sysintf (id) to virtual port index (for AE48GE) */
-int sysintf_to_vport_map_ae48ge[] = SYSINTF_TO_VPORT_MAP_AE48GEA;
+int sysintf_to_vport_map_ae48ge[][PTIN_SYSTEM_N_ETH] = SYSINTF_TO_VPORT_MAP_AE48GE;
+int vport_to_intlag_map_ae48ge[][PTIN_SYSTEM_N_ETH] = VPORT_TO_INTLAG_MAP_AE48GE;
 #endif
 
 #define LINKSCAN_MANAGEABLE_BOARD (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
@@ -8189,7 +8190,7 @@ int dapi_usp_is_internal_lag_member(DAPI_USP_t *dusp)
 #elif ( PTIN_BOARD == PTIN_BOARD_AE48GE )
    /* Internal LAG */
    if (1 == dusp->unit && 1 == dusp->slot &&
-       dusp->port >= 0 && dusp->port < 4)
+       dusp->port >= 0 && dusp->port < 8)   /* Max of 8 LAGs for AE48GE */
    {
      return L7_TRUE;
    }

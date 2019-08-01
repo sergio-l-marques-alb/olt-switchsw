@@ -2325,7 +2325,7 @@ L7_RC_t ptin_control_mx_switchover(L7_uint8 mx_is_protection)
 #if (PTIN_BOARD == PTIN_BOARD_AE48GE)
   L7_uint32 lag_id, lag_intIfNum, intIfNum_add, intIfNum_del;
 
-  for (lag_id = 0; lag_id < 4; lag_id++)
+  for (lag_id = 0; lag_id < 8; lag_id++)
   {
     /* Cannot retrieve lag intIfNum: reset commutation machine */
     if (ptin_intf_lag2intIfNum(lag_id, &lag_intIfNum) != L7_SUCCESS)
@@ -2340,7 +2340,7 @@ L7_RC_t ptin_control_mx_switchover(L7_uint8 mx_is_protection)
       PT_LOG_INFO(LOG_CTX_EVENTS ,"CX is protection");
 
       if (ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+lag_id+0, &intIfNum_add) != L7_SUCCESS ||
-          ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+lag_id+4, &intIfNum_del) != L7_SUCCESS)
+          ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+lag_id+8, &intIfNum_del) != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_CONTROL,"Failure");
         return L7_FAILURE;
@@ -2352,7 +2352,7 @@ L7_RC_t ptin_control_mx_switchover(L7_uint8 mx_is_protection)
       PT_LOG_INFO(LOG_CTX_EVENTS ,"CX is working");
 
       if (ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+lag_id+0, &intIfNum_del) != L7_SUCCESS ||
-          ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+lag_id+4, &intIfNum_add) != L7_SUCCESS)
+          ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+lag_id+8, &intIfNum_add) != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_CONTROL,"Failure");
         return L7_FAILURE;
@@ -2364,7 +2364,7 @@ L7_RC_t ptin_control_mx_switchover(L7_uint8 mx_is_protection)
         dtlDot3adInternalPortDelete(lag_intIfNum, 1, &intIfNum_del, 1) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_CONTROL,"Failure");
-      return L7_FAILURE;
+      //return L7_FAILURE;
     }
     PT_LOG_INFO(LOG_CTX_CONTROL,"Success switching to mx %u", mx_is_protection);
   }
