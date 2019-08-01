@@ -44,7 +44,7 @@
 #define PROD_MAX_UNITS_PER_STACK                          1
 #endif
 
-#define PROD_MAX_STACK_PORTS_PER_UNIT                     8
+#define PROD_MAX_STACK_PORTS_PER_UNIT                     16
 #define PROD_COMPANY_NAME                                 "Broadcom Corp."
 #define PROD_COMPANY_OUI                                  0x000AF7
 #define PROD_CLASS                                        "Ethernet Device"
