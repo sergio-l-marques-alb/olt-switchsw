@@ -15,6 +15,7 @@
 #include "broad_common.h"
 #include "broad_l2_vlan.h"
 #include "broad_l2_std.h"
+#include "unitmgr_api.h"
 #include <bcm/oam.h>
 #include <ethsrv_oam.h>
 #include <nimapi.h>
@@ -960,13 +961,7 @@ L7_RC_t hapiBroadPtinPortExt(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t
  */
 L7_RC_t hapiBroadPtinCountersRead(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
 {
-  L7_RC_t rc;
-
-  rc = hapi_ptin_counters_read((ptin_HWEthRFC2819_PortStatistics_t *)data);
-  if (rc != L7_SUCCESS)
-    return L7_FAILURE;
-
-  return L7_SUCCESS;
+  return hapi_ptin_counters_read((ptin_HWEthRFC2819_PortStatistics_t *) data);
 }
 
 
@@ -983,17 +978,8 @@ L7_RC_t hapiBroadPtinCountersRead(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
 L7_RC_t hapiBroadPtinCountersClear(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
 {
   ptin_HWEthRFC2819_PortStatistics_t *stat = (ptin_HWEthRFC2819_PortStatistics_t *) data;
-  L7_uint port;
 
-  port = stat->Port;
-
-  if ( hapi_ptin_counters_clear(port) )
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error on hapi_ptin_counters_clear() on port# %u", port);
-    return L7_FAILURE;
-  }
-
-  return L7_SUCCESS;
+  return hapi_ptin_counters_clear(stat->Port);
 }
 
 

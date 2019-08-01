@@ -208,6 +208,8 @@ static void *pUslSystemBcmxSema = L7_NULLPTR;
   } \
 }
 
+#define USL_BCMX_IS_LPORT_CONFIGURABLE(ARG_LPORT)   (L7_FALSE != BCM_GPORT_IS_SET(ARG_LPORT))
+
 /*********************************************************************
 * @purpose  Initialize usl vlan bcmx
 *
@@ -1703,6 +1705,13 @@ int usl_bcmx_mcast_port_join_groups(bcm_gport_t port, int *l2mc_index, int l2mc_
   int     rv ;
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
+  /* Check if this port exists */
+  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
+  {
+      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
+      return BCM_E_NONE;
+  }
+
   /* protect the tables while manipulating the data */
   USL_L2MC_BCMX_LOCK_TAKE();
 
@@ -1764,6 +1773,13 @@ int usl_bcmx_mcast_port_leave_groups(bcm_gport_t port, int *l2mc_index, int l2mc
   int     rv;
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
+  /* Check if this port exists */
+  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
+  {
+      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
+      return BCM_E_NONE;
+  }
+
   /* protect the tables while manipulating the data */
   USL_L2MC_BCMX_LOCK_TAKE();
 
@@ -1820,6 +1836,13 @@ int usl_bcmx_mcast_port_leave_groups(bcm_gport_t port, int *l2mc_index, int l2mc
 int usl_ip_bcmx_vlan_control_port_set(bcmx_lport_t port,
                                       bcm_vlan_control_port_t type, int arg)
 {
+   /* Check if this port exists */
+   if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
+   {
+       PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
+       return BCM_E_NONE;
+   }
+
    return(bcmx_vlan_control_port_set(port,type,arg));
 }
 
@@ -1953,6 +1976,13 @@ int usl_bcmx_vlan_ip4_delete(bcm_ip_t ipaddr, bcm_ip_t netmask)
 int usl_mac_bcmx_vlan_control_port_set(bcmx_lport_t port,
                                        bcm_vlan_control_port_t type, int arg)
 {
+   /* Check if this port exists */
+   if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
+   {
+       PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
+       return BCM_E_NONE;
+   }
+
    return(bcmx_vlan_control_port_set(port, type, arg));
 }
 
@@ -2091,6 +2121,13 @@ int usl_bcmx_protected_group_port_remove(bcmx_lport_t lport, L7_uint32 groupId)
   L7_int32                        modid = 0;
   usl_bcm_protected_group_delete_t  deleteInfo;
   
+  /* Check if this port exists */
+  if (USL_BCMX_IS_LPORT_CONFIGURABLE(lport) == L7_FALSE)
+  {
+      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", lport);
+      return BCM_E_NONE;
+  }
+
   memset(&deleteInfo, 0, sizeof (deleteInfo));
 
   bcmPort = BCM_GPORT_MODPORT_PORT_GET(lport);
@@ -2233,6 +2270,13 @@ int usl_bcmx_l2_addr_remove_by_trunk (bcm_trunk_t tgid)
 *********************************************************************/
 int usl_bcmx_l2_addr_remove_by_wlan_port (bcmx_lport_t port)
 {
+  /* Check if this port exists */
+  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
+  {
+      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
+      return BCM_E_NONE;
+  }
+
   usl_mac_table_wlan_port_flush ((L7_uint32) port);
 
   return BCM_E_NONE;
@@ -2252,6 +2296,13 @@ int usl_bcmx_l2_addr_remove_by_wlan_port (bcmx_lport_t port)
 *********************************************************************/
 int usl_bcmx_l2_addr_remove_by_port (bcmx_lport_t lport)
 {
+  /* Check if this port exists */
+  if (USL_BCMX_IS_LPORT_CONFIGURABLE(lport) == L7_FALSE)
+  {
+      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", lport);
+      return BCM_E_NONE;
+  }
+
   usl_mac_table_port_flush (lport);
 
   return BCM_E_NONE;

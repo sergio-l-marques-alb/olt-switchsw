@@ -260,6 +260,13 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 		L7_LOG_ERROR(dapiPortPtr->type);
 	}
 
+	/* Hardware configuration protection */
+    if (L7_FALSE == hapiPortPtr->is_hw_mapped)
+    {
+		PT_LOG_WARN(LOG_CTX_INTF, "usp {%d,%d,%d} is not physically mapped", usp->unit, usp->slot, usp->port);
+        return L7_SUCCESS;
+    }
+
 	switch (speed)
 	{
 		case DAPI_PORT_SPEED_FE_10MBPS:

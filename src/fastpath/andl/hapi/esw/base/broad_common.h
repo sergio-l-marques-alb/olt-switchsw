@@ -357,6 +357,8 @@ typedef struct
   int                     bcm_port;
   int                     bcm_modid;
 
+  L7_BOOL                 is_hw_mapped;         /* New for AE48GE */
+
   L7_BOOL                 front_panel_stack;  
 
   DAPI_PORT_LOOPBACK_t        loopback_mode;

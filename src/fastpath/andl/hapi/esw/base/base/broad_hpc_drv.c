@@ -1167,6 +1167,7 @@ void hpcHardwareBlockMaskSet(L7_int32 unit)
       rv = bcm_port_flood_block_set(unit, port, CMIC_PORT(unit), floodBlockFlag);
       if (rv != BCM_E_NONE && rv != BCM_E_UNAVAIL)
       {
+        PT_LOG_ERR(LOG_CTX_INTF,"Error at port %u!!!", port);
         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
                 "hpcHardwareBlockMaskSet: could not set block mask %d\n", rv);
       }
@@ -1180,6 +1181,7 @@ void hpcHardwareBlockMaskSet(L7_int32 unit)
         rv = bcm_port_flood_block_set(unit, port, CMIC_PORT(unit), floodBlockFlag);
         if (rv != BCM_E_NONE && rv != BCM_E_UNAVAIL)
         {
+          PT_LOG_ERR(LOG_CTX_INTF,"Error at port %u!!!", port);
           L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
                   "hpcHardwareBlockMaskSet: could not set block mask %d\n", rv);
         }
@@ -1541,6 +1543,7 @@ void hpcHardwareDefaultConfigApply(void)
           rv = bcm_port_enable_set (i, port , 0);
           if (rv != BCM_E_NONE)
           {
+            PT_LOG_ERR(LOG_CTX_INTF,"Error at port %u!!!", port);
             L7_LOG_ERROR(rv);
           }
 
@@ -1558,6 +1561,7 @@ void hpcHardwareDefaultConfigApply(void)
 #endif
           if (rv != BCM_E_NONE)
           {
+            PT_LOG_ERR(LOG_CTX_INTF,"Error at port %u!!!", port);
             L7_LOG_ERROR(rv);
           }
 
@@ -1565,6 +1569,7 @@ void hpcHardwareDefaultConfigApply(void)
           PT_LOG_NOTICE(LOG_CTX_STARTUP,"bcm_port_pfm_set configuration to mode C: unit=%d,port=%d => rv=%d (%s)", i, port, rv, bcm_errmsg(rv));
           if (L7_BCMX_OK(rv) != L7_TRUE && rv != BCM_E_UNAVAIL)
           {
+            PT_LOG_ERR(LOG_CTX_INTF,"Error at port %u!!!", port);
             L7_LOG_ERROR(rv);
           }
 
@@ -1575,6 +1580,7 @@ void hpcHardwareDefaultConfigApply(void)
           rv = bcm_port_stp_set(i, port, BCM_STG_STP_DISABLE);
           if (L7_BCMX_OK(rv) != L7_TRUE && rv != BCM_E_UNAVAIL)
           {
+            PT_LOG_ERR(LOG_CTX_INTF,"Error at port %u!!!", port);
             L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, 
                     "Failed to set port %d/%d state to disable rv %d\n",
                     i, port, rv);
@@ -1585,6 +1591,7 @@ void hpcHardwareDefaultConfigApply(void)
           rv = bcm_port_vlan_member_set(i, port, 0);
           if (L7_BCMX_OK(rv) != L7_TRUE && rv != BCM_E_UNAVAIL)
           {
+            PT_LOG_ERR(LOG_CTX_INTF,"Error at port %u!!!", port);
             L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, 
                     "Failed to set port %d/%d vlan member state to no filters: rv %d\n",
                     i, port, rv);
@@ -1811,6 +1818,7 @@ void hpcHardwareDefaultConfigApply(void)
 
           if (rv != BCM_E_NONE)
           {
+            PT_LOG_ERR(LOG_CTX_INTF,"Error at port %u!!!", port);
             L7_LOG_ERROR(rv);
           }
         }
@@ -2285,6 +2293,7 @@ L7_RC_t hpcHardwareDriverReset(void)
           rv = bcm_port_enable_set (i,port , 0);
           if (rv != BCM_E_NONE)
           { 
+            PT_LOG_ERR(LOG_CTX_INTF,"Error at port %u!!!", port);
             L7_LOG_ERROR(rv);
           }
 
@@ -2294,6 +2303,7 @@ L7_RC_t hpcHardwareDriverReset(void)
           rv = bcm_port_learn_set (i,port,  0);
           if (rv != BCM_E_NONE)
           {
+            PT_LOG_ERR(LOG_CTX_INTF,"Error at port %u!!!", port);
             L7_LOG_ERROR(rv);
           }
         }

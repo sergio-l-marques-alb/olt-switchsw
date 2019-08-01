@@ -2006,6 +2006,18 @@ L7_RC_t hapiBroadPhysicalPortMapGet(L7_ushort16 unitNum, L7_ushort16 slotNum, DA
       hapiPortPtr  = (BROAD_PORT_t *)dapi_g->unit[usp.unit]->slot[usp.slot]->port[usp.port]->hapiPort;
       hapiPortPtr->bcm_port =  dapiCardInfoPtr->slotMap[slotMapIndex].bcm_port;
 
+      hapiPortPtr->bcm_unit = -1;
+      hapiPortPtr->bcm_modid = -1;
+      hapiPortPtr->bcmx_lport = 0;
+
+      /* PTin added: is_hw_mapped */
+      hapiPortPtr->is_hw_mapped = dapiCardInfoPtr->slotMap[slotMapIndex].is_hw_mapped;
+
+      if (!hapiPortPtr->is_hw_mapped)
+      {
+        continue;
+      }
+      
       if (hapiBroadMapDbEntryGet(&cpuKey,
                                  dapiCardInfoPtr->slotMap[slotMapIndex].bcm_cpuunit,
                                  dapiCardInfoPtr->slotMap[slotMapIndex].bcm_port,
@@ -2257,6 +2269,9 @@ L7_RC_t hapiBroadCpuPortMapGet(L7_ushort16 unitNum, L7_ushort16 slotNum, DAPI_t 
   for (slotMapIndex=0, usp.port=0; slotMapIndex < dapiCardInfoPtr->numOfSlotMapEntries; slotMapIndex++, usp.port++)
   {
     hapiPortPtr  = (BROAD_PORT_t *)dapi_g->unit[usp.unit]->slot[usp.slot]->port[usp.port]->hapiPort;
+
+    /* PTin added: is_hw_mapped */
+    hapiPortPtr->is_hw_mapped = dapiCardInfoPtr->slotMap[slotMapIndex].is_hw_mapped;
 
 #ifdef L7_ROBO_SUPPORT
     hapiPortPtr->bcm_port =  dapiCardInfoPtr->slotMap[slotMapIndex].bcm_port;
