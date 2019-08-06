@@ -20,6 +20,7 @@
 #include "ptin_dhcp.h"
 #include "ptin_pppoe.h"
 #include "ptin_control.h"
+#include "ptin_env_api.h"
 
 #include "dtlapi.h"
 #include "dot3ad_api.h"
