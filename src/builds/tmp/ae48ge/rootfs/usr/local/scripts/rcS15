@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# Set BOARD_CONFIG_MODE env var
+. /usr/local/scripts/set_env_mode.sh
+
 echo "Switch: fastpath"
 /usr/local/sbin/fastpath boot &
 /usr/local/sbin/fp.cli ping 10 20
