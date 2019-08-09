@@ -1406,11 +1406,10 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
       /* Packet received from Agent*/
       L7_RC_t rc;
 
-      /* Packets from agent to bck interfaces*/
-      if (intfNum & 0x40)
+      /* Packets from agent to bck interfaces (48) */
+      if (intfNum > PTIN_SYSTEM_N_ETH)
       {
-        /* Reset bit set by Agent*/
-        intfNum = (intfNum & 0x3F);
+        intfNum -= PTIN_SYSTEM_N_ETH;
         /* Get sysintf*/
         sysintf = intfNum;
 

@@ -216,15 +216,17 @@ static void ptin_ipdtl0_task(void)
 #elif (PTIN_BOARD == PTIN_BOARD_AE48GE)
                     int inner_vlan;
                     /* Convert Internal VLAN ID to auxiliar intfNum VLAN ID for agent
-                       Add 64 to identify that the packet was received from a bck port*/
+                       Add 48 to identify that the packet was received from
+                       a bck port */
 
                     /* Convert Internal VLAN ID to dtl0 VLAN ID */
                     inner_vlan = (msg.vlanId - PTIN_SYSTEM_BASE_INTERNAL_VLAN);
 
-                    /* Added 64 to Agent know that the packet came from bck ports*/
+                    /* Added 48 to Agent know that the packet came from bck
+                       ports*/
                     if (msg.intIfNum > PTIN_SYSTEM_N_ETH)
                     {
-                        inner_vlan = inner_vlan + 64;
+                        inner_vlan = inner_vlan + PTIN_SYSTEM_N_ETH; /* 48 user interfaces */
                     }
                     /* Add one to represent sysport*/
                     inner_vlan = inner_vlan + 1;
