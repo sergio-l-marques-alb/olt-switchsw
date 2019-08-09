@@ -1,0 +1,57 @@
+Index: swdrvr-common.install
+===================================================================
+--- swdrvr-common.install	(revision 7427)
++++ swdrvr-common.install	(revision 7429)
+@@ -19,24 +19,24 @@ for platform in $PLATFORM_FOLDER; do
+  echo "Creating folders for $platform"
+  mkdir -p $APPS_FOLDER/backup
+  rm -rf $APPS_FOLDER/backup/$platform
+  mkdir -p $APPS_FOLDER/backup/$platform
+ 
+  rm -rf $APPS_FOLDER/image/$platform
+- mkdir -p $APPS_FOLDER/image/$platform/$FILESYSTEM/usr/local/ptin/sbin
+- mkdir -p $APPS_FOLDER/image/$platform/$FILESYSTEM/usr/local/ptin/lib
++ mkdir -p $APPS_FOLDER/image/$platform/$FILESYSTEM/usr/local/sbin
++ mkdir -p $APPS_FOLDER/image/$platform/$FILESYSTEM/usr/local/lib
+ 
+  echo "Copying $platform binaries"
+  for file in $BIN_FILES; do
+-  cp -v $BIN_PATH/$file $APPS_FOLDER/image/$platform/$FILESYSTEM/usr/local/ptin/sbin
++  cp -v $BIN_PATH/$file $APPS_FOLDER/image/$platform/$FILESYSTEM/usr/local/sbin
+  done
+  for file in $LIB_FILES; do
+-  cp -v $BIN_PATH/$file $APPS_FOLDER/image/$platform/$FILESYSTEM/usr/local/ptin/lib
++  cp -v $BIN_PATH/$file $APPS_FOLDER/image/$platform/$FILESYSTEM/usr/local/lib
+  done
+  for file in $KO_FILES; do
+-  cp -v $KO_PATH/$file $APPS_FOLDER/image/$platform/$FILESYSTEM/usr/local/ptin/sbin
++  cp -v $KO_PATH/$file $APPS_FOLDER/image/$platform/$FILESYSTEM/usr/local/sbin
+  done
+ 
+  for file in $BACKUP_FILES; do
+   cp -v $BIN_PATH/$file $APPS_FOLDER/backup/$platform
+  done
+ 
+Index: src/l7public/common/l7_product.h
+===================================================================
+--- src/l7public/common/l7_product.h	(revision 7427)
++++ src/l7public/common/l7_product.h	(revision 7429)
+@@ -32,15 +32,15 @@
+ 
+ /**************************************************************** 
+  * Default PATHS
+  ****************************************************************/
+ 
+ #define FILESYSTEM_LOG_PATH     "/var/log/switchdrvr/"
+-#define FILESYSTEM_SCRIPTS_PATH "/usr/local/ptin/sbin/"
+-#define FILESYSTEM_VAR_PATH     "/usr/local/ptin/sbin/"
+-#define FILESYSTEM_SBIN_PATH    "/usr/local/ptin/sbin/"
++#define FILESYSTEM_SCRIPTS_PATH "/usr/local/scripts/"
++#define FILESYSTEM_VAR_PATH     "/usr/local/var/"
++#define FILESYSTEM_SBIN_PATH    "/usr/local/sbin/"
+ #define FILESYSTEM_TMP_PATH     "/tmp/"
+ 
+ /*********************************************************************
+ **  Start of Base paramters 
+ **********************************************************************/
+ 

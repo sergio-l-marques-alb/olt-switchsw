@@ -1,0 +1,1886 @@
+Index: andl/dapi/dapi_debug.c
+===================================================================
+--- andl/dapi/dapi_debug.c	(revision 7353)
++++ andl/dapi/dapi_debug.c	(revision 7354)
+@@ -95,13 +95,13 @@ L7_RC_t dapiDebugInit(DAPI_t *dapi_g, L7
+                                                  (L7_uint32)sizeof(L7_int32));
+     if (dapiDebugQueue == L7_NULLPTR)
+     {
+       return L7_FAILURE;
+     }
+ 
+-    if (osapiTaskCreate("DapiDebugTask", (void *)dapiDebugTask, 1 ,dapi_g, L7_DEFAULT_STACK_SIZE,
++    if (osapiTaskCreate("DapiDebugTask", (void *)dapiDebugTask, dapi_g, 1 ,L7_DEFAULT_STACK_SIZE,
+                         L7_DEFAULT_TASK_PRIORITY, L7_DEFAULT_TASK_SLICE) == L7_ERROR)
+     {
+       return L7_FAILURE;
+     }
+   }
+ 
+Index: andl/hapi/esw/routing/broad_l3_async.c
+===================================================================
+--- andl/hapi/esw/routing/broad_l3_async.c	(revision 7353)
++++ andl/hapi/esw/routing/broad_l3_async.c	(revision 7354)
+@@ -78,13 +78,13 @@ static void hapiBroadL3AsyncTunnelNhopDe
+ *
+ * @notes none
+ *
+ * @end
+ *
+ *******************************************************************************/
+-void hapiBroadL3AsyncTask(L7_uint32 num_args, DAPI_t *dapi_g)
++void hapiBroadL3AsyncTask(DAPI_t *dapi_g, L7_uint32 num_args)
+ {
+   /* This task is typically woken up when L3 entries are queued to work lists. 
+    * Note that, work can be queued because of DAPI L3 command or L2 events
+    */ 
+ 
+   hapiBroadL3DebugTaskIdSet();
+Index: andl/hapi/esw/routing/broad_l3_int.h
+===================================================================
+--- andl/hapi/esw/routing/broad_l3_int.h	(revision 7353)
++++ andl/hapi/esw/routing/broad_l3_int.h	(revision 7354)
+@@ -790,13 +790,13 @@ extern BROAD_L3_HW_STATS_t  broadL3HwEcm
+ *
+ * @notes none
+ *
+ * @end
+ *
+ *******************************************************************************/
+-void hapiBroadL3AsyncTask(L7_uint32 num_args, DAPI_t *dapi_g);
++void hapiBroadL3AsyncTask(DAPI_t *dapi_g, L7_uint32 num_args);
+ 
+ 
+ /******************************************************************************
+ *
+ * @purpose Adds a route to the work list and signals ASYNC task
+ *
+Index: andl/hapi/esw/routing/broad_l3.c
+===================================================================
+--- andl/hapi/esw/routing/broad_l3.c	(revision 7353)
++++ andl/hapi/esw/routing/broad_l3.c	(revision 7354)
+@@ -292,13 +292,13 @@ L7_RC_t hapiBroadL3Init(DAPI_t *dapi_g)
+   hapiBroadL3WlistWaitQueue = (void *)osapiMsgQueueCreate("hapiL3WaitQ",
+                                                           16,
+                                                           sizeof(void *));
+ 
+   /* Finally, create L3 Async task for processing the work lists */
+   if (osapiTaskCreate("hapiL3AsyncTask", hapiBroadL3AsyncTask,
+-                      1, dapi_g, L7_DEFAULT_STACK_SIZE,
++                      dapi_g, 1, L7_DEFAULT_STACK_SIZE,
+                       L7_DEFAULT_TASK_PRIORITY,
+                       L7_DEFAULT_TASK_SLICE) == L7_ERROR)
+   {
+     HAPI_BROAD_L3_L7_LOG_ERROR(0);
+   }
+ 
+Index: andl/hapi/esw/base/base/broad_init.c
+===================================================================
+--- andl/hapi/esw/base/base/broad_init.c	(revision 7353)
++++ andl/hapi/esw/base/base/broad_init.c	(revision 7354)
+@@ -3396,13 +3396,13 @@ L7_RC_t hapiBroadApplyConfig(L7_uint32 u
+ *          should happen only in case of errors.
+ *
+ *
+ * @end
+ *
+ *******************************************************************************/
+-void hapiBroadStackCardPluginsPostProcess(L7_uint32 args, DAPI_t *dapi_g)
++void hapiBroadStackCardPluginsPostProcess(DAPI_t *dapi_g, L7_uint32 args)
+ {
+   L7_uint32             unitIdx, slotIdx;
+   L7_RC_t               result;
+   unitMgrStatus_t       unitStatus;  
+ 
+   dapiCardRemovalReadLockTake();
+@@ -3459,13 +3459,13 @@ void hapiBroadStackCardPluginsPostProces
+ * @end
+ *
+ *******************************************************************************/
+ void hapiBroadStackCardPluginsFinishTimerProcess(L7_uint32 arg1, L7_uint32 arg2)
+ {
+   /* Move the post init processing to another task */
+-  if (osapiTaskCreate ("HAPI_BROAD_STACK_CARD_PLUGIN_TASK", hapiBroadStackCardPluginsPostProcess,1,(void *)arg1,
++  if (osapiTaskCreate ("HAPI_BROAD_STACK_CARD_PLUGIN_TASK", hapiBroadStackCardPluginsPostProcess, 1, (void *)arg1,
+                        L7_DEFAULT_STACK_SIZE,
+                        L7_DEFAULT_TASK_PRIORITY,
+                        L7_DEFAULT_TASK_SLICE) == L7_ERROR)
+   {
+     L7_LOG_ERROR(0);
+   }
+Index: andl/hapi/esw/base/base/broad_debug.c
+===================================================================
+--- andl/hapi/esw/base/base/broad_debug.c	(revision 7353)
++++ andl/hapi/esw/base/base/broad_debug.c	(revision 7354)
+@@ -1995,13 +1995,13 @@ void printMaxTxTime(int reset)
+   if (reset)
+   {
+       maxTxTime = 0;
+   }
+   fflush(stdout);
+ }
+-void hapiBroadDebugPktSendTask(L7_uint32 numArgs, DAPI_t *dapi_g)
++void hapiBroadDebugPktSendTask(DAPI_t *dapi_g, L7_uint32 numArgs)
+ {
+   bcm_pkt_t                pkt;
+   bcm_pkt_blk_t            pkt_blk;
+   unsigned int             pkt_count;
+   int                      i;
+   L7_uint64                t1, t2;
+@@ -2171,13 +2171,13 @@ int hapiBroadDebugPktSendStart(int unit,
+   hapiPortPtr = HAPI_PORT_GET(&hapiBroadDebugPktSendUSP, dapi_g);
+ 
+   hapiBroadDebugPktSendEnabled = 1;
+ 
+   if (first_time)
+   {
+-    if (osapiTaskCreate("hapiTxTask",hapiBroadDebugPktSendTask,1,dapi_g, L7_DEFAULT_STACK_SIZE,
++    if (osapiTaskCreate("hapiTxTask",hapiBroadDebugPktSendTask, dapi_g, 1, L7_DEFAULT_STACK_SIZE,
+                         L7_DEFAULT_TASK_PRIORITY,L7_DEFAULT_TASK_SLICE) == L7_ERROR)
+     {
+         L7_LOG_ERROR(0);
+     }
+   }
+ 
+Index: andl/hapi/esw/base/base/broad_cpu_intf.c
+===================================================================
+--- andl/hapi/esw/base/base/broad_cpu_intf.c	(revision 7353)
++++ andl/hapi/esw/base/base/broad_cpu_intf.c	(revision 7354)
+@@ -624,13 +624,13 @@ void hapiBroadCpuTxRxInit(DAPI_t *dapi_g
+   if (hapiTxBpduQueue == L7_NULL)
+   {
+     L7_LOG_ERROR(0);
+   }
+ 
+   /* spawn BPDU sender task */
+-  if (osapiTaskCreate("hapiBpduTxTask",hapiBroadBpduTxTask,1,dapi_g, L7_DEFAULT_STACK_SIZE,
++  if (osapiTaskCreate("hapiBpduTxTask",hapiBroadBpduTxTask, dapi_g, 1, L7_DEFAULT_STACK_SIZE,
+                        L7_DEFAULT_TASK_PRIORITY,L7_DEFAULT_TASK_SLICE) == L7_ERROR)
+   {
+     L7_LOG_ERROR(0);
+   }
+ #endif  /* (L7_DOT1S_BPDUFLOOD_SET == L7_TRUE) */
+ 
+@@ -645,13 +645,13 @@ void hapiBroadCpuTxRxInit(DAPI_t *dapi_g
+   if (hapiTxPduQueue == L7_NULL)
+   {
+     L7_LOG_ERROR(0);
+   }
+ 
+   /* spawn L2 Protocol Tunnel task */
+-  if (osapiTaskCreate("hapiPduTransmitTask",hapiBroadPduTransmitTask,1,dapi_g, L7_DEFAULT_STACK_SIZE,
++  if (osapiTaskCreate("hapiPduTransmitTask",hapiBroadPduTransmitTask, dapi_g, 1, L7_DEFAULT_STACK_SIZE,
+                        L7_DEFAULT_TASK_PRIORITY,L7_DEFAULT_TASK_SLICE) == L7_ERROR)
+   {
+     L7_LOG_ERROR(0);
+   }
+ #endif
+ #endif
+@@ -663,13 +663,13 @@ void hapiBroadCpuTxRxInit(DAPI_t *dapi_g
+   if (hapiRxQueue == L7_NULL)
+   {
+     L7_LOG_ERROR(0);
+   }
+ 
+   /* spawn RX task */
+-  if (osapiTaskCreate("hapiRxTask",hapiBroadReceiveTask,1,dapi_g, L7_DEFAULT_STACK_SIZE,
++  if (osapiTaskCreate("hapiRxTask",hapiBroadReceiveTask, dapi_g, 1, L7_DEFAULT_STACK_SIZE,
+                       L7_DEFAULT_TASK_PRIORITY,L7_DEFAULT_TASK_SLICE) == L7_ERROR)  //80,1) == L7_ERROR) //L7_DEFAULT_TASK_PRIORITY,L7_DEFAULT_TASK_SLICE) == L7_ERROR)     //PTIn modified
+   {
+     L7_LOG_ERROR(0);
+   }
+ 
+   if (hapiBroadHawkeyeCheck() == L7_TRUE)
+@@ -3454,13 +3454,13 @@ void rxStats(int clear)
+ *
+ * @notes   none
+ *
+ * @end
+ *
+ *********************************************************************/
+-void hapiBroadReceiveTask(L7_uint32 numArgs, DAPI_t *dapi_g)
++void hapiBroadReceiveTask(DAPI_t *dapi_g, L7_uint32 numArgs)
+ {
+   L7_netBufHandle      frameHdl=L7_NULL;
+   L7_uint32            frameLen;
+   BROAD_PKT_RX_MSG_t   pktRxMsg;
+   bcm_chip_family_t    board_family;
+   L7_uchar8           *pkt;
+@@ -4746,13 +4746,13 @@ L7_BOOL hapiBroadReceivePdu(L7_netBufHan
+ *
+ * @notes   none
+ *
+ * @end
+ *
+ *********************************************************************/
+-void hapiBroadBpduTxTask(L7_uint32 numArgs, DAPI_t *dapi_g)
++void hapiBroadBpduTxTask(DAPI_t *dapi_g, L7_uint32 numArgs)
+ {
+   BROAD_TX_BPDU_MSG_t    bpdu_msg;
+   bcmx_lplist_t          lplist;
+   bcmx_lplist_t          untaggedLplist;
+   bcmx_lplist_t          taggedLplist;
+   bcm_pkt_t              bcm_pkt;
+@@ -6310,13 +6310,13 @@ void hapiBroadTagRemove(L7_uchar8 *pkt,
+ * @notes  This function gets SOT packet always. We shuffle the frame
+ *         based on inner VLAN id.
+ *
+ * @end
+ *
+ *********************************************************************/
+-void hapiBroadPduTransmitTask(L7_uint32 numArgs, DAPI_t *dapi_g)
++void hapiBroadPduTransmitTask(DAPI_t *dapi_g, L7_uint32 numArgs)
+ {
+   BROAD_TX_PDU_MSG_t              pdu_msg;
+   bcm_pkt_t                       bcm_pkt;
+   bcm_pkt_blk_t                   bcm_pkt_blk;
+   DAPI_USP_t                      searchUsp;
+   BROAD_PORT_t                    *hapiPort;
+Index: andl/hapi/esw/base/broad_common.h
+===================================================================
+--- andl/hapi/esw/base/broad_common.h	(revision 7353)
++++ andl/hapi/esw/base/broad_common.h	(revision 7354)
+@@ -730,17 +730,17 @@ void hapiBroadPacketFree(L7_int32 unit,
+ 
+ /* Get the USP of a port from the bcom's (unit, port) set */
+ void hapiBroadUspGet(L7_uint32 cpuId, L7_int32 unit, L7_int32 port, DAPI_t *dapi_g, DAPI_USP_t *usp);
+ void hapiBroadLogicalUspGet(L7_int32 unit, L7_int32 port, DAPI_t *dapi_g, DAPI_USP_t *usp);
+ 
+ void hapiBroadCpuTxRxInit(DAPI_t *dapi_g);
+-void hapiBroadReceiveTask(L7_uint32 numArgs, DAPI_t *dapi_g);
+-void hapiBroadBpduTxTask(L7_uint32 numArgs, DAPI_t *dapi_g);
++void hapiBroadReceiveTask(DAPI_t *dapi_g, L7_uint32 numArgs);
++void hapiBroadBpduTxTask(DAPI_t *dapi_g, L7_uint32 numArgs);
+ #ifdef L7_METRO_FLEX_PACKAGE
+ #ifdef L7_DOT1AD_PACKAGE
+-void hapiBroadPduTransmitTask(L7_uint32 numArgs, DAPI_t *dapi_g);
++void hapiBroadPduTransmitTask(DAPI_t *dapi_g, L7_uint32 numArgs);
+ L7_RC_t hapiBroadRxProtoSnoopModify(BROAD_PKT_RX_MSG_t *pktRxMsg,DAPI_t *dapi_g);
+ #endif
+ #endif
+ L7_BOOL hapiBroadStrataRx(BROAD_PKT_RX_MSG_t *pktRxMsg, DAPI_t *dapi_g);
+ L7_BOOL hapiBroadXgsRx(BROAD_PKT_RX_MSG_t *pktRxMsg, DAPI_t *dapi_g);
+ L7_BOOL hapiBroadRxMacSaIsL3Intf(L7_uchar8 *macSa, DAPI_t *dapi_g);
+Index: andl/hapi/esw/ip_mcast/broad_l3_mcast.c
+===================================================================
+--- andl/hapi/esw/ip_mcast/broad_l3_mcast.c	(revision 7353)
++++ andl/hapi/esw/ip_mcast/broad_l3_mcast.c	(revision 7354)
+@@ -263,13 +263,13 @@ static void      *hapiBroadL3McastSema =
+ 
+ /* Multicast async task declarations. */
+ static void *hapiBroadRoutingMcastQueue;       /* Work available queue. */
+ static void *hapiBroadMcastAsyncCmdQueue;      /* Multicast group add/remove queue. */
+ static void *hapiBroadMcastAsyncRpfQueue;      /* Queue for RPF resolution events. */
+ static void *hapiBroadL3McastAsyncWaitSema;    /* Wait for the mcast async task. */
+-void hapiBroadRoutingMcastAsyncTask(L7_uint32 num_args, DAPI_t *dapi_g); /* The async task main loop */
++void hapiBroadRoutingMcastAsyncTask(DAPI_t *dapi_g, L7_uint32 num_args); /* The async task main loop */
+ void hapiBroadL3McastAsyncFailureCallback(void *data);
+ void hapiBroadL3McastAsyncNotify(void);        /* API to tell Mcast async task that there is work to do. */
+ 
+ /* Various statistics */
+ static struct
+ {
+@@ -1182,13 +1182,13 @@ L7_RC_t hapiBroadL3McastInit(DAPI_t *dap
+   }
+ 
+   usl_db_sync_failure_notify_callback_register(USL_IPMC_ROUTE_DB_ID, hapiBroadL3McastAsyncFailureCallback);
+ 
+   /* spawn task */
+   if (osapiTaskCreate("hapiMcAsyncTask", hapiBroadRoutingMcastAsyncTask,
+-                      1, dapi_g, (1024 * 48),
++                      dapi_g, 1, (1024 * 48),
+                       L7_DEFAULT_TASK_PRIORITY,
+                       L7_DEFAULT_TASK_SLICE) == L7_ERROR)
+   {
+     L7_LOG_ERROR(0);
+   }
+ 
+@@ -4192,13 +4192,13 @@ void hapiBroadL3McastAsyncRouteAddDelete
+ *
+ * @notes none
+ *
+ * @end
+ *
+ *********************************************************************/
+-void hapiBroadRoutingMcastAsyncTask(L7_uint32 num_args, DAPI_t *dapi_g)
++void hapiBroadRoutingMcastAsyncTask(DAPI_t *dapi_g, L7_uint32 num_args)
+ {
+   L7_uint32 work_available;
+ 
+   while (1)
+   {
+     if (osapiMessageReceive(hapiBroadRoutingMcastQueue, (void *)&work_available,
+Index: andl/hapi/esw/switching/broad_l2_std.c
+===================================================================
+--- andl/hapi/esw/switching/broad_l2_std.c	(revision 7353)
++++ andl/hapi/esw/switching/broad_l2_std.c	(revision 7354)
+@@ -3357,13 +3357,13 @@ void hapiBroadLportToTgidUspConvert(L7_u
+ *          because it would cause spanning tree failures and stack failures in a
+ *          stacking environment.
+ *
+ * @end
+ *
+ *********************************************************************/
+-void hapiBroadAddrMacFrameAsyncLearn(L7_uint32 numArgs, DAPI_t *dapi_g)
++void hapiBroadAddrMacFrameAsyncLearn(DAPI_t *dapi_g, L7_uint32 numArgs)
+ {
+     bcmx_l2_addr_t bcmx_l2_addr;
+ 
+     do {
+         if (osapiMessageReceive(hapiFrameLearnAsyncQueue, (void *)&bcmx_l2_addr,
+                                 sizeof(bcmx_l2_addr_t),
+@@ -3399,13 +3399,13 @@ static void hapiBroadAddrMacFrameAsyncLe
+     {
+         L7_LOG_ERROR(0);
+     }
+ 
+     if (osapiTaskCreate("hapiBroadAddrMacFrameAsyncLearn",
+                         hapiBroadAddrMacFrameAsyncLearn,
+-                        1, dapi_g, (1024*8),
++                        dapi_g, 1, (1024*8),
+                         L7_DEFAULT_TASK_PRIORITY,
+                         L7_DEFAULT_TASK_SLICE) == L7_ERROR)
+     {
+       L7_LOG_ERROR(0);
+     }
+ }
+@@ -4143,13 +4143,13 @@ L7_RC_t mac_hardware_sync (void)
+ *
+ * @notes   none
+ *
+ * @end
+ *
+ *********************************************************************/
+-void hapiBroadL2AddrMacSyncTask(L7_uint32 numArgs, DAPI_t *dapi_g)
++void hapiBroadL2AddrMacSyncTask(DAPI_t *dapi_g, L7_uint32 numArgs)
+ {
+ 
+ 
+   do
+   {
+     /* Wake up periodically to sync the mac tables.*/
+@@ -4185,13 +4185,13 @@ L7_RC_t hapiBroadL2AddrMacSyncInit (DAPI
+   {
+     return result;
+   }
+ 
+   /* spawn task */
+   if (osapiTaskCreate("hapiL2AddrMacSyncTask", hapiBroadL2AddrMacSyncTask,
+-                      1, dapi_g, L7_DEFAULT_STACK_SIZE,
++                      dapi_g, 1, L7_DEFAULT_STACK_SIZE,
+                       L7_DEFAULT_TASK_PRIORITY,
+                       L7_DEFAULT_TASK_SLICE) == L7_ERROR)
+   {
+     L7_LOG_ERROR(0);
+   }
+ 
+@@ -4459,13 +4459,13 @@ L7_RC_t hapiBroadL2AddrFlushInit (DAPI_t
+                                                       sizeof(BROAD_L2ADDR_FLUSH_t));
+ 
+   if (hapiL2AddrFlushQueue == L7_NULL) L7_LOG_ERROR(hapiL2AddrFlushQueue);
+ 
+   /* spawn task */
+   if (osapiTaskCreate("hapiL2AddrFlushTask", hapiBroadL2AddrFlushTask,
+-                      1, dapi_g, L7_DEFAULT_STACK_SIZE,
++                      dapi_g, 1, L7_DEFAULT_STACK_SIZE,
+                       L7_DEFAULT_TASK_PRIORITY,
+                       L7_DEFAULT_TASK_SLICE) == L7_ERROR)
+   {
+     L7_LOG_ERROR(0);
+   }
+ 
+@@ -4483,13 +4483,13 @@ L7_RC_t hapiBroadL2AddrFlushInit (DAPI_t
+ *
+ * @notes   none
+ *
+ * @end
+ *
+ *********************************************************************/
+-void hapiBroadL2AddrFlushTask(L7_uint32 numArgs, DAPI_t *dapi_g)
++void hapiBroadL2AddrFlushTask(DAPI_t *dapi_g, L7_uint32 numArgs)
+ {
+   BROAD_L2ADDR_FLUSH_t   l2addr_flush;
+   bcmx_lport_t           lport;
+   L7_int32               index;
+   L7_uint32              tgid = 0;
+   L7_int32               count = 0;
+@@ -5218,13 +5218,13 @@ void hapiBroadDot1sAsyncDoneWait(void)
+ * @notes  Lag membership updates and dot1s state sets are processed
+ *         in a weighted fashion. The default weight is set to be 1.
+ *
+ * @end
+ *
+ *********************************************************************/
+-static void hapiBroadL2AsyncTask(L7_uint32 num_args, DAPI_t *dapi_g)
++static void hapiBroadL2AsyncTask(DAPI_t *dapi_g, L7_uint32 num_args)
+ {
+   L7_uint32 num_dot1s_msg, num_lag_msg;
+   L7_RC_t   rc;
+   hapi_broad_l2_async_msg_t  l2async_cmd;
+ 
+   while (1) {
+@@ -5337,13 +5337,13 @@ L7_RC_t hapiBroadL2AsyncInit(DAPI_t *dap
+   /* Note: The stack size for L2 async task is set to DOT1S stack size,
+    * instead of FastPath default stack size. The hapiBroadL2AsyncTask handles
+    * the DOT1S DAPI callback, which can possibly hit deeper recursion levels in
+    * the DOT1S state machine.
+    */
+   if (osapiTaskCreate("hapiL2AsyncTask", hapiBroadL2AsyncTask,
+-                      1, dapi_g, L7_DOT1S_STACK_SIZE,
++                      dapi_g, 1, L7_DOT1S_STACK_SIZE,
+                       L7_DEFAULT_TASK_PRIORITY,
+                       L7_DEFAULT_TASK_SLICE) == L7_ERROR)
+   {
+     L7_LOG_ERROR(0);
+   }
+ 
+Index: andl/hapi/esw/switching/broad_l2_std.h
+===================================================================
+--- andl/hapi/esw/switching/broad_l2_std.h	(revision 7353)
++++ andl/hapi/esw/switching/broad_l2_std.h	(revision 7354)
+@@ -749,13 +749,13 @@ L7_RC_t hapiBroadL2AddrFlushInit (DAPI_t
+ *
+ * @notes   none
+ *
+ * @end
+ *
+ *********************************************************************/
+-void hapiBroadL2AddrFlushTask(L7_uint32 numArgs, DAPI_t *dapi_g);
++void hapiBroadL2AddrFlushTask(DAPI_t *dapi_g, L7_uint32 numArgs);
+ 
+ 
+ /*********************************************************************
+ *
+ * @purpose Create a ip-sbunet based vlan
+ *
+Index: os/linux/mgmt/dtl_tap_monitor.c
+===================================================================
+--- os/linux/mgmt/dtl_tap_monitor.c	(revision 7353)
++++ os/linux/mgmt/dtl_tap_monitor.c	(revision 7354)
+@@ -216,13 +216,13 @@ L7_RC_t tap_monitor_init(L7_uint32 num_i
+      control_max_fd = sp[1] + 1;
+      
+      /*
+       *create the monitor task
+       */
+      PRINT_CTRL_MSG("creating tap_monitor_task\n");
+-     if(osapiTaskCreate("tap_monitor_task",tap_monitor_task_fn,0,NULL,
++     if(osapiTaskCreate("tap_monitor_task", tap_monitor_task_fn, NULL, 0,
+ 			L7_DEFAULT_STACK_SIZE,
+ 			L7_DEFAULT_TASK_PRIORITY,
+ 			L7_DEFAULT_TASK_SLICE) == L7_ERROR)
+        return L7_FAILURE;
+    }
+    /* Prevent lookups into or changes to the table while we're changing 
+Index: os/linux/osapi/osapi_task.c
+===================================================================
+--- os/linux/osapi/osapi_task.c	(revision 7353)
++++ os/linux/osapi/osapi_task.c	(revision 7354)
+@@ -362,13 +362,13 @@ void *osapi_task_wrapper(void *arg)
+   task->PID = osapiGetpid();
+ 
+   pthread_setspecific(osapi_task_key, (void *)task);
+   pthread_setspecific(osapi_name_key, (void *)(task->name));
+   pthread_setspecific(osapi_signal_key, (void *)&(task->signal_lock));
+ 
+-  (*((void (*)(int, void *))(task->entry)))(task->argc, task->argv);
++  (*((void (*)(void *, int))(task->entry)))(task->argv, task->argc);
+ 
+   /*
+   Remove this task from task list
+   */
+   pthread_cleanup_push((void (*)(void *))pthread_mutex_unlock,
+                                            (void *)&task_list_lock);
+@@ -442,14 +442,14 @@ void *osapi_task_wrapper(void *arg)
+ *
+ * @end
+ *
+ *************************************************************************/
+ L7_int32  osapiTaskCreate( L7_char8 *task_name,
+                            void *task_entry,
+-                           L7_uint32 argc,
+                            void *argv,
++                           L7_uint32 argc,
+                            L7_uint32 stack_size,
+                            L7_uint32 priority,
+                            L7_uint32 time_slice )
+ {
+ 
+   L7_uint32 namelen;
+@@ -2092,13 +2092,13 @@ static unsigned int getCpuTime(char *tas
+ *           in integer arithmetic, values are scaled by L7_CPU_UTIL_SCALAR 
+ *           and stored.
+ *
+ * @end
+ *
+ *********************************************************************/
+-void osapiCpuUtilMonitorTask(L7_ulong32 numArgs, L7_uint32 *argv )
++void osapiCpuUtilMonitorTask(L7_uint32 *argv, L7_ulong32 numArgs)
+ {
+   L7_char8          taskStatFileName[40];
+   osapi_task_t     *curTask;
+   L7_int32          fpPid = getpid(), taskPercent = 0;
+   L7_int32          totalPercent, expectedTotalTicks;
+   L7_uint32         curCpuTime, cpuTime, currentTime, lastAgeScanTime = 0;
+Index: os/linux/osapi/osapi_serial.c
+===================================================================
+--- os/linux/osapi/osapi_serial.c	(revision 7353)
++++ os/linux/osapi/osapi_serial.c	(revision 7354)
+@@ -44,8 +44,8 @@ static void osapiSerialDevshellTask (voi
+   }
+ #endif
+ }
+ 
+ void osapiDevshellTaskInit (void)
+ {
+-  osapiTaskCreate ("serialInput", (void *) osapiSerialDevshellTask, 0, L7_NULLPTR, 16 * 1024, 5, 0);
++  osapiTaskCreate ("serialInput", (void *) osapiSerialDevshellTask, L7_NULLPTR, 0, 16 * 1024, 5, 0);
+ }
+Index: os/linux/osapi/osapi.c
+===================================================================
+--- os/linux/osapi/osapi.c	(revision 7353)
++++ os/linux/osapi/osapi.c	(revision 7354)
+@@ -2845,13 +2845,13 @@ void osapiMiscInit(void)
+   /* Initialize the FastPath monitor */
+   osapiMonitorInit(); 
+ 
+ #ifdef LVL7_DEBUG_BREAKIN
+ /* PTin removed: serial port */
+ #if (L7_SERIAL_COM_ATTR)
+-  osapiTaskCreate("serialInput", (void *)osapiInputTask, 0, L7_NULLPTR, 16*1024, 5, 0);
++  osapiTaskCreate("serialInput", (void *)osapiInputTask, L7_NULLPTR, 0, 16*1024, 5, 0);
+ #endif
+ #endif
+ }
+ 
+ /**************************************************************************
+ *
+Index: os/linux/osapi/osapi_priv.h
+===================================================================
+--- os/linux/osapi/osapi_priv.h	(revision 7353)
++++ os/linux/osapi/osapi_priv.h	(revision 7354)
+@@ -29,13 +29,13 @@
+ #include <sched.h>
+ 
+ #define OSAPI_TICK_USEC	(1000000/100) /* 100 ticks per second */
+ 
+ #define OSAPI_MAX_PRIO 255
+ 
+-typedef int (*osapi_task_entry_t)(L7_uint32, void *);
++typedef int (*osapi_task_entry_t)(void *, L7_uint32);
+ 
+ typedef struct osapi_task_s {
+    L7_uint32 flags;
+    pthread_mutex_t lock;
+    pthread_cond_t control;
+    L7_uint32 osapi_prio;
+Index: os/linux/osapi/osapi_net.c
+===================================================================
+--- os/linux/osapi/osapi_net.c	(revision 7353)
++++ os/linux/osapi/osapi_net.c	(revision 7354)
+@@ -2909,13 +2909,13 @@ unsigned short osapi_inet_cksum(char *bu
+   accum = (((accum & 0xffff0000) >> 16) + (accum & 0x0000ffff));
+ 
+   return(~((unsigned short)(accum & 0x0000ffff)));
+ 
+ }
+ 
+-int osapi_ping_rx(int argc, void *argv[])
++int osapi_ping_rx(void *argv[], int argc)
+ {
+ 
+   int rc, sock, fromlen, ip_hdrlen;
+   unsigned short id;
+   struct sockaddr_in from, *dest;
+   L7_ipHeader_t *ip_hdr;
+@@ -3056,13 +3056,13 @@ L7_uint32 osapiPingTimed(L7_char8 *hostN
+   rx_args[1] = (void *)(osapiGetpid() & 0xffff); /* change after test */
+   rx_args[2] = (void *)&packets_rx;
+   rx_args[3] = (void *)&dest;
+ 
+   /* start receive task */
+   if ((rx_task_id = osapiTaskCreate("osapi_ping_rx", osapi_ping_rx,
+-                                    4, &rx_args,
++                                    &rx_args, 4,
+                                     L7_DEFAULT_STACK_SIZE,
+                                     L7_DEFAULT_TASK_PRIORITY,
+                                     L7_DEFAULT_TASK_SLICE)) == L7_ERROR)
+   {
+ 
+     close (sock);
+Index: src/system_support/base/network/sntp/sntp_cfg.c
+===================================================================
+--- src/system_support/base/network/sntp/sntp_cfg.c	(revision 7353)
++++ src/system_support/base/network/sntp/sntp_cfg.c	(revision 7354)
+@@ -893,13 +893,13 @@ static L7_RC_t sntpCfgTaskCreate()
+   }
+ 
+   sntpCnfgrStateTraceDisable();
+   /* Create configurator layer thread */
+   sntpCfgTaskId = osapiTaskCreate(L7_SNTP_CFG_TASK,
+                                   sntpCfgTask,
+-                                  L7_NULL, L7_NULLPTR,
++                                  L7_NULLPTR, L7_NULL,
+                                   L7_SNTP_DEFAULT_STACK_SIZE,
+                                   L7_SNTP_DEFAULT_TASK_PRI,
+                                   L7_SNTP_DEFAULT_TASK_SLICE);
+ 
+   if (sntpCfgTaskId == L7_ERROR)
+   {
+Index: src/system_support/base/network/ping/ping.c
+===================================================================
+--- src/system_support/base/network/ping/ping.c	(revision 7353)
++++ src/system_support/base/network/ping/ping.c	(revision 7354)
+@@ -374,13 +374,13 @@ pingSessionAsync( void )
+     pingAsyncSessionCount++;
+     /* Spwan a new task if this is the first session */
+     if ( pingAsyncSessionCount == 1 )
+     {
+         rxArgs[0] = 0;
+         if ((pingAsyncTaskId =  osapiTaskCreate( (L7_uchar8 *)"pingAsync",
+-                        (void *)pingASyncTask, 1, &rxArgs,
++                        (void *)pingASyncTask, &rxArgs, 1, 
+                         L7_DEFAULT_STACK_SIZE, L7_DEFAULT_TASK_PRIORITY,
+                         L7_DEFAULT_TASK_SLICE)) == L7_FAILURE)
+         {
+             L7_LOGF(L7_LOG_SEVERITY_ALERT, L7_SIM_COMPONENT_ID,
+                 "Could not spawn pingAsync task\n" );
+             return L7_FAILURE;
+Index: src/system_support/base/network/ping/ping_debug.c
+===================================================================
+--- src/system_support/base/network/ping/ping_debug.c	(revision 7353)
++++ src/system_support/base/network/ping/ping_debug.c	(revision 7354)
+@@ -411,13 +411,13 @@ dbgPingSync( )
+     if ( rc == L7_SUCCESS )
+         pingHandles[handle & 0xF] = handle;
+ 
+ }
+ 
+ static void
+-dbgPingSyncTask( int argc, char *argv[] )
++dbgPingSyncTask( char *argv[], int argc )
+ {
+     L7_uint32 taskId;
+     dbgPingSync();
+     if ( osapiTaskIDSelfGet( &taskId ) == L7_SUCCESS )
+     {
+         osapiTaskDelete( taskId );
+@@ -487,13 +487,13 @@ dbgPingRandom( L7_uint32 num )
+         oper = rand() & 0x3;
+ 
+         switch ( oper )
+         {
+         case 0:
+             if ((taskHandle =  osapiTaskCreate( "dbgPingRandomSync",
+-                        dbgPingSyncTask, 1, &rxArgs, L7_DEFAULT_STACK_SIZE,
++                        dbgPingSyncTask, &rxArgs, 1, L7_DEFAULT_STACK_SIZE,
+                         L7_DEFAULT_TASK_PRIORITY,
+                         L7_DEFAULT_TASK_SLICE)) == L7_FAILURE)
+             {
+                 dbgPingPrintf( SYSAPI_APPLICATION_LOGGING_ALWAYS,
+                         "Could not create task\n" );
+             }
+Index: src/system_support/base/network/ping/pingdebug.c
+===================================================================
+--- src/system_support/base/network/ping/pingdebug.c	(revision 7353)
++++ src/system_support/base/network/ping/pingdebug.c	(revision 7354)
+@@ -38,13 +38,13 @@ L7_RC_t pingCallback1( void *ctxt, L7_us
+   SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_ALWAYS, str );
+   return L7_SUCCESS;
+ }
+ 
+ unsigned short handles[16];
+ 
+-void *syncPingTest( int argc, void *argv[] )
++void *syncPingTest( void *argv[], int argc )
+ {
+     unsigned short handle;
+     pingSessionResp_t resp;
+     int ret;
+     pingSessionReq_t *req = argv[0];
+     L7_uint32 taskId;
+@@ -111,13 +111,13 @@ static L7_RC_t traceRouteCallbackFn1( vo
+   }
+ 
+   SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_ALWAYS, buff );
+   return L7_SUCCESS;
+ }
+ 
+-void *syncTraceRouteTest( int argc, void *argv[] )
++void *syncTraceRouteTest( void *argv[], int argc )
+ {
+     unsigned short handle;
+     traceRouteResp_t resp;
+     int ret;
+     traceRouteReq_t *req = argv[0];
+     L7_uint32 taskId;
+@@ -208,13 +208,13 @@ traceRouteRandomTest()
+ 
+             req1 = malloc( sizeof( traceRouteReq_t ) );
+             memcpy( req1, &req, sizeof( req ) );
+             rxArgs[0] = req1;
+ 
+             if ((taskHandle =  osapiTaskCreate( "cliTraceRouteAsync", 
+-                        syncTraceRouteTest, 1, &rxArgs, L7_DEFAULT_STACK_SIZE,
++                        syncTraceRouteTest, &rxArgs, 1, L7_DEFAULT_STACK_SIZE,
+                         L7_DEFAULT_TASK_PRIORITY,
+                         L7_DEFAULT_TASK_SLICE)) == L7_FAILURE)
+             {
+                 SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_ALWAYS,
+                         "Could not create task\n" );
+                 return L7_FAILURE;
+@@ -322,13 +322,13 @@ randomPingTest()
+ 
+             req1 = malloc( sizeof( pingSessionReq_t ) );
+             memcpy( req1, &req, sizeof( req ) );
+             rxArgs[0] = req1;
+ 
+             if ((taskHandle =  osapiTaskCreate( "cliPingSessionAsync", 
+-                        syncPingTest, 1, &rxArgs, L7_DEFAULT_STACK_SIZE,
++                        syncPingTest, &rxArgs, 1, L7_DEFAULT_STACK_SIZE,
+                         L7_DEFAULT_TASK_PRIORITY,
+                         L7_DEFAULT_TASK_SLICE)) == L7_FAILURE)
+             {
+                 SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_ALWAYS,
+                         "Could not create task\n" );
+                 return L7_FAILURE;
+@@ -413,13 +413,13 @@ pingStartSync( pingSessionReq_t *req )
+ 
+     req1 = malloc( sizeof( traceRouteReq_t ) );
+     memcpy( req1, &req, sizeof( req ) );
+     rxArgs[0] = req1;
+ 
+     if ((taskHandle =  osapiTaskCreate( "cliTraceRouteAsync", 
+-            syncTraceRouteTest, 1, &rxArgs, L7_DEFAULT_STACK_SIZE,
++            syncTraceRouteTest, &rxArgs, 1, L7_DEFAULT_STACK_SIZE,
+             L7_DEFAULT_TASK_PRIORITY, L7_DEFAULT_TASK_SLICE)) == L7_FAILURE)
+     {
+        SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_ALWAYS,
+                "Could not create task\n" );
+        return L7_FAILURE;
+     }
+Index: src/system_support/base/network/traceroute/traceroute_debug.c
+===================================================================
+--- src/system_support/base/network/traceroute/traceroute_debug.c	(revision 7353)
++++ src/system_support/base/network/traceroute/traceroute_debug.c	(revision 7354)
+@@ -466,13 +466,13 @@ dbgTraceRouteWalkRespTable( void )
+ * @notes    
+ *       This function is invoked in a new thread
+ *
+ * @end
+ *********************************************************************/
+ void
+-dbgTraceRouteSync( L7_uint32 argc, L7_uchar8 *argv[] )
++dbgTraceRouteSync( L7_uchar8 *argv[], L7_uint32 argc )
+ {
+     L7_RC_t rc;
+     L7_uint32 addr;
+     L7_ushort16 probes, interval, port, maxTtl, initTtl, handle;
+     L7_uint32 taskId;
+     unsigned char *ipAddr[] = {   "127.0.0.1",
+@@ -607,13 +607,13 @@ dbgTraceRouteRandom( int count )
+         oper = rand() & 0x3;
+ 
+         switch ( oper )
+         {
+         case 0:
+             if ((taskHandle =  osapiTaskCreate( "dbgTraceRouteRandomSync",
+-                        dbgTraceRouteSync, 1, &rxArgs, L7_DEFAULT_STACK_SIZE,
++                        dbgTraceRouteSync, &rxArgs, 1, L7_DEFAULT_STACK_SIZE,
+                         L7_DEFAULT_TASK_PRIORITY,
+                         L7_DEFAULT_TASK_SLICE)) == L7_FAILURE)
+             {
+                 dbgTraceRoutePrintf( SYSAPI_APPLICATION_LOGGING_ALWAYS,
+                         "Could not create task\n" );
+             }
+Index: src/system_support/base/network/traceroute/traceroute.c
+===================================================================
+--- src/system_support/base/network/traceroute/traceroute.c	(revision 7353)
++++ src/system_support/base/network/traceroute/traceroute.c	(revision 7354)
+@@ -405,13 +405,13 @@ traceRouteAsync( traceRouteTable_t *trac
+     traceRouteCount++;
+     /* Spawn a new task if this is the first session */
+     if ( traceRouteCount == 1 )
+     {
+         rxArgs[0] = 0;
+         if ((traceRouteAsyncTaskId =  osapiTaskCreate( "traceRouteAsync",
+-                        traceRouteASyncTask, 1, &rxArgs, L7_DEFAULT_STACK_SIZE,
++                        traceRouteASyncTask, &rxArgs, 1, L7_DEFAULT_STACK_SIZE,
+                         L7_DEFAULT_TASK_PRIORITY,
+                         L7_DEFAULT_TASK_SLICE)) == L7_FAILURE)
+         {
+             L7_LOGF(L7_LOG_SEVERITY_ALERT, L7_SIM_COMPONENT_ID,
+                 "Could not spawn traceRouteAsync task\n" );
+             return L7_FAILURE;
+Index: src/system_support/base/infrastructure/log/log_cnfgr.c
+===================================================================
+--- src/system_support/base/infrastructure/log/log_cnfgr.c	(revision 7353)
++++ src/system_support/base/infrastructure/log/log_cnfgr.c	(revision 7354)
+@@ -816,13 +816,13 @@ static L7_RC_t logCfgTaskCreate(void)
+   }
+ 
+   logCnfgrStateTraceDisable();
+   /* Create configurator layer thread */
+   logCfgTaskId = osapiTaskCreate(LOG_CNFGR_TASK,
+                                  logCfgTask,
+-                                 L7_NULL, L7_NULLPTR,
++                                 L7_NULLPTR, L7_NULL,
+                                  FD_CNFGR_LOG_DEFAULT_STACK_SIZE,
+                                  FD_CNFGR_LOG_DEFAULT_TASK_PRI,
+                                  FD_CNFGR_LOG_DEFAULT_TASK_SLICE);
+ 
+   if (logCfgTaskId == L7_ERROR)
+   {
+Index: src/system_support/base/system/base/hpc_util.c
+===================================================================
+--- src/system_support/base/system/base/hpc_util.c	(revision 7353)
++++ src/system_support/base/system/base/hpc_util.c	(revision 7354)
+@@ -1400,13 +1400,13 @@ void hpcDebugRemoteDevshell(L7_uint32 un
+   if (L7_SUCCESS != hpcMessageSend(rmt_devshell_registrarID, unit, (strlen(command) + 1), command))
+   {
+     sysapiPrintf("Error in call to hpcMessageSend for unit %d.\n",unit);
+   }
+ }
+ 
+-void hpcDebugRemoteDevshellTask(int numArgs, void * arg)
++void hpcDebugRemoteDevshellTask(void *arg, int numArgs)
+ {
+   /* execute the requested command */
+   (void)osapiDevShellExec((L7_char8 *) arg);
+ 
+   /* free the storage for the command string */
+   osapiFree(rmt_devshell_registrarID, arg);
+@@ -1433,13 +1433,13 @@ void hpcDebugRemoteDevshellCb(L7_enetMac
+   }
+ 
+   /* make copy of the received command string */
+   strncpy((L7_char8 *)command_text, buffer, msg_len+1);
+ 
+   /* dispatch the command to the devshell function on it's own thread */
+-  thread_id = osapiTaskCreate("rmtdevshell", hpcDebugRemoteDevshellTask, 1, command_text,
++  thread_id = osapiTaskCreate("rmtdevshell", hpcDebugRemoteDevshellTask, command_text, 1, 
+                               L7_DEFAULT_STACK_SIZE, L7_DEFAULT_TASK_PRIORITY, L7_DEFAULT_TASK_SLICE);
+   return;
+ }
+ 
+ void hpcDebugRemoteDevshellInit(void)
+ {
+Index: src/system_support/base/system/base/sysapi.c
+===================================================================
+--- src/system_support/base/system/base/sysapi.c	(revision 7353)
++++ src/system_support/base/system/base/sysapi.c	(revision 7354)
+@@ -234,14 +234,13 @@ void sysapiTimerTaskStart(void)
+   if ( sysapiTimerTaskID != L7_NULL )
+   {
+     return;
+   }
+   sysapiTimerTaskID = osapiTaskCreate(   "osapiTimer",
+       (void *)osapiTimerHandler,
+-      0,
+-      L7_NULLPTR,
++      L7_NULLPTR, 0,
+       L7_DEFAULT_STACK_SIZE,
+ #ifdef _L7_OS_LINUX_
+       L7_MEDIUM_TASK_PRIORITY,
+ #else
+       L7_MEDIUM_TASK_PRIORITY - 1 /* Slightly lower than nim and dtl */,
+ #endif
+Index: src/system_support/base/system/base/sysapi_cputil.c
+===================================================================
+--- src/system_support/base/system/base/sysapi_cputil.c	(revision 7353)
++++ src/system_support/base/system/base/sysapi_cputil.c	(revision 7354)
+@@ -1514,14 +1514,13 @@ L7_RC_t sysapiCpuUtilTaskStart ()
+     sysapiTotalCpuUtilTableInit();
+ 
+     memset(sysapiTaskCpuUtilTable, 0x00, sizeof(sysapiTaskCpuUtilTable));
+ 
+     cpuUtilMonitorTaskPtr = osapiTaskCreate("cpuUtilMonitorTask",
+                                             osapiCpuUtilMonitorTask,
+-                                            2,
+-                                            &argv,
++                                            &argv, 2,
+                                             L7_DEFAULT_STACK_SIZE,
+                                             90, //1,                     //PTIn modified
+                                             1);
+ 
+     if ( cpuUtilMonitorTaskPtr == L7_ERROR )
+     {
+Index: src/system_support/routing/utils/os_xxcmn.c
+===================================================================
+--- src/system_support/routing/utils/os_xxcmn.c	(revision 7353)
++++ src/system_support/routing/utils/os_xxcmn.c	(revision 7354)
+@@ -87,15 +87,15 @@ t_Handle p_Uart;
+ #define OSXX_CPM_VECTOR_END    (OSXX_CPM_VECTOR_BASE + 0x1F)
+ #endif
+ 
+ #define MAX_PRINT_STRING_SIZE 63 /*print string size limit */
+ 
+ 
+-static void _LVL7timerLoop(int argc, L7_uint32 *argv[]);
++static void _LVL7timerLoop(L7_uint32 *argv[], int argc);
+ static void _timerLoop(e_Err (*)(), ulng);
+-void        _handleLVL7Task(int argc, L7_uint32 *argv[]);
++void        _handleLVL7Task(L7_uint32 *argv[], int argc);
+ void        _handleTask(e_Err (*)(void *), OS_Thread *);
+ void        _handlePermTask(e_Err (*)(void *), OS_Thread *);
+ 
+ 
+ void *lockSem;
+ 
+@@ -1374,13 +1374,13 @@ e_Err OS_XX_CreateTmrTsk ( ulng period,
+        Argv[0] = (L7_uint32 *)period;
+    }
+ 
+    sprintf ( TmrTskName, "tL7Timer%d", timerNum++ );
+    /* packing the address for passing to taskSpawn */
+ 
+-    TimerTaskId = osapiTaskCreate(TmrTskName, _LVL7timerLoop, argc, Argv,
++    TimerTaskId = osapiTaskCreate(TmrTskName, _LVL7timerLoop, Argv, argc,
+                                   20000, 100, L7_DEFAULT_TASK_SLICE);
+ 
+     if (TimerTaskId == L7_ERROR)
+     {
+         return E_FAILED;
+     }
+@@ -1483,13 +1483,13 @@ e_Err OS_XX_CreateThread(byte priority,
+ 
+ #ifdef DCB_XX_DEBUG
+     printf("OS_XX_CreateThread: creating %s, argc %d, priority %d, numQueues %d\n",
+            ThreadName, argc, priority, numQueues);
+ #endif /* DCB_XX_DEBUG */
+ 
+-    p_thread->TaskID = osapiTaskCreate(ThreadName, _handleLVL7Task, argc, Argv,
++    p_thread->TaskID = osapiTaskCreate(ThreadName, _handleLVL7Task, Argv, argc,
+                                        40000, priority, L7_DEFAULT_TASK_SLICE);
+ 
+     if (p_thread->TaskID == L7_ERROR)
+     {
+         ASSERT(FALSE);
+         for (i = 0; i < numQueues; i++)
+@@ -1621,13 +1621,13 @@ void OS_XX_FreeNoCache( void *buf )
+ 
+ /*=====================================================*/
+ /*=============== Local routines ======================*/
+ /*=====================================================*/
+ 
+ /*========== Timer task handle ========================*/
+-static void _LVL7timerLoop(int argc, L7_uint32 *argv[])
++static void _LVL7timerLoop(L7_uint32 *argv[], int argc)
+ {
+   L7_uint32 *local_argv[2];
+   L7_uint32 i;
+ 
+   if (argv != L7_NULL)
+   {
+@@ -1687,13 +1687,13 @@ static void _timerLoop(e_Err (*f_Tick)()
+         (*f_Tick) ();
+    }
+ }
+ }
+ 
+ /*======== Task handles ======================*/
+-void _handleLVL7Task(int argc, L7_uint32 *argv[])
++void _handleLVL7Task(L7_uint32 *argv[], int argc)
+ {
+     L7_uint32   *local_argv[3];
+     L7_uint32   i;
+     Bool        tmpPerm;
+ 
+     if (argv != L7_NULL)
+Index: src/system_support/security/tacacs/include/tacacs_control.h
+===================================================================
+--- src/system_support/security/tacacs/include/tacacs_control.h	(revision 7353)
++++ src/system_support/security/tacacs/include/tacacs_control.h	(revision 7354)
+@@ -85,12 +85,12 @@ typedef struct
+ **        Internal function prototypes               **
+ ******************************************************/
+ 
+ L7_RC_t tacacsStartTasks();
+ void tacacsTask(void);
+ void tacacsRxTask(void);
+-void tacacsConnectTask(L7_uint32 argc, void *argv);
++void tacacsConnectTask(void *argv, L7_uint32 argc);
+ L7_RC_t tacacsTimeoutHandler(void);
+ void tacacsTimerAdd(void);
+ void tacacsTimerDelete(void);
+ void tacacsServerResolveHostName(L7_uchar8 *hostName);
+ #endif /* INCLUDE_TACACS_CONTROL_H */
+Index: src/system_support/security/tacacs/client/tacacs_control.c
+===================================================================
+--- src/system_support/security/tacacs/client/tacacs_control.c	(revision 7353)
++++ src/system_support/security/tacacs/client/tacacs_control.c	(revision 7354)
+@@ -331,13 +331,13 @@ void tacacsTask(void)
+ *           a timeout and socket closed, this function cannot hold the semaphore, 
+ *           so argv cannot contain pointers to configuration data.
+ *
+ * @end
+ *
+ *********************************************************************/
+-void tacacsConnectTask(L7_uint32 argc, void *argv)
++void tacacsConnectTask(void *argv, L7_uint32 argc)
+ {
+   tacacsMsg_t       msg;
+   L7_sockaddr_in_t  s_addr;
+ 
+   memset(&msg, 0, sizeof(tacacsMsg_t));
+   memset(&s_addr, 0, sizeof(L7_sockaddr_in_t));
+Index: src/system_support/security/tacacs/client/tacacs_authen.c
+===================================================================
+--- src/system_support/security/tacacs/client/tacacs_authen.c	(revision 7353)
++++ src/system_support/security/tacacs/client/tacacs_authen.c	(revision 7354)
+@@ -796,14 +796,13 @@ static void tacacsConnectionOpen(tacacsA
+      we'll verify values again when connection is established */
+   session->connectArgv[0] = session->server;
+   session->connectArgv[1] = tacacsCfg->servers[serverIdx].port;
+   session->connectArgv[2] = socket;
+   taskId = (L7_uint32)osapiTaskCreate("tacacsConnectTask",
+                                       (void *)tacacsConnectTask,
+-                                      3,
+-                                      session->connectArgv,
++                                      session->connectArgv, 3,
+                                       L7_DEFAULT_STACK_SIZE,
+                                       L7_DEFAULT_TASK_PRIORITY,
+                                       L7_DEFAULT_TASK_SLICE);
+   if (taskId == L7_ERROR)
+   {
+     /* if we fail to create a task, something bad happened, just fail */
+Index: src/l7public/api/osapi.h
+===================================================================
+--- src/l7public/api/osapi.h	(revision 7353)
++++ src/l7public/api/osapi.h	(revision 7354)
+@@ -436,14 +436,14 @@ EXT_API L7_RC_t osapiMsgQueueGetNumMsgs(
+ *
+ * @end
+ *
+ *************************************************************************/
+ EXT_API L7_int32 osapiTaskCreate(L7_char8 *task_name,
+                                 void *task_entry,
+-                                L7_uint32 argc,
+                                 /*@null@*/void *argv,
++                                L7_uint32 argc,
+                                 L7_uint32 stack_size,
+                                 L7_uint32 priority,
+                                 L7_uint32 time_slice );
+ 
+ /**************************************************************************
+ *
+@@ -4473,13 +4473,13 @@ int osapiTaskPidGet( L7_int32 task_id);
+ *
+ * @returns  none
+ *
+ * @end
+ *
+ *********************************************************************/
+-void osapiCpuUtilMonitorTask(L7_ulong32 numArgs, L7_uint32 *argv );
++void osapiCpuUtilMonitorTask(L7_uint32 *argv, L7_ulong32 numArgs);
+ /**************************************************************************
+ *
+ * @purpose  To convert a formatted time string to tm struct
+ *
+ * @param  buf    Is the buffer containing the time specification.
+ * @param  format Is the format specification for the conversion.
+Index: src/application/routing/rlim/rlim.c
+===================================================================
+--- src/application/routing/rlim/rlim.c	(revision 7353)
++++ src/application/routing/rlim/rlim.c	(revision 7354)
+@@ -695,13 +695,13 @@ L7_RC_t rlimThreadCreate(void)
+     L7_LOGF(L7_LOG_SEVERITY_ALERT, L7_RLIM_COMPONENT_ID,
+            "Failed to create message queue.");
+     return L7_FAILURE;
+   }
+ 
+   rlimOpData->procTaskHandle = osapiTaskCreate(RLIM_PROC_TASK, rlimProcTask,
+-                                               L7_NULL, L7_NULLPTR,
++                                               L7_NULLPTR, L7_NULL,
+                                                L7_DEFAULT_STACK_SIZE,
+                                                L7_DEFAULT_TASK_PRIORITY,
+                                                L7_DEFAULT_TASK_SLICE);
+   if (rlimOpData->procTaskHandle == L7_ERROR)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_ALERT, L7_RLIM_COMPONENT_ID,
+@@ -718,13 +718,13 @@ L7_RC_t rlimThreadCreate(void)
+     L7_LOGF(L7_LOG_SEVERITY_ALERT, L7_RLIM_COMPONENT_ID,
+            "Failed to create RLIM configurator queue.");
+     return L7_FAILURE;
+   }
+ 
+   rlimOpData->cnfgrTaskHandle = osapiTaskCreate(RLIM_CNFGR_TASK, rlimCnfgrTask,
+-                                                L7_NULL, L7_NULLPTR,
++                                                L7_NULLPTR, L7_NULL,
+                                                 L7_DEFAULT_STACK_SIZE,
+                                                 L7_DEFAULT_TASK_PRIORITY,
+                                                 L7_DEFAULT_TASK_SLICE);
+   if (rlimOpData->cnfgrTaskHandle == L7_ERROR)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_ALERT, L7_RLIM_COMPONENT_ID,
+Index: src/application/routing/mapping/ospfmap/core/ospf_cnfgr.c
+===================================================================
+--- src/application/routing/mapping/ospfmap/core/ospf_cnfgr.c	(revision 7353)
++++ src/application/routing/mapping/ospfmap/core/ospf_cnfgr.c	(revision 7354)
+@@ -326,13 +326,13 @@ static L7_RC_t ospfMappingThreadCreate(v
+         return L7_FAILURE;
+     }
+ 
+     /* Create mapping layer thread */
+     ospfProcTaskHandle = osapiTaskCreate(OSPF_PROC_TASK,
+                                          ospfProcTask,
+-                                         L7_NULL, L7_NULLPTR,
++                                         L7_NULLPTR, L7_NULL,
+                                          L7_DEFAULT_STACK_SIZE,
+                                          L7_DEFAULT_TASK_PRIORITY,
+                                          L7_DEFAULT_TASK_SLICE);
+ 
+     if (ospfProcTaskHandle == L7_ERROR)
+     {
+Index: src/application/security/captive_portal/core/cpim/captive_portal_main.c
+===================================================================
+--- src/application/security/captive_portal/core/cpim/captive_portal_main.c	(revision 7353)
++++ src/application/security/captive_portal/core/cpim/captive_portal_main.c	(revision 7354)
+@@ -971,13 +971,13 @@ static L7_RC_t captive_portal_init()
+ *           callback function.
+ *
+ * @end
+ *********************************************************************/
+ 
+ static int
+-captive_portal_main(int argc, char *argv[])
++captive_portal_main(char *argv[], int argc)
+ {
+   int rc = 0, my_pid;
+ 
+   osapiTaskInitDone(L7_CAPTIVE_PORTAL_TASK_SYNC);
+   my_pid = (int) osapiTaskIdSelf();
+ 
+@@ -1048,14 +1048,15 @@ captivePortalTaskStart(void)
+       CP_DLOG(CPD_LEVEL_LOG, "%s: osapiMsgQueueCreate failed", __FUNCTION__);
+       break;
+     }
+ 
+ 
+     cpTaskId =
+-        osapiTaskCreate(captive_portal_task_name, captive_portal_main, 1,
+-                        captive_portal_task_name, captivePortalStackSize(),
++        osapiTaskCreate(captive_portal_task_name, captive_portal_main,
++                        captive_portal_task_name, 1,
++                        captivePortalStackSize(),
+                         captivePortalTaskPriority(),
+                         captivePortalTaskSlice());
+ 
+     if (L7_ERROR == cpTaskId)
+     {
+       CP_DLOG(CPD_LEVEL_LOG, "%s: osapiTaskCreate failed.\n", __FUNCTION__);
+Index: src/application/security/cpwio/wio_cnfgr.c
+===================================================================
+--- src/application/security/cpwio/wio_cnfgr.c	(revision 7353)
++++ src/application/security/cpwio/wio_cnfgr.c	(revision 7354)
+@@ -573,13 +573,13 @@ static L7_RC_t wioThreadCreate(void)
+            "CP wired interface owner unable to create ARP message queue.");
+     return L7_FAILURE;
+   }
+ 
+   wioTaskHandle = osapiTaskCreate(WIO_TASK,
+                                   wioTask,
+-                                  L7_NULL, L7_NULLPTR,
++                                  L7_NULLPTR, L7_NULL,
+                                   L7_DEFAULT_STACK_SIZE,
+                                   L7_TASK_PRIORITY_LEVEL(L7_DEFAULT_TASK_PRIORITY),
+                                   L7_DEFAULT_TASK_SLICE);
+ 
+   if (wioTaskHandle == L7_ERROR)
+   {
+Index: src/application/base/sflow/sflow_cnfgr.c
+===================================================================
+--- src/application/base/sflow/sflow_cnfgr.c	(revision 7353)
++++ src/application/base/sflow/sflow_cnfgr.c	(revision 7354)
+@@ -1099,13 +1099,13 @@ static L7_RC_t sFlowAgentCreate(void)
+     return L7_FAILURE;
+   }
+ 
+   /* create sFlow task */
+   if ((agent.sFlowTaskHandle = osapiTaskCreate(SFLOW_TASK,
+                                           sFlowTask,
+-                                          L7_NULL, L7_NULLPTR,
++                                          L7_NULLPTR, L7_NULL,
+                                           FD_CNFGR_SFLOW_DEFAULT_STACK_SIZE,
+                                           FD_CNFGR_SFLOW_DEFAULT_TASK_PRIORITY,
+                                           FD_CNFGR_SFLOW_DEFAULT_TASK_SLICE))
+                                == L7_ERROR)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_ALERT, L7_SFLOW_COMPONENT_ID,
+Index: src/application/base/dhcps/dhcps_cnfgr.c
+===================================================================
+--- src/application/base/dhcps/dhcps_cnfgr.c	(revision 7353)
++++ src/application/base/dhcps/dhcps_cnfgr.c	(revision 7354)
+@@ -235,13 +235,13 @@ static L7_RC_t dhcpsProcessingTaskCreate
+   }
+ 
+   dhcpsCnfgrStateTraceDisable();
+   /* Create mapping layer thread */
+   dhcpsProcTaskHandle = osapiTaskCreate(DHCPS_PROC_TASK,
+       dhcpsProcTask,
+-      L7_NULL, L7_NULLPTR,
++      L7_NULLPTR, L7_NULL,
+       L7_DEFAULT_STACK_SIZE,
+       L7_DEFAULT_TASK_PRIORITY,
+       L7_DEFAULT_TASK_SLICE);
+ 
+   if (dhcpsProcTaskHandle == L7_ERROR)
+   {
+Index: src/application/ptin/utils/ipc_lib.c
+===================================================================
+--- src/application/ptin/utils/ipc_lib.c	(revision 7353)
++++ src/application/ptin/utils/ipc_lib.c	(revision 7354)
+@@ -24,13 +24,13 @@
+ #define IPC_LIB_PTHREAD 1
+ 
+ 
+ T_IPC ipc_canais[IPCLIB_MAX_CANAIS];		// variavel que suporta os canais de comunicacao
+ 
+ #ifdef IPC_LIB_PTHREAD
+-static int clone_proc_msg (L7_uint32 argc, void *argv);
++static int clone_proc_msg (void *argv, L7_uint32 argc);
+ #else
+ static int clone_proc_msg (void* canal_id);
+ #endif
+ 
+ //void *g_AppIpcSemaphore = L7_NULLPTR;
+ 
+@@ -210,13 +210,14 @@ int open_ipc (int porto_rx, unsigned int
+ #endif
+ 
+ //      // Definicao do Clone de escutas
+       ipc_canais[canal_id].keep_running = TRUE;
+ 
+ #ifdef IPC_LIB_PTHREAD
+-      if (L7_ERROR == (ipc_canais[canal_id].clone_ipc_id = (L7_uint32)osapiTaskCreate("ipc_task", (void *)clone_proc_msg, 1, (void*)&ipc_canais[canal_id].canal_id,
++      if (L7_ERROR == (ipc_canais[canal_id].clone_ipc_id = (L7_uint32)osapiTaskCreate("ipc_task", (void *)clone_proc_msg,
++                                            (void*)&ipc_canais[canal_id].canal_id, 1,
+                                             IPCLIB_STACK_SIZE,
+                                             L7_DEFAULT_TASK_PRIORITY,
+                                             L7_DEFAULT_TASK_SLICE))
+       )
+       {
+          close(ipc_canais[canal_id].socket_descriptor_cliente);    //liberta o descritor de cliente
+@@ -478,13 +479,13 @@ int send_data (int canal_id, int porto_d
+ //                 handler:       ponteiro para uma variavel que possui o canal   *
+ //                                ao qual o clone esta associado                  *
+ // retorno:                                                                       *
+ //                 S_OK		: Operação decorrida com sucesso                       *
+ // ********************************************************************************
+ #ifdef IPC_LIB_PTHREAD
+-static int clone_proc_msg (L7_uint32 argc, void *argv)
++static int clone_proc_msg (void *argv, L7_uint32 argc)
+ #else
+ static int clone_proc_msg (void* canal_id)
+ #endif
+ {
+    ipc_msg	            inbuffer = {0}, outbuffer = {0};
+    int                  bytes;
+Index: src/application/switching/dhcp_snooping/core/ds_cnfgr.c
+===================================================================
+--- src/application/switching/dhcp_snooping/core/ds_cnfgr.c	(revision 7353)
++++ src/application/switching/dhcp_snooping/core/ds_cnfgr.c	(revision 7354)
+@@ -902,13 +902,13 @@ static L7_RC_t dsThreadCreate(void)
+            "DHCP snooping unable to create packet queue.");
+     return L7_FAILURE;
+   }
+ 
+   dsTaskHandle = osapiTaskCreate(DHCP_SNOOP_TASK,
+                                  dhcpSnoopTask,
+-                                 L7_NULL, L7_NULLPTR,
++                                 L7_NULLPTR, L7_NULL,
+                                  L7_DEFAULT_STACK_SIZE,
+                                  L7_DEFAULT_TASK_PRIORITY,
+                                  L7_DEFAULT_TASK_SLICE);
+ 
+   if (dsTaskHandle == L7_ERROR)
+   {
+Index: src/application/switching/dynamic_arp_inspection/dai_cnfgr.c
+===================================================================
+--- src/application/switching/dynamic_arp_inspection/dai_cnfgr.c	(revision 7353)
++++ src/application/switching/dynamic_arp_inspection/dai_cnfgr.c	(revision 7354)
+@@ -789,13 +789,13 @@ static L7_RC_t daiThreadCreate(void)
+            "DAI unable to create packet queue.");
+     return L7_FAILURE;
+   }
+ 
+   daiTaskHandle = osapiTaskCreate(DAI_TASK,
+                                   daiTask,
+-                                  L7_NULL, L7_NULLPTR,
++                                  L7_NULLPTR, L7_NULL,
+                                   FD_CNFGR_DAI_DEFAULT_STACK_SIZE,
+                                   FD_CNFGR_DAI_DEFAULT_TASK_PRIORITY,
+                                   FD_CNFGR_DAI_DEFAULT_TASK_SLICE);
+ 
+   if (daiTaskHandle == L7_ERROR)
+   {
+Index: src/application/switching/pppoe/pppoe_cnfgr.c
+===================================================================
+--- src/application/switching/pppoe/pppoe_cnfgr.c	(revision 7353)
++++ src/application/switching/pppoe/pppoe_cnfgr.c	(revision 7354)
+@@ -630,13 +630,13 @@ static L7_RC_t pppoeThreadCreate(void)
+            "DHCP snooping unable to create packet queue.");
+     return L7_FAILURE;
+   }
+ 
+   pppoeTaskHandle = osapiTaskCreate(DHCP_SNOOP_TASK,
+                                     pppoeTask,
+-                                    L7_NULL, L7_NULLPTR,
++                                    L7_NULLPTR, L7_NULL,
+                                     L7_DEFAULT_STACK_SIZE,
+                                     L7_DEFAULT_TASK_PRIORITY,
+                                     L7_DEFAULT_TASK_SLICE);
+ 
+   if (pppoeTaskHandle == L7_ERROR)
+   {
+Index: src/dtl/base/dtl_cfg.c
+===================================================================
+--- src/dtl/base/dtl_cfg.c	(revision 7353)
++++ src/dtl/base/dtl_cfg.c	(revision 7354)
+@@ -212,13 +212,13 @@ L7_RC_t dtlStartTask(L7_uint32 *taskId)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DTL_COMPONENT_ID,
+             "DTL: Could not create dtlLockSem\n");
+     return(L7_ERROR);
+   }
+ 
+-  *taskId = osapiTaskCreate("dtlTask",dtlTask,0,L7_NULLPTR,
++  *taskId = osapiTaskCreate("dtlTask", dtlTask, L7_NULLPTR, 0,
+                             dtlSidTaskStackSizeGet(),
+                             dtlSidTaskPriorityGet(),    //80,//dtlSidTaskPriorityGet(),     //PTIn modified
+                             dtlSidTaskSliceGet());  //1);//dtlSidTaskSliceGet());
+ 
+   if (*taskId == L7_ERROR)
+   {
+@@ -241,13 +241,13 @@ L7_RC_t dtlStartTask(L7_uint32 *taskId)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DTL_COMPONENT_ID,
+             "Unable to create dtlL2McastSema\n");
+     return L7_ERROR;
+   }
+ 
+-  dtlAddrTask = osapiTaskCreate("dtlAddrTask",dtlTaskAddr,0,L7_NULLPTR,
++  dtlAddrTask = osapiTaskCreate("dtlAddrTask", dtlTaskAddr, L7_NULLPTR, 0,
+                                 dtlSidTaskStackSizeGet(),
+                                 dtlSidTaskPriorityGet(),
+                                 dtlSidTaskSliceGet());
+ 
+   if (dtlAddrTask == L7_ERROR)
+   {
+Index: src/mgmt/mgmt_support/security/ssl_tunnel/sslt_control.c
+===================================================================
+--- src/mgmt/mgmt_support/security/ssl_tunnel/sslt_control.c	(revision 7353)
++++ src/mgmt/mgmt_support/security/ssl_tunnel/sslt_control.c	(revision 7354)
+@@ -447,14 +447,13 @@ L7_RC_t ssltListenTaskStartup(ssltSecure
+   if (ssltGlobal.ssltDebugLevel >= SSLT_DEBUG_LVL2)
+   {
+     fprintf(stdout,"ssltListenTaskStartup - Creating task:%s.\n",taskName);
+   }
+   taskId = (L7_uint32)osapiTaskCreate(taskName,
+                                       (void *)ssltListenTask,
+-                                      argc,
+-                                      argv,
++                                      argv, argc,
+                                       L7_DEFAULT_STACK_SIZE,
+                                       L7_DEFAULT_TASK_PRIORITY,
+                                       L7_DEFAULT_TASK_SLICE);
+   if (taskId == L7_ERROR)
+   {
+     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_SSLT_COMPONENT_ID,
+@@ -585,14 +584,13 @@ void ssltListenReady(BIO *rdy_acc, ssltS
+     argv[0] = (L7_uint32 *)secureType;
+     argv[1] = (L7_uint32 *)ssl;
+ 
+     /* Create a task to handle the SSLT Connection */
+     taskId = (L7_uint32)osapiTaskCreate("ssltConnTask",
+                                         (void *)ssltConnectionTask,
+-                                        argc,
+-                                        argv,
++                                        argv, argc, 
+                                         L7_DEFAULT_STACK_SIZE,
+                                         L7_DEFAULT_TASK_PRIORITY,
+                                         L7_DEFAULT_TASK_SLICE);
+ 
+     if (taskId == L7_ERROR)
+     {
+@@ -627,13 +625,13 @@ void ssltListenReady(BIO *rdy_acc, ssltS
+ *
+ * @comments
+ *
+ * @end
+ *
+ *********************************************************************/
+-void ssltListenTask(int argc, L7_uint32 *argv[])
++void ssltListenTask(L7_uint32 *argv[], int argc)
+ {
+   ssltSecureTypes_t secureType = SSLT_SECURE_ADMIN;
+   BIO* acc = L7_NULL;
+   BIO* accV6 = L7_NULL;
+   L7_uchar8 host_port[SSLT_HOST_PORT_STR_LEN+10];
+   L7_uint32 port;
+@@ -819,13 +817,13 @@ void ssltListenTask(int argc, L7_uint32
+ *
+ * @comments
+ *
+ * @end
+ *
+ *********************************************************************/
+-void ssltListenTask(int argc, L7_uint32 *argv[])
++void ssltListenTask(L7_uint32 *argv[], int argc)
+ {
+   ssltSecureTypes_t secureType = SSLT_SECURE_ADMIN;
+   BIO* acc = L7_NULL;
+   BIO* accV6 = L7_NULL;
+   BIO **ppBio = L7_NULL;
+   L7_uchar8 host_port[SSLT_HOST_PORT_STR_LEN+10];
+@@ -967,13 +965,13 @@ void ssltListenTask(int argc, L7_uint32
+ * @comments
+ *
+ * @end
+ *
+ *********************************************************************/
+ 
+-void ssltConnectionTask(int argc, L7_uint32 *argv[])
++void ssltConnectionTask(L7_uint32 *argv[], int argc)
+ {
+   ssltSecureTypes_t secureType = SSLT_SECURE_ADMIN;
+   SSL *ssl = L7_NULL;
+   L7_int32 sock_fd, sslRc;
+   struct sockaddr_in unSecureServerAddr;
+   L7_int32 ssl_rfd, result;
+Index: src/mgmt/mgmt_support/security/ssl_tunnel/sslt_control.h
+===================================================================
+--- src/mgmt/mgmt_support/security/ssl_tunnel/sslt_control.h	(revision 7353)
++++ src/mgmt/mgmt_support/security/ssl_tunnel/sslt_control.h	(revision 7354)
+@@ -88,16 +88,15 @@ typedef struct
+ L7_RC_t ssltStartTasks(void);
+ 
+ void ssltTask(void);
+ 
+ L7_RC_t ssltListenTaskStartup(ssltSecureTypes_t secureType);
+ 
+-void ssltListenTask(int argc, L7_uint32 *argv[]);
++void ssltListenTask(L7_uint32 *argv[], int argc);
+ 
+-void ssltConnectionTask(int argc,
+-                        L7_uint32 *argv[]);
++void ssltConnectionTask(L7_uint32 *argv[], int argc);
+ 
+ L7_RC_t ssltIssueCmd(L7_uint32 event,
+                      void *data);
+ 
+ L7_RC_t ssltFillMsg(void *data,
+                     ssltMsg_t *msg);
+Index: src/mgmt/mgmt_support/security/ssl_tunnel/sslt_util.c
+===================================================================
+--- src/mgmt/mgmt_support/security/ssl_tunnel/sslt_util.c	(revision 7353)
++++ src/mgmt/mgmt_support/security/ssl_tunnel/sslt_util.c	(revision 7354)
+@@ -860,13 +860,13 @@ static L7_char8 s_org_name[L7_SSLT_SUBJE
+ static L7_char8 s_org_unit[L7_SSLT_SUBJECT_DN_FIELD_MAX + 1];
+ static L7_char8 s_location[L7_SSLT_SUBJECT_DN_FIELD_MAX + 1];
+ static L7_char8 s_state[L7_SSLT_SUBJECT_DN_FIELD_MAX + 1];
+ static L7_char8 s_country[L7_SSLT_SUBJECT_DN_COUNTRY_SIZE + 1];
+ static L7_char8 s_email[L7_SSLT_SUBJECT_DN_FIELD_MAX + 1];
+ 
+-static void ssltCertGenTask(L7_int32 numargs, L7_uint32 *argv )
++static void ssltCertGenTask(L7_uint32 *argv, L7_int32 numargs)
+ {
+   L7_char8 *commonName = s_common_name;
+   L7_char8 *orgName    = s_org_name;
+   L7_char8 *orgUnit    = s_org_unit;
+   L7_char8 *location   = s_location;
+   L7_char8 *state      = s_state;
+@@ -978,13 +978,13 @@ L7_RC_t ssltCertGenerate(L7_uint32 numbe
+   }
+   certGenArgv[0] = number;
+   certGenArgv[1] = keyLength;
+   certGenArgv[2] = days;
+ 
+   certGenTaskId = osapiTaskCreate("ssltCertGenTask", (void *)ssltCertGenTask,
+-                                  3, &certGenArgv,
++                                  &certGenArgv, 3,
+                                   ssltSidDefaultStackSize(),
+                                   ssltSidDefaultTaskPriority(),
+                                   ssltSidDefaultTaskSlice());
+ 
+   if (certGenTaskId == L7_ERROR)
+   {
+Index: src/mgmt/mgmt_support/security/mapping/ssh/sshd_control.c
+===================================================================
+--- src/mgmt/mgmt_support/security/mapping/ssh/sshd_control.c	(revision 7353)
++++ src/mgmt/mgmt_support/security/mapping/ssh/sshd_control.c	(revision 7354)
+@@ -39,13 +39,13 @@ void                *sshdStartupSema;
+ void                *sshdQueue;
+ char                *sshd_argv[1];
+ L7_uint32           sshdEvTaskId;
+ int                 sshd_exited = 1;
+ 
+ extern void         sshd_set_global_protolevel(int protoLevel);
+-extern int          sshd_main(int argc, char *argv[]);
++extern int          sshd_main(char *argv[], int argc);
+ extern void         sshd_doquit(int reason);
+ extern void         sshd_undoquit(void);
+ 
+ 
+ /*********************************************************************
+ *
+@@ -203,13 +203,13 @@ sshdListenTaskStartup(void)
+ 
+         sshd_exited = 0;
+         sshd_undoquit();
+         osapiSnprintf(taskName,sizeof("sshd"), "%s", "sshd" );
+         sshd_argv[0] = "sshd"; /* doesn't matter */
+         taskId = (L7_uint32)osapiTaskCreate(taskName, (void *)sshd_main,
+-                                            1, sshd_argv,
++                                            sshd_argv, 1,
+                                             L7_DEFAULT_STACK_SIZE,
+                                             L7_DEFAULT_TASK_PRIORITY,
+                                             L7_DEFAULT_TASK_SLICE);
+ 
+         if (taskId == L7_ERROR)
+         {
+@@ -347,13 +347,13 @@ L7_RC_t sshdListenTaskRefresh(void)
+     osapiSemaGive(sshdGlobalSema);
+   }
+ 
+   return rc;
+ }
+ 
+-static void sshdEventKeyGenTask(L7_uint32 numargs, L7_uint32 *argv )
++static void sshdEventKeyGenTask(L7_uint32 *argv, L7_uint32 numargs)
+ {
+   sshdKeyType_t keyType = argv[0];
+   L7_uint32 length = argv[1];
+ 
+   if (sshdKeyFileCreate(keyType, length) != L7_SUCCESS)
+   {
+@@ -385,13 +385,13 @@ static L7_RC_t sshdEventKeyGenerate(sshd
+   L7_uint32           keyGenTaskId;
+ 
+   keyGenArgv[0] = keyType;
+   keyGenArgv[1] = length;
+ 
+   keyGenTaskId = (L7_uint32)osapiTaskCreate("sshdEventKeyGenTask", (void *)sshdEventKeyGenTask,
+-                                            2, keyGenArgv,
++                                            keyGenArgv, 2,
+                                             sshdSidDefaultStackSize(),
+                                             sshdSidDefaultTaskPriority(),
+                                             sshdSidDefaultTaskSlice());
+ 
+   if (keyGenTaskId == L7_ERROR)
+   {
+Index: src/mgmt/broadcom/emweb/linux/ewtask.c
+===================================================================
+--- src/mgmt/broadcom/emweb/linux/ewtask.c	(revision 7353)
++++ src/mgmt/broadcom/emweb/linux/ewtask.c	(revision 7354)
+@@ -175,13 +175,13 @@ EwsAuthorization      auth;
+ EwsAuthHandle         auth_handle[2];                       /* returned handle */
+ appAuthHandle         appAuthHndle[2];
+ #endif
+ 
+ int tEmWebTid = 0;
+ 
+-int emweb_main(int, char **);
++int emweb_main(char **, int);
+ 
+ #define EMWEB_MAX_NAME_LEN 64
+ 
+ char emweb_hostname[EMWEB_MAX_NAME_LEN];
+ char *emweb_argv[2];
+ 
+@@ -215,13 +215,13 @@ int ewaTaskStart(void) {
+ 
+    emweb_argv[0] = "emweb_main"; /* doesn't matter */
+    emweb_argv[1] = emweb_hostname;
+ 
+    /* start OSAPI task w/ emweb_main as entry */
+    return (osapiTaskCreate("emWeb", emweb_main,
+-                           2, emweb_argv,
++                           emweb_argv, 2,
+                            L7_DEFAULT_STACK_SIZE * 4,  /* 128K */
+                            L7_DEFAULT_TASK_PRIORITY,
+                            L7_DEFAULT_TASK_SLICE));
+ 
+ }
+ 
+@@ -229,13 +229,13 @@ int ewaTaskStart(void) {
+ /*                          M A I N                                 */
+ /* ################################################################ */
+ 
+ extern void cliWebIOStdIOFdStore ( void );
+ 
+ int
+-emweb_main(int argc, char **argv)
++emweb_main(char **argv, int argc)
+ {
+   int             exit_status;
+   char*           cp;
+   int             sz;
+   uint16          port;
+   uint32          listenAddr;
+Index: bsp/platform/broadcom/common/poe/pwrdsn/hpc_poe_pwrdsne.c
+===================================================================
+--- bsp/platform/broadcom/common/poe/pwrdsn/hpc_poe_pwrdsne.c	(revision 7353)
++++ bsp/platform/broadcom/common/poe/pwrdsn/hpc_poe_pwrdsne.c	(revision 7354)
+@@ -272,14 +272,13 @@ void hpcPoePrintfTaskStart(void)
+   {
+     return;
+   }
+ 
+   hpcPoePrintfTaskID = osapiTaskCreate("hpcPoePrintf",
+                                        hpcPoePrintfMsgQueueTask,
+-                                       0,
+-                                       L7_NULLPTR,
++                                       L7_NULLPTR, 0,
+                                        L7_DEFAULT_STACK_SIZE,
+                                        L7_DEFAULT_TASK_PRIORITY - 5,
+                                        L7_DEFAULT_TASK_SLICE);
+ 
+   osapiWaitForTaskInit(L7_POE_TASK_SYNC, L7_WAIT_FOREVER);
+ 
+@@ -4948,14 +4947,13 @@ static L7_RC_t hpcPwrdsinePoeInitPhase2(
+    */
+   if (L7_NULL == poeMonitorTaskId)
+   {
+     /* create the POE monitor task */
+     poeMonitorTaskId = osapiTaskCreate("poe_monitor",
+                                        hpcPwrdsinePoeMonitorTask,
+-                                       0,
+-                                       L7_NULLPTR,
++                                       L7_NULLPTR, 0,
+                                        L7_DEFAULT_STACK_SIZE,
+                                        L7_TASK_PRIORITY_LEVEL(L7_DEFAULT_TASK_PRIORITY),
+                                        L7_DEFAULT_TASK_SLICE);
+   }
+ 
+   poeGlobalStatus_g.cardStatus[cardIndex].initialized = L7_TRUE;
+@@ -5256,13 +5254,13 @@ L7_RC_t hpcPwrdsinePoeFirmwareErase(L7_u
+  * @notes   Upon successful completion, this task will finish
+  *          the PoE initialization.
+  *
+  * @end
+  *
+  *********************************************************************/
+-static L7_RC_t hpcPwrdsinePoeFirmwareDownloadTask(L7_uint32 args, L7_uint32 *argv)
++static L7_RC_t hpcPwrdsinePoeFirmwareDownloadTask(L7_uint32 *argv, L7_uint32 args)
+ {
+   L7_RC_t       rc;
+   char          s19_line[128];
+   L7_ushort16   sw_ver;
+   L7_uchar8     hw_ver;
+   L7_uchar8     build_num;
+@@ -5507,14 +5505,13 @@ L7_RC_t hpcPwrdsinePoeFirmwareDownloadBe
+ 
+   poeFWDownloadInProgress[cardIndex] = L7_TRUE;
+ 
+   /* The priority of the task that does Firmware download should be the highest */
+   if (L7_ERROR == osapiTaskCreate(fw_dwnld_task_name,
+                                   hpcPwrdsinePoeFirmwareDownloadTask,
+-                                  1,
+-                                  &card_id[cardIndex],
++                                  &card_id[cardIndex], 1,
+                                   L7_DEFAULT_STACK_SIZE,
+                                   L7_TASK_PRIORITY_LEVEL(L7_DEFAULT_TASK_PRIORITY - 1),
+                                   L7_DEFAULT_TASK_SLICE))
+   {
+     poeFWDownloadInProgress[cardIndex] = L7_FALSE;
+     return L7_FAILURE;
+@@ -5531,13 +5528,13 @@ L7_RC_t hpcPwrdsinePoeFirmwareDownloadBe
+  *
+  * @param   L7_uint32 numArgs -- Number of arguments
+  *
+  * returns  none
+  *
+  ********************************************************************/
+-static void hpcPwrdsinePoeReadTask(L7_uint32 numArgs, L7_uint32 *argv)
++static void hpcPwrdsinePoeReadTask(L7_uint32 *argv, L7_uint32 numArgs)
+ {
+   L7_int        byte_count = 0;
+   L7_int        bytes_read;
+   L7_uint32     cardIndex;
+   L7_int        count;
+   L7_int        width;
+@@ -5859,14 +5856,13 @@ static L7_RC_t hpcPwrdsinePoeInit(SYSAPI
+        * the switch. Reading in a separate task avoids this complication.  This task runs
+        * at a higher priority than the default since it must receive messages in a timely
+        * fashion.  It has be seen to be starved in certain situations if it runs at the default.
+        */
+       if (L7_ERROR == osapiTaskCreate(readTaskName,
+                                       hpcPwrdsinePoeReadTask,
+-                                      1,
+-                                      &taskData,
++                                      &taskData, 1,
+                                       L7_DEFAULT_STACK_SIZE,
+                                       L7_TASK_PRIORITY_LEVEL(L7_DEFAULT_TASK_PRIORITY - 2),
+                                       L7_DEFAULT_TASK_SLICE))
+       {
+         L7_LOGF(L7_LOG_SEVERITY_CRITICAL, L7_POE_COMPONENT_ID, "Read task not initialized for card %d.", cardIndex);
+         continue;
+Index: bsp/platform/broadcom/common/poe/brcm/hpc_poe_brcm.c
+===================================================================
+--- bsp/platform/broadcom/common/poe/brcm/hpc_poe_brcm.c	(revision 7353)
++++ bsp/platform/broadcom/common/poe/brcm/hpc_poe_brcm.c	(revision 7354)
+@@ -5750,13 +5750,13 @@ static L7_RC_t hpcBrcmPoeSystemDownloadP
+ *
+ * @notes   Currently this feature is available from devshell utility
+ *
+ * @end
+ *
+ *******************************************************************************/
+-static L7_RC_t hpcBrcmPoeFirmwareUpgradeTask(L7_uint32 args, L7_uint32 *argv)
++static L7_RC_t hpcBrcmPoeFirmwareUpgradeTask(L7_uint32 *argv, L7_uint32 args)
+ {
+   L7_uint32 offset = L7_NULL;
+   L7_uchar8 outBuf[BSC_MSG_LEN];
+   L7_uint32 count;
+   L7_uint32 cardIndex = argv[0];
+   L7_int32  rc;
+@@ -5845,13 +5845,13 @@ static L7_RC_t hpcBrcmPoeFirmwareUpgrade
+   {
+     hpcBrcmPoeInitPhase2(cardIndex);
+   }
+   return L7_SUCCESS;
+ }
+ 
+-static L7_RC_t hpcBrcmPoeFirmwareDownloadTask(L7_uint32 args, L7_uint32 *argv)
++static L7_RC_t hpcBrcmPoeFirmwareDownloadTask(L7_uint32 *argv, L7_uint32 args)
+ {
+ #define POE_DOWNLOAD_MAX_OUT_BUF_SIZE  36
+ #define POE_DOWNLOAD_DATA_BYTES_IN_PKT 32
+ #define POE_DOWNLOAD_HDR_BYTES_IN_PKT  (POE_DOWNLOAD_MAX_OUT_BUF_SIZE-POE_DOWNLOAD_DATA_BYTES_IN_PKT)
+ #define POE_DOWNLOAD_MAX_IN_BUF_SIZE   BSC_MSG_LEN
+ #define POE_DOWNLOAD_MAX_PKT_COUNT     504
+@@ -5987,14 +5987,13 @@ L7_RC_t hpcBrcmPoeFirmwareUpgradeBegin(L
+ 
+   poeFWDownloadInProgress[cardIndex] = L7_TRUE;
+ 
+   /* The priority of the task that does Firmware download should be the highest */
+   if (L7_ERROR == osapiTaskCreate(fw_upgrd_task_name,
+                                   hpcBrcmPoeFirmwareUpgradeTask,
+-                                  1,
+-                                  &card_id,
++                                  &card_id, 1,
+                                   L7_DEFAULT_STACK_SIZE,
+                                   L7_TASK_PRIORITY_LEVEL(1),
+                                   L7_DEFAULT_TASK_SLICE))
+   {
+     poeFWDownloadInProgress[cardIndex] = L7_FALSE;
+     return L7_FAILURE;
+@@ -6028,14 +6027,13 @@ L7_RC_t hpcBrcmPoeFirmwareDownloadBegin(
+ 
+   poeFWDownloadInProgress[cardIndex] = L7_TRUE;
+ 
+   /* The priority of the task that does Firmware download should be the highest */
+   if (L7_ERROR == osapiTaskCreate(fw_dwnld_task_name,
+                                   hpcBrcmPoeFirmwareDownloadTask,
+-                                  1,
+-                                  &card_id,
++                                  &card_id, 1,
+                                   L7_DEFAULT_STACK_SIZE,
+                                   L7_TASK_PRIORITY_LEVEL(1),
+                                   L7_DEFAULT_TASK_SLICE))
+   {
+     poeFWDownloadInProgress[cardIndex] = L7_FALSE;
+     return L7_FAILURE;
+@@ -6358,14 +6356,13 @@ static L7_RC_t hpcBrcmPoeInitPhase2(L7_u
+ 
+   /* create the POE monitor task */
+   if (L7_NULL == poeMonitorTaskId)
+   {
+       poeMonitorTaskId = osapiTaskCreate("poe_monitor",
+                                          hpcBrcmPoeMonitorTask,
+-                                         0,
+-                                         L7_NULLPTR,
++                                         L7_NULLPTR, 0,
+                                          L7_DEFAULT_STACK_SIZE,
+                                          L7_TASK_PRIORITY_LEVEL(L7_DEFAULT_TASK_PRIORITY),
+                                          L7_DEFAULT_TASK_SLICE);
+ 
+   }
+ 
+Index: bsp/cpu/common/linux/ipl/bootos.c
+===================================================================
+--- bsp/cpu/common/linux/ipl/bootos.c	(revision 7353)
++++ bsp/cpu/common/linux/ipl/bootos.c	(revision 7354)
+@@ -308,14 +308,14 @@ int fp_main(int argc, char *argv[])
+ 
+   /*
+    * Start the Startup Status task
+    */
+   startupStatusTaskID = osapiTaskCreate("startupStatus",
+                         (VOIDFUNCPTR)startupStatusTask,
+-                        0,
+                         L7_NULLPTR,
++                        0,
+                         L7_DEFAULT_STACK_SIZE,
+                         L7_TASK_PRIORITY_LEVEL(0),
+                         L7_DEFAULT_TASK_SLICE);
+ 
+   /* diagnostics? */
+ 
+@@ -325,14 +325,14 @@ int fp_main(int argc, char *argv[])
+ #ifdef USE_LM75_MONITOR
+   /*
+    * Start the LM75 monitoring task
+    */
+   osapiTaskCreate( "LM75monitor",
+                    ( VOIDFUNCPTR )LM75MonitorTask,
+-                   0,
+                    L7_NULLPTR,
++                   0,
+                    L7_DEFAULT_STACK_SIZE,
+                    L7_TASK_PRIORITY_LEVEL(L7_DEFAULT_TASK_PRIORITY),
+                    L7_DEFAULT_TASK_SLICE);
+ #endif
+ 
+   osapiNetworkInit(); /* Initializes the IP Network */
+@@ -1057,14 +1057,14 @@ int main(int argc, char *argv[], char *e
+   if ((argc == 2) && (strcmp(argv[1], "valgrind") == 0)) {
+     globValgrindRunning = L7_TRUE;
+   }
+ #endif
+      osapiTaskCreate ("fp_main_task",
+                         ( VOIDFUNCPTR )fp_main,
+-                        0,
+                         L7_NULLPTR,
++                        0,
+                         L7_DEFAULT_STACK_SIZE,
+                         L7_TASK_PRIORITY_LEVEL(L7_DEFAULT_TASK_PRIORITY),
+                         L7_DEFAULT_TASK_SLICE);
+   }
+ 
+   pthread_mutex_lock(&main_lock);
+Index: vendor/openssh/sshd.c
+===================================================================
+--- vendor/openssh/sshd.c	(revision 7353)
++++ vendor/openssh/sshd.c	(revision 7354)
+@@ -1223,13 +1223,13 @@ recv_rexec_state(int fd, Buffer *conf)
+ 
+     debug3("%s: done", __func__);
+ }
+ #endif /* L7_SSHD */
+ 
+ #ifdef L7_SSHD
+-void sshd_connection_task(L7_uint32 numArgs, int *argv)
++void sshd_connection_task(int *argv, L7_uint32 numArgs)
+ {
+     int                 cn = argv[0];
+     child_context_t     *context = &child_connect_context[cn];
+     int                 sock_in = context->sock_in;
+     int                 sock_out = context->sock_out;
+     sensitive_data_t    child_sensitive_data = context->child_sensitive_data;
+@@ -2295,13 +2295,13 @@ sshd_main(int ac, char **av)
+                     sensitive_data.server_key = NULL;
+                 }
+ 
+                 osapiSnprintf(taskName, sizeof(taskName), "sshd[%d]", cn);
+                 sshdTaskArgv[cn][0] = cn;
+                 pid = (int) osapiTaskCreate(taskName, sshd_connection_task,
+-                                       1, &sshdTaskArgv[cn],
++                                       &sshdTaskArgv[cn], 1, 
+                                        L7_DEFAULT_STACK_SIZE*4,
+                                        L7_DEFAULT_TASK_PRIORITY,
+                                        L7_DEFAULT_TASK_SLICE);
+ 
+                 if (pid == L7_ERROR)
+                 {

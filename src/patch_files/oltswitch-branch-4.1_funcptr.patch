@@ -1,0 +1,127 @@
+Index: src/mgmt/broadcom/cli/base/common/clidevshell.c
+===================================================================
+--- src/mgmt/broadcom/cli/base/common/clidevshell.c	(revision 7348)
++++ src/mgmt/broadcom/cli/base/common/clidevshell.c	(revision 7349)
+@@ -33,14 +33,14 @@
+ #include "taskLib.h"
+ #endif /* _L7_OS_VXWORKS_ */
+ 
+ #ifdef _L7_OS_LINUX_
+ typedef struct
+ {
+-  char * name;
+-   FUNCPTR value;
++   char * name;
++   L7_FUNCPTR value;
+ } SYMBOL;  /* need tools to build symbol table */
+ typedef unsigned long ULONG;
+ #endif /* _L7_OS_LINUX_ */
+ 
+ extern L7_int32 osapiDevshell(L7_char8 * name, L7_int32 * rc,
+                               L7_int32 arg0,  L7_int32 arg1,  L7_int32 arg2,
+@@ -61,13 +61,13 @@ extern L7_int32 osapiDevshell(L7_char8 *
+ 
+ L7_char8 shell_strings[CMD_MAX_ARGS][CMD_MAX_SIZE];
+ 
+ L7_int32 cliDevShell(L7_char8 * cmd)
+ {
+    L7_char8 func_name[CMD_MAX_SIZE];
+-   FUNCPTR func_ptr;
++   L7_FUNCPTR func_ptr;
+    L7_int32 args[CMD_MAX_ARGS];
+    L7_BOOL arg_strings[CMD_MAX_ARGS];
+    L7_int32 rc;
+    L7_uint32 arg_index;
+ 
+    func_ptr=NULL;
+@@ -75,13 +75,13 @@ L7_int32 cliDevShell(L7_char8 * cmd)
+    memset(arg_strings, 0, sizeof(arg_strings));
+ 
+    cliParseCmd(cmd,func_name,args,arg_strings);
+ 
+    if (func_name[0])
+    {
+-    func_ptr = (FUNCPTR)(osapiAddressLookup(func_name));
++    func_ptr = (L7_FUNCPTR)(osapiAddressLookup(func_name));
+       printf("\n");
+       if (func_ptr)
+       {
+          rc=func_ptr(args[0],args[1],args[2],args[3],args[4],
+                      args[5],args[6],args[7],args[8],args[9],
+                      args[10],args[11],args[12],args[13],args[14],
+Index: src/mgmt/broadcom/cli/base/include/clidevshell.h
+===================================================================
+--- src/mgmt/broadcom/cli/base/include/clidevshell.h	(revision 7348)
++++ src/mgmt/broadcom/cli/base/include/clidevshell.h	(revision 7349)
+@@ -20,10 +20,10 @@
+  **********************************************************************/
+ 
+ #ifndef CLIDEVSHELL_H
+ #define CLIDEVSHELL_H
+ 
+ L7_int32 cliParseCmd(L7_char8 * cmd,L7_char8 * func_name,L7_int32 * args,L7_BOOL * arg_strings);
+-L7_int32 cliLookupCmd(L7_char8 * func_name,FUNCPTR * func_ptr);
++L7_int32 cliLookupCmd(L7_char8 * func_name, L7_FUNCPTR * func_ptr);
+ L7_int32 cliDevShell(L7_char8 * cmd);
+ 
+ #endif
+Index: src/l7public/common/datatypes.h
+===================================================================
+--- src/l7public/common/datatypes.h	(revision 7348)
++++ src/l7public/common/datatypes.h	(revision 7349)
+@@ -124,15 +124,15 @@ typedef void (*L7_VOIDFUNCPTR_t) (); /*
+   #define EXT_API extern
+ #endif
+ /* For Linux we need to define FUNCPTR type.
+ */
+ #if defined(_L7_OS_LINUX_) || defined(_L7_OS_ECOS_)
+   #ifdef __cplusplus
+-typedef L7_int32    (*FUNCPTR) (...); 
++typedef L7_int32    (*L7_FUNCPTR) (...); 
+   #else
+-typedef L7_int32    (*FUNCPTR) (); 
++typedef L7_int32    (*L7_FUNCPTR) (); 
+   #endif
+ #endif
+ #ifdef L7_METRO_FLEX_PACKAGE
+ #ifdef L7_DOT1AD_PACKAGE
+ typedef L7_RC_t (*fNimSetIntfAdminState)(L7_uint32, L7_uint32);
+ #endif
+Index: os/linux/routing/include/l3_end.h
+===================================================================
+--- os/linux/routing/include/l3_end.h	(revision 7348)
++++ os/linux/routing/include/l3_end.h	(revision 7349)
+@@ -125,13 +125,13 @@ typedef struct l3end_device
+   L7_uchar8   enetAddr[8];
+ 
+   L7_uint32   ip_addr; /* IP Address of this interface */
+   L7_uint32   ip_netmask; /* Netmask of the interface */
+   L7_uint32   ip_gateway; /* Default gateway */
+ 
+-  FUNCPTR     addrResFunc; /* Address resolution function for this interface */
++  L7_FUNCPTR  addrResFunc; /* Address resolution function for this interface */
+ 
+ /* We support multiple instances of the routing interface END driver. 
+ ** Each driver has its own buffer pool and cluster descriptors.
+ */
+ #ifdef _L7_OS_VXWORKS_
+   NET_POOL      NetPool;
+Index: os/linux/osapi/osapi_task.c
+===================================================================
+--- os/linux/osapi/osapi_task.c	(revision 7348)
++++ os/linux/osapi/osapi_task.c	(revision 7349)
+@@ -1693,13 +1693,13 @@ L7_BOOL osapiTaskIdIs( L7_uchar8 *taskNa
+     return L7_FALSE;
+ 
+ }
+ 
+ typedef struct {
+    char *name;
+-   FUNCPTR value;
++   L7_FUNCPTR value;
+ } SYMBOL;  /* need tools to build symbol table */
+ typedef unsigned long ULONG;
+ 
+ #if defined(__mips__)
+ unsigned long *mips_backtrace(unsigned long *pc, unsigned long **sp,
+                               FILE *logfd);
