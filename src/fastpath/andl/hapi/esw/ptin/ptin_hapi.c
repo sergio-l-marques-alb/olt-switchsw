@@ -6047,7 +6047,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
 #endif
 
   // OLTTS - 17139
-#if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
+#if ((!PTIN_BOARD_IS_PASSIVE_LC && PTIN_BOARD_IS_LINECARD) || PTIN_BOARD_IS_STANDALONE)
   {
     L7_uint8  prio_mask  = 0x7;
     L7_uint8  vlanFormat_value, vlanFormat_mask;
@@ -6566,6 +6566,9 @@ L7_RC_t ag16ga_xconnect_init(void)
 #endif /* (PTIN_BOARD == PTIN_BOARD_AG16GA) */
 
 #if (PTIN_BOARD == PTIN_BOARD_AE48GE)
+
+static L7_RC_t ae48ge_copy_pbits(void);
+
 /**
  * Crossconnect configurations for AE48GE board
  * 
@@ -6620,13 +6623,118 @@ L7_RC_t ae48ge_xconnect_init(void)
       return L7_FAILURE;
     }
   }
-  
+
+  if (ae48ge_copy_pbits() != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error configuring field processor!");
+    return L7_FAILURE;
+  }
+
   PT_LOG_INFO(LOG_CTX_HAPI, "AE48GE special initialized done!");
 
   return L7_SUCCESS;
 }
-#endif /* (PTIN_BOARD == PTIN_BOARD_AE48GE) */
 
+/**
+ * Copy pbits from inner VLAN to Outer VLAN (only to upstream 
+ * direction) 
+ * 
+ * @author mruas (22/08/19)
+ * 
+ * @return L7_RC_t 
+ */
+static L7_RC_t ae48ge_copy_pbits(void)
+{
+  L7_uint32 port, bcm_port;
+  bcmx_lport_t lport;
+  L7_uint8 prio, prio_mask  = 0x7;
+  BROAD_POLICY_t      policyId;
+  BROAD_POLICY_RULE_t ruleId;
+  L7_RC_t rc;
+
+  /* Create Policy for VLAN dot1p copy to inner tag */
+  rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_PTIN);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
+    return L7_FAILURE;
+  }
+  rc = hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_INGRESS);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
+    return L7_FAILURE;
+  }
+  /* Run all 8 priorities */
+  for (prio = 0; prio < 8; prio++)
+  {  
+    //* Priority higher than dot1p rules */
+    rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT);
+    if (rc != L7_SUCCESS)  break;
+
+    /* Priority (Copy outer PCP) */
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ICOS, (L7_uchar8 *)&prio, (L7_uchar8 *)&prio_mask);
+    if (rc != L7_SUCCESS)  break;
+
+    /* Change inner tag priority to prio */
+    rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO, prio, 0, 0);
+    if (rc != L7_SUCCESS)  break;
+    rc = hapiBroadPolicyRuleExceedActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO, prio, 0, 0);
+    if (rc != L7_SUCCESS)  break;
+
+    /* Set CFI for yellow packets */
+    //rc = hapiBroadPolicyRuleExceedActionAdd(ruleId, BROAD_ACTION_SET_INNER_CFI, 1, 0, 0);
+    //if (rc != L7_SUCCESS)  break;
+  }
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_STARTUP, "Error configuring rule");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+
+  /* Apply rules */
+  rc = hapiBroadPolicyCommit(&policyId);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_STARTUP, "Error commiting policy");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+
+  rc = hapiBroadPolicyRemoveFromAll(policyId);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_STARTUP, "Error removing all ports: %d", rc);
+    return L7_FAILURE;
+  }
+
+  /* Apply to only ETH ports (upstream direction) */
+  for (port = 0; port < PTIN_SYSTEM_N_ETH; port++)
+  {
+    if (hapi_ptin_bcmPort_get(port, &bcm_port) != L7_SUCCESS)
+    {
+      continue;
+    }
+
+    lport = bcmx_unit_port_to_lport(0, bcm_port);
+
+    rc = hapiBroadPolicyApplyToIface(policyId, lport);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding port %u: rc=%d", port, rc);
+    }
+    else
+    {
+      PT_LOG_TRACE(LOG_CTX_STARTUP, "Port %u / bcm_port %u / lport 0x%x added to Pbit=0 force rule", port, bcm_port, lport);
+    }
+  }
+
+  PT_LOG_INFO(LOG_CTX_HAPI, "FP rules to copy inner PRIO to outer PRIO applied!");
+
+  return L7_SUCCESS;
+}
+#endif /* (PTIN_BOARD == PTIN_BOARD_AE48GE) */
 
 
 L7_RC_t teste_case3(void)
