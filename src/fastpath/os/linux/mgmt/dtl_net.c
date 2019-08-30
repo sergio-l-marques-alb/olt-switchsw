@@ -1247,7 +1247,7 @@ void dtlNetInit(void)
 #ifdef DTL_USE_TAP
 
 /* PTin added: inband */
-void ptin_AddTag(L7_ushort16 tpid, L7_ushort16 vlanId, L7_uchar8 *data, L7_uint32 *data_length)
+void ptin_AddTag(L7_ushort16 tpid, L7_ushort16 vlanId, L7_uchar8 *data, L7_uchar8 pcp_dei, L7_uint32 *data_length)
 {
   L7_int i;
 
@@ -1256,10 +1256,11 @@ void ptin_AddTag(L7_ushort16 tpid, L7_ushort16 vlanId, L7_uchar8 *data, L7_uint3
     data[i+4] = data[i];
 
   /* Insert tag */
-  data[12]= (L7_uchar8) ((tpid >> 8)  & 0xFF);
-  data[13]= (L7_uchar8) ( tpid        & 0xFF);
-  data[14]= (L7_uchar8) ((vlanId >> 8) & 0x0F);
-  data[15]= (L7_uchar8) ( vlanId       & 0xFF);
+  data[12] = (L7_uchar8) ((tpid >> 8)   & 0xFF);
+  data[13] = (L7_uchar8) ( tpid         & 0xFF);
+  data[14] = (L7_uchar8) ((vlanId >> 8) & 0x0F);
+  data[14]|= (L7_uchar8)((pcp_dei << 4) & 0xF0);
+  data[15] = (L7_uchar8) ( vlanId       & 0xFF);
   *data_length += 4;
 }
 
@@ -1274,13 +1275,14 @@ void ptin_RemoveTag(L7_uchar8 *data, L7_uint32 *data_length)
   *data_length -= 4;
 }
 
-void ptin_ReplaceTag(L7_ushort16 tpid, L7_ushort16 vlanId, L7_uchar8 *data)
+void ptin_ReplaceTag(L7_ushort16 tpid, L7_ushort16 vlanId, L7_uchar8 pcp_dei, L7_uchar8 *data)
 {
   /* Replace tag */
-  data[12]= (L7_uchar8) ((tpid >> 8)  & 0xFF);
-  data[13]= (L7_uchar8) ( tpid        & 0xFF);
-  data[14]= (L7_uchar8) ((vlanId >> 8) & 0x0F);
-  data[15]= (L7_uchar8) ( vlanId       & 0xFF);
+  data[12] = (L7_uchar8)  ((tpid >> 8)    & 0xFF);
+  data[13] = (L7_uchar8)  ( tpid          & 0xFF);
+  data[14] = (L7_uchar8)  ((vlanId  >> 8) & 0x0F);
+  data[14]|= (L7_uchar8)  ((pcp_dei << 4) & 0xF0);
+  data[15] = (L7_uchar8)  ( vlanId        & 0xFF);
 }
 /* PTin end */
 
@@ -1291,7 +1293,7 @@ void ptin_ReplaceTag(L7_ushort16 tpid, L7_ushort16 vlanId, L7_uchar8 *data)
  */
 void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtlInfo *info)
 {
-  L7_uchar8 *data;
+  L7_uchar8 *data, pcp_dei=0;
   L7_uint32 data_length;
   L7_ushort16 etype = 0;
   L7_uint32 intIfNum;
@@ -1353,6 +1355,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
   {
     dtl0Vid = ((data[14] << 8) & 0x0F00) | (data[15] & 0x00FF);
     isTaggedPacket = L7_TRUE;
+    pcp_dei = ((data[14] >> 4) & 0x0F);
 
     if (dtl0Vid == DTL0INBANDVID)
     {
@@ -1363,8 +1366,6 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
       {
         vid = simMgmtVlanIdGet();
       }
-
-      ptin_ReplaceTag(L7_ETYPE_8021Q, vid, data);
 
       /* Set PCP = 7 */
       data[14] |= (L7_uchar8)7 << 5;
@@ -1380,6 +1381,8 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
     {
       /* Remove PTIN_VLAN_PCAP_EXT TAG*/
       ptin_RemoveTag(data, &data_length);
+
+      pcp_dei = ((data[14] >> 4) & 0x0F);
       int vlan = ((data[18] << 8) & 0x0F00) | (data[19] & 0x00FF);
       /* Get IntfNum from agent (were the packet were receive)*/
       int intfNum = (((data[14] << 8) & 0x0F00) | (data[15] & 0x00FF));
@@ -1421,13 +1424,13 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
         /* internal Vlan is equal to (frontal port + (PTIN_SYSTEM_BASE_INTERNAL_VLAN-1))*/
         vlan = (intfNum + (PTIN_SYSTEM_BASE_INTERNAL_VLAN - 1));
         /*Replace the outer VLAN. SF is expecting sysinf (where the packet was received) as outer vlan*/
-        ptin_ReplaceTag(L7_ETYPE_8021Q, sysintf, data);
+        ptin_ReplaceTag(L7_ETYPE_8021Q, sysintf, pcp_dei, data);
         /* Replace the outer VLAN. SF is expecting sysinf (where the packet was received) as outer vlan*/
-        ptin_AddTag(L7_ETYPE_8021Q, sysintf, data, &data_length);
+        ptin_AddTag(L7_ETYPE_8021Q, sysintf, data, pcp_dei, &data_length);
 
         if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
         {
-          SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): vlan id %d\n\r", __FUNCTION__, __LINE__, vlan);
+          SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): vlan id %d and pcp_dei %d \n\r", __FUNCTION__, __LINE__, vlan, pcp_dei);
         }
 
         /* Get lag bck lag id to send the packet*/
@@ -1467,7 +1470,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
     }
 
     info->dtlCmdInfo.intfNum = intfNum;
-    info->dtlCmdInfo.priority = 0;
+    info->dtlCmdInfo.priority = pcp_dei;
     info->dtlCmdInfo.typeToSend = DTL_L2RAW_UNICAST;
     info->dtlCmdInfo.cmdType.L2.domainId = vlan;       /* This is the internal VID */
     info->dtlCmdInfo.cmdType.L2.vlanId = vlan;
@@ -1485,12 +1488,10 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
     else
     {
       vid = ptin_ipdtl0_outerVid_get(dtl0Vid);     /* This is the packet outer VID */
-
-      ptin_ReplaceTag(L7_ETYPE_8021Q, vid, data);
-
+      ptin_ReplaceTag(L7_ETYPE_8021Q, vid, pcp_dei, data);
       vid = ptin_ipdtl0_internalVid_get(dtl0Vid);  /* This is the internal VID */
 
-      if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1) SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Replaced original packet VID %u with %u\n\r", __FUNCTION__, __LINE__, dtl0Vid, vid);
+      if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1) SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Replaced original packet VID %u with %u and %d pcp_dei \n\r", __FUNCTION__, __LINE__, dtl0Vid, vid, pcp_dei);
 
       if (vid == 0)
       {
@@ -1507,10 +1508,10 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
       if (vid == 0)
         vid = simMgmtVlanIdGet();
 
-      ptin_AddTag(L7_ETYPE_8021Q, vid, data, &data_length);
+      ptin_AddTag(L7_ETYPE_8021Q, vid, data, pcp_dei, &data_length);
 
       if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
-           SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Adding VID %u to the untagged packet\n\r", __FUNCTION__, __LINE__, vid);
+           SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Adding VID %u %d pcp_dei to the untagged packet\n\r", __FUNCTION__, __LINE__, vid, pcp_dei);
 
       SYSAPI_NET_MBUF_SET_DATALENGTH(handle, data_length);
 
@@ -1617,7 +1618,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
          */
          
          info->dtlCmdInfo.intfNum = intIfNum;
-         info->dtlCmdInfo.priority = 0;
+         info->dtlCmdInfo.priority = pcp_dei;
          info->dtlCmdInfo.typeToSend = DTL_NORMAL_UNICAST;
          info->dtlCmdInfo.cmdType.L2.domainId = vid;       /* This is the internal VID */
          info->dtlCmdInfo.cmdType.L2.flags = 0;
@@ -1707,7 +1708,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
           /* PTin end */
 
           info->dtlCmdInfo.intfNum = intIfNum;
-          info->dtlCmdInfo.priority = 0;
+          info->dtlCmdInfo.priority = pcp_dei;
           info->dtlCmdInfo.typeToSend = DTL_NORMAL_UNICAST;
           info->dtlCmdInfo.cmdType.L2.domainId = vid;       /* This is the internal VID */
           info->dtlCmdInfo.cmdType.L2.flags = 0;
@@ -1789,7 +1790,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
          else
          {
             info->dtlCmdInfo.intfNum = intIfNum;
-            info->dtlCmdInfo.priority = 0;
+            info->dtlCmdInfo.priority = pcp_dei;
             info->dtlCmdInfo.typeToSend = DTL_NORMAL_UNICAST;
             info->dtlCmdInfo.cmdType.L2.domainId = vid;       /* This is the internal VID */
             info->dtlCmdInfo.cmdType.L2.flags = 0;
