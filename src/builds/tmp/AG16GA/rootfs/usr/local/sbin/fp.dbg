@@ -1,0 +1,2 @@
+echo "Redirecting console to $1"
+/usr/local/ptin/sbin/fp.cli m 1000 $1

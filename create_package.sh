@@ -118,10 +118,6 @@ mkdir -pv var/log/switchdrvr/
 mkdir -pv usr/local/scripts/swdrv-scripts/
 rm -f *.tgz
 
-cp -uv ../../../../$APPLICATION.ver ./usr/local/scripts/swdrv-scripts/
-cp -uv ../../../../fastpath ./usr/local/ptin/sbin/
-cp -uv ../../../../rcS15 ./usr/local/scripts/
-cp -uv ../../../../startPcapBridge.sh ./usr/local/scripts/
 echo "echo OLTSWITCH md5sum: "`md5sum ./usr/local/ptin/sbin/$MAIN_BIN | awk '{print $1}'` >> ./usr/local/scripts/swdrv-scripts/$APPLICATION.ver
 
 # create tgz file
