@@ -2,8 +2,8 @@
 #define _PTIN_GLOBALDEFS_AG16GA_H
 
 /* If SSM is not supported, comment this line */
-#define SYNC_SSM_IS_SUPPORTED
-#define SHMEM_IS_IN_USE
+//#define SYNC_SSM_IS_SUPPORTED
+//#define SHMEM_IS_IN_USE
 
 /** Service association AVL Tree */
 #define IGMPASSOC_MULTI_MC_SUPPORTED

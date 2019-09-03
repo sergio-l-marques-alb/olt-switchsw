@@ -1386,7 +1386,6 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
       int vlan = ((data[18] << 8) & 0x0F00) | (data[19] & 0x00FF);
       /* Get IntfNum from agent (were the packet were receive)*/
       int intfNum = (((data[14] << 8) & 0x0F00) | (data[15] & 0x00FF));
-      int sysintf = 0, lag_id = 0;
 
       if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
       {
@@ -1408,6 +1407,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
 #elif (PTIN_BOARD == PTIN_BOARD_AE48GE)
       /* Packet received from Agent*/
       L7_RC_t rc;
+      int sysintf = 0, lag_id = 0;
 
       /* Packets from agent to bck interfaces (48) */
       if (intfNum > PTIN_SYSTEM_N_ETH)
