@@ -1,0 +1,104 @@
+Index: andl/hapi/esw/policy/broad_group_xgs3.c
+===================================================================
+--- andl/hapi/esw/policy/broad_group_xgs3.c	(revision 7386)
++++ andl/hapi/esw/policy/broad_group_xgs3.c	(revision 7387)
+@@ -671,13 +671,16 @@ static uint32 color_map[BROAD_COLOR_LAST
+ {
+     BCM_FIELD_COLOR_GREEN,
+     BCM_FIELD_COLOR_YELLOW,
+     BCM_FIELD_COLOR_RED
+ };
+ 
++/* PTin removed for Hurricane3-MG */
++#if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
+ static int policy_udf_id[SOC_MAX_NUM_DEVICES];
++#endif
+ 
+ /* System policies require combination of L2/3/4 fields that are not supported
+  * by default, so UDF is required. However, even the UDF is not wide enough
+  * to support all system policies in one group. The combination of EthType,
+  * Proto and L4 Dst Port is the best we can do. The Super Qset that includes
+  * these UDF values can be reused by other policies as needed.
+@@ -888,12 +891,14 @@ static int _policy_super_qset_find_free(
+         }
+     }
+ 
+     return BCM_E_FAIL;
+ }
+ 
++/* PTin removed for Hurricane3-MG */
++#if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
+ static int _policy_super_qset_add_udf(int unit, bcm_field_qualify_t udf)
+ {
+     int                  rv = BCM_E_NONE;
+   int qual_id;
+   bcm_field_data_qualifier_t data_qualifier;
+   bcm_field_data_packet_format_t packet_format;
+@@ -1313,12 +1318,13 @@ static int _policy_super_qset_add_udf(in
+     {
+         rv = BCM_E_NOT_FOUND;
+     }
+ 
+     return rv;
+ }
++#endif
+ 
+ static int _policy_super_qset_add(int                      unit,
+                                   super_qset_definition_t *sqset_def,
+                                   L7_BOOL                 *applicablePolicyTypes)
+ {
+     int                      i;
+@@ -1515,12 +1521,14 @@ static int _policy_super_qset_add(int
+ 
+     PT_LOG_TRACE(LOG_CTX_STARTUP,"qset_add: rv=%d", rv);
+ 
+     return rv;
+ }
+ 
++/* PTin removed for Hurricane3-MG */
++#if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
+ static int _policy_udf_init(int unit)
+ {
+     int rv;
+ 
+     policy_udf_id[unit] = 0;
+ 
+@@ -1531,12 +1539,13 @@ static int _policy_udf_init(int unit)
+       rv = _policy_super_qset_add_udf(unit, BROAD_ISCSI_UDF);
+       PT_LOG_TRACE(LOG_CTX_STARTUP,"Added BROAD_ISCSI_UDF qset: rv=%d", rv);
+     }
+ 
+     return rv;
+ }
++#endif
+ 
+ static int _policy_super_qset_init_vfp(int unit)
+ {
+   L7_BOOL applicable_policy_types[BROAD_POLICY_TYPE_LAST];
+   int rv;
+ 
+@@ -4721,19 +4730,24 @@ int policy_group_init(int unit)
+         if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+             sysapiPrintf("_policy_group_table_init failed (%d)\n", rv);
+         return rv;
+       }
+     }
+ 
++/* PTin removed for Hurricane3-MG */
++#if (PLAT_BCM_CHIP == L7_BCM_HURRICANE3MG)
++    PT_LOG_WARN(LOG_CTX_STARTUP,"_policy_udf_init will not be executed in Hurricane3-MG");
++#else
+     rv = _policy_udf_init(unit);
+     if (BCM_E_NONE != rv)
+     {
+       if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+           sysapiPrintf("_policy_udf_init failed (%d)\n", rv);
+       return rv;
+     }
++#endif
+ 
+     rv = _policy_super_qset_init(unit);
+     if (BCM_E_NONE != rv)
+     {
+       if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+           sysapiPrintf("_policy_super_qset_init failed (%d)\n", rv);

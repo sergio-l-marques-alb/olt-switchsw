@@ -1,0 +1,19 @@
+Index: andl/hapi/esw/policy/broad_group_xgs3.c
+===================================================================
+--- andl/hapi/esw/policy/broad_group_xgs3.c	(revision 7354)
++++ andl/hapi/esw/policy/broad_group_xgs3.c	(revision 7355)
+@@ -1838,13 +1838,13 @@ static int _policy_super_qset_init_efp(i
+   return BCM_E_NONE;
+ }
+ 
+ static int _policy_super_qset_init(int unit)
+ {
+   int  i, j;
+-  char str[301], val[21];
++  char str[501], val[21];
+ 
+   for (i = 0; i < SUPER_QSET_TABLE_SIZE; i++)
+   {
+     super_qset_table[unit][i].flags = SUPER_QSET_NONE;
+   }
+ 

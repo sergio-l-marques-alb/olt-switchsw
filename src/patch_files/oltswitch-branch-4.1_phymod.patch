@@ -1,0 +1,40 @@
+Index: bsp/cpu/armv7/linux/build/armv7.cfg
+===================================================================
+--- bsp/cpu/armv7/linux/build/armv7.cfg	(revision 7378)
++++ bsp/cpu/armv7/linux/build/armv7.cfg	(revision 7379)
+@@ -22,14 +22,14 @@ L7_MODEL_ID=5251136
+ #	-DLVL7_DEBUG_BREAKIN
+ 
+ CPU_FLAGS=$(CPU_TYPE) -DSERVICE_PORT_PRESENT=1 \
+ 	-DL7_STACK_USAGE_STATS \
+ 	-DLVL7_DEBUG_BREAKIN \
+ 	-marm -march=armv7-a -mfpu=vfp -mfloat-abi=softfp -msoft-float -fomit-frame-pointer \
+-	-Wno-pointer-sign -Wno-unused-but-set-variable -Wno-enum-compare -Wno-switch -Wno-address -Wno-sequence-point \
+-        -funwind-tables
++	-Wno-pointer-sign -Wno-unused-local-typedefs -Wno-unused-but-set-variable \
++   -Wno-enum-compare -Wno-switch -Wno-address -Wno-sequence-point -funwind-tables
+ #  -Wno-uninitialized -Wno-array-bounds   -Wno-implicit-function-declaration -Wno-unused-variable
+ 
+ 
+ CFLAGSLOCAL= 
+ 
+ PRODUCT_TYPE:= -DL7_PRODUCT_ENTERPRISE
+Index: andl/make/make.pkg.objdist
+===================================================================
+--- andl/make/make.pkg.objdist	(revision 7378)
++++ andl/make/make.pkg.objdist	(revision 7379)
+@@ -43,13 +43,13 @@ ifeq (0,$(LINKABLE_OBJECT_ANDLSRC))
+   #
+   MASTERINC +=
+   
+   
+   # Additional source header file search paths (without the -I).
+   #
+-  SRCINCPATHS +=
++  SRCINCPATHS += $(vend_sdk)/libs/phymod/include
+   
+   
+   # Additional compiler flags.
+   #
+   CFLAGSEXTRA += \
+ 	$(DAPI_DEBUG_FLAGS)

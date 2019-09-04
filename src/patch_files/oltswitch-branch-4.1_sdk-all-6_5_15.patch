@@ -1,0 +1,324 @@
+Index: andl/hapi/esw/base/base/broad_debug.c
+===================================================================
+--- andl/hapi/esw/base/base/broad_debug.c	(revision 7385)
++++ andl/hapi/esw/base/base/broad_debug.c	(revision 7386)
+@@ -138,12 +138,14 @@ extern void hpcDebugBcmCpudbShow();
+  * SDK/diag code. BCM Diag shell is now integrated into FastPath and
+  * is controlled by the above Make flag.
+  *
+  * We need these routines only when BCM shell is not included.
+  */
+ 
++/* PTin removed for SDK-ALL-6.5.15 or higher */
++#if (SDK_VERSION_IS < SDK_VERSION(6,5,15,0))
+ /*
+  * Convert hex digit to hex character and vice-versa
+  */
+ 
+ int i2xdigit(int digit)
+ {
+@@ -247,12 +249,13 @@ format_uint64(char *buf, uint64 n)
+   val[0] = COMPILER_64_LO(n);
+   val[1] = COMPILER_64_HI(n);
+ 
+   format_long_integer(buf, val, 2);
+ }
+ #endif
++#endif
+ 
+ /*********************************************************************
+ * @purpose  Execute commands on a driver shell
+ *
+ * @param
+ *
+Index: andl/hapi/esw/base/bcmsys/diag.c
+===================================================================
+--- andl/hapi/esw/base/bcmsys/diag.c	(revision 7385)
++++ andl/hapi/esw/base/bcmsys/diag.c	(revision 7386)
+@@ -173,13 +173,14 @@ db_entry_show(const cpudb_entry_t *entry
+     fflush(stdout);
+ }
+ 
+ 
+ /* end - code from Broadcom SDK5 file : $Id: tksdiag.c,v 1.2.2.35 2003/12/04 02:32:18 dtalayco */
+ 
+-
++/* PTin removed for SDK-ALL-6.5.15 or higher */
++#if (SDK_VERSION_IS < SDK_VERSION(6,5,15,0))
+ /* start - code from Broadcom SDK5 file : $Id: tksdiag.c,v 1.2.2.35 2003/12/04 02:32:18 dtalayco */
+ /* lines 169 - 203 */
+ void
+ db_dump(cpudb_ref_t db_ref)
+ {
+   int   i, count;
+@@ -219,12 +220,13 @@ db_dump(cpudb_ref_t db_ref)
+   {
+     printf("DB is not valid\n");
+   }
+ 
+   fflush(stdout);
+ }
++#endif
+ 
+ /* Patch for the XGS3 opcode 0 Issue - original code is in tksdiag.c */
+ /*
+  * Function:
+  *     mh_opcode0_priority_select
+  * Description:
+@@ -255,12 +257,15 @@ db_dump(cpudb_ref_t db_ref)
+  */
+ 
+ #include <soc/drv.h>
+ #include <bcm/field.h>
+ #include <bcm_int/control.h>
+ #ifdef BCM_FIELD_SUPPORT
++
++/* PTin removed for SDK-ALL-6.5.15 or higher */
++#if (SDK_VERSION_IS < SDK_VERSION(6,5,15,0))
+ int
+ mh_opcode0_priority_select(int unit,
+                            int group_priority,
+                            bcm_field_group_t *group,
+                            bcm_field_entry_t *entry,
+                            int               *obm_reg_changed)
+@@ -412,9 +417,10 @@ mh_opcode0_priority_clear(int unit,
+         }
+     }
+ 
+     return BCM_E_NONE;
+ }
+ #endif
++#endif
+ 
+ /* end - code from Broadcom SDK5 file : $Id: tksdiag.c,v 1.2.2.35 2003/12/04 02:32:18 dtalayco */
+ #endif
+Index: andl/hapi/esw/usl/routing/l7_usl_l3_db.c
+===================================================================
+--- andl/hapi/esw/usl/routing/l7_usl_l3_db.c	(revision 7348)
++++ andl/hapi/esw/usl/routing/l7_usl_l3_db.c	(revision 7349)
+@@ -44,12 +44,20 @@
+ #include "bcm_int/esw/multicast.h"
+ 
+ #include "bcm_int/esw/firebolt.h"
+ #include "broad_l3_debug.h"
+ #include "wireless_exports.h"
+ 
++#if (SDK_VERSION_IS >= SDK_VERSION(6,5,15,0))
++#define BCM_XGS3_EGRESS_IDX_MIN_VAL       BCM_XGS3_EGRESS_IDX_MIN(0)
++#define BCM_XGS3_MPATH_EGRESS_IDX_MIN_VAL BCM_XGS3_MPATH_EGRESS_IDX_MIN(0)
++#else
++#define BCM_XGS3_EGRESS_IDX_MIN_VAL       BCM_XGS3_EGRESS_IDX_MIN
++#define BCM_XGS3_MPATH_EGRESS_IDX_MIN_VAL BCM_XGS3_MPATH_EGRESS_IDX_MIN
++#endif
++
+ /* Egress objects table resources - next hop objs and multipath objects */
+ void               *uslIpEgrNhopDbSema = L7_NULLPTR;
+ avlTreeTables_t    *uslOperIpEgrNhopTreeHeap = L7_NULLPTR;
+ usl_egr_nhop_db_elem_t  *uslOperIpEgrNhopDataHeap = L7_NULLPTR;
+ avlTree_t           uslOperIpEgrNhopTreeData   = { 0};
+ avlTreeTables_t    *uslShadowIpEgrNhopTreeHeap = L7_NULLPTR;
+@@ -7271,13 +7279,13 @@ L7_RC_t usl_l3_egr_nhop_hw_id_generator_
+     memcpy(searchInfo.dbElem, elemInfo.dbElem,
+            sizeof(usl_egr_nhop_db_elem_t));
+     memcpy(&(searchInfo.elemIndex), &(elemInfo.elemIndex),
+            sizeof(elemInfo.elemIndex));
+ 
+     egrId = ((usl_egr_nhop_db_elem_t *)elemInfo.dbElem)->egrId;
+-    tblIdx = egrId - BCM_XGS3_EGRESS_IDX_MIN;
++    tblIdx = egrId - BCM_XGS3_EGRESS_IDX_MIN_VAL;
+     if ((tblIdx > uslL3EgrNhopHwIdMax) || (tblIdx < uslL3EgrNhopHwIdMin))
+     {
+       L7_LOG_ERROR(*index);
+     }
+ 
+     /* Mark this index as used in HwIdList */
+@@ -7354,13 +7362,13 @@ int usl_l3_egr_nhop_hw_id_allocate(usl_b
+       dbRv = usl_get_l3_egr_nhop_db_elem(USL_OPERATIONAL_DB, USL_DB_EXACT_ELEM,
+                                          searchInfo, &nhopInfo);
+ 
+       if (dbRv == BCM_E_NONE) /* L3 Intf found */
+       {
+         *index = nhopElem.egrId;
+-        tblIdx = *index - BCM_XGS3_EGRESS_IDX_MIN;
++        tblIdx = *index - BCM_XGS3_EGRESS_IDX_MIN_VAL;
+         if ((tblIdx > uslL3EgrNhopHwIdMax) || (tblIdx < uslL3EgrNhopHwIdMin))
+         {
+           L7_LOG_ERROR(*index);
+         }
+ 
+         /* Mark this index as used in HwIdList */
+@@ -7373,13 +7381,13 @@ int usl_l3_egr_nhop_hw_id_allocate(usl_b
+     for (idx = uslL3EgrNhopHwIdMin; idx <= uslL3EgrNhopHwIdMax; idx++)
+     {
+       /* Found an unused index */
+       if (pUslL3EgrNhopHwIdList[idx].used == L7_FALSE)
+       {
+         pUslL3EgrNhopHwIdList[idx].used = L7_TRUE;
+-        *index = idx + BCM_XGS3_EGRESS_IDX_MIN;
++        *index = idx + BCM_XGS3_EGRESS_IDX_MIN_VAL;
+         rv = BCM_E_NONE;
+         break;
+       }
+     }
+ 
+ 
+@@ -7401,13 +7409,13 @@ int usl_l3_egr_nhop_hw_id_allocate(usl_b
+ *********************************************************************/
+ int usl_l3_egr_nhop_hw_id_free(bcm_if_t index)
+ {
+   int rv = BCM_E_NONE;
+   int tblIdx;
+ 
+-  tblIdx = index - BCM_XGS3_EGRESS_IDX_MIN;
++  tblIdx = index - BCM_XGS3_EGRESS_IDX_MIN_VAL;
+ 
+   if ((tblIdx < uslL3EgrNhopHwIdMin) || (tblIdx > uslL3EgrNhopHwIdMax))
+   {
+     rv = BCM_E_FAIL;
+     return rv;
+   }
+@@ -7521,13 +7529,13 @@ L7_RC_t usl_l3_mpath_egr_nhop_hw_id_gene
+     memcpy(searchInfo.dbElem, elemInfo.dbElem,
+            sizeof(usl_mpath_egr_nhop_db_elem_t));
+     memcpy(&(searchInfo.elemIndex), &(elemInfo.elemIndex),
+            sizeof(elemInfo.elemIndex));
+ 
+     egrId = ((usl_mpath_egr_nhop_db_elem_t *)elemInfo.dbElem)->avlKey;
+-    tblIdx = (egrId - BCM_XGS3_MPATH_EGRESS_IDX_MIN)/(uslL3MpathEgrNhopHwIdOffset);
++    tblIdx = (egrId - BCM_XGS3_MPATH_EGRESS_IDX_MIN_VAL)/(uslL3MpathEgrNhopHwIdOffset);
+     if ((tblIdx > uslL3MpathEgrNhopHwIdMax) ||
+         (tblIdx < uslL3MpathEgrNhopHwIdMin))
+     {
+       L7_LOG_ERROR(*index);
+     }
+ 
+@@ -7602,13 +7610,13 @@ int usl_l3_mpath_egr_nhop_hw_id_allocate
+     {
+       dbRv = usl_db_l3_egress_multipath_get(USL_OPERATIONAL_DB, intf_count,
+                                             intf_array, &mpathNhop);
+       if (dbRv == BCM_E_NONE) /* Found */
+       {
+         *index = mpathNhop.avlKey;
+-        tblIdx = (*index - BCM_XGS3_MPATH_EGRESS_IDX_MIN)/(uslL3MpathEgrNhopHwIdOffset);
++        tblIdx = (*index - BCM_XGS3_MPATH_EGRESS_IDX_MIN_VAL)/(uslL3MpathEgrNhopHwIdOffset);
+         if ((tblIdx > uslL3MpathEgrNhopHwIdMax) ||
+             (tblIdx < uslL3MpathEgrNhopHwIdMin))
+         {
+           L7_LOG_ERROR(*index);
+         }
+ 
+@@ -7622,13 +7630,13 @@ int usl_l3_mpath_egr_nhop_hw_id_allocate
+     for (idx = uslL3MpathEgrNhopHwIdMin; idx <= uslL3MpathEgrNhopHwIdMax; idx++)
+     {
+       /* Found an unused index */
+       if (pUslL3MpathEgrNhopHwIdList[idx].used == L7_FALSE)
+       {
+         pUslL3MpathEgrNhopHwIdList[idx].used = L7_TRUE;
+-        *index = (idx * uslL3MpathEgrNhopHwIdOffset) + BCM_XGS3_MPATH_EGRESS_IDX_MIN;
++        *index = (idx * uslL3MpathEgrNhopHwIdOffset) + BCM_XGS3_MPATH_EGRESS_IDX_MIN_VAL;
+         rv = BCM_E_NONE;
+         break;
+       }
+     }
+   } while(0);
+ 
+@@ -7648,13 +7656,13 @@ int usl_l3_mpath_egr_nhop_hw_id_allocate
+ *********************************************************************/
+ int usl_l3_mpath_egr_nhop_hw_id_free(bcm_if_t index)
+ {
+   int rv = BCM_E_NONE;
+   int tblIdx;
+ 
+-  tblIdx = (index - BCM_XGS3_MPATH_EGRESS_IDX_MIN)/(uslL3MpathEgrNhopHwIdOffset);
++  tblIdx = (index - BCM_XGS3_MPATH_EGRESS_IDX_MIN_VAL)/(uslL3MpathEgrNhopHwIdOffset);
+ 
+   if ((tblIdx < uslL3MpathEgrNhopHwIdMin) || (tblIdx > uslL3MpathEgrNhopHwIdMax))
+   {
+     rv = BCM_E_FAIL;
+     return rv;
+   }
+@@ -7880,13 +7888,13 @@ int usl_l3_db_dataplane_cleanup(L7_int32
+         nhopIsInvalid = L7_TRUE;
+       }
+     }
+ 
+     if (nhopIsInvalid)
+     {
+-      egrNhopIdx = egrNhopPtr->egrId - BCM_XGS3_EGRESS_IDX_MIN;
++      egrNhopIdx = egrNhopPtr->egrId - BCM_XGS3_EGRESS_IDX_MIN_VAL;
+       if (egrNhopIdx < maxNhops)
+       {
+         invalidNhops[egrNhopIdx] = 1;
+       }
+       else
+       {
+@@ -7908,13 +7916,13 @@ int usl_l3_db_dataplane_cleanup(L7_int32
+     memset(mpathEgrNhopIntf, 0, sizeof(mpathEgrNhopIntf));
+     mpathEgrNhopCount   = 0;
+     mpathEgrNhopChanged = L7_FALSE;
+ 
+     for (mpathEgrNhopIdx = 0; mpathEgrNhopIdx < mpathEgrNhopPtr->intfCount; mpathEgrNhopIdx++)
+     {
+-      egrNhopIdx = mpathEgrNhopPtr->intf[mpathEgrNhopIdx] - BCM_XGS3_EGRESS_IDX_MIN;
++      egrNhopIdx = mpathEgrNhopPtr->intf[mpathEgrNhopIdx] - BCM_XGS3_EGRESS_IDX_MIN_VAL;
+       if (egrNhopIdx < maxNhops)
+       {
+         if (invalidNhops[egrNhopIdx] == 1)
+         {
+           mpathEgrNhopChanged = L7_TRUE;
+         }
+Index: andl/hapi/esw/base/base/broad_debug.c
+===================================================================
+--- andl/hapi/esw/base/base/broad_debug.c	(revision 7348)
++++ andl/hapi/esw/base/base/broad_debug.c	(revision 7349)
+@@ -1213,13 +1213,13 @@ L7_RC_t hapiBroadDebugMemoryDump(L7_int3
+       if (flags & 0x02)
+       {
+         for (i = 0; i < entry_dw; i++)
+           printf("0x%08x ", entry[i]);
+       }
+       else
+-        soc_mem_entry_dump(unit, mem, entry);
++        soc_mem_entry_dump(unit, mem, entry, 0x0 /*Flags*/);
+ 
+       printf("\n");
+     }
+   }
+ 
+   fflush(stdout);
+@@ -1717,13 +1717,13 @@ L7_RC_t hapiBroadDebugVlanTable(L7_uint3
+     for (i = 0; i < entry_dw; i++)
+     {
+       printf("0x%08x ", entry[i]);
+     }
+     printf("\n");
+ 
+-    soc_mem_entry_dump(unit, mem, entry);
++    soc_mem_entry_dump(unit, mem, entry, 0x0 /*Flags*/);
+ 
+     printf("\n");
+   }
+ 
+   fflush(stdout);
+   return L7_SUCCESS;
+@@ -2995,17 +2995,17 @@ void driverWvTraceSet(void)
+   osapiWvOn(WV_CLASS_2);
+ 
+   /* Configure triggers for warm restart */
+   trgOff();
+   trgAdd(L7_TRACE_TRIGGER_DRIVER_UNIT_FAIL_START, TRG_ENABLE, TRG_CTX_ANY, 0, 0,
+           TRIGGER_COND_NO, 0, 0, 0, 0,
+-          1, NULL, TRG_ACT_WV_START, (FUNCPTR)wvEvtLogStart, TRUE, 0);
++          1, NULL, TRG_ACT_WV_START, (L7_FUNCPTR)wvEvtLogStart, TRUE, 0);
+ 
+   trgAdd(L7_TRACE_TRIGGER_DRIVER_UNIT_FAIL_END, TRG_ENABLE, TRG_CTX_ANY, 0, 0,
+           TRIGGER_COND_NO, 0, 0, 0, 0,
+-          1, NULL, TRG_ACT_WV_STOP, (FUNCPTR)wvEvtLogStop, TRUE, 0);
++          1, NULL, TRG_ACT_WV_STOP, (L7_FUNCPTR)wvEvtLogStop, TRUE, 0);
+   trgOn();
+ }
+ 
+ void driverWvUnitFailTraceTriggerStart()
+ {
+   OSAPI_TRACE_TRIGGER (L7_TRACE_TRIGGER_DRIVER_UNIT_FAIL_START);
+

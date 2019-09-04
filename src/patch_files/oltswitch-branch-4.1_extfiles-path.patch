@@ -1,0 +1,661 @@
+Index: andl/hapi/esw/base/base/broad_hpc_drv.c
+===================================================================
+--- andl/hapi/esw/base/base/broad_hpc_drv.c	(revision 7426)
++++ andl/hapi/esw/base/base/broad_hpc_drv.c	(revision 7427)
+@@ -3481,14 +3481,14 @@ extern int soc_robo_mmu_init(int );
+             PT_LOG_FATAL(LOG_CTX_STARTUP, "No DRAM tunning file found!");
+             exit(L7_FAILURE);
+         }
+         fclose(fp);
+     }
+ #endif
+-    PT_LOG_TRACE(LOG_CTX_STARTUP,"unit %d (%d): Going to load %src.soc file...", unit, SOC_NDEV_IDX2DEV(unit), FILESYSTEM_VAR_PATH);
+-    if (sh_rcload_file(SOC_NDEV_IDX2DEV(unit), NULL, FILESYSTEM_VAR_PATH "rc.soc", FALSE) != CMD_OK)
++    PT_LOG_TRACE(LOG_CTX_STARTUP,"unit %d (%d): Going to load %src.soc file...", unit, SOC_NDEV_IDX2DEV(unit), FILESYSTEM_SBIN_PATH);
++    if (sh_rcload_file(SOC_NDEV_IDX2DEV(unit), NULL, FILESYSTEM_SBIN_PATH "rc.soc", FALSE) != CMD_OK)
+     {
+       PT_LOG_ERR(LOG_CTX_STARTUP,"ERROR loading rc script on unit %d\n", SOC_NDEV_IDX2DEV(unit));
+       return L7_FAILURE;
+     }
+   }
+ 
+Index: os/linux/osapi/osapi_devshell.c
+===================================================================
+--- os/linux/osapi/osapi_devshell.c	(revision 7426)
++++ os/linux/osapi/osapi_devshell.c	(revision 7427)
+@@ -274,30 +274,30 @@ L7_uint32 osapiAddressLookup(L7_char8 *f
+ #if defined(RAPTOR) && defined(L7_LINUX_24)
+ 
+ 
+    /* The popen call does not work correctly in the mips32 2.4 library */
+   /* so use fopen in this case.                                       */
+   /* PTin modified: paths */
+-  if (WEXITSTATUS(system("zcat /usr/local/ptin/sbin/devshell_symbols.gz > /usr/local/ptin/sbin/devshell_symbols.txt")) != 0)
++  if (WEXITSTATUS(system("zcat " FILESYSTEM_SBIN_PATH "devshell_symbols.gz > " FILESYSTEM_SBIN_PATH "devshell_symbols.txt")) != 0)
+   {
+     osapiFree(L7_OSAPI_COMPONENT_ID, buf);
+     perror("zcat failed");
+     return 0;
+   }
+-  f = fopen("/usr/local/ptin/sbin/devshell_symbols.txt", "r");                      /* PTin modified: paths */
++  f = fopen(FILESYSTEM_SBIN_PATH "devshell_symbols.txt", "r");                      /* PTin modified: paths */
+ #else
+ 
+ /* zcat does not work correctly under valgrind*/
+ #if defined(L7_TOOL_VALGRIND)
+-  f = fopen("/usr/local/ptin/sbin/devshell_symbols", "r");                          /* PTin modified: paths */
++  f = fopen(FILESYSTEM_SBIN_PATH "devshell_symbols", "r");                          /* PTin modified: paths */
+   if (f == NULL) {
+       /* f is NULL; this may be possible if valgrind is not running, try the zcat */
+-      f = popen("zcat /usr/local/ptin/sbin/devshell_symbols.gz 2>/dev/null", "r");  /* PTin modified: paths */
++      f = popen("zcat " FILESYSTEM_SBIN_PATH "devshell_symbols.gz 2>/dev/null", "r");  /* PTin modified: paths */
+   }
+ #else
+-  f = popen("zcat /usr/local/ptin/sbin/devshell_symbols.gz 2>/dev/null", "r");      /* PTin modified: paths */
++  f = popen("zcat " FILESYSTEM_SBIN_PATH "devshell_symbols.gz 2>/dev/null", "r");      /* PTin modified: paths */
+ #endif
+ #endif
+   if (f == NULL) {
+     osapiFree(L7_OSAPI_COMPONENT_ID, buf);
+     perror("popen failed");
+     return 0;
+@@ -391,13 +391,13 @@ L7_RC_t osapiFunctionLookup(L7_uint32 ad
+   candidate_name = osapiMalloc(L7_OSAPI_COMPONENT_ID, OSAPI_ADDRESS_LOOKUP_NAME_SIZE);
+   if (candidate_name == NULL) {
+     perror("malloc failed");
+     osapiFree(L7_OSAPI_COMPONENT_ID, buf);
+     return L7_FAILURE;
+   }
+-  f = popen("zcat /usr/local/ptin/sbin/devshell_symbols.gz 2>/dev/null", "r");      /* PTin modified: paths */
++  f = popen("zcat " FILESYSTEM_SBIN_PATH "devshell_symbols.gz 2>/dev/null", "r");      /* PTin modified: paths */
+   if (f == NULL) {
+     osapiFree(L7_OSAPI_COMPONENT_ID, buf);
+     osapiFree(L7_OSAPI_COMPONENT_ID, candidate_name);
+     perror("popen failed");
+     return L7_FAILURE;
+   }
+@@ -529,13 +529,13 @@ void osapiLkup(L7_char8 *search_str) {
+   printf("%s\": \n\n", search_str);
+   buf = osapiMalloc(L7_OSAPI_COMPONENT_ID, OSAPI_ADDRESS_LOOKUP_NAME_SIZE);
+   if (buf == NULL) {
+     perror("malloc failed");
+     return;
+   }
+-  f = popen("zcat /usr/local/ptin/sbin/devshell_symbols.gz 2>/dev/null", "r");        /* PTin modified: paths */
++  f = popen("zcat " FILESYSTEM_SBIN_PATH "devshell_symbols.gz 2>/dev/null", "r");        /* PTin modified: paths */
+   if (f == NULL) {
+     osapiFree(L7_OSAPI_COMPONENT_ID, buf);
+     perror("popen failed");
+     return;
+   }
+   while (!feof(f)) {
+@@ -574,13 +574,13 @@ int osapiDevshellSymbolsLoad(void) {
+   printf("Scanning devshell symbols file...\n");
+   buf = osapiMalloc(L7_OSAPI_COMPONENT_ID, OSAPI_ADDRESS_LOOKUP_NAME_SIZE);
+   if (buf == NULL) {
+     perror("malloc failed");
+     return L7_FAILURE;
+   }
+-  f = popen("zcat /usr/local/ptin/sbin/devshell_symbols.gz 2>/dev/null", "r");        /* PTin modified: paths */
++  f = popen("zcat " FILESYSTEM_SBIN_PATH "devshell_symbols.gz 2>/dev/null", "r");        /* PTin modified: paths */
+   if (f == NULL) {
+     osapiFree(L7_OSAPI_COMPONENT_ID, buf);
+     perror("popen failed");
+     return(1);
+   }
+   while (!feof(f)) {
+@@ -601,13 +601,13 @@ int osapiDevshellSymbolsLoad(void) {
+     printf("addresses malloc failed\n");
+     osapiFree(L7_OSAPI_COMPONENT_ID, buf);
+     osapiFree(L7_OSAPI_COMPONENT_ID, symbols);
+     num_symbols = 0;
+     return(1);
+   }
+-  f = popen("zcat /usr/local/ptin/sbin/devshell_symbols.gz 2>/dev/null", "r");        /* PTin modified: paths */
++  f = popen("zcat " FILESYSTEM_SBIN_PATH "devshell_symbols.gz 2>/dev/null", "r");        /* PTin modified: paths */
+   if (f == NULL) {
+     perror("popen failed");
+     osapiFree(L7_OSAPI_COMPONENT_ID, buf);
+     osapiFree(L7_OSAPI_COMPONENT_ID, symbols);
+     osapiFree(L7_OSAPI_COMPONENT_ID, addresses);
+     num_symbols = 0;
+Index: os/linux/osapi/osapi.c
+===================================================================
+--- os/linux/osapi/osapi.c	(revision 7426)
++++ os/linux/osapi/osapi.c	(revision 7427)
+@@ -2393,13 +2393,13 @@ L7_uchar8 osapiGetChoice()
+   } while ( 1 );
+   return((L7_uchar8)atoi(choice));
+ 
+ }
+ 
+ #ifdef LVL7_DEBUG_BREAKIN
+-#define CONSOLE_PIPE "/tmp/consolepipe"
++#define CONSOLE_PIPE FILESYSTEM_TMP_PATH "consolepipe"
+ extern void osapiDebugShell(void);
+ static L7_uint32 consoleBreakinFlag = L7_TRUE;
+ static L7_char8  breakinString[L7_PASSWORD_SIZE];
+ 
+ /***************************************************************************
+ *
+Index: os/linux/transfer/tftp.c
+===================================================================
+--- os/linux/transfer/tftp.c	(revision 7426)
++++ os/linux/transfer/tftp.c	(revision 7427)
+@@ -30,17 +30,17 @@ L7_int32 osapiTransferOpen (L7_uint32 di
+ {
+   char *filename = L7_NULLPTR;
+   L7_int32 file_desc;
+ 
+   if (fileType == L7_FILE_TYPE_CODE)
+   {
+-    filename = "/tmp/code";                 /* PTin modified: paths */
++    filename = FILESYSTEM_TMP_PATH "code";                 /* PTin modified: paths */
+   }
+   else if (fileType == L7_FILE_TYPE_CONFIG)
+   {
+-    filename = "/tmp/config";               /* PTin modified: paths */
++    filename = FILESYSTEM_TMP_PATH "config";               /* PTin modified: paths */
+   }
+   else
+   {
+     sysapiPrintf ("Unknown file type\n");
+     return -1;
+   }
+Index: os/linux/transfer/http.c
+===================================================================
+--- os/linux/transfer/http.c	(revision 7426)
++++ os/linux/transfer/http.c	(revision 7427)
+@@ -21,16 +21,16 @@
+ 
+ #include <stdio.h>
+ #include <string.h>
+ #include "osapi.h"
+ 
+ #define OSAPI_WEB_FILE_HANDLE_COMP 100
+-#define L7_EMWEB_FILE_DOWNLOAD_PATH "/tmp/"                            /* PTin modified: paths */
++#define L7_EMWEB_FILE_DOWNLOAD_PATH FILESYSTEM_TMP_PATH                /* PTin modified: paths */
+ 
+-#define L7_EMWEB_NV_FILE_DOWNLOAD_PATH "/var/log/switchdrvr/ramnv/"    /* PTin modified: paths */
+-#define L7_EMWEB_CP_FILE_DOWNLOAD_PATH "/var/log/switchdrvr/ramcp/"    /* PTin modified: paths */
++#define L7_EMWEB_NV_FILE_DOWNLOAD_PATH FILESYSTEM_LOG_PATH "ramnv/"    /* PTin modified: paths */
++#define L7_EMWEB_CP_FILE_DOWNLOAD_PATH FILESYSTEM_LOG_PATH "ramcp/"    /* PTin modified: paths */
+ 
+ typedef struct
+ {
+   int fd;
+   char *localPath;              /* local file pathname */
+   long magic;
+Index: os/linux/transfer/transfer.c
+===================================================================
+--- os/linux/transfer/transfer.c	(revision 7426)
++++ os/linux/transfer/transfer.c	(revision 7427)
+@@ -2158,13 +2158,13 @@ L7_int32 L7_transfer_task()
+ 
+              /* mount tmpfs directory for temporary storage... */
+              /* I could write code for this, but easier to call external... */
+              if (WEXITSTATUS(system("mount -t tmpfs tmpfs " DOWNLOAD_PATH
+                                     " >/dev/null 2>&1")) != 0) {
+ 
+-               set_result_string("Make sure /tmp/ directory exists!");        /* PTin modified: paths */
++               set_result_string("Make sure " FILESYSTEM_TMP_PATH " directory exists!");        /* PTin modified: paths */
+                set_upload_result_code(L7_TRANSFER_CODE_ERROR_STARTING);
+                set_download_result_code(L7_TRANSFER_CODE_ERROR_STARTING);
+                set_result(L7_TRANSFER_FAILED);
+                transfer_started = L7_FALSE;
+                 /* indicate preparation failure */
+                 continue;
+Index: bsp/platform/broadcom/broadcom/xgs4/hpc/sysbrds.c
+===================================================================
+--- bsp/platform/broadcom/broadcom/xgs4/hpc/sysbrds.c	(revision 7426)
++++ bsp/platform/broadcom/broadcom/xgs4/hpc/sysbrds.c	(revision 7427)
+@@ -44,13 +44,13 @@
+ #include "ptin_fpga_api.h"    /* PTin added */
+ #include "logger.h"           /* PTin added */
+ 
+ #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+ #include "broad_hpc_db.h"
+ 
+-#define WC_MAP_FILE "/usr/local/ptin/var/bcm_port_map"
++#define WC_MAP_FILE FILESYSTEM_VAR_PATH "bcm_port_map"
+ 
+ const HAPI_WC_SLOT_MAP_t dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_V1[] =
+ /*  WC index  WC group  Inv.Lanes Inv.Pol. SlotIdx *
+  * --------- --------- ---------  -------  -------*/
+ {{        0,        0,        0,       0,       2 },
+ {         1,        0,        0,       0,       3 },
+Index: bsp/cpu/common/src/bspcpu_dim.c
+===================================================================
+--- bsp/cpu/common/src/bspcpu_dim.c	(revision 7426)
++++ bsp/cpu/common/src/bspcpu_dim.c	(revision 7427)
+@@ -48,13 +48,13 @@ static char activeImageFileName[DIM_MAX_
+ static char backupImageFileName[DIM_MAX_FILENAME_SIZE];
+ static L7_BOOL activeImageValid = L7_FALSE;
+ static L7_BOOL backupImageValid = L7_FALSE;
+ static L7_BOOL backupImageActivated = L7_FALSE;
+ 
+ #ifdef BOOTENV_SUPPORT
+-#define ACTIVE_CFG_FILE                "/usr/local/ptin/sbin/active.cfg"
++#define ACTIVE_CFG_FILE                FILESYSTEM_LOG_PATH "active.cfg"
+ /*********************************************************************
+  * @purpose  Read the active image file name from the environment variables
+  *
+  * @returns  L7_SUCCESS  valid image file name detected.
+  * @returns  L7_FAILURE  unable to determine active image file name
+  *
+@@ -201,13 +201,13 @@ L7_RC_t dimImageActivate(char *fileName)
+   }
+ #endif
+ 
+ #ifdef _L7_OS_LINUX_
+   /* A script is included in the .stk file to handle any necessary */
+   /* hardware specific requirements to activate the new image.     */
+-  if (stat("/usr/sbin/extimage", &st) == 0)
++  if (stat(FILESYSTEM_SBIN_PATH "extimage", &st) == 0)
+   {
+     snprintf(buf, sizeof(buf), "cd %s ; extimage -i %s -o %sACTIVATE -n 2",
+         CONFIG_PATH, fileName, DOWNLOAD_PATH);
+     if (WEXITSTATUS(system(buf)) != 0)
+       return(L7_FAILURE);
+ 
+Index: bsp/cpu/common/src/dim.c
+===================================================================
+--- bsp/cpu/common/src/dim.c	(revision 7426)
++++ bsp/cpu/common/src/dim.c	(revision 7427)
+@@ -533,13 +533,13 @@ L7_RC_t dimImageActivate(char *fileName)
+ 
+   strcpy(bootImage_g[index].numErrors, "0");
+   strcpy(bootImage_g[index].nextState, "active");
+ #ifdef _L7_OS_LINUX_
+   /* A script is included in the .stk file to handle any necessary */
+   /* hardware specific requirements to activate the new image.     */
+-  if (stat("/usr/sbin/extimage", &st) == 0)
++  if (stat(FILESYSTEM_SBIN_PATH "extimage", &st) == 0)
+   {
+     snprintf(buf, sizeof(buf), "cd %s ; extimage -i %s -o %sACTIVATE -n 2",
+         CONFIG_PATH, bootImage_g[index].fileName, DOWNLOAD_PATH);
+     if (WEXITSTATUS(system(buf)) != 0)
+       return(L7_FAILURE);
+ 
+@@ -613,13 +613,13 @@ L7_RC_t dimImageAdd(char *srcFileName, c
+     strcpy(bootImage_g[0].nextState, "active");
+     strcpy(bootImage_g[0].descr, "default image");
+ 
+ #ifdef _L7_OS_LINUX_
+     /* A script is included in the .stk file to handle any necessary */
+     /* hardware specific requirements to activate the new image.     */
+-    if (stat("/usr/sbin/extimage", &st) == 0)
++    if (stat(FILESYSTEM_SBIN_PATH "extimage", &st) == 0)
+     {
+       snprintf(buf, sizeof(buf), "cd %s ; extimage -i %s -o %sACTIVATE -n 2",
+           CONFIG_PATH, bootImage_g[index].fileName, DOWNLOAD_PATH);
+       if (WEXITSTATUS(system(buf)) != 0)
+         return(L7_FAILURE);
+ 
+@@ -645,13 +645,13 @@ L7_RC_t dimImageAdd(char *srcFileName, c
+     {
+ #ifdef _L7_OS_LINUX_
+       /* If we are over-writing the active image then run the 
+          ACTIVATE script */
+       if (strcmp(bootImage_g[index].nextState, "active") == 0)
+       {
+-        if (stat("/usr/sbin/extimage", &st) == 0) {
++        if (stat(FILESYSTEM_SBIN_PATH "extimage", &st) == 0) {
+           snprintf(buf, sizeof(buf), "cd %s ; extimage -i %s -o %sACTIVATE -n 2", 
+               CONFIG_PATH, bootImage_g[index].fileName, DOWNLOAD_PATH);
+           if (WEXITSTATUS(system(buf)) != 0)
+             return(L7_FAILURE);
+ 
+           snprintf(buf, sizeof(buf), "cd %s ; sh ACTIVATE -q %s", DOWNLOAD_PATH, 
+Index: src/system_support/base/infrastructure/sim/core/sim_util.c
+===================================================================
+--- src/system_support/base/infrastructure/sim/core/sim_util.c	(revision 7426)
++++ src/system_support/base/infrastructure/sim/core/sim_util.c	(revision 7427)
+@@ -2107,14 +2107,14 @@ void simBuildTestConfigData(void)
+   /* check this */
+   simTransferInfo.systemTransferServerIp.addr.ipv6.in6.addr32[0] =  0x0A0A0A05;
+   simTransferInfo.systemTransferServerIp.addr.ipv6.in6.addr32[1] =  0x0A0A0A05;
+   simTransferInfo.systemTransferServerIp.addr.ipv6.in6.addr32[2] =  0x0A0A0A05;
+   simTransferInfo.systemTransferServerIp.addr.ipv6.in6.addr32[3] =  0x0A0A0A05;
+ 
+-  strncpy(simTransferInfo.systemTransferFilePathRemote, "/tmp/tftp", L7_MAX_FILENAME);
+-  strncpy(simTransferInfo.systemTransferFileNameRemote, "/transferFile",L7_MAX_FILENAME);
++  strncpy(simTransferInfo.systemTransferFilePathRemote, FILESYSTEM_TMP_PATH "tftp", L7_MAX_FILENAME);
++  strncpy(simTransferInfo.systemTransferFileNameRemote, FILESYSTEM_TMP_PATH "transferFile",L7_MAX_FILENAME);
+   simTransferInfo.systemUploadFileType   =  L7_FILE_TYPE_TRAP_LOG;
+   simTransferInfo.systemDownloadFileType =  L7_FILE_TYPE_CONFIG;
+ 
+   simCfgData.systemMgmtVlanId = 20;
+ 
+   /* End of Component's Test Non-default configuration Data */
+Index: src/l7public/common/defaultconfig.h
+===================================================================
+--- src/l7public/common/defaultconfig.h	(revision 7426)
++++ src/l7public/common/defaultconfig.h	(revision 7427)
+@@ -1466,13 +1466,13 @@ extern L7_ushort16 dot1dUserPriorityRege
+ #define FD_SSHD_TIMEOUT              0x5
+ #define FD_SSHC_EMWEB_PORT           3333
+ #define FD_SSHD_PORT                 22
+ #define FD_SSHD_PUBKEY_AUTH_MODE     L7_DISABLE
+ 
+ #ifdef _L7_OS_LINUX_
+-#define FD_SSHD_PATH_SSH_USER_DIR    "/var/log/switchdrvr/"    /* PTin modified: paths */
++#define FD_SSHD_PATH_SSH_USER_DIR    FILESYSTEM_LOG_PATH    /* PTin modified: paths */
+ #endif /* _L7_OS_LINUX_ */
+ #ifdef _L7_OS_VXWORKS_
+ #define FD_SSHD_PATH_SSH_USER_DIR    ""
+ #endif /* _L7_OS_VXWORKS_ */
+ 
+ #define FD_SSHD_NAME_SERVER_PRIVKEY        "ssh_host_key"
+@@ -1494,13 +1494,13 @@ extern L7_ushort16 dot1dUserPriorityRege
+ 
+ #define L7_DOT1P_MIN_TRAFFIC_CLASS        0
+ #define L7_DOT1P_MAX_TRAFFIC_CLASS        (L7_DOT1P_NUM_TRAFFIC_CLASSES-1)
+ 
+ /* file system path */
+ #ifdef _L7_OS_LINUX_
+-#define FD_LOGO_IMAGE_FILE_DIR    "/var/log/switchdrvr/"       /* PTin modified: paths */
++#define FD_LOGO_IMAGE_FILE_DIR    FILESYSTEM_LOG_PATH       /* PTin modified: paths */
+ #endif /* _L7_OS_LINUX_ */
+ #ifdef _L7_OS_VXWORKS_
+ #define FD_LOGO_IMAGE_FILE_DIR    ""
+ #endif /* _L7_OS_VXWORKS_ */
+ /* end file system path */
+ 
+Index: src/l7public/common/wireless_commdefs.h
+===================================================================
+--- src/l7public/common/wireless_commdefs.h	(revision 7426)
++++ src/l7public/common/wireless_commdefs.h	(revision 7427)
+@@ -1344,20 +1344,20 @@ typedef enum
+   L7_WSAP_IMAGE_MODE_INTEGRATED,
+   L7_WSAP_IMAGE_MODE_INDEPENDENT,
+   L7_WSAP_IMAGE_MODE_BOTH
+ } L7_WSAP_IMAGE_MODE_t;
+ 
+ #define L7_WSAP_AUTO_UPD_CMDBUF_SIZE      54
+-#define L7_WSAP_AUTO_UPD_IMAGE_VER_CMD    "(cd /var/log/switchdrvr/; tar -x version -f apimage-%d.tar)"    /* PTin modified: paths */
+-#define L7_WSAP_AUTO_UPD_IMAGE_VER_PATH   "/var/log/switchdrvr/version"                                    /* PTin modified: paths */
++#define L7_WSAP_AUTO_UPD_IMAGE_VER_CMD    "(cd " FILESYSTEM_LOG_PATH "; tar -x version -f apimage-%d.tar)"    /* PTin modified: paths */
++#define L7_WSAP_AUTO_UPD_IMAGE_VER_PATH   FILESYSTEM_LOG_PATH "version"                                    /* PTin modified: paths */
+ 
+ #define L7_WSAP_AUTO_UPD_NAMEBUF_SIZE     15
+ #define L7_WSAP_AUTO_UPD_IMAGE_NAME       "\"apimage*.tar\""
+ #define L7_WSAP_AUTO_UPD_IMAGE_NAME_FILE  "apimagenames"
+-#define L7_WSAP_AUTO_UPD_IMAGE_NAME_CMD   "(cd /var/log/switchdrvr/; find . -name %s > %s)"                /* PTin modified: paths */
+-#define L7_WSAP_AUTO_UPD_IMAGE_NAME_PATH  "(cd /var/log/switchdrvr/)"                                      /* PTin modified: paths */
++#define L7_WSAP_AUTO_UPD_IMAGE_NAME_CMD   "(cd " FILESYSTEM_LOG_PATH "; find . -name %s > %s)"                /* PTin modified: paths */
++#define L7_WSAP_AUTO_UPD_IMAGE_NAME_PATH  "(cd " FILESYSTEM_LOG_PATH ")"                                      /* PTin modified: paths */
+ 
+ #define L7_WSAP_AUTO_UPD_BUF_SIZE         128
+ #define L7_WSAP_AUTO_UPD_IMAGE_LIST_SIZE  (L7_WDM_AP_IMAGE_TYPE_LAST-1)
+ 
+ /*-----------------------------------------------*/
+ /* End Wireless Auto AP Image Download defines   */
+Index: src/l7public/common/log.h
+===================================================================
+--- src/l7public/common/log.h	(revision 7426)
++++ src/l7public/common/log.h	(revision 7427)
+@@ -55,13 +55,13 @@ extern "C" {
+ #define DHCP_SNOOPING_UPLOAD_FILE_NAME                 "dsUploadDb.txt"
+ #define DHCP_SNOOPING_DOWNLOAD_FILE_NAME               "dsDownloadDb.txt"
+ #endif
+ 
+ /*This is the place where valgrind log files are stored. The file name should be the
+  same as specified in rc.fastpath*/
+-#define VALG_LOG_PATH                           "/var/log/switchdrvr/bin"      /* PTin modified: paths */
++#define VALG_LOG_PATH                           FILESYSTEM_LOG_PATH      /* PTin modified: paths */
+ #define VALG_LOG_FILE_NAME                      "valgrind_run.log.rss"
+ 
+ 
+ /* Default component */
+ #define L7_LOG_COMPONENT_DEFAULT               ((L7_COMPONENT_IDS_t) L7_ALL_COMPONENTS)
+ 
+Index: src/l7public/common/captive_portal_commdefs.h
+===================================================================
+--- src/l7public/common/captive_portal_commdefs.h	(revision 7426)
++++ src/l7public/common/captive_portal_commdefs.h	(revision 7427)
+@@ -41,13 +41,13 @@
+ #define CP_INTERFACE_MAX            (L7_MAX_CP_PORT_COUNT + L7_MAX_NUM_WIRELESS_INTF +1) /* total number of CP interfaces */
+ 
+ #ifdef _L7_OS_VXWORKS_
+ #define RAM_CP_PATH	""
+ #define RAM_CP_NAME "RamCP:"
+ #else
+-#define RAM_CP_PATH	"/var/log/switchdrvr/"     /* PTin modified: paths */
++#define RAM_CP_PATH	FILESYSTEM_LOG_PATH     /* PTin modified: paths */
+ #define RAM_CP_NAME "ramcp"
+ #endif  
+ 
+ #define CP_URL_FILE_SYSTEM_PATH "/filesystem/ramcp" /* same as EMWEB_FILE_LOCAL_RAM_CP_PREFIX */
+ #ifdef L7_XWEB_PACKAGE
+ #define CP_URL_BASE_IMAGE_PATH  "/images"
+Index: src/l7public/common/ptin/ptin_globaldefs.h
+===================================================================
+--- src/l7public/common/ptin/ptin_globaldefs.h	(revision 7426)
++++ src/l7public/common/ptin/ptin_globaldefs.h	(revision 7427)
+@@ -1,15 +1,15 @@
+ #ifndef _PTIN_GLOBALDEFS_H
+ #define _PTIN_GLOBALDEFS_H
+ 
+ #include "l7_platformspecs.h"
+ #include <sys/utsname.h>
+ 
+-#define LOG_OUTPUT_FILE_DEFAULT   "/var/log/switchdrvr/switchdrvr.log"
+-#define LOG_OUTPUT_FILE_DEFAULT2  "/var/log/switchdrvr/switchdrvr_sdk.log"
+-#define LOG_OUTPUT_FILE_DEFAULT3  "/var/log/switchdrvr/switchdrvr_events.log"
++#define LOG_OUTPUT_FILE_DEFAULT   FILESYSTEM_LOG_PATH "switchdrvr.log"
++#define LOG_OUTPUT_FILE_DEFAULT2  FILESYSTEM_LOG_PATH "switchdrvr_sdk.log"
++#define LOG_OUTPUT_FILE_DEFAULT3  FILESYSTEM_LOG_PATH "switchdrvr_events.log"
+ 
+ /* ************************** */
+ /* Global Features Activation */
+ 
+ #if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_STANDALONE)
+   #define PTIN_ENABLE_ERPS
+@@ -55,19 +55,14 @@
+ #define PTIN_FPGA_MAP_SIZE            0xFFFF
+ #define FPGA_ID0_VAL                  ((FPGA_ID >> 8) & 0xFF)
+ #define FPGA_ID1_VAL                  (FPGA_ID & 0xFF)
+ #define CPLD_ID0_VAL                  ((CPLD_ID >> 8) & 0xFF)
+ #define CPLD_ID1_VAL                  (CPLD_ID & 0xFF)
+ 
+-#define PTIN_INBAND_BRIDGE_SCRIPT     "/bin/sh /usr/local/ptin/scripts/startBridge.sh"  /* Only applicable to CXP640G */
+-
+-#if (PTIN_BOARD != PTIN_BOARD_AG16GA && PTIN_BOARD != PTIN_BOARD_AE48GE)
+-#define PTIN_PCAP_BRIDGE_SCRIPT       "/bin/sh /usr/local/ptin/scripts/startPcapBridge.sh"  /* Applicable to CXP640G and Line Cards */
+-#else
+-#define PTIN_PCAP_BRIDGE_SCRIPT       "/bin/sh /usr/local/scripts/startPcapBridge.sh"  /* Applicable to PTIN_BOARD_AG16GA */
+-#endif
++#define PTIN_INBAND_BRIDGE_SCRIPT     "/bin/sh " FILESYSTEM_SCRIPTS_PATH "startBridge.sh"  /* Only applicable to CXP640G */
++#define PTIN_PCAP_BRIDGE_SCRIPT       "/bin/sh " FILESYSTEM_SCRIPTS_PATH "startPcapBridge.sh"
+ 
+ #define PTIN_SYSTEM_GROUP_VLANS  1
+ 
+ /* Kernel information */
+ extern struct utsname kernel_uname;
+ 
+@@ -112,13 +107,13 @@ extern int ptin_sys_number_of_ports;
+                                        (board)==(PTIN_BOARD_TYPE_TT04SXG) || (board)==(PTIN_BOARD_TYPE_TT08SXG) || \
+                                        (board)==(PTIN_BOARD_TYPE_CXO160G) || (board)==(PTIN_BOARD_TYPE_CXO640G))
+ 
+ /* These cards will be reseted when a switchover is applied (ptin_control) */
+ #define PTIN_BOARD_IS_TORESET(board)  ((board)==(PTIN_BOARD_TYPE_TG16G) || (board)==(PTIN_BOARD_TYPE_TG16GF) || (board)==(PTIN_BOARD_TYPE_TT04SXG))
+ 
+-#define WC_MAP_FILE "/usr/local/ptin/var/bcm_port_map"
++#define WC_MAP_FILE FILESYSTEM_VAR_PATH "bcm_port_map"
+ 
+ #define WC_SLOT_MODE_NONE         0
+ #define WC_SLOT_MODE_2x10G        1
+ #define WC_SLOT_MODE_4x10G        2
+ #define WC_SLOT_MODE_1x40G_KR4    3
+ #define WC_SLOT_MODE_1x40G_XLAUI  4
+Index: src/l7public/api/bspapi.h
+===================================================================
+--- src/l7public/api/bspapi.h	(revision 7426)
++++ src/l7public/api/bspapi.h	(revision 7427)
+@@ -29,28 +29,28 @@
+ #include "stk.h"
+ 
+ #define L7_SERVICE_PORT_MAX_LENGTH  12
+ /*
+  * filesystem path info
+  */
+-#define CONFIG_PATH     "/var/log/switchdrvr/"              /* PTin modified: paths */
+-#define EXEC_PATH       "/usr/local/ptin/sbin/"             /* PTin modified: paths */
++#define CONFIG_PATH     FILESYSTEM_LOG_PATH              /* PTin modified: paths */
++#define EXEC_PATH       FILESYSTEM_SBIN_PATH             /* PTin modified: paths */
+ #ifdef _L7_OS_VXWORKS_
+-  #define DOWNLOAD_PATH   "/tmp"                            /* PTin modified: paths */
++  #define DOWNLOAD_PATH   FILESYSTEM_TMP_PATH            /* PTin modified: paths */
+   #define DOWNLOAD_CODE_FILE  "code.stk"
+ #else
+-  #define DOWNLOAD_PATH   "/tmp/"                           /* PTin modified: paths */
++  #define DOWNLOAD_PATH   FILESYSTEM_TMP_PATH            /* PTin modified: paths */
+ #endif
+ 
+ /* Name of the update script.
+  * */
+ #define UPDATE_SCRIPT_NAME    "UPDATE"
+ #define UPDATE_KERNEL_SCRIPT_NAME     "UPDATE_KERNEL"
+ #define UPDATE_BOOTROM_SCRIPT_NAME    "UPDATE_BOOTCODE"
+ #define VPD_FILE                      "fastpath.vpd"
+-#define USYSTEM_FILE                  "/tmp/uSystem"  /* PTin modified: paths */
++#define USYSTEM_FILE                  FILESYSTEM_TMP_PATH "uSystem"  /* PTin modified: paths */
+ #define CODE_TIME_SIZE   32
+ 
+ 
+ /* Do not add any more fields in this structure. It
+ ** breaks backwards compatibility for CDA.
+ */
+Index: src/l7public/api/wnv_api.h
+===================================================================
+--- src/l7public/api/wnv_api.h	(revision 7426)
++++ src/l7public/api/wnv_api.h	(revision 7427)
+@@ -30,13 +30,13 @@
+ #define L7_NV_MAX_FILE_NAME 32
+ 
+ #ifdef _L7_OS_VXWORKS_
+ #define RAM_NV_PATH	""
+ #define RAM_NV_NAME  "RamNV:"
+ #else
+-#define RAM_NV_PATH	"/var/log/switchdrvr/"         /* PTin modified: paths */
++#define RAM_NV_PATH	FILESYSTEM_LOG_PATH         /* PTin modified: paths */
+ #define RAM_NV_NAME "ramnv"
+ #endif  
+ 
+ typedef enum
+ {
+   L7_WNV_EVENT_LOCAL_WS_UPDATE, /* no index, simple update for IP address */
+Index: src/application/ptin/base/ptin_control.c
+===================================================================
+--- src/application/ptin/base/ptin_control.c	(revision 7426)
++++ src/application/ptin/base/ptin_control.c	(revision 7427)
+@@ -2794,13 +2794,13 @@ L7_RC_t hpcConfigWCmap_write(char *filen
+ }
+ 
+ void hpcConfigWCmap_test(L7_uint mode)
+ {
+   L7_RC_t rc;
+ 
+-  rc = hpcConfigWCmap_write("/usr/local/ptin/var/bcm_port_map", &mode, 1);
++  rc = hpcConfigWCmap_write(FILESYSTEM_VAR_PATH "bcm_port_map", &mode, 1);
+ 
+   printf("rc=%d\r\n", rc);
+ }
+ 
+ 
+ /**
+Index: src/application/ptin/utils/logger.c
+===================================================================
+--- src/application/ptin/utils/logger.c	(revision 7426)
++++ src/application/ptin/utils/logger.c	(revision 7427)
+@@ -623,13 +623,13 @@ int logger_print(log_context_t ctx, log_
+     /* fflush for files */
+     if (stream!=stdout && stream!=stderr)
+     {
+       if(++max_log_lines >= MAX_LOG_LINES)
+       {
+         /*To be replaced with semaphore  or signal approach*/
+-        //system("/usr/local/ptin/sbin/logrotate /etc/logrotate.conf.d&"); 
++        //system(FILESYSTEM_SBIN_PATH "logrotate /etc/logrotate.conf.d&"); 
+                 
+         max_log_lines = 0;        
+       }
+       fflush(stream);
+     }
+ 
+Index: src/application/ptin/utils/ptin_opensaf_checkpoint.c
+===================================================================
+--- src/application/ptin/utils/ptin_opensaf_checkpoint.c	(revision 7426)
++++ src/application/ptin/utils/ptin_opensaf_checkpoint.c	(revision 7427)
+@@ -462,13 +462,13 @@ static L7_RC_t ptin_opensaf_checkCheckpo
+ 
+   	if (ptin_checkpoint[id].errorCount >= 100)
+   	{
+   	   char com[128];
+ 
+   	   PT_LOG_WARN(LOG_CTX_OPENSAF, "RESTART OPENSAF\n");
+-  	   snprintf(com, sizeof(com), "touch /usr/local/ptin/tmp/opensaf_restart");
++  	   snprintf(com, sizeof(com), "touch " FILESYSTEM_TMP_PATH "opensaf_restart");
+   	   system(com);
+ 
+   	   ptin_checkpoint[id].errorCount = 0;
+   	}
+   	else
+     {
+Index: src/mgmt/broadcom/emweb/linux/ewmain.c
+===================================================================
+--- src/mgmt/broadcom/emweb/linux/ewmain.c	(revision 7426)
++++ src/mgmt/broadcom/emweb/linux/ewmain.c	(revision 7427)
+@@ -1990,15 +1990,15 @@ L7_RC_t L7_ewsPhaseOneInit(int arg0 /* m
+   ewaNetHandleSpecialDiscardObjectAllocate();
+ 
+   return(L7_SUCCESS);
+ 
+ } /* end L7_ewsPhaseOneInit */
+ 
+-#define EMWEB_TXTCFG_WAKEUP_PIPENAME "/tmp/EmWebTxtCfgWakeup"
++#define EMWEB_TXTCFG_WAKEUP_PIPENAME FILESYSTEM_TMP_PATH "EmWebTxtCfgWakeup"
+ 
+-#define EMWEB_PIPE_NAME "/tmp/EmWebPipe"
++#define EMWEB_PIPE_NAME FILESYSTEM_TMP_PATH "EmWebPipe"
+ 
+ /*
+  * This pipe is what other applications write to and EmWeb reads from.
+  */
+ static L7_int emwebPipeFd = -1;
+ 
+Index: src/mgmt/broadcom/cli/base/common/cliutil.c
+===================================================================
+--- src/mgmt/broadcom/cli/base/common/cliutil.c	(revision 7426)
++++ src/mgmt/broadcom/cli/base/common/cliutil.c	(revision 7427)
+@@ -6268,13 +6268,13 @@ L7_RC_t passwdRecoveryFlagGet(L7_int32 *
+  L7_char8 passwordBuff[50],*tempPtr = L7_NULLPTR;
+ 
+  memset(passwordBuff,0x00,sizeof(passwordBuff));
+ 
+  /* Open the text file and convert the text data to integer */
+  /* PTin modified: paths */
+- if(osapiFsRead("/var/log/switchdrvr/envFile",(L7_char8 *)passwordBuff,sizeof(passwordBuff)) != L7_SUCCESS)
++ if(osapiFsRead(FILESYSTEM_LOG_PATH "envFile",(L7_char8 *)passwordBuff,sizeof(passwordBuff)) != L7_SUCCESS)
+  {
+     return L7_FAILURE;
+  }
+  tempPtr = strstr(passwordBuff,"defaultPwdFlag=");
+  if(tempPtr == L7_NULL)
+  {
+@@ -6324,13 +6324,13 @@ L7_RC_t passwdRecoveryFlagSet(L7_uint32
+   L7_char8 passwordBuff[50];
+ 
+     memset(passwordBuff,0x00,sizeof(passwordBuff));
+   /* Open the text file and Write a text data to the file */
+   osapiSnprintf(passwordBuff,sizeof(passwordBuff),"defaultPwdFlag=%d",envVaribles.defaultPasswordFlag);
+     /* PTin modified: paths */
+-    if(osapiFsWrite("/var/log/switchdrvr/envFile",passwordBuff,sizeof(passwordBuff)) != L7_SUCCESS)
++    if(osapiFsWrite(FILESYSTEM_LOG_PATH "envFile",passwordBuff,sizeof(passwordBuff)) != L7_SUCCESS)
+     {
+       return L7_FAILURE;
+     }
+ #endif
+     return L7_SUCCESS;
+ }

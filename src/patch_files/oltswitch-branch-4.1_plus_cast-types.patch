@@ -1,0 +1,56 @@
+Index: src/l7public/common/ptin/ptin_structs.h
+===================================================================
+--- src/l7public/common/ptin/ptin_structs.h	(revision 7387)
++++ src/l7public/common/ptin/ptin_structs.h	(revision 7388)
+@@ -12,27 +12,27 @@
+ 
+ #define ENDIAN_SWAP8(val) \
+   ((unsigned char)(val))
+ #define ENDIAN_SWAP16(val) \
+   ((unsigned short) (((unsigned short)(val)<<8) | ((unsigned short)(val)>>8)))
+ #define ENDIAN_SWAP32(val) \
+-  ((unsigned long) (((unsigned long)(val) >> 24) | (((unsigned long)(val) >> 8) & 0x0000ff00UL) | \
++  ((unsigned int) (((unsigned long)(val) >> 24) | (((unsigned long)(val) >> 8) & 0x0000ff00UL) | \
+                     ((unsigned long)(val) << 24) | (((unsigned long)(val) << 8) & 0x00ff0000UL)))
+ #define ENDIAN_SWAP64(val) \
+   ((unsigned long long) (((unsigned long long)(val) >> 56) | (((unsigned long long)(val) >> 40) & 0x000000000000ff00ULL) | (((unsigned long long)(val) >> 24) & 0x0000000000ff0000ULL) | (((unsigned long long)(val) >> 8) & 0x00000000ff000000ULL) | \
+                          ((unsigned long long)(val) << 56) | (((unsigned long long)(val) << 40) & 0x00ff000000000000ULL) | (((unsigned long long)(val) << 24) & 0x0000ff0000000000ULL) | (((unsigned long long)(val) << 8) & 0x000000ff00000000ULL)))
+ 
+ /* Only applied to variables (not values or constants) */
+ #define ENDIAN_SWAP_VAR(var) ((sizeof(var)==2) ? ENDIAN_SWAP16(val) : ((sizeof(var)==4) ? ENDIAN_SWAP32(val) : ((sizeof(var)==8) ? ENDIAN_SWAP64(val) : (var))))
+ 
+ #else
+ 
+-#define ENDIAN_SWAP8(val)  (val)
+-#define ENDIAN_SWAP16(val) (val)
+-#define ENDIAN_SWAP32(val) (val)
+-#define ENDIAN_SWAP64(val) (val)
++#define ENDIAN_SWAP8(val)  ((unsigned char) (val))
++#define ENDIAN_SWAP16(val) ((unsigned short) (val))
++#define ENDIAN_SWAP32(val) ((unsigned int) (val))
++#define ENDIAN_SWAP64(val) ((unsigned long long) (val))
+ 
+ #endif
+ 
+ #if MNGMT_DIFFERENT_ENDIANNESS
+ /* Only applied to variables (not values or constants) */
+ #define ENDIAN_SWAP8_MOD(val)
+Index: src/l7public/common/ptin/ptin_fpga_ae48ge.h
+===================================================================
+--- src/l7public/common/ptin/ptin_fpga_ae48ge.h	(revision 7387)
++++ src/l7public/common/ptin/ptin_fpga_ae48ge.h	(revision 7388)
+@@ -1,12 +1,12 @@
+ #ifndef _PTIN_FPGA_AE48GE_H
+ #define _PTIN_FPGA_AE48GE_H
+ 
+ /* FPGA AND CPLD BASE ADDRESS */
+-# define MAP_FPGA
+-# define MAP_CPLD
++//# define MAP_FPGA
++//# define MAP_CPLD
+ # define FPGA_BASE_ADDR                0xF8000000
+ # define CPLD_BASE_ADDR                0xFF500000
+ 
+ /* PLD map registers */
+ # define CPLD_ID                       0x1255
+ # define CPLD_ID0_REG                  0x0000

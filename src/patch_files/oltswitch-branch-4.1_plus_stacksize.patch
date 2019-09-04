@@ -1,0 +1,19 @@
+Index: src/l7public/product/enterprise/l7_resources.h
+===================================================================
+--- src/l7public/product/enterprise/l7_resources.h	(revision 7352)
++++ src/l7public/product/enterprise/l7_resources.h	(revision 7353)
+@@ -153,13 +153,13 @@
+ //#define L7_MBUF_RESERVED_RX_MID1_PRIO_BUFFERS               64
+ //#define L7_MBUF_RESERVED_RX_MID2_PRIO_BUFFERS               64
+ #endif
+ 
+ /* OS task dispatching parameters.
+ */
+-#define L7_DEFAULT_STACK_SIZE                           (1024 * 32)
++#define L7_DEFAULT_STACK_SIZE                           (1024 * 64)
+ #define L7_DEFAULT_TASK_SLICE                                1
+ //#define L7_DEFAULT_TASK_PRIORITY                           255
+ #define L7_DEFAULT_TASK_PRIORITY                           254      /*PTIn modified*/
+ #define L7_MEDIUM_TASK_PRIORITY                            100
+ #define L7_TASK_PRIORITY_LEVEL(x)                           (x)
+ /* Maximum number of records in the buffered log. */

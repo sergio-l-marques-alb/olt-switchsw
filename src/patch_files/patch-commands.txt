@@ -1,0 +1,15 @@
+svn diff --diff-cmd diff -x '-rpN -u6' -c 7379 > ../patch_files/oltswitch-branch-4.1_phymod.patch
+svn diff --diff-cmd diff -x '-rpN -u6' -c 7349 > ../patch_files/oltswitch-branch-4.1_robo-removed.patch(*)
+svn diff --diff-cmd diff -x '-rpN -u6' -c 7387 > ../patch_files/oltswitch-branch-4.1_udf-removed.patch
+svn diff --diff-cmd diff -x '-rpN -u6' -c 7354 > ../patch_files/oltswitch-branch-4.1_arg-switch.patch
+svn diff --diff-cmd diff -x '-rpN -u6' -c 7350 > ../patch_files/oltswitch-branch-4.1_rcsoc-startup.patch
+svn diff --diff-cmd diff -x '-rpN -u6' -c 7427 > ../patch_files/oltswitch-branch-4.1_extfiles-path.patch
+svn diff --diff-cmd diff -x '-rpN -u6' -r 7427:7429 > ../patch_files/oltswitch-branch-4.1_binaries-path.patch
+svn diff --diff-cmd diff -x '-rpN -u6' -c 7386 > ../patch_files/oltswitch-branch-4.1_sdk-all-6_5_15_part1.patch(*)
+svn diff --diff-cmd diff -x '-rpN -u6' -c 7401 > ../patch_files/oltswitch-branch-4.1_sdk-all-6_5_15_part2.patch(*)
+svn diff --diff-cmd diff -x '-rpN -u6' -r 7375:7378 > ../patch_files/oltswitch-branch-4.1_gcc6.patch
+svn diff --diff-cmd diff -x '-rpN -u6' -c 7353 > ../patch_files/oltswitch-branch-4.1_plus_stacksize.patch
+svn diff --diff-cmd diff -x '-rpN -u6' -c 7355 > ../patch_files/oltswitch-branch-4.1_plus_ifp-segfault.patch
+svn diff --diff-cmd diff -x '-rpN -u6' -c 7371 > ../patch_files/oltswitch-branch-4.1_plus_newline-conflicts.patch
+svn diff --diff-cmd diff -x '-rpN -u6' -c 7388 > ../patch_files/oltswitch-branch-4.1_plus_cast-types.patch
+(*) Files modified
