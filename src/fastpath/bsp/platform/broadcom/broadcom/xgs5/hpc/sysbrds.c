@@ -1012,7 +1012,7 @@ L7_RC_t hpcConfigBoardSet()
                 }
                 break;
               default:
-                hapiSlotMapPtr[port].is_hw_mapped = ((port <= 47) || (port >= 52 && port <= 55) || (port >=60));
+                hapiSlotMapPtr[port].is_hw_mapped = ((port <= 51) || (port >= 56 && port <= 59));
             }
           }
 
