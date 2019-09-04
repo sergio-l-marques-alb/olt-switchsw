@@ -240,8 +240,8 @@ static void ptin_ipdtl0_task(void)
 
                     /* FIX ME -  extern function
                        Add 2046 vlan to the packet in order to reach agent */
-                    extern void ptin_AddTag(L7_ushort16 tpid, L7_ushort16 vlanId, L7_uchar8 *data, L7_uint32 *data_length);
-                    ptin_AddTag(L7_ETYPE_8021Q, pcap_vlan, msg.payload, &msg.payloadLen);
+                    extern void ptin_AddTag(L7_ushort16 tpid, L7_ushort16 vlanId, L7_uchar8 *data, L7_uchar8 pcp_dei, L7_uint32 *data_length);
+                    ptin_AddTag(L7_ETYPE_8021Q, pcap_vlan, msg.payload, 0, &msg.payloadLen);
 #else
                     /* Convert Internal VLAN ID to dtl0 VLAN ID */
                     msg.payload[14] = (PTIN_VLAN_PCAP_EXT >> 8) & 0x0F;
@@ -268,8 +268,6 @@ static void ptin_ipdtl0_task(void)
                 PT_LOG_TRACE(LOG_CTX_API, "Packet received with Unknown ID");
             }
         }
-
-        usleep(10);
     }
 }
 
