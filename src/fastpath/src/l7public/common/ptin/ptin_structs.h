@@ -371,6 +371,7 @@ typedef struct
 #define PTIN_PHYCONF_MASK_LOOPBACK      0x0008
 #define PTIN_PHYCONF_MASK_PORTEN        0x0020
 #define PTIN_PHYCONF_MASK_MAXFRAME      0x0040
+#define PTIN_PHYCONF_MASK_AUTONEG       0x0400
 
 typedef enum
 {
@@ -400,6 +401,7 @@ typedef struct {
   L7_uint8   LoopBack;          // 0x0008   0 - s/ loop;  1 - Far End; 2 - swap loop; 3 - local oam loop; 4 - remote oam loop
   L7_uint8   PortEnable;        // 0x0020   0 - disabled; 1 - enabled
   L7_uint16  MaxFrame;          // 0x0040
+  L7_uint8   autoneg;           // 0x0400   0 - disabled; 1 - enabled
 } ptin_HWEthPhyConf_t;
 
 /* Switch Port PHY state */

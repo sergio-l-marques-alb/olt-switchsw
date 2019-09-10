@@ -1109,6 +1109,7 @@ L7_RC_t ptin_msg_PhyConfig_set(msg_HWEthPhyConf_t *msgPhyConf)
   phyConf.Media        = ENDIAN_SWAP8 (msgPhyConf->Media);
   phyConf.MaxFrame     = ENDIAN_SWAP16(msgPhyConf->MaxFrame);
   phyConf.LoopBack     = ENDIAN_SWAP8 (msgPhyConf->LoopBack);
+  phyConf.autoneg      = ENDIAN_SWAP8(msgPhyConf->autoneg);
 
   /* Apply config */
   if ( ptin_intf_PhyConfig_set(&phyConf) != L7_SUCCESS )
