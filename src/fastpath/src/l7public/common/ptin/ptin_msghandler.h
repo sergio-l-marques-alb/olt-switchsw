@@ -549,6 +549,7 @@ typedef struct {
   L7_uint8  MacLearning;        // 0x0100   0 - don't learn; 1 - learn
                                 // NOTE: now holds MAC Learning Priority [0..3] (0-lowest, 3-highest)
   L7_uint8  AutoMDI;            // 0x0200   0 - disable;     1 - enable
+  L7_uint8  autoneg;            // 0x0400   0 - disable;     1 - enable
 } __attribute__((packed)) msg_HWEthPhyConf_t;
 
 /* Switch Port PHY state */

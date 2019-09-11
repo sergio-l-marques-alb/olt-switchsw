@@ -1106,7 +1106,6 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
         speed_mode = L7_PORTCTRL_PORTSPEED_UNKNOWN;
         strcpy(speedstr, "UNKNOWN");
     }
-
     if ((speed_mode != L7_PORTCTRL_PORTSPEED_UNKNOWN) &&
         (usmDbIfDefaultSpeedGet(1, intIfNum, &value) == L7_SUCCESS) &&
         (value != speed_mode))
@@ -1176,6 +1175,18 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
 
       phyConf_data[port].Speed = phyConf->Speed; /* update buffered conf data */
       PT_LOG_TRACE(LOG_CTX_INTF, " Speed:       %s", speedstr);
+    }
+  }
+
+  if (phyConf->Mask & PTIN_PHYCONF_MASK_AUTONEG)
+  {
+    if(usmDbIfAutoNegoStatusCapabilitiesSet(intIfNum, phyConf->autoneg) != L7_SUCCESS)
+    {
+      PT_LOG_DEBUG(LOG_CTX_INTF, "Failed to set AutoNeg state on port# %u", port);
+    }
+    else
+    {
+      PT_LOG_TRACE(LOG_CTX_INTF, " AutoNeg:       %d", phyConf->autoneg);
     }
   }
 
