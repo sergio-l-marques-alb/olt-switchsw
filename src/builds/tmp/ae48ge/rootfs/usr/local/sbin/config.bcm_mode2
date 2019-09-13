@@ -12,125 +12,119 @@ ext_ram_present=2
 #
 init_port_config_option=op2
 
-# SFP 1-2: SGMII_4P0 (ge0-ge3)
-portmap_2=2:1
-portmap_3=3:1
-portmap_4=4:1
-portmap_5=5:1
+# SFP 1-2: SGMII_4P1
+#portmap_2=6:1
+#portmap_3=7:1
+#portmap_4=8:1
+#portmap_5=9:1
 
-# SFP 3-4: SGMII_4P1 (ge4-ge7)
-portmap_6=6:1
-portmap_7=7:1
-portmap_8=8:1
-portmap_9=9:1
+# SFP 3-4: SGMII_4P0
+#portmap_6=2:1
+#portmap_7=3:1
+#portmap_8=4:1
+#portmap_9=5:1
 
-# SFP 5-6: SGMII_4P2 (ge8-ge11)
-portmap_10=10:1
-portmap_11=11:1
-portmap_12=12:1
-portmap_13=13:1
+# SFP 5-6: SGMII_4P3
+#portmap_10=14:1
+#portmap_11=15:1
+#portmap_12=16:1
+#portmap_13=17:1
 
-# SFP 7-8: SGMII_4P3 (ge12-ge15)
-portmap_14=14:1
-portmap_15=15:1
-portmap_16=16:1
-portmap_17=17:1
+# SFP 7-8: SGMII_4P2
+#portmap_14=10:1
+#portmap_15=11:1
+#portmap_16=12:1
+#portmap_17=13:1
 
-# SFP 9-10: TSCE0 x SGMII_4P4 (xe0,ge16,xe1,ge17)
+# SFP 9:0,10:0,11:0,12:0: TSCE0
 portmap_18=58:10
-portmap_19=18:1
 portmap_20=59:10
-portmap_21=19:1
-
-# SFP 11-12: TSCE0 x SGMII_4P4 (xe2,ge18,xe3,ge19)
 portmap_22=60:10
-portmap_23=20:1
 portmap_24=61:10
-portmap_25=21:1
+xgxs_tx_lane_map_18=0x0213
+xgxs_rx_lane_map_18=0x0213
 
-# SFP 13-14: TSCE1 x SGMII_4P5 (xe4,ge20,xe5,ge21)
+# SFP 9:1,10:1,11:1,12:1: SGMII_4P5
+portmap_19=25:1
+portmap_21=24:1
+portmap_23=23:1
+portmap_25=22:1
+
+# SFP 13:0,14:0,15:0,16:0: TSCE1
 portmap_26=62:10
-portmap_27=22:1
 portmap_28=63:10
-portmap_29=23:1
-
-# SFP 15-16: TSCE1 x SGMII_4P5 (xe6,ge22,xe7,ge23)
 portmap_30=64:10
-portmap_31=24:1
 portmap_32=65:10
-portmap_33=25:1
+xgxs_tx_lane_map_26=0x0213
+xgxs_rx_lane_map_26=0x0213
 
-# SFP 17-18: TSCE2 x TSC4Q0 (xe8,xe9)
+# SFP 13:1,14:1,15:1,16:1: SGMII_4P4
+portmap_27=21:1
+portmap_29=20:1
+portmap_31=19:1
+portmap_33=18:1
+
+# SFP 17:0,18:0,19:0,20:0: TSCE2
 portmap_34=66:10
-#portmap_35=26:1
 portmap_36=67:10
-#portmap_37=27:1
-
-# SFP 19-20: TSCE2 x TSC4Q0 (xe10,xe11)
 portmap_38=68:10
-#portmap_39=28:1
 portmap_40=69:10
+xgxs_tx_lane_map_34=0x0213
+xgxs_rx_lane_map_34=0x0213
+                                                  
+# SFP 17:1,18:1,19:1,20:1: TSCQ0
+#portmap_35=26:1
+#portmap_37=27:1
+#portmap_39=28:1
 #portmap_41=29:1
 
-# SFP 21-22: TSCE3 x TSC4Q1 (xe12,xe13)
+# SFP 21:0,22:0,23:0,24:0: TSCE3
 portmap_42=70:10
-#portmap_43=42:1
 portmap_44=71:10
-#portmap_45=43:1
-
-# SFP 23-24: TSCE3 x TSC4Q1 (xe14,xe15)
 portmap_46=72:10
-#portmap_47=44:1
 portmap_48=73:10
+xgxs_tx_lane_map_42=0x0213
+xgxs_rx_lane_map_42=0x0123
+                        
+# SFP 21:1,22:1,23:1,24:1: TSCQ1
+#portmap_43=42:1
+#portmap_45=43:1
+#portmap_47=44:1
 #portmap_49=45:1
 
-# Backplane WRK: TSCE4,TSCE5,TSCE6 (xe16-xe17,xe18-xe19,xe20-xe23)
-portmap_50=74:10
-portmap_51=75:10
-portmap_52=78:10
-portmap_53=79:10
-portmap_54=82:10
-portmap_55=83:10
-portmap_56=84:10
-portmap_57=85:10
 
-# Backplane PRT: TSCE4,TSCE5,TSCF (xe24-xe25,xe26-xe27,xe28-xe31)
-portmap_58=76:10
-portmap_59=77:10
-portmap_60=80:10
-portmap_61=81:10
-portmap_62=86:10
-portmap_63=87:10
-portmap_64=88:10
-portmap_65=89:10
+# Backplane: TSCE4
+portmap_56=74:10
+portmap_57=75:10
+portmap_64=76:10
+portmap_65=77:10
+xgxs_tx_lane_map_56=0x2031
+xgxs_rx_lane_map_56=0x2031
 
-# Lane mappins and polarities inversions (adapted to AE48GEA)
-# TSCE0 (bcm_port 18,20,22,24 / xe0-xe3)
-xgxs_tx_lane_map_xe0=0x0213
-xgxs_rx_lane_map_xe0=0x0213
-# TSCE1 (bcm_port 26,28,30,32 / xe4-xe7)
-xgxs_tx_lane_map_xe4=0x0213
-xgxs_rx_lane_map_xe4=0x0213
-phy_xaui_rx_polarity_flip_ge24=1
-# TSCE2 (bcm_port 34,36,38,40 / xe8-xe11)
-xgxs_tx_lane_map_xe8=0x0213
-xgxs_rx_lane_map_xe8=0x0213
-phy_xaui_rx_polarity_flip_xe8=1
-# TSCE3 (bcm_port 42,44,46,48 / xe12-xe15)
-xgxs_tx_lane_map_xe12=0x0213
-xgxs_rx_lane_map_xe12=0x0123
-# TSCE4 (bcm_port 50-51,58-59 / xe16-xe17,xe24-xe25)
-xgxs_tx_lane_map_xe16=0x1203
-xgxs_rx_lane_map_xe16=0x0123
-phy_xaui_tx_polarity_flip_xe16=1
-# TSCE5 (bcm_port 52-53,60-61 / xe18-xe19,xe26-xe27)
-xgxs_tx_lane_map_xe18=0x1023
-xgxs_rx_lane_map_xe18=0x0123
-phy_xaui_tx_polarity_flip_xe18=1
-phy_xaui_tx_polarity_flip_xe27=1
-phy_xaui_rx_polarity_flip_xe27=1
-# TSCE6 (bcm_port 54-57 / xe20-xe23)
-# TSCF  (bcm_port 62-65 / xe28-xe31)
+# Backplane: TSCE5
+portmap_54=78:10
+portmap_55=79:10
+portmap_62=80:10
+portmap_63=81:10
+xgxs_tx_lane_map_54=0x2031
+xgxs_rx_lane_map_54=0x2031
+
+# Backplane: TSCE6
+portmap_50=82:10
+portmap_51=83:10
+portmap_52=84:10
+portmap_53=85:10
+xgxs_tx_lane_map_50=0x0123
+xgxs_rx_lane_map_50=0x3120
+
+# Backplane: TSCF
+portmap_58=86:10
+portmap_59=87:10
+portmap_60=88:10
+portmap_61=89:10
+xgxs_tx_lane_map_58=0x3210
+xgxs_rx_lane_map_58=0x3120
+
 
 pbmp_xport_ge=0x000000002aaabfffc
 pbmp_xport_xe=0x3fffd555555540000
