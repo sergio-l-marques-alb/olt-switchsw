@@ -110,20 +110,20 @@ xgxs_tx_lane_map_54=0x2031
 xgxs_rx_lane_map_54=0x2031
 
 # Backplane: TSCE6
-portmap_50=82:10
-portmap_51=83:10
-portmap_52=84:10
-portmap_53=85:10
-xgxs_tx_lane_map_50=0x0123
-xgxs_rx_lane_map_50=0x3120
+portmap_52=82:10
+portmap_53=83:10
+portmap_60=84:10
+portmap_61=85:10
+xgxs_tx_lane_map_52=0x2301
+xgxs_rx_lane_map_52=0x2031
 
 # Backplane: TSCF
-portmap_58=86:10
-portmap_59=87:10
-portmap_60=88:10
-portmap_61=89:10
-xgxs_tx_lane_map_58=0x3210
-xgxs_rx_lane_map_58=0x3120
+portmap_50=86:10
+portmap_51=87:10
+portmap_58=88:10
+portmap_59=89:10
+xgxs_tx_lane_map_50=0x1032
+xgxs_rx_lane_map_50=0x2031
 
 
 pbmp_xport_ge=0x0c0c3fffffffffffc
