@@ -1434,7 +1434,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
         }
 
         /* Get lag bck lag id to send the packet*/
-        lag_id = SYSINTF_TO_INTLAG(sysintf);
+        lag_id = SYSINTF_TO_INTLAG((sysintf-1));
         rc = ptin_intf_lag2intIfNum(lag_id, &intfNum);
 
         if (rc != L7_SUCCESS)
