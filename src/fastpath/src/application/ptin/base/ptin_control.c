@@ -2339,8 +2339,8 @@ L7_RC_t ptin_control_mx_switchover(L7_uint8 mx_is_protection)
       PT_LOG_INFO(LOG_CTX_CONTROL,"CX is protection");
       PT_LOG_INFO(LOG_CTX_EVENTS ,"CX is protection");
 
-      if (ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+lag_id+0, &intIfNum_add) != L7_SUCCESS ||
-          ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+lag_id+8, &intIfNum_del) != L7_SUCCESS)
+      if (ptin_intf_port2intIfNum(BACKPLANE_1ST_MEMBER(lag_id), &intIfNum_del) != L7_SUCCESS ||
+          ptin_intf_port2intIfNum(BACKPLANE_2ND_MEMBER(lag_id), &intIfNum_add) != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_CONTROL,"Failure");
         return L7_FAILURE;
@@ -2351,8 +2351,8 @@ L7_RC_t ptin_control_mx_switchover(L7_uint8 mx_is_protection)
       PT_LOG_INFO(LOG_CTX_CONTROL,"CX is working");
       PT_LOG_INFO(LOG_CTX_EVENTS ,"CX is working");
 
-      if (ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+lag_id+0, &intIfNum_del) != L7_SUCCESS ||
-          ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+lag_id+8, &intIfNum_add) != L7_SUCCESS)
+      if (ptin_intf_port2intIfNum(BACKPLANE_1ST_MEMBER(lag_id), &intIfNum_add) != L7_SUCCESS ||
+          ptin_intf_port2intIfNum(BACKPLANE_2ND_MEMBER(lag_id), &intIfNum_del) != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_CONTROL,"Failure");
         return L7_FAILURE;
