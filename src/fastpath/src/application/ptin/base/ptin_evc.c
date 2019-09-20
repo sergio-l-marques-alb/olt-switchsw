@@ -720,21 +720,26 @@ L7_RC_t ptin_evc_startup(void)
   ptin_LACPLagConfig_t lagInfo;
 
   /* Create internal LAGs */
-  for (lag_id = 0; lag_id < 8; lag_id++)
+  for (lag_id = 0; lag_id < BACKPLANE_INTLAGS_MAX; lag_id++)
   {
     lagInfo.lagId=            lag_id;
     lagInfo.admin=            1;
     lagInfo.stp_enable=       0;
     lagInfo.static_enable=    1;
     lagInfo.loadBalance_mode= 1;// FIRST=0, SA_VLAN=1, DA_VLAN=2, SDA_VLAN=3, SIP_SPORT=4, DIP_DPORT=5, SDIP_DPORT=6
-    lagInfo.members_pbmp64 =  1ULL << (PTIN_SYSTEM_N_ETH + lag_id) | 1ULL << (PTIN_SYSTEM_N_ETH + lag_id + 8);
+    lagInfo.members_pbmp64 =  (1ULL << BACKPLANE_1ST_MEMBER(lag_id)) | (1ULL << BACKPLANE_2ND_MEMBER(lag_id));
 
     rc = ptin_intf_Lag_create(&lagInfo);
 
     if (rc != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_API, "Error creating LAG %u", lag_id);
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating LAG %u", lag_id);
       //return rc;
+    }
+    else
+    {
+      PT_LOG_DEBUG(LOG_CTX_STARTUP, "LAG %u created with members %u and %u",
+                   lag_id, BACKPLANE_1ST_MEMBER(lag_id), BACKPLANE_2ND_MEMBER(lag_id));
     }
   }
 
@@ -754,20 +759,20 @@ L7_RC_t ptin_evc_startup(void)
     rc = ptin_intf_port2intIfNum(port_eth, &intIfNum_eth);
     if (rc != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_API, "Error converting port_eth %u to intIfNum", port_eth);
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error converting port_eth %u to intIfNum", port_eth);
       return rc;
     }
     rc = ptin_intf_lag2intIfNum(lag_id, &intIfNum_lag);
     if (rc != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_API, "Error converting lag_id %u to intIfNum", lag_id);
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error converting lag_id %u to intIfNum", lag_id);
       return rc;
     }
   
     evc_id = port_eth + 1;
 
-    PT_LOG_INFO(LOG_CTX_API, "Creating EVC# %u for AE48GE: port_eth %u <-> lag_id %u" ,
-                evc_id, port_eth, lag_id);
+    PT_LOG_DEBUG(LOG_CTX_STARTUP, "Creating EVC# %u for AE48GE: port_eth %u <-> lag_id %u" ,
+                 evc_id, port_eth, lag_id);
 
     /* Create a new EVC */
     memset(&evcConf, 0x00, sizeof(evcConf));
@@ -795,7 +800,7 @@ L7_RC_t ptin_evc_startup(void)
     rc = ptin_evc_create(&evcConf);
     if (rc != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# to define Crossconnections");
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating EVC# to define Crossconnections");
       return rc;
     }
 
@@ -803,7 +808,7 @@ L7_RC_t ptin_evc_startup(void)
     rc = usmDbQportsPVIDSet(1, intIfNum_eth, evcConf.internal_vlan);
     if (rc != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_INTF, "Error applying default VID %u to intIfNum %u", evcConf.internal_vlan, intIfNum_eth);
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error applying default VID %u to intIfNum %u", evcConf.internal_vlan, intIfNum_eth);
       return rc;
     }
 
@@ -811,14 +816,14 @@ L7_RC_t ptin_evc_startup(void)
     rc = usmDbVlanTaggedSet(1, evcConf.internal_vlan, intIfNum_eth, L7_DOT1Q_UNTAGGED);
     if (rc != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_INTF, "Error setting intIfNum %u of VID %u as untagged", intIfNum_eth, evcConf.internal_vlan);
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error setting intIfNum %u of VID %u as untagged", intIfNum_eth, evcConf.internal_vlan);
       return rc;
     }
     /* Set the interface belonging to this VLAN as untagged */
     rc = usmDbVlanTaggedSet(1, evcConf.internal_vlan, intIfNum_lag, L7_DOT1Q_TAGGED);
     if (rc != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_INTF, "Error setting intIfNum %u of VID %u as tagged", intIfNum_lag, evcConf.internal_vlan);
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error setting intIfNum %u of VID %u as tagged", intIfNum_lag, evcConf.internal_vlan);
       return rc;
     }
 
