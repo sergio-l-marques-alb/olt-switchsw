@@ -80,6 +80,9 @@ extern DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_16_GIG_4_TENGIG_1
 extern DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_8_TENGIG_1_GS_56450_REV_1;         /* PTin added: new switch 56340 (Katana2) - TT04SXG */
 extern DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1; /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
 
+extern HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1[];
+extern HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_24PLUS8_TENGIG_56170_AE48GEv2[];
+
 extern DAPI_CARD_ENTRY_t dapiBroadCpuCardEntry_CARD_BROAD_DEFAULT;                                /* PTin added: Default CPU card entry */
 extern DAPI_CARD_ENTRY_t dapiBroadCpuCardEntry_CARD_BROAD_64_TENGIG_REV_1;                        /* PTin added: new switch 56846 (Trident-plus) */
 extern DAPI_CARD_ENTRY_t dapiBroadCpuCardEntry_CARD_BROAD_24_GIG_4_TENGIG_REV_1;
