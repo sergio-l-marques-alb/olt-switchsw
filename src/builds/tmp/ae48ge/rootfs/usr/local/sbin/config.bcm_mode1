@@ -77,6 +77,19 @@ portmap_35=26:1
 portmap_37=27:1
 portmap_39=28:1
 portmap_41=29:1
+serdes_automedium_35=0
+serdes_automedium_37=0
+serdes_automedium_39=0
+serdes_automedium_41=0
+serdes_fiber_pref_35=1
+serdes_fiber_pref_37=1
+serdes_fiber_pref_39=1
+serdes_fiber_pref_41=1
+#serdes_qsgmii_sgmii_override_35=2
+#serdes_qsgmii_sgmii_override_37=2
+#serdes_qsgmii_sgmii_override_39=2
+#serdes_qsgmii_sgmii_override_41=2
+#bcm5616x_init_port_config_qtc0=SGMII
 
 # SFP 21:0,22:0,23:0,24:0: TSCE3
 portmap_42=70:1
@@ -91,7 +104,19 @@ portmap_43=42:1
 portmap_45=43:1
 portmap_47=44:1
 portmap_49=45:1
-
+serdes_automedium_43=0
+serdes_automedium_45=0
+serdes_automedium_47=0
+serdes_automedium_49=0
+serdes_fiber_pref_43=1
+serdes_fiber_pref_45=1
+serdes_fiber_pref_47=1
+serdes_fiber_pref_49=1
+#serdes_qsgmii_sgmii_override_43=2
+#serdes_qsgmii_sgmii_override_45=2
+#serdes_qsgmii_sgmii_override_47=2
+#serdes_qsgmii_sgmii_override_49=2
+#bcm5616x_init_port_config_qtc1=SGMII
 
 # Backplane: TSCE4
 portmap_56=74:10
