@@ -138,6 +138,7 @@ L7_RC_t ptin_hapi_phy_init_tg16gf(void);
 L7_RC_t ptin_hapi_phy_init_ag16ga(void);
 L7_RC_t ptin_hapi_phy_init_ta48ge(void);
 L7_RC_t ptin_hapi_phy_init_tg4g(void);
+L7_RC_t ptin_hapi_phy_init_ae48ge(void);
 
 L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable);
 
@@ -616,6 +617,16 @@ L7_RC_t ptin_hapi_phy_init(void)
   else
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing OLT1T0F phys");
+  }
+  /* AE48GE */
+#elif (PTIN_BOARD == PTIN_BOARD_AE48GE)
+  if (ptin_hapi_phy_init_ae48ge() == L7_SUCCESS)
+  {
+    PT_LOG_INFO(LOG_CTX_HAPI, "Success initializing AE48GE phys");
+  }
+  else
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing AE48GE phys");
   }
 #endif
 
@@ -1107,6 +1118,44 @@ L7_RC_t ptin_hapi_phy_init_ag16ga(void)
       PT_LOG_NOTICE(LOG_CTX_HAPI, "Port %u (bcm_port %u) at SFI mode", i, bcm_port);
     }
   }
+#else
+  rc = L7_NOT_SUPPORTED;
+#endif
+
+  return rc;
+}
+
+/**
+ * Initialize PHYs for TA48GE board
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_hapi_phy_init_ae48ge(void)
+{
+  L7_RC_t rc = L7_SUCCESS;
+
+#if (PTIN_BOARD == PTIN_BOARD_AE48GE)
+  int i;
+  bcm_port_t bcm_port;
+
+  for (i=PTIN_SYSTEM_N_ETH; i<PTIN_SYSTEM_N_PORTS; i++)
+  {
+    /* Get bcm_port format */
+    if (hapi_ptin_bcmPort_get(i, &bcm_port) != BCM_E_NONE)
+    {
+      PT_LOG_WARN(LOG_CTX_HAPI, "Error obtaining bcm_port for port %u", i);
+      continue;
+    }
+
+    if (ptin_hapi_sfi_set(bcm_port) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing port %u (bcm_port %u) at SFI", i, bcm_port);
+      rc = L7_FAILURE;
+    }
+
+    PT_LOG_NOTICE(LOG_CTX_HAPI, "Port %u (bcm_port %u) at SFI mode", i, bcm_port);
+  }
+
 #else
   rc = L7_NOT_SUPPORTED;
 #endif
@@ -1737,8 +1786,8 @@ L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier)
   {
     if (hapi_ptin_bcmPort_get(i, &bcm_port) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI,"Error getting bcm_port for port %u",i);
-      return L7_FAILURE;
+      PT_LOG_WARN(LOG_CTX_HAPI,"Error getting bcm_port for port %u",i);
+      continue;
     }
     /* All ports */
     BCM_PBMP_PORT_ADD(pbm_egress_all_ports, bcm_port);
@@ -1912,6 +1961,12 @@ L7_RC_t hapi_ptin_bcmPort_get(L7_int port, L7_int *bcm_port)
   if (port >= ptin_sys_number_of_ports)
     return L7_FAILURE;
 
+  /* Not HW mapped interface */
+  if (usp_map[port].port < 0)
+  {
+    return L7_NOT_EXIST;
+  }
+  
   if (bcm_port!=L7_NULLPTR)
   {
     *bcm_port = usp_map[port].port;
@@ -3039,7 +3094,7 @@ L7_RC_t hapi_ptin_egress_port_type_set(ptin_dapi_port_t *dapiPort, L7_int port_t
     /* Get bcm_port */
     if (hapi_ptin_bcmPort_get(i, &bcm_port) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI,"Error getting bcm_port for port %u",i);
+      PT_LOG_WARN(LOG_CTX_HAPI,"Error getting bcm_port for port %u",i);
       continue;
     }
 
@@ -5182,10 +5237,16 @@ static L7_RC_t hapi_ptin_portMap_init(void)
     /* It is assumed that: i = hapiSlotMapPtr[i].portNum
      * (check dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_56689_REV_1 */
 
+    if (!hapiSlotMapPtr[i].is_hw_mapped)
+    {
+      PT_LOG_WARN(LOG_CTX_HAPI, "ptin_port %d not hw mapped", i);
+      continue;
+    }
+
     usp_map[i].slot = hapiSlotMapPtr[i].slotNum;
     usp_map[i].unit = hapiSlotMapPtr[i].bcm_cpuunit;
     usp_map[i].port = hapiSlotMapPtr[i].bcm_port;
-
+    
   #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
     /* Only 10/140/100Gbps ports */
     if ( hapiWCMapPtr[i].slotNum >= 0 &&
@@ -5546,7 +5607,7 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
     return rc;
   }
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_CXO640G /*|| PTIN_BOARD == PTIN_BOARD_TG16GF*/)
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_CXO640G /*|| PTIN_BOARD == PTIN_BOARD_AE48GE*/)
   /* Firmware mode 2 */
   rc = bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_MODE, 2);
   if (rc != BCM_E_NONE)
