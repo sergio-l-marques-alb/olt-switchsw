@@ -37,10 +37,6 @@
 int sysintf_to_vport_map_ae48gea[][PTIN_SYSTEM_N_ETH] = SYSINTF_TO_VPORT_MAP_AE48GEA;
 int sysintf_to_vport_map_ae48ge[][PTIN_SYSTEM_N_ETH] = SYSINTF_TO_VPORT_MAP_AE48GE;
 
-/* Mapping from sysintf (id) to virtual port index (for AE48GE) */
-int vport_to_intlag_map_ae48gea[][PTIN_SYSTEM_N_VPORTS] = VPORT_TO_INTLAG_MAP_AE48GEA;
-int vport_to_intlag_map_ae48ge[][PTIN_SYSTEM_N_VPORTS] = VPORT_TO_INTLAG_MAP_AE48GE;
-
 int backplane_intlag_map_ae48gea[8][2] = BACKPLANE_INTLAG_MAP_AE48GEA;
 int backplane_intlag_map_ae48ge[8][2] = BACKPLANE_INTLAG_MAP_AE48GE;
 
