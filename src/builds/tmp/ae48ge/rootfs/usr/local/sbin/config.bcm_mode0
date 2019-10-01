@@ -86,16 +86,16 @@ portmap_49=81:10
 
 #AE48GE's MATRIXES PERSPECTIVE (preferred)
 # Backplane WRK: TSCF,TSCE6 (xe24,xe25,xe26,xe27)
-portmap_50=88:10
-portmap_51=89:10
-portmap_52=85:10
-portmap_53=84:10
+portmap_50=86:10
+portmap_51=87:10
+portmap_52=83:10
+portmap_53=82:10
 
 # Backplane PRT: TSCF, TSCE6 (xe28,xe29,xe30,xe31)
-portmap_58=86:10
-portmap_59=87:10
-portmap_60=83:10
-portmap_61=82:10
+portmap_58=88:10
+portmap_59=89:10
+portmap_60=85:10
+portmap_61=84:10
 
 # Lane mappins and polarities inversions (adapted to AE48GEA)
 # TSCE0 (bcm_port 26-29 / xe0-xe3)
