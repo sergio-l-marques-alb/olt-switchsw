@@ -426,7 +426,7 @@ SECTIONS
   *(.discard)
   *(.discard.*)
  }
- . = 0xC0000000 + 0x00008000;
+ . = 0x80000000 + 0x00008000;
  .head.text : {
   _text = .;
   *(.head.text)
