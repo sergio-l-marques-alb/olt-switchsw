@@ -1839,22 +1839,22 @@ HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_24PLUS8_TENGIG_5
 {       0,      46,          0,     49,           1,       "" },    /* TSC4E3:3    NIF 73, bcm_port 49*/
 {       0,      47,          0,     33,           1,       "" },    /* TSC4Q1:3    NIF 45, bcm_port 33*/
 /* Backplane ports */
-{       0,      48,          0,     62,           1,       "" },    /* TSC4F:0     NIF 86, bcm_port 62*/
-{       0,      49,          0,     63,           1,       "" },    /* TSC4F:1     NIF 87, bcm_port 63*/
-{       0,      50,          0,     58,           1,       "" },    /* TSC4E6:0    NIF 83, bcm_port 58*/
-{       0,      51,          0,     59,           1,       "" },    /* TSC4E6:1    NIF 83, bcm_port 59*/
-{       0,      52,          0,     54,           1,       "" },    /* TSC4E5:0    NIF 78, bcm_port 54*/
-{       0,      53,          0,     55,           1,       "" },    /* TSC4E5:1    NIF 79, bcm_port 55*/
-{       0,      54,          0,     50,           1,       "" },    /* TSC4E4:0    NIF 74, bcm_port 50*/
-{       0,      55,          0,     51,           1,       "" },    /* TSC4E4:1    NIF 75, bcm_port 51*/
-{       0,      56,          0,     64,           1,       "" },    /* TSC4F:0     NIF 88, bcm_port 64*/
-{       0,      57,          0,     65,           1,       "" },    /* TSC4F:0     NIF 89, bcm_port 65*/
-{       0,      58,          0,     60,           1,       "" },    /* TSC4E6:2    NIF 84, bcm_port 60*/
-{       0,      59,          0,     61,           1,       "" },    /* TSC4E6:3    NIF 85, bcm_port 61*/
-{       0,      60,          0,     56,           1,       "" },    /* TSC4E5:2    NIF 80, bcm_port 56*/
-{       0,      61,          0,     57,           1,       "" },    /* TSC4E5:3    NIF 81, bcm_port 57*/
-{       0,      62,          0,     52,           1,       "" },    /* TSC4E4:2    NIF 76, bcm_port 52*/
-{       0,      63,          0,     53,           1,       "" },    /* TSC4E4:3    NIF 77, bcm_port 53*/
+{       0,      48,          0,     64,           1,       "" },    /* TSC4F:0     NIF 88, bcm_port 64*/
+{       0,      49,          0,     65,           1,       "" },    /* TSC4F:0     NIF 89, bcm_port 65*/
+{       0,      50,          0,     60,           1,       "" },    /* TSC4E6:2    NIF 84, bcm_port 60*/
+{       0,      51,          0,     61,           1,       "" },    /* TSC4E6:3    NIF 85, bcm_port 61*/
+{       0,      52,          0,     56,           1,       "" },    /* TSC4E5:2    NIF 80, bcm_port 56*/
+{       0,      53,          0,     57,           1,       "" },    /* TSC4E5:3    NIF 81, bcm_port 57*/
+{       0,      54,          0,     52,           1,       "" },    /* TSC4E4:2    NIF 76, bcm_port 52*/
+{       0,      55,          0,     53,           1,       "" },    /* TSC4E4:3    NIF 77, bcm_port 53*/
+{       0,      56,          0,     62,           1,       "" },    /* TSC4F:0     NIF 86, bcm_port 62*/
+{       0,      57,          0,     63,           1,       "" },    /* TSC4F:1     NIF 87, bcm_port 63*/
+{       0,      58,          0,     58,           1,       "" },    /* TSC4E6:0    NIF 83, bcm_port 58*/
+{       0,      59,          0,     59,           1,       "" },    /* TSC4E6:1    NIF 83, bcm_port 59*/
+{       0,      60,          0,     54,           1,       "" },    /* TSC4E5:0    NIF 78, bcm_port 54*/
+{       0,      61,          0,     55,           1,       "" },    /* TSC4E5:1    NIF 79, bcm_port 55*/
+{       0,      62,          0,     50,           1,       "" },    /* TSC4E4:0    NIF 74, bcm_port 50*/
+{       0,      63,          0,     51,           1,       "" },    /* TSC4E4:1    NIF 75, bcm_port 51*/
 };
 
 DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1 = {

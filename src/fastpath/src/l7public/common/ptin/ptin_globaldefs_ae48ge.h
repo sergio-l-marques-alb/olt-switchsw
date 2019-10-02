@@ -188,7 +188,19 @@ extern int backplane_intlag_map_ae48gea[8][2];
 
 /* AE48GEv2 - Mode 1
 Working side:
-Backplane | Virtual ports | Sysintf
+Backplane | Virtual ports | Sysintf 
+----------+---------------+-------- 
+        0 |          0-11 | 36-47
+        1 |         12-23 | 24-35
+        2 |         24-35 | Empty (Only for AE48GEv2)
+        3 |         36-47 | Empty (Only for AE48GEv2)
+        4 |         48-59 | Not mapped
+        5 |         60-71 | Not mapped
+        6 |         72-83 | 12-23
+        7 |         84-95 |  0-11
+----------+---------------+--------
+Protection side:
+Backplane | Virtual ports | Sysintf 
 ----------+---------------+--------
         0 |          0-11 | Empty (Only for AE48GEv2)
         1 |         12-23 | Empty (Only for AE48GEv2)
@@ -198,34 +210,10 @@ Backplane | Virtual ports | Sysintf
         5 |         60-71 | Not mapped
         6 |         72-83 | 12-23
         7 |         84-95 |  0-11
-----------+---------------+-------- 
-Protection side side:
-Backplane | Virtual ports | Sysintf
 ----------+---------------+--------
-        0 |          0-11 | 36-47
-        1 |         12-23 | 24-35
-        2 |         24-35 | Empty (Only for AE48GEv2)
-        3 |         36-47 | Empty (Only for AE48GEv2)
-        4 |         48-59 | Not mapped
-        5 |         60-71 | Not mapped
-        6 |         72-83 | 12-23
-        7 |         84-95 |  0-11
-----------+---------------+-------- 
 */
 /* AE48GEv2 - Mode 2
-Working side:
-Backplane | Virtual ports | Sysintf
-----------+---------------+--------
-        0 |          0-11 | Empty (Only for AE48GEv2)
-        1 |         12-23 | Empty (Only for AE48GEv2)
-        2 |         24-35 | 12-15, 28-31, 44, 46
-        3 |         36-47 |  8-11, 24-27, 40, 42
-        4 |         48-59 |  6-7 , 22-23, 38
-        5 |         60-71 |  4-5 , 20-21, 36
-        6 |         72-83 |  2-3 , 18-19, 34
-        7 |         84-95 |  0-1 , 16-17, 32
-----------+---------------+--------
-Protection side side
+Working side
 Backplane | Virtual ports | Sysintf
 ----------+---------------+--------
         0 |          0-11 | 12-15, 28-31, 44, 46
@@ -237,9 +225,21 @@ Backplane | Virtual ports | Sysintf
         6 |         72-83 |  2-3 , 18-19, 34
         7 |         84-95 |  0-1 , 16-17, 32
 ----------+---------------+-------- 
-*/ 
+Protection side:
+Backplane | Virtual ports | Sysintf 
+----------+---------------+-------- 
+        0 |          0-11 | Empty (Only for AE48GEv2)
+        1 |         12-23 | Empty (Only for AE48GEv2)
+        2 |         24-35 | 12-15, 28-31, 44, 46
+        3 |         36-47 |  8-11, 24-27, 40, 42
+        4 |         48-59 |  6-7 , 22-23, 38
+        5 |         60-71 |  4-5 , 20-21, 36
+        6 |         72-83 |  2-3 , 18-19, 34
+        7 |         84-95 |  0-1 , 16-17, 32
+----------+---------------+-------- 
+*/
 
-/* Working SF point-of-view */
+/* Working Side follows OLT2T4 perspective. For OLT2T2 W and P are inverted */
 #define SYSINTF_TO_VPORT_MAP_AE48GE \
   { \
     /* Mode 0 */ \
@@ -251,16 +251,16 @@ Backplane | Virtual ports | Sysintf
     /* Mode 1: for AE48GEv2 ports are mapped in reversed order */ \
     { 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, \
       72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, \
-      36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, \
-      24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, \
+      12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, \
+       0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, \
     }, \
     /* Mode 2: for AE48GEv2 ports are mapped in reversed order */ \
     { 84, 85, 72, 73, 60, 61, 48, 49, \
-      36, 37, 38, 39, 24, 25, 26, 27, \
+      12, 13, 14, 15,  0,  1,  2,  3, \
       86, 87, 74, 75, 62, 63, 50, 51, \
-      40, 41, 42, 43, 28, 29, 30, 31, \
+      16, 17, 18, 19,  4,  5,  6,  7, \
       88, 89, 76, 77, 64, 65, 52, 53, \
-      44, 45, 46, 47, 32, 33, 34, 35, \
+      20, 21, 22, 23,  8,  9, 10, 11, \
     }, \
   }
 
@@ -272,8 +272,8 @@ Backplane | Virtual ports | Sysintf
     { 51 /*4w*/, 57 /*2p*/},  /* LAG 3 */ \
     { 52 /*5w*/, 60 /*5p*/},  /* LAG 4 */ \
     { 53 /*6w*/, 61 /*6p*/},  /* LAG 5 */ \
-    { 54 /*7w*/, 62 /*7p*/},  /* LAG 6: for AE48GEv2 backplane ports are not linearly mapped */ \
-    { 55 /*8w*/, 63 /*8p*/},  /* LAG 7: for AE48GEv2 backplane ports are not linearly mapped */ \
+    { 54 /*7w*/, 62 /*7p*/},  /* LAG 6 */ \
+    { 55 /*8w*/, 63 /*8p*/},  /* LAG 7 */ \
   }
 
 #define AE48GE_SYSINTF_TO_VPORT(sysintf)   sysintf_to_vport_map_ae48ge[BOARD_CONFIG_MODE][sysintf]
