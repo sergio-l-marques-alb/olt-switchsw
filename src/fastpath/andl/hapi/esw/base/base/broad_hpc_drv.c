@@ -1601,50 +1601,6 @@ void hpcHardwareDefaultConfigApply(void)
       }
     }
 
-#if 0// (PTIN_BOARD == PTIN_BOARD_AG16GA)
-    {
-      int vlan;
-      bcm_pbmp_t ubmp, pbmp;
-      BCM_PBMP_ASSIGN(pbmp, PBMP_PORT_ALL(i));
-
-      /* Remove all ports from VLAN 1 */
-      rv = bcm_vlan_port_remove(i, 1, pbmp);
-      if (rv < 0)
-      {
-        PT_LOG_ERR(LOG_CTX_STARTUP, "bcm_vlan_port_remove failed unit %d", i);
-        L7_LOG_ERROR(rv);
-      }
-
-      /*Cpu port in added to all the ports 
-       in AG16GA for trapping propose*/
-      BCM_PBMP_CLEAR(ubmp);
-      BCM_PBMP_CLEAR(pbmp);
-      BCM_PBMP_PORT_ADD(pbmp, 0 /*cpu port*/);
-
-      for (vlan = 1 ; 
-#if (PTIN_BOARD_IS_GPON)
-           vlan <= PTIN_SYSTEM_N_PONS
-#elif (PTIN_BOARD_IS_ACTIVETH)
-           vlan <= PTIN_SYSTEM_N_ETH
-#endif
-           ; vlan++)
-      {
-        rv = bcm_vlan_create(i, vlan);
-        if ((rv < 0) && (rv != BCM_E_EXISTS))
-        {
-          PT_LOG_ERR(LOG_CTX_STARTUP, "bcm_vlan_create failed unit %d\n", i);
-          L7_LOG_ERROR(rv);
-        }
-        rv = bcm_vlan_port_add(i, vlan, pbmp, ubmp);
-        if (rv < 0)
-        {
-          PT_LOG_ERR(LOG_CTX_STARTUP, "bcm_vlan_port_add failed unit %d", i);
-          L7_LOG_ERROR(rv);
-        }
-      }
-    }
-#endif
-
     /* Send BPDUs and CPU-MAC to CPU with high priority.
     ** Although we have a filters that set higher priority the 5695 gives preference
     ** to these registers instead of the filter.

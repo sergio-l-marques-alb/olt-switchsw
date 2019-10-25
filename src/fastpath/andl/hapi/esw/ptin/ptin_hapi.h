@@ -435,26 +435,6 @@ extern L7_RC_t ptin_hapi_temperature_monitor(ptin_dtl_temperature_monitor_t *tem
 extern L7_RC_t ptin_hapi_linkfaults_enable(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, L7_BOOL local_enable, L7_BOOL remote_enable);
 
 #if (PTIN_BOARD == PTIN_BOARD_AG16GA)
-#if 0
-/**
- * AG16g bck static switching 
- * 
- * @author Rui Fernandes (19/06/2018)
- * 
- * @return L7_RC_t 
- */
-extern L7_RC_t ag16ga_bck_static_switching();
-
-/**
- * AG16g frontal static switching 
- * 
- * @author Rui Fernandes (19/06/2018)
- * 
- * @return L7_RC_t 
- */
-extern L7_RC_t ag16ga_frontal_static_switching();
-#endif
-
 /**
  * Translation configurations for AG16GA board
  * 

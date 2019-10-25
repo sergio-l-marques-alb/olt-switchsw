@@ -3159,15 +3159,15 @@ L7_RC_t hapi_ptin_egress_port_type_set(ptin_dapi_port_t *dapiPort, L7_int port_t
  */
 L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_enable, L7_int stationMove_enable, L7_int stationMove_prio, L7_int stationMove_samePrio)
 {
-  L7_int    i, lclass;
+  L7_int    i;
   L7_uint32 flags;
-  L7_BOOL   learn_class_move = L7_TRUE;
   DAPI_PORT_t  *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr, *hapiPortPtr_member;
   bcm_error_t rv = BCM_E_NONE;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "dapiPort={%d,%d,%d}",
-            dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+  PT_LOG_INFO(LOG_CTX_HAPI, "dapiPort={%d,%d,%d} MLen=%u SMen=%u SMprio=%u SMprio2=%u", 
+              dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port,
+              macLearn_enable, stationMove_enable, stationMove_prio, stationMove_samePrio);
 
   /* Validate dapiPort */
   if (dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0)
@@ -3298,46 +3298,60 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
     }
   }
 
-  /* Station Move with same priority ports */
-  if (stationMove_samePrio>=0)
+  /* The following code stopped working for Katana2 (SDK-ALL-6.5.15) */
+#if (!PTIN_BOARD_IS_PASSIVE_LC)
   {
-    learn_class_move = stationMove_samePrio & 1;
-  }
+    L7_int lclass;
+    L7_BOOL learn_class_move = L7_TRUE;
 
-  /* Station move priority */
-  if (stationMove_prio>=0)
-  {
-    /* Validate priority */
-    if (stationMove_prio>3)
+    /* Station Move with same priority ports */
+    if (stationMove_samePrio>=0)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Invalid priority: should be between 0 and 3");
-      return L7_FAILURE;
+      learn_class_move = stationMove_samePrio & 1;
     }
 
-    /* Priority flags */
-    flags = (learn_class_move) ? BCM_L2_LEARN_CLASS_MOVE : 0;
-
-    lclass = stationMove_prio;
-
-    /* Attribute priority to a class */
-    if ((rv = bcm_l2_learn_class_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, stationMove_prio, flags)) != BCM_E_NONE)
+    /* Station move priority */
+    if (stationMove_prio>=0)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting prio %d to class %d (rv=%d)", stationMove_prio, lclass, rv);
+      /* Validate priority */
+      if (stationMove_prio>3)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Invalid priority: should be between 0 and 3");
+        return L7_FAILURE;
+      }
+
+      /* Priority flags */
+      flags = (learn_class_move) ? BCM_L2_LEARN_CLASS_MOVE : 0;
+
+      lclass = stationMove_prio;
+
+      /* Attribute priority to a class */
+      if ((rv = bcm_l2_learn_class_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, stationMove_prio, flags)) != BCM_E_NONE)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error setting prio %d to class %d (unit=%d bcm_port=%d rv=%d)",
+                   stationMove_prio, lclass,
+                   hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
+                   rv);
 #if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
-      return L7_FAILURE;
+        return L7_FAILURE;
 #endif
-    }
+      }
 
-    /* Associate class to the specified interface */
-    if ((rv = bcm_l2_learn_port_class_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, lclass)) != BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting class %d to port {%d,%d,%d} (rv=%d)",lclass,
-              dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, rv);
+      /* Associate class to the specified interface */
+      if ((rv = bcm_l2_learn_port_class_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, lclass)) != BCM_E_NONE)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error setting class %d to port {%d,%d,%d} (unit=%d bcm_port=%d rv=%d)",
+                   lclass,
+                   dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port,
+                   hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
+                   rv);
 #if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
-      return L7_FAILURE;
+        return L7_FAILURE;
 #endif
+      }
     }
   }
+#endif
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "L2Learn parameters attributed correctly to port {%d,%d,%d} (rv=%d)",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, rv);
@@ -3359,8 +3373,7 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
  */
 L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_enable, L7_int *stationMove_enable, L7_int *stationMove_prio, L7_int *stationMove_samePrio)
 {
-  L7_int  lclass;
-  L7_int  i, enable, enable_global, prio;
+  L7_int  i, enable, enable_global;
   L7_uint32     flags;
   DAPI_PORT_t  *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr, *hapiPortPtr_member;
@@ -3517,36 +3530,43 @@ L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_
     *stationMove_enable = enable_global;
   }
 
-  if (stationMove_prio != L7_NULLPTR)
+  /* The following code stopped working for Katana2 (SDK-ALL-6.5.15) */
+#if (!PTIN_BOARD_IS_PASSIVE_LC)
   {
-    /* Get class id from the specified interface */
-    if (bcm_l2_learn_port_class_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &lclass) == BCM_E_NONE)
+    L7_int lclass, prio;
+
+    if (stationMove_prio != L7_NULLPTR)
     {
-      /* Get priority attribute */
-      if (bcm_l2_learn_class_get(hapiPortPtr->bcm_unit, lclass, &prio, &flags) != BCM_E_NONE)
+      /* Get class id from the specified interface */
+      if (bcm_l2_learn_port_class_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &lclass) == BCM_E_NONE)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error getting prio from classId %d",lclass);
+        /* Get priority attribute */
+        if (bcm_l2_learn_class_get(hapiPortPtr->bcm_unit, lclass, &prio, &flags) != BCM_E_NONE)
+        {
+          PT_LOG_ERR(LOG_CTX_HAPI, "Error getting prio from classId %d",lclass);
+          return L7_FAILURE;
+        }
+      }
+      else
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error getting classId from port {%d,%d,%d}",
+                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+#if (PLAT_BCM_CHIP == L7_BCM_HURRICANE3MG)
+        prio = flags = 0;
+#else
         return L7_FAILURE;
+#endif
+      }
+
+      *stationMove_prio = prio;
+
+      if (stationMove_samePrio != L7_NULLPTR)
+      {
+        *stationMove_samePrio = (flags & BCM_L2_LEARN_CLASS_MOVE);
       }
     }
-    else
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error getting classId from port {%d,%d,%d}",
-              dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
-#if (PLAT_BCM_CHIP == L7_BCM_HURRICANE3MG)
-      prio = flags = 0;
-#else
-      return L7_FAILURE;
-#endif
-    }
-
-    *stationMove_prio = prio;
-
-    if (stationMove_samePrio != L7_NULLPTR)
-    {
-      *stationMove_samePrio = (flags & BCM_L2_LEARN_CLASS_MOVE);
-    }
   }
+#endif
 
   /* Station move for same priority ports? */
 
@@ -6181,14 +6201,6 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
 
   PT_LOG_INFO(LOG_CTX_STARTUP, "Special code for AG16GA");
 
-#if 0
-  rc = ag16ga_bck_static_switching();
-
-  rc |= ag16ga_frontal_static_switching();
-
-  return rc; 
-
-#else
   rc = ag16ga_xlate_init();
   if (rc != L7_SUCCESS)
   {
@@ -6204,8 +6216,6 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
   }
 
   return L7_SUCCESS;
-#endif
-
 #elif (PTIN_BOARD == PTIN_BOARD_AE48GE)
 
   PT_LOG_INFO(LOG_CTX_STARTUP, "Special code for AE48GE");
@@ -6441,62 +6451,68 @@ L7_RC_t ag16ga_xlate_init(void)
         continue;
     }
 
-    /* First key: First do a lookup for port + outerVlan + innerVlan.
-       Second key: If failed do a second lookup for port + outerVlan */
-    if ( ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanPortTranslateKeyFirst , bcmVlanTranslateKeyPortOuter)) != BCM_E_NONE) ||
-         ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanPortTranslateKeySecond, bcmVlanTranslateKeyPortOuter)) != BCM_E_NONE) )
+    /* Only for backplane ports */
+    if ((PTIN_SYSTEM_10G_PORTS_MASK & (1UL << usp.port)) != 0)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting translation keys (rv=%d)", rv);
-      return L7_FAILURE;
-    }
+      PT_LOG_INFO(LOG_CTX_HAPI, "Configuring usp.port %d, bcm_port %u", usp.port, hapiPortPtr->bcm_port);
 
-    /* Enable ingress and egress translations.
-       Also, drop packets that do not fullfil any translation entry. */
-    if ( ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanTranslateIngressEnable,   1)) != BCM_E_NONE) ||
-         ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanTranslateIngressMissDrop, 1)) != BCM_E_NONE) /*||
-         ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, bcm_port, bcmVlanTranslateEgressEnable,    1)) != BCM_E_NONE) ||
-         ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, bcm_port, bcmVlanTranslateEgressMissDrop,  1)) != BCM_E_NONE)*/ )
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting translation enables");
-      return L7_FAILURE;
-    }
-
-    /* 4 PONs for each backplane interface */
-    for (i = 0; i < 4; i++)
-    {
-      vid_base = 1024*i;
-      vid_new  = (usp.port - PTIN_SYSTEM_N_PONS) * 4 + i + 1;
-
-      bcm_vlan_action_set_t_init(&action);
-
-      /* VLAN actions */
-      action.dt_outer      = bcmVlanActionAdd;
-      action.dt_inner      = bcmVlanActionNone;
-      action.ot_outer      = bcmVlanActionAdd;
-      action.ot_inner      = bcmVlanActionNone;
-      action.new_outer_vlan= vid_new;
-
-      PT_LOG_INFO(LOG_CTX_HAPI, "Configuring bcm_port %u / gport 0x%x with vid %u..%u => %u", hapiPortPtr->bcm_port, hapiPortPtr->bcmx_lport, vid_base, vid_base + 1024 - 1, vid_new);
-
-      rv = bcm_vlan_translate_action_range_add(hapiPortPtr->bcm_unit, hapiPortPtr->bcmx_lport, vid_base, vid_base + 1024 - 1, BCM_VLAN_INVALID, BCM_VLAN_INVALID, &action);
-
-      if (rv == BCM_E_EXISTS)
+      /* First key: First do a lookup for port + outerVlan + innerVlan.
+         Second key: If failed do a second lookup for port + outerVlan */
+      if ( ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanPortTranslateKeyFirst , bcmVlanTranslateKeyPortDouble)) != BCM_E_NONE) ||
+           ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanPortTranslateKeySecond, bcmVlanTranslateKeyPortOuter)) != BCM_E_NONE) )
       {
-        PT_LOG_WARN(LOG_CTX_HAPI, "Entry already exists: %d (\"%s\")", rv, bcm_errmsg(rv));
-        return L7_ALREADY_CONFIGURED;
-      }
-      else if (rv == BCM_E_FULL)
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Translation resources exhausted: rv=%d (%s)", rv, bcm_errmsg(rv));
-        return L7_NO_RESOURCES;
-      }
-      else if (rv != BCM_E_NONE)
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_action_range_add function: %d (\"%s\")", rv, bcm_errmsg(rv));
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error setting translation keys (rv=%d)", rv);
         return L7_FAILURE;
       }
 
-      PT_LOG_INFO(LOG_CTX_HAPI, "Success configuring bcm_port %u / gport %u with vid %u..%u => %u", hapiPortPtr->bcm_port, hapiPortPtr->bcmx_lport, vid_base, vid_base + 1024 - 1, vid_new);
+      /* Enable ingress and egress translations.
+         Also, drop packets that do not fullfil any translation entry. */
+      if ( ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanTranslateIngressEnable,   1)) != BCM_E_NONE) ||
+           ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanTranslateIngressMissDrop, 1)) != BCM_E_NONE) /*||
+           ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, bcm_port, bcmVlanTranslateEgressEnable,    1)) != BCM_E_NONE) ||
+           ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, bcm_port, bcmVlanTranslateEgressMissDrop,  1)) != BCM_E_NONE)*/ )
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error setting translation enables");
+        return L7_FAILURE;
+      }
+
+      /* 4 PONs for each backplane interface */
+      for (i = 0; i < 4; i++)
+      {
+        vid_base = 1024*i;
+        vid_new  = (usp.port - PTIN_SYSTEM_N_PONS) * 4 + i + 1;
+
+        bcm_vlan_action_set_t_init(&action);
+
+        /* VLAN actions */
+        action.dt_outer      = bcmVlanActionAdd;
+        action.dt_inner      = bcmVlanActionNone;
+        action.ot_outer      = bcmVlanActionAdd;
+        action.ot_inner      = bcmVlanActionNone;
+        action.new_outer_vlan= vid_new;
+
+        PT_LOG_INFO(LOG_CTX_HAPI, "Configuring bcm_port %u / gport 0x%x with vid %u..%u => %u", hapiPortPtr->bcm_port, hapiPortPtr->bcmx_lport, vid_base, vid_base + 1024 - 1, vid_new);
+
+        rv = bcm_vlan_translate_action_range_add(hapiPortPtr->bcm_unit, hapiPortPtr->bcmx_lport, vid_base, vid_base + 1024 - 1, BCM_VLAN_INVALID, BCM_VLAN_INVALID, &action);
+
+        if (rv == BCM_E_EXISTS)
+        {
+          PT_LOG_WARN(LOG_CTX_HAPI, "Entry already exists: %d (\"%s\")", rv, bcm_errmsg(rv));
+          return L7_ALREADY_CONFIGURED;
+        }
+        else if (rv == BCM_E_FULL)
+        {
+          PT_LOG_ERR(LOG_CTX_HAPI, "Translation resources exhausted: rv=%d (%s)", rv, bcm_errmsg(rv));
+          return L7_NO_RESOURCES;
+        }
+        else if (rv != BCM_E_NONE)
+        {
+          PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_action_range_add function: %d (\"%s\")", rv, bcm_errmsg(rv));
+          return L7_FAILURE;
+        }
+
+        PT_LOG_INFO(LOG_CTX_HAPI, "Success configuring bcm_port %u / gport %u with vid %u..%u => %u", hapiPortPtr->bcm_port, hapiPortPtr->bcmx_lport, vid_base, vid_base + 1024 - 1, vid_new);
+      }
     }
   }
 
@@ -6524,6 +6540,17 @@ L7_RC_t ag16ga_xconnect_init(void)
   bcm_pbmp_t ubmp, pbmp;
   bcm_error_t rv;
 
+  /* All ports */
+  BCM_PBMP_ASSIGN(pbmp, PBMP_ALL(bcm_unit));
+
+  /* Remove all ports from VLAN 1 */
+  rv = bcm_vlan_port_remove(bcm_unit, 1, pbmp);
+  if (rv < 0)
+  {
+    PT_LOG_ERR(LOG_CTX_STARTUP, "bcm_vlan_port_remove failed unit %d", bcm_unit);
+    return L7_FAILURE;
+  }
+
   /* 4 PONs for each backplane interface */
   for (vlanId = 1; vlanId <= PTIN_SYSTEM_N_PONS; vlanId++)
   {
@@ -6542,18 +6569,37 @@ L7_RC_t ag16ga_xconnect_init(void)
       return L7_FAILURE;
     }
 
+    /*Cpu port in added to all the ports 
+     in AG16GA for trapping propose*/
+    BCM_PBMP_CLEAR(ubmp);
+    BCM_PBMP_CLEAR(pbmp);
+    BCM_PBMP_PORT_ADD(pbmp, 0 /*cpu port*/);
+    BCM_PBMP_PORT_ADD(pbmp, bcm_port1);
+    BCM_PBMP_PORT_ADD(pbmp, bcm_port2);
+    BCM_PBMP_PORT_ADD(ubmp, bcm_port1);
+    BCM_PBMP_PORT_ADD(ubmp, bcm_port2);
+
     /* Get gports */
     BCM_GPORT_LOCAL_SET(gport1, bcm_port1);
     BCM_GPORT_LOCAL_SET(gport2, bcm_port2);
 
-    /* Set Crossconnect mode */
+    /* Create VLAN and add CPU port */
+    rv = bcm_vlan_create(bcm_unit, vlanId);
+    if ((rv < 0) && (rv != BCM_E_EXISTS))
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "bcm_vlan_create failed unit %d, vlanId %u, rv=%d",
+                 bcm_unit, vlanId, rv);
+      return L7_FAILURE;
+    }
 
+    /* Set Crossconnect mode */
     bcm_vlan_control_vlan_t_init(&control);
 
     rv = bcm_vlan_control_vlan_get(bcm_unit, vlanId, &control);
     if (rv != BCM_E_NONE)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error getting vlan control structure! rv=%d (%s)\r\n", rv, bcm_errmsg(rv));
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error getting vlan control structure (bcm_unit %d, vlanId %d)! rv=%d (%s)\r\n",
+                 bcm_unit, vlanId, rv, bcm_errmsg(rv));
       return L7_FAILURE;
     }
 
@@ -6593,13 +6639,6 @@ L7_RC_t ag16ga_xconnect_init(void)
     }
     
     /* Add ports to VLAN table */
-    BCM_PBMP_CLEAR(pbmp);
-    BCM_PBMP_CLEAR(ubmp);
-    BCM_PBMP_PORT_ADD(pbmp, bcm_port1);
-    BCM_PBMP_PORT_ADD(pbmp, bcm_port2);
-    BCM_PBMP_PORT_ADD(ubmp, bcm_port1);
-    BCM_PBMP_PORT_ADD(ubmp, bcm_port2);
-
     rv = bcm_vlan_port_add(bcm_unit, vlanId, pbmp, ubmp);
     if (rv != BCM_E_NONE)
     {
