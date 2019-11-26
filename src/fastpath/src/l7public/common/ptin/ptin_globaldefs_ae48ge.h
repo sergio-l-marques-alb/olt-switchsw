@@ -316,7 +316,7 @@ Backplane | Virtual ports | Sysintf
       32, 33, 34, 35, 36, 37, 38, 39, \
       40, 41, 42, 43, 44, 45, 46, 47, \
     }, \
-    /* Mode 1: for AE48GEv2 ports are mapped in reversed order */ \
+    /* Mode 1: for AE48GEv3 ports are mapped in reversed order */ \
     {  0,  1,  2,  3,  4,  5,  6,  7, \
        8,  9, 10, 11, 12, 13, 14, 15, \
       16, 17, 18, 19, 20, 21, 22, 23, \
@@ -324,7 +324,7 @@ Backplane | Virtual ports | Sysintf
       48, 49, 50, 51, 52, 53, 54, 55, \
       56, 57, 58, 59, 60, 61, 62, 63, \
     }, \
-    /* Mode 2: for AE48GEv2 ports are mapped in reversed order */ \
+    /* Mode 2: for AE48GEv3 ports are mapped in reversed order */ \
     {  0,  1,  8,  9, 16, 17, 24, 25, 32, 33, 40, 41, 48, 49, 56, 57, \
        2,  3, 10, 11, 18, 19, 26, 27, 34, 35, 42, 43, 50, 51, 58, 59, \
        4,  5, 12, 13, 20, 21, 28, 29, 36, 37, 44, 45, 52, 53, 60, 61, \
@@ -347,7 +347,11 @@ Backplane | Virtual ports | Sysintf
 //#define PTIN_BOARD_AE48GEv2_IN_USE  1
 
 #define AE48GE_SYSINTF_TO_VPORT(sysintf)   sysintf_to_vport_map_ae48ge[BOARD_CONFIG_MODE][sysintf]
+#ifdef PTIN_BOARD_AE48GEv2_IN_USE
 #define AE48GE_VPORT_TO_INTLAG(vport)      ((vport)/12)
+#else
+#define AE48GE_VPORT_TO_INTLAG(vport)      ((vport)/8)
+#endif
 #define AE48GE_SYSINTF_TO_INTLAG(sysintf)  AE48GE_VPORT_TO_INTLAG(AE48GE_SYSINTF_TO_VPORT(sysintf))
 #define AE48GE_BACKPLANE_INTLAGS_MAX       sizeof(backplane_intlag_map_ae48ge)/sizeof(backplane_intlag_map_ae48ge[0])
 
