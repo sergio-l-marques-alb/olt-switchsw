@@ -147,7 +147,7 @@ portmap_65=89:10
 #xgxs_rx_lane_map_62=0x2031
 # HW_V3: TX/RX={W0,W1,W2,W3}
 xgxs_tx_lane_map_62=0x3210
-xgxs_rx_lane_map_62=0x3210
+xgxs_rx_lane_map_62=0x3120
 
 pbmp_xport_ge=0x003c3fffffffffffc
 pbmp_xport_xe=0x3fc3c000000000000
