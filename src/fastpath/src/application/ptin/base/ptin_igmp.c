@@ -855,10 +855,11 @@ void *ptin_igmp_clients_snapshot_sem = L7_NULLPTR;
 
 /* Check if a client index is present in a ONU */
 static L7_uint8 igmp_clientDevice_get_devices_number(struct ptinIgmpClientGroupInfoData_s *clientGroup);
+#if 0
 /* Get the next client withing client devices queue */
 static struct ptinIgmpClientDevice_s *igmp_clientDevice_next(struct ptinIgmpClientGroupInfoData_s *clientGroup, struct ptinIgmpClientDevice_s *pelem);
 /* Removed not necessary routines to managem device clients */
-#if 0
+
 /* Find a particular client in the client devices queue */
 static struct ptinIgmpClientDevice_s *igmp_clientDevice_find(struct ptinIgmpClientGroupInfoData_s *clientGroup, struct ptinIgmpClientInfoData_s *clientInfo);
 /* Add a client within the client devices queue */
@@ -14047,7 +14048,7 @@ L7_RC_t ptin_igmp_mgmd_port_sync(L7_uint8 admin, L7_uint32 serviceId, L7_uint32 
 /*********************************************************** 
  * QUEUES MANAGEMENT FUNCTIONS
  ***********************************************************/
-
+#if 0
 /**
  * Get the next client withing client devices queue
  */
@@ -14063,7 +14064,7 @@ static struct ptinIgmpClientDevice_s *igmp_clientDevice_next(struct ptinIgmpClie
   /* Otherwise, return next value */
   return(struct ptinIgmpClientDevice_s *) pelem->next;
 }
-
+#endif
 /** Check if a client index is present in a ONU */
 static L7_uint8 igmp_clientDevice_get_devices_number(struct ptinIgmpClientGroupInfoData_s *clientGroup)
 {
