@@ -703,6 +703,14 @@ void sigsegv_handler (int sig, siginfo_t * info, void * v)
 
   PT_LOG_NOTICE(LOG_CTX_STARTUP,"Signal %u received (already_called=%u)", sig, already_called);
 
+  /* For some systems, when a devshell command is called, signal 17 is generated...
+ The reason is still unknown, and so, for now, we are ignoring this signal. */
+  if (sig == SIGCHLD)
+  {
+    PT_LOG_NOTICE(LOG_CTX_STARTUP, "Signal %d ignored", sig);
+    return;
+  }
+
   /*
    * To minimize dumping of lots of sigsegv files, we will set
    * a static variable to handle only the first sigsegv
@@ -730,7 +738,6 @@ void sigsegv_handler (int sig, siginfo_t * info, void * v)
      PT_LOG_NOTICE(LOG_CTX_STARTUP,"Terminating SDK...");
      hpcHardwareFini();
      PT_LOG_NOTICE(LOG_CTX_STARTUP,"SDK terminated!");
-     logger_deinit();
      printf("OLTSWITCH terminated... Good bye!\r\n");
      fflush(stdout);
      exit(0);
@@ -844,7 +851,6 @@ void sigsegv_handler (int sig, siginfo_t * info, void * v)
   PT_LOG_NOTICE(LOG_CTX_STARTUP,"Terminating SDK...");
   hpcHardwareFini();
   PT_LOG_NOTICE(LOG_CTX_STARTUP,"SDK terminated!");
-  logger_deinit();
   printf("OLTSWITCH crashed!\r\n");
 
   if (BACKTRACE_FILE)
@@ -877,14 +883,7 @@ int main(int argc, char *argv[], char *envp[])
 #endif
 
   /* Initialize logger */
-  logger_init(LOG_OUTPUT_FILE);
-
-  /* Configure output files */
-  logger_output_file_set(LOG_OUTPUT_FILE,  LOG_OUTPUT_FILE_DEFAULT);
-  logger_output_file_set(LOG_OUTPUT_FILE2, LOG_OUTPUT_FILE_DEFAULT2);
-  logger_output_file_set(LOG_OUTPUT_FILE3, LOG_OUTPUT_FILE_DEFAULT3);
-
-  fflush(stdout);
+  swdrv_logger_init();
 
   PT_LOG_NOTICE(LOG_CTX_STARTUP,"---------------------------------------");
   PT_LOG_NOTICE(LOG_CTX_STARTUP,"OLTSWITCH IS USING BROADCOM SDK %u.%u.%u.%u", SDK_MAJOR_VERSION, SDK_MINOR_VERSION, SDK_REVISION_ID, SDK_PATCH_ID);

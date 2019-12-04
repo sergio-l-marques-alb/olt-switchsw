@@ -2,11 +2,15 @@
 #define _PTIN_GLOBALDEFS_H
 
 #include "l7_platformspecs.h"
+#include "defaultconfig.h"
 #include <sys/utsname.h>
 
-#define LOG_OUTPUT_FILE_DEFAULT   FILESYSTEM_LOG_PATH "switchdrvr.log"
-#define LOG_OUTPUT_FILE_DEFAULT2  FILESYSTEM_LOG_PATH "switchdrvr_sdk.log"
-#define LOG_OUTPUT_FILE_DEFAULT3  FILESYSTEM_LOG_PATH "switchdrvr_events.log"
+#define DEBUG_EXTRA_VALIDATIONS
+
+#define LOG_OUTPUT_FILE_DEFAULT     FILESYSTEM_LOG_PATH "switchdrvr.log"
+#define LOG_OUTPUT_FILE_DEFAULT2    FILESYSTEM_LOG_PATH "switchdrvr_sdk.log"
+#define LOG_OUTPUT_FILE_DEFAULT3    FILESYSTEM_LOG_PATH "switchdrvr_events.log"
+#define LOGPCAP_OUTPUT_FILE_DEFAULT FILESYSTEM_LOG_PATH "logpcap.pcap"
 
 /* ************************** */
 /* Global Features Activation */

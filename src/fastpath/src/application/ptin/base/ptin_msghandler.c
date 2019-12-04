@@ -343,7 +343,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       PT_LOG_NOTICE(LOG_CTX_MSGHANDLER, "...Stdout redirected to here :-)");
       return IPC_OK;  /* CCMSG_APP_CHANGE_STDOUT */
     }
-
+#if 0
     case CCMSG_APP_LOGGER_OUTPUT:
     {
       PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_APP_LOGGER_OUTPUT (0x%04X)", msgId);
@@ -388,7 +388,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       SETIPCACKOK(outbuffer);
       return IPC_OK;  /* CCMSG_APP_CHANGE_STDOUT */
     }
-
+#endif
     /* CCMSG_APP_SHELL_CMD_RUN ************************************************/
     case CCMSG_APP_SHELL_CMD_RUN:
     {
