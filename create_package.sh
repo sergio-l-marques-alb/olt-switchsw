@@ -29,6 +29,7 @@ export DESTDIR_SWDRV=$BUILD_PATH/$APPS_PATH
 # If one parameter is given, use as the board name
 if [ $# -ge 1 ]; then
 # DEV_BOARD_SW=$1
+ DEV_BOARD=$1
  DEV_BOARD_SW="$(echo $1 | awk -F '-' '{print $1}')"
 fi
 
@@ -40,7 +41,7 @@ BASE_PATH="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
 # DESTDIR will point to build_dir location (external libs and includes)
 if [ -z $DESTDIR ]; then
- DESTDIR=$BASE_PATH/build_dir/$DEV_BOARD_SW
+ DESTDIR=$BASE_PATH/build_dir_local/$DEV_BOARD
 fi
 
 # Check if DESTDIR exists
