@@ -6831,7 +6831,7 @@ L7_RC_t ae48ge_xlate_init(void)
     {
       PT_LOG_INFO(LOG_CTX_HAPI, "Configuring usp.port %d, bcm_port %u", usp.port, hapiPortPtr->bcm_port);
 
-      vid_new  = 100 + usp.port;
+      vid_new  = PTIN_SYSTEM_BASE_INTERNAL_VLAN + usp.port;
 
       bcm_vlan_action_set_t_init(&action);
 
