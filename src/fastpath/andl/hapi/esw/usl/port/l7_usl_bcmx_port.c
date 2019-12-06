@@ -56,6 +56,15 @@ static osapiRWLock_t      uslPortDbBcmxRWLock;
 
 #define USL_BCMX_IS_LPORT_CONFIGURABLE(ARG_LPORT)   (L7_FALSE != BCM_GPORT_IS_SET(ARG_LPORT))
 
+/* Check if this port exists */
+#define USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(lport) \
+    if (USL_BCMX_IS_LPORT_CONFIGURABLE(lport) == L7_FALSE) \
+    { \
+        PT_LOG_PEDANTIC(LOG_CTX_INTF, "Lport 0x%08x is not physically mapped", lport); \
+        return BCM_E_NONE; \
+    }
+
+
 /*********************************************************************
 *
 * @purpose Initialize port Bcmx
@@ -152,11 +161,7 @@ int usl_bcmx_rate_bcast_set(bcmx_lport_t port,
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
   
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -223,11 +228,7 @@ int usl_bcmx_rate_mcast_set(bcmx_lport_t port,
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -293,11 +294,7 @@ int usl_bcmx_rate_dlfbc_set(bcmx_lport_t port,
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -360,11 +357,7 @@ int usl_bcmx_port_vlan_member_set(bcmx_lport_t port,
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -429,11 +422,7 @@ int usl_bcmx_port_untagged_priority_set(bcmx_lport_t port,
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -498,11 +487,7 @@ int usl_bcmx_port_frame_max_set(bcmx_lport_t port,
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -566,11 +551,7 @@ int usl_bcmx_port_learn_set(bcmx_lport_t port,
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -635,11 +616,7 @@ int usl_bcmx_port_dtag_mode_set(bcmx_lport_t port,
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -702,11 +679,7 @@ int usl_bcmx_port_tpid_set(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -769,11 +742,7 @@ int usl_bcmx_port_tpid_add(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -836,11 +805,7 @@ int usl_bcmx_port_tpid_delete(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -904,11 +869,7 @@ int usl_bcmx_port_untagged_vlan_set(bcmx_lport_t port, bcm_vlan_t vid)
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -972,11 +933,7 @@ int usl_bcmx_port_discard_set(bcmx_lport_t port, bcm_port_discard_t mode)
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -1043,11 +1000,7 @@ int usl_bcmx_port_medium_config_set(bcmx_lport_t port,
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -1112,11 +1065,7 @@ int usl_bcmx_port_flow_control_set(bcmx_lport_t port,
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -1181,11 +1130,7 @@ int usl_bcmx_port_cosq_sched_set(bcmx_lport_t port,
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -1251,11 +1196,7 @@ int usl_bcmx_port_rate_egress_set(bcmx_lport_t port,
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -1320,11 +1261,7 @@ int usl_bcmx_port_vlan_member_add(bcmx_lport_t port,
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -1390,11 +1327,7 @@ int usl_bcmx_port_vlan_member_delete(bcmx_lport_t port,
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -1460,11 +1393,7 @@ int usl_bcmx_stg_stp_set(bcm_stg_t stg, bcmx_lport_t port, bcm_stg_stp_t stpStat
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -1530,11 +1459,7 @@ int usl_bcmx_port_protocol_vlan_add(bcmx_lport_t port,
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -1599,11 +1524,7 @@ int usl_bcmx_port_protocol_vlan_delete(bcmx_lport_t port,
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -1668,11 +1589,7 @@ int usl_bcmx_port_dot1x_config(bcmx_lport_t port,
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -1741,11 +1658,7 @@ usl_bcmx_port_sfp_diag_get(bcmx_lport_t port,
   int     rv;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   rv = l7_rpc_client_port_sfp_diag_get(port, temperature, voltage, 
                                        current, txPower, rxPower, txFault, los);
@@ -1773,11 +1686,7 @@ usl_bcmx_port_copper_diag_get(bcmx_lport_t port, bcm_port_cable_diag_t *cd)
   int rv;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   rv = l7_rpc_client_port_copper_diag_get(port, cd);
 
@@ -1805,11 +1714,7 @@ usl_bcmx_port_dot1x_client_block(bcmx_lport_t port,
   int rv;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   rv = l7_rpc_client_port_dot1x_client_block(port, client_cmd);
 
@@ -1838,11 +1743,7 @@ usl_bcmx_port_dot1x_client_unblock(bcmx_lport_t port,
   int rv;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   rv = l7_rpc_client_port_dot1x_client_unblock(port, client_cmd);
 
@@ -1871,11 +1772,7 @@ usl_bcmx_port_dot1x_client_timeout_get(bcmx_lport_t port,
   int rv;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   rv = l7_rpc_client_port_dot1x_client_timeout_get(port, client_cmd);
 
@@ -1903,11 +1800,7 @@ usl_bcmx_stat_get(bcmx_lport_t port, uint64 stats[snmpValCount])
   int rv;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   rv = l7_rpc_client_stat_get(port, stats);
 
@@ -1934,11 +1827,7 @@ usl_bcmx_port_stat_get(bcmx_lport_t port, uint64 stats[snmpValCount])
   int rv;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   rv = l7_rpc_client_port_stat_get(port, stats);
 
@@ -1967,11 +1856,7 @@ int usl_bcmx_port_mirror_set(bcmx_lport_t port,
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -2033,11 +1918,7 @@ int usl_bcmx_port_enable_set(bcmx_lport_t port, int enable)
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -2100,11 +1981,7 @@ int usl_bcmx_port_wred_set(bcmx_lport_t port,
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -2169,11 +2046,7 @@ int usl_bcmx_port_sample_rate_set(bcmx_lport_t port,
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -2236,11 +2109,7 @@ int usl_bcmx_port_sample_rate_get(bcmx_lport_t port,
   int     rv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -2293,11 +2162,7 @@ int usl_bcmx_port_vlan_translate_ingress_enable_set(bcmx_lport_t port, L7_BOOL e
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -2357,11 +2222,7 @@ int usl_bcmx_port_vlan_translate_ingress_miss_drop_set(bcmx_lport_t port, L7_BOO
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -2421,11 +2282,7 @@ int usl_bcmx_port_vlan_translate_egress_enable_set(bcmx_lport_t port, L7_BOOL en
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -2485,11 +2342,7 @@ int usl_bcmx_port_vlan_translate_egress_miss_drop_set(bcmx_lport_t port, L7_BOOL
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -2549,11 +2402,7 @@ int usl_bcmx_port_vlan_translate_key_first_set(bcmx_lport_t port, bcm_vlan_trans
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -2613,11 +2462,7 @@ int usl_bcmx_port_vlan_translate_key_second_set(bcmx_lport_t port, bcm_vlan_tran
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -2682,11 +2527,7 @@ int usl_bcmx_port_pfc_config_set(bcmx_lport_t port,
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
 
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -2746,11 +2587,7 @@ int usl_bcmx_port_pfc_config_set(bcmx_lport_t port,
 int usl_bcmx_port_pfc_stat_get(bcmx_lport_t port, usl_bcm_port_pfc_stat_t *stat)
 {
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   return l7_rpc_client_port_pfc_stat_get(port, stat);
 }
@@ -2772,11 +2609,7 @@ int usl_bcmx_port_pfc_stat_get(bcmx_lport_t port, usl_bcm_port_pfc_stat_t *stat)
 int usl_bcmx_port_pfc_stats_clear(bcmx_lport_t port)
 {
   /* Check if this port exists */
-  if (USL_BCMX_IS_LPORT_CONFIGURABLE(port) == L7_FALSE)
-  {
-      PT_LOG_WARN(LOG_CTX_INTF, "port 0x%x is not physically mapped", port);
-      return BCM_E_NONE;
-  }
+  USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(port);
 
   return l7_rpc_client_port_pfc_stats_clear(port);
 }
