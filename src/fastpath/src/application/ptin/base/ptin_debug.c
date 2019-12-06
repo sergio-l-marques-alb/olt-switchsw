@@ -830,6 +830,7 @@ void ptin_intf_dump(void)
 #endif
 
     /* Apply configuration */
+    memset(&portExt, 0x00, sizeof(portExt));
     if (dtlPtinL2PortExtGet(intIfNum, &portExt) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_INTF, "Error getting MEF Ext of port# %d", port);

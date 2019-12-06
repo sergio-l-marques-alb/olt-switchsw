@@ -895,6 +895,7 @@ L7_RC_t hapiBroadPtinPortExt(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t
     portExt->Mask = 0;
 
     /* MAC learning attributes */
+    macLearn_enable = stationMove_enable = stationMove_prio = stationMove_samePrio = 0;
     rc = hapi_ptin_l2learn_port_get( &dapiPort, &macLearn_enable, &stationMove_enable, &stationMove_prio, &stationMove_samePrio );
 
     if (rc==L7_SUCCESS)
@@ -925,14 +926,12 @@ L7_RC_t hapiBroadPtinPortExt(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t
   }
   else if (portExt->operation==DAPI_CMD_SET)
   {
-#if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
     /* MAC learning attributes */
     rc = hapi_ptin_l2learn_port_set(&dapiPort,
                                     ((portExt->Mask & PTIN_HWPORTEXT_MASK_MACLEARN_ENABLE)               ? portExt->macLearn_enable : -1),
                                     ((portExt->Mask & PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_ENABLE)   ? portExt->macLearn_stationMove_enable : -1),
                                     ((portExt->Mask & PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_PRIO)     ? portExt->macLearn_stationMove_prio : -1),
                                     ((portExt->Mask & PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_SAMEPRIO) ? portExt->macLearn_stationMove_samePrio : -1) );
-#endif
     if (rc == L7_SUCCESS)
     {
       /* Egress port type */

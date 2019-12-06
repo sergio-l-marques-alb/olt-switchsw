@@ -3196,6 +3196,8 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
   }
 
   /* MAC Learning enable */
+  /* The following code stopped working for Katana2 (SDK-ALL-6.5.15) */
+#if (!PTIN_BOARD_IS_PASSIVE_LC)
   if (macLearn_enable>=0)
   {
     if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
@@ -3208,9 +3210,7 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
         {
           PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmPortControlLearnClassEnable in port {%d,%d,%d} to %u (rv=%d)",
                   dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, macLearn_enable, rv);
-#if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
           return L7_FAILURE;
-#endif
         }
       }
     }
@@ -3244,14 +3244,13 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
                     dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
                     dapiPortPtr->modeparm.lag.memberSet[i].usp.port,
                     rv);
-#if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
             return L7_FAILURE;
-#endif
           }
         }
       }
     }
   }
+#endif /* !PTIN_BOARD_IS_PASSIVE_LC */
 
   /* L2 Station move */
   if (stationMove_enable>=0)
@@ -3341,9 +3340,7 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
                    stationMove_prio, lclass,
                    hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
                    rv);
-#if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
         return L7_FAILURE;
-#endif
       }
 
       /* Associate class to the specified interface */
@@ -3354,13 +3351,11 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
                    dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port,
                    hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
                    rv);
-#if (PLAT_BCM_CHIP != L7_BCM_HURRICANE3MG)
         return L7_FAILURE;
-#endif
       }
     }
   }
-#endif
+#endif /* !PTIN_BOARD_IS_PASSIVE_LC */
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "L2Learn parameters attributed correctly to port {%d,%d,%d} (rv=%d)",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, rv);
@@ -3382,7 +3377,7 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
  */
 L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_enable, L7_int *stationMove_enable, L7_int *stationMove_prio, L7_int *stationMove_samePrio)
 {
-  L7_int  i, enable, enable_global;
+  L7_int  i, enable_global;
   L7_uint32     flags;
   DAPI_PORT_t  *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr, *hapiPortPtr_member;
@@ -3409,8 +3404,14 @@ L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_
   }
 
   /* MAC Learning enable */
+  /* The following code stopped working for Katana2 (SDK-ALL-6.5.15) */
+#if (!PTIN_BOARD_IS_PASSIVE_LC)
   if (macLearn_enable!=L7_NULLPTR)
   {
+    L7_int enable;
+
+    enable_global = 0;
+
     if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
     {
       if (hapiPortPtr->is_hw_mapped)
@@ -3421,11 +3422,7 @@ L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_
         {
           PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcmPortControlLearnClassEnable in port {%d,%d,%d}",
                   dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
-#if (PLAT_BCM_CHIP == L7_BCM_HURRICANE3MG)
-          enable_global = L7_FALSE;
-#else
           return L7_FAILURE;
-#endif
         }
       }
     }
@@ -3458,11 +3455,7 @@ L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_
                     dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
                     dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
                     dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
-#if (PLAT_BCM_CHIP == L7_BCM_HURRICANE3MG)
-            enable = L7_FALSE;
-#else
             return L7_FAILURE;
-#endif
           }
         }
         /* If not enabled, set global enable to FALSE, and break cycle */
@@ -3473,12 +3466,16 @@ L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_
         }
       }
     }
+
     /* Save global enable status */
     *macLearn_enable = enable_global;
   }
+#endif /* !PTIN_BOARD_IS_PASSIVE_LC */
 
-  if (stationMove_enable!=L7_NULLPTR)
+  if (stationMove_enable != L7_NULLPTR)
   {
+    enable_global = 0;
+
     if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
     {
       if (hapiPortPtr->is_hw_mapped)
@@ -3560,11 +3557,7 @@ L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_
       {
         PT_LOG_ERR(LOG_CTX_HAPI, "Error getting classId from port {%d,%d,%d}",
                 dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
-#if (PLAT_BCM_CHIP == L7_BCM_HURRICANE3MG)
-        prio = flags = 0;
-#else
         return L7_FAILURE;
-#endif
       }
 
       *stationMove_prio = prio;
