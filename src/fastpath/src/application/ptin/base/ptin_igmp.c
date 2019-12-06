@@ -739,8 +739,8 @@ static L7_RC_t ptin_igmp_device_client_find(ptin_client_id_t *client_ref, ptinIg
 static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
                                     L7_uint16 uni_ovid, L7_uint16 uni_ivid,
                                     L7_BOOL isDynamic, L7_uint *client_idx_ret);
-static L7_RC_t ptin_igmp_device_client_clean(ptinIgmpGroupClientInfoData_t *avl_infoData_clientGroup);
 #if 0
+static L7_RC_t ptin_igmp_device_client_clean(ptinIgmpGroupClientInfoData_t *avl_infoData_clientGroup);
 static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L7_BOOL remove_static);
 #endif
 static L7_RC_t ptin_igmp_device_client_remove(L7_uint ptin_port, L7_uint client_idx, L7_BOOL remove_static, L7_BOOL force_remove);
@@ -855,8 +855,11 @@ void *ptin_igmp_clients_snapshot_sem = L7_NULLPTR;
 
 /* Check if a client index is present in a ONU */
 static L7_uint8 igmp_clientDevice_get_devices_number(struct ptinIgmpClientGroupInfoData_s *clientGroup);
+ 
+#if (PTIN_BOARD != PTIN_BOARD_CXO640G && PTIN_BOARD != PTIN_BOARD_CXO160G)
 /* Get the next client withing client devices queue */
 static struct ptinIgmpClientDevice_s *igmp_clientDevice_next(struct ptinIgmpClientGroupInfoData_s *clientGroup, struct ptinIgmpClientDevice_s *pelem);
+#endif
 /* Removed not necessary routines to managem device clients */
 #if 0
 /* Find a particular client in the client devices queue */
@@ -4187,8 +4190,6 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
   #endif
         }
 
-        PT_LOG_ERR(LOG_CTX_IGMP,"Unable to add this clientIdx[%u] port portId[%u] to the clientGroupSnapshot avlTree", mgmdGroupsRes->clientId, mgmdGroupsRes->portId);
-
         if (L7_SUCCESS != ptin_igmp_clientGroupSnapshot_add(&newClientEntry))
         {
           *number_of_clients=0;
@@ -4245,7 +4246,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
     {
       PT_LOG_ERR(LOG_CTX_IGMP, "Unable to get external EVC Id :%u",tempKey.outerVlan);
 
-      extendedEvcId[clientBufferIdx]= McastEvcId;//;(L7_uint32)-1;
+      extendedEvcId[clientBufferIdx] = McastEvcId;//;(L7_uint32)-1;
     }
     /*End MAC Bridge Services Support*/
 
@@ -5878,6 +5879,7 @@ L7_RC_t ptin_igmp_group_client_remove(ptinIgmpClientDataKey_t *avl_key)
     return L7_NOT_EXIST;
   }
   
+#if 0
   /* Remove all child clients, belonging to this client group */
   if (ptin_igmp_device_client_clean(avl_infoData) != L7_SUCCESS)
   {
@@ -5885,6 +5887,7 @@ L7_RC_t ptin_igmp_group_client_remove(ptinIgmpClientDataKey_t *avl_key)
     PT_LOG_ERR(LOG_CTX_IGMP,"Could not remove child clients!");
     return L7_FAILURE;
   }
+#endif
 
   /*Release Group Client Identifier*/
   ptin_igmp_group_client_identifier_push(avl_infoData->igmpClientDataKey.ptin_port, avl_infoData->groupClientId);
@@ -8069,8 +8072,6 @@ void igmp_timer_expiry(void *param)
   if (ptin_debug_igmp_snooping)
     PT_LOG_TRACE(LOG_CTX_IGMP,"Removing client (ptin_port=%u client_idx=%u)", ptin_port, client_idx);
 
-PT_LOG_ERR(LOG_CTX_IGMP, "client id max %u", client_idx);
-
   /* Remove client (only if it is dynamic. For static ones, only is removed from snooping entries) */
   if (ptin_igmp_device_client_remove(ptin_port, client_idx, L7_FALSE, L7_TRUE)!=L7_SUCCESS)
   {
@@ -9329,6 +9330,7 @@ static L7_RC_t ptin_igmp_instance_delete(L7_uint16 igmp_idx)
   return L7_SUCCESS;
 }
 
+#if 0
 /**
  * Clean child clients belonging to a client group
  * 
@@ -9372,6 +9374,7 @@ static L7_RC_t ptin_igmp_device_client_clean(ptinIgmpGroupClientInfoData_t *clie
   return L7_SUCCESS;
 }
 
+#endif
 /**
  * Find clientGroup information in a particulat IGMP instance
  * 
@@ -10455,9 +10458,24 @@ static L7_RC_t ptin_igmp_device_client_remove(L7_uint ptin_port, L7_uint client_
 #if PTIN_BOARD_IS_LINECARD
       L7_uint32 internalServiceId;
       
+      /* Reset Allocated channels*/
       clientInfo->pClientGroup->admissionControl.allocatedChannels = 0;
-      internalServiceId = ptinIgmpAdmissionControlMulticastInternalServiceId[clientGroup->evcId];
-      igmpMulticastAdmissionControl[ptin_port][clientGroup->onuId][internalServiceId].admissionControl.allocatedChannels = 0 ;
+      if (clientGroup->evcId < PTIN_SYSTEM_N_EXTENDED_EVCS &&        
+          clientGroup->onuId < PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF)
+      {
+        if (ptinIgmpAdmissionControlMulticastInternalServiceId[clientGroup->evcId] < PTIN_IGMP_MAX_MULTICAST_INTERNAL_SERVICE_ID)
+        {
+          internalServiceId = ptinIgmpAdmissionControlMulticastInternalServiceId[clientGroup->evcId];
+          igmpMulticastAdmissionControl[ptin_port][clientGroup->onuId][internalServiceId].admissionControl.allocatedChannels = 0;        
+        }
+      }
+      else
+      {
+        PT_LOG_CRITIC(LOG_CTX_IGMP," Some value out of range! (EvcId %d Internal Service ID %d OnuId %d) ", 
+                     clientGroup->evcId,
+                     ptinIgmpAdmissionControlMulticastInternalServiceId[clientGroup->evcId],
+                     clientGroup->onuId);
+      }
 #endif
 #endif
 
@@ -11562,8 +11580,6 @@ static L7_RC_t ptin_igmp_clientId_restore(ptin_client_id_t *client)
 	#if MC_CLIENT_INNERVLAN_SUPPORTED
 		if (client->mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN)
 		{
-
-			PT_LOG_ERR(LOG_CTX_IGMP,"Invalid arguments or no parameters provided %d ", client->mask);
 			/* Validate inner vlan */
 			if (client->innerVlan>4095)
 			{
@@ -14035,6 +14051,7 @@ L7_RC_t ptin_igmp_mgmd_port_sync(L7_uint8 admin, L7_uint32 serviceId, L7_uint32 
  * QUEUES MANAGEMENT FUNCTIONS
  ***********************************************************/
 
+#if (PTIN_BOARD != PTIN_BOARD_CXO640G && PTIN_BOARD != PTIN_BOARD_CXO160G)
 /**
  * Get the next client withing client devices queue
  */
@@ -14050,7 +14067,7 @@ static struct ptinIgmpClientDevice_s *igmp_clientDevice_next(struct ptinIgmpClie
   /* Otherwise, return next value */
   return(struct ptinIgmpClientDevice_s *) pelem->next;
 }
-
+#endif
 /** Check if a client index is present in a ONU */
 static L7_uint8 igmp_clientDevice_get_devices_number(struct ptinIgmpClientGroupInfoData_s *clientGroup)
 {
@@ -14401,18 +14418,26 @@ static void ptin_igmp_device_client_identifier_push(L7_uint ptin_port, L7_uint16
 static void ptin_igmp_group_client_identifier_push(L7_uint ptin_port, L7_uint16 client_idx)
 {
   struct ptinIgmpClientId_s *pClientIdx;
-
+  RET_CODE_t rc;
 
   /* Validate arguments */
   if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
       client_idx >= PTIN_IGMP_CLIENTIDX_MAX)
   {
+    PT_LOG_ERR(LOG_CTX_IGMP, "Group client queue Port %d client id %d nelems %d ",
+               ptin_port,
+               client_idx,
+               queue_free_group_client_id[PTIN_IGMP_CLIENT_PORT(ptin_port)].n_elems);
     return;
   }
 
   /* Check if free indexes pool is already full */
   if (queue_free_group_client_id[PTIN_IGMP_CLIENT_PORT(ptin_port)].n_elems >= PTIN_IGMP_CLIENTIDX_MAX)
   {
+    PT_LOG_ERR(LOG_CTX_IGMP,"Group client queue of port %d client id %d nelems %d",
+               ptin_port, 
+               client_idx, 
+               queue_free_group_client_id[PTIN_IGMP_CLIENT_PORT(ptin_port)].n_elems);
     return;
   }
 
@@ -14424,11 +14449,15 @@ static void ptin_igmp_group_client_identifier_push(L7_uint ptin_port, L7_uint16 
 
   /* Check if this entry is already free */
   if (!pClientIdx->inUse)
-    return;
-
-  /* Add index to free indexes queue */
-  if (dl_queue_add_head(&queue_free_group_client_id[PTIN_IGMP_CLIENT_PORT(ptin_port)], (dl_queue_elem_t *) pClientIdx) != NOERR)
   {
+    PT_LOG_ERR(LOG_CTX_IGMP,"pClientIdx->inUse already not in use");
+    return;
+  }
+  rc = dl_queue_add_head(&queue_free_group_client_id[PTIN_IGMP_CLIENT_PORT(ptin_port)], (dl_queue_elem_t *) pClientIdx);
+  /* Add index to free indexes queue */
+  if ( rc != NOERR)
+  {
+    PT_LOG_ERR(LOG_CTX_IGMP,"Error return indl_queue_add_head ptin port %d client id %d ", rc);
     return;
   }
 

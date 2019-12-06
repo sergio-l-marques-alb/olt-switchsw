@@ -1416,7 +1416,7 @@ L7_RC_t dsPacketQueue(L7_uchar8 *ethHeader, L7_uint32 dataLen,
    }
 
    dsInfo->debugStats.msgsReceived++;
-    ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX);
+   ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX);
 
    if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX)
    {
@@ -1433,6 +1433,12 @@ L7_RC_t dsPacketQueue(L7_uchar8 *ethHeader, L7_uint32 dataLen,
    /* Useful only when processing DHCP replies in Metro networks. */
    dsFrameMsg.innerVlanId = innerVlanId;
    /* PTin added: DHCP snooping */
+
+   if (client_idx == L7_NULLPTR)
+   {
+     PT_LOG_FATAL(LOG_CTX_DHCP, "client_id NULL");
+     return L7_REQUEST_DENIED;
+   }
    dsFrameMsg.client_idx  = *client_idx;
 
    if (osapiMessageSend(Ds_Packet_Queue, &dsFrameMsg, sizeof(dsFrameMsg_t), L7_NO_WAIT,
