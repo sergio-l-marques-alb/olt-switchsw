@@ -140,6 +140,15 @@ L7_RC_t ptin_hapi_phy_init_ta48ge(void);
 L7_RC_t ptin_hapi_phy_init_tg4g(void);
 L7_RC_t ptin_hapi_phy_init_ae48ge(void);
 
+#if (PTIN_BOARD == PTIN_BOARD_AG16GA)
+L7_RC_t ag16ga_xlate_init(void);
+L7_RC_t ag16ga_xconnect_init(void);
+#endif
+#if (PTIN_BOARD == PTIN_BOARD_AE48GE)
+L7_RC_t ae48ge_xlate_init(void);
+L7_RC_t ae48ge_xconnect_init(void);
+#endif
+
 L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable);
 
 /**
@@ -6220,6 +6229,13 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
 
   PT_LOG_INFO(LOG_CTX_STARTUP, "Special code for AE48GE");
 
+  rc = ae48ge_xlate_init();
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_STARTUP,"Error initializing translations for AG16GA");
+    return rc;
+  }
+
   rc = ae48ge_xconnect_init();
   if (rc != L7_SUCCESS)
   {
@@ -6451,30 +6467,39 @@ L7_RC_t ag16ga_xlate_init(void)
         continue;
     }
 
+    /* First key: First do a lookup for port + outerVlan + innerVlan.
+       Second key: If failed do a second lookup for port + outerVlan */
+    if ( ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanPortTranslateKeyFirst , bcmVlanTranslateKeyPortDouble)) != BCM_E_NONE) ||
+         ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanPortTranslateKeySecond, bcmVlanTranslateKeyPortOuter)) != BCM_E_NONE) )
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting translation keys (rv=%d)", rv);
+      return L7_FAILURE;
+    }
+
+    /* Enable ingress and egress translations.
+       Also, drop packets that do not fullfil any translation entry. */
+    if ( ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanTranslateIngressEnable,   1)) != BCM_E_NONE) ||
+         ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanTranslateIngressMissDrop, 1)) != BCM_E_NONE) /*||
+         ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, bcm_port, bcmVlanTranslateEgressEnable,    1)) != BCM_E_NONE) ||
+         ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, bcm_port, bcmVlanTranslateEgressMissDrop,  1)) != BCM_E_NONE)*/ )
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting translation enables");
+      return L7_FAILURE;
+    }
+
+    /* Always service provider ports */
+    rv = bcm_port_dtag_mode_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, BCM_PORT_DTAG_MODE_INTERNAL);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting NNI type to bcm_port %u: error=%d (%s)",
+                 hapiPortPtr->bcm_port, rv, bcm_errmsg(rv));
+      return L7_FAILURE;
+    }
+
     /* Only for backplane ports */
-    if ((PTIN_SYSTEM_10G_PORTS_MASK & (1UL << usp.port)) != 0)
+    if ((PTIN_SYSTEM_10G_PORTS_MASK & (1ULL << usp.port)) != 0)
     {
       PT_LOG_INFO(LOG_CTX_HAPI, "Configuring usp.port %d, bcm_port %u", usp.port, hapiPortPtr->bcm_port);
-
-      /* First key: First do a lookup for port + outerVlan + innerVlan.
-         Second key: If failed do a second lookup for port + outerVlan */
-      if ( ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanPortTranslateKeyFirst , bcmVlanTranslateKeyPortDouble)) != BCM_E_NONE) ||
-           ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanPortTranslateKeySecond, bcmVlanTranslateKeyPortOuter)) != BCM_E_NONE) )
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error setting translation keys (rv=%d)", rv);
-        return L7_FAILURE;
-      }
-
-      /* Enable ingress and egress translations.
-         Also, drop packets that do not fullfil any translation entry. */
-      if ( ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanTranslateIngressEnable,   1)) != BCM_E_NONE) ||
-           ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanTranslateIngressMissDrop, 1)) != BCM_E_NONE) /*||
-           ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, bcm_port, bcmVlanTranslateEgressEnable,    1)) != BCM_E_NONE) ||
-           ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, bcm_port, bcmVlanTranslateEgressMissDrop,  1)) != BCM_E_NONE)*/ )
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error setting translation enables");
-        return L7_FAILURE;
-      }
 
       /* 4 PONs for each backplane interface */
       for (i = 0; i < 4; i++)
@@ -6514,6 +6539,55 @@ L7_RC_t ag16ga_xlate_init(void)
         PT_LOG_INFO(LOG_CTX_HAPI, "Success configuring bcm_port %u / gport %u with vid %u..%u => %u", hapiPortPtr->bcm_port, hapiPortPtr->bcmx_lport, vid_base, vid_base + 1024 - 1, vid_new);
       }
     }
+
+    /* Only for front (PON) ports */
+    if ((PTIN_SYSTEM_PON_PORTS_MASK & (1ULL << usp.port)) != 0)
+    {
+      PT_LOG_INFO(LOG_CTX_HAPI, "Configuring usp.port %d, bcm_port %u", usp.port, hapiPortPtr->bcm_port);
+
+      vid_new  = usp.port + 1;
+
+      bcm_vlan_action_set_t_init(&action);
+
+      /* VLAN actions */
+      action.dt_outer      = bcmVlanActionAdd;
+      action.dt_inner      = bcmVlanActionNone;
+      action.ot_outer      = bcmVlanActionAdd;
+      action.ot_inner      = bcmVlanActionNone;
+      action.new_outer_vlan= vid_new;
+
+      PT_LOG_INFO(LOG_CTX_HAPI, "Configuring bcm_port %u / gport 0x%x with vid 0-4095 => %u", hapiPortPtr->bcm_port, hapiPortPtr->bcmx_lport, vid_new);
+
+      rv = bcm_vlan_translate_action_range_add(hapiPortPtr->bcm_unit, hapiPortPtr->bcmx_lport, 0, 4095, BCM_VLAN_INVALID, BCM_VLAN_INVALID, &action);
+
+      if (rv == BCM_E_EXISTS)
+      {
+        PT_LOG_WARN(LOG_CTX_HAPI, "Entry already exists: %d (\"%s\")", rv, bcm_errmsg(rv));
+        return L7_ALREADY_CONFIGURED;
+      }
+      else if (rv == BCM_E_FULL)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Translation resources exhausted: rv=%d (%s)", rv, bcm_errmsg(rv));
+        return L7_NO_RESOURCES;
+      }
+      else if (rv != BCM_E_NONE)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_action_range_add function: %d (\"%s\")", rv, bcm_errmsg(rv));
+        return L7_FAILURE;
+      }
+
+      /* Set default VLAN on PON ports */
+      rv = bcm_port_untagged_vlan_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, vid_new);
+      if (rv != BCM_E_NONE)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error default VLAN %u to bcm_port %u: error=%d (%s)",
+                   vid_new, hapiPortPtr->bcm_port, rv, bcm_errmsg(rv));
+        return L7_FAILURE;
+      }
+
+      PT_LOG_INFO(LOG_CTX_HAPI, "Success configuring bcm_port %u / gport %u with vid 0-4095 => %u",
+                  hapiPortPtr->bcm_port, hapiPortPtr->bcmx_lport, vid_new);
+    }
   }
 
   PT_LOG_INFO(LOG_CTX_HAPI, "Translations configured\r\n");
@@ -6533,9 +6607,9 @@ L7_RC_t ag16ga_xlate_init(void)
 L7_RC_t ag16ga_xconnect_init(void)
 {
   bcm_vlan_t  vlanId;
-  int port_back, port_pon;
-  bcm_gport_t gport1, gport2;
-  bcm_port_t  bcm_port1, bcm_port2;
+  int port_back, port_front;
+  bcm_gport_t gport_front, gport_back;
+  bcm_port_t  bcm_port_front, bcm_port_back;
   bcm_vlan_control_vlan_t control;
   bcm_pbmp_t ubmp, pbmp;
   bcm_error_t rv;
@@ -6554,16 +6628,16 @@ L7_RC_t ag16ga_xconnect_init(void)
   /* 4 PONs for each backplane interface */
   for (vlanId = 1; vlanId <= PTIN_SYSTEM_N_PONS; vlanId++)
   {
-    port_back = PTIN_SYSTEM_N_PONS + (vlanId-1) / (PTIN_SYSTEM_N_PONS/4);
-    port_pon  = vlanId - 1;
+    port_back  = PTIN_SYSTEM_N_PONS + (vlanId-1) / (PTIN_SYSTEM_N_PONS/4);
+    port_front = vlanId - 1;
 
     /* Validate port */
-    if (hapi_ptin_bcmPort_get(port_pon, &bcm_port1) != L7_SUCCESS)
+    if (hapi_ptin_bcmPort_get(port_front, &bcm_port_front) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcm_port of port %d", port_pon);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcm_port of port %d", port_front);
       return L7_FAILURE;
     }
-    if (hapi_ptin_bcmPort_get(port_back, &bcm_port2) != L7_SUCCESS)
+    if (hapi_ptin_bcmPort_get(port_back, &bcm_port_back) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcm_port of port %d", port_back);
       return L7_FAILURE;
@@ -6574,14 +6648,14 @@ L7_RC_t ag16ga_xconnect_init(void)
     BCM_PBMP_CLEAR(ubmp);
     BCM_PBMP_CLEAR(pbmp);
     BCM_PBMP_PORT_ADD(pbmp, 0 /*cpu port*/);
-    BCM_PBMP_PORT_ADD(pbmp, bcm_port1);
-    BCM_PBMP_PORT_ADD(pbmp, bcm_port2);
-    BCM_PBMP_PORT_ADD(ubmp, bcm_port1);
-    BCM_PBMP_PORT_ADD(ubmp, bcm_port2);
+    BCM_PBMP_PORT_ADD(pbmp, bcm_port_front);
+    BCM_PBMP_PORT_ADD(pbmp, bcm_port_back);
+    BCM_PBMP_PORT_ADD(ubmp, bcm_port_front);
+    BCM_PBMP_PORT_ADD(ubmp, bcm_port_back);
 
     /* Get gports */
-    BCM_GPORT_LOCAL_SET(gport1, bcm_port1);
-    BCM_GPORT_LOCAL_SET(gport2, bcm_port2);
+    BCM_GPORT_LOCAL_SET(gport_front, bcm_port_front);
+    BCM_GPORT_LOCAL_SET(gport_back, bcm_port_back);
 
     /* Create VLAN and add CPU port */
     rv = bcm_vlan_create(bcm_unit, vlanId);
@@ -6612,43 +6686,18 @@ L7_RC_t ag16ga_xconnect_init(void)
       PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_vlan_control_vlan_set(vlanID=%u): error=%d (%s)", vlanId, rv, bcm_errmsg(rv));
       return L7_FAILURE;
     }
-
-    /* Set default VLAN on PON ports */
-    rv = bcm_port_untagged_vlan_set(bcm_unit, bcm_port1, vlanId);
-    if (rv != BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error default VLAN %u to bcm_port %u: error=%d (%s)", vlanId, bcm_port1, rv, bcm_errmsg(rv));
-      return L7_FAILURE;
-    }
-
-    /* Always add the default VLAN on PON ports */
-    rv = bcm_port_dtag_mode_set(bcm_unit, bcm_port1, BCM_PORT_DTAG_MODE_EXTERNAL);
-    if (rv != BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting customer type to bcm_port %u: error=%d (%s)", bcm_port1, rv, bcm_errmsg(rv));
-      return L7_FAILURE;
-    }
-    if ((vlanId-1) % 4 == 0)
-    {
-      rv = bcm_port_dtag_mode_set(bcm_unit, bcm_port2, BCM_PORT_DTAG_MODE_INTERNAL);
-      if (rv != BCM_E_NONE)
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error setting NNI type to bcm_port %u: error=%d (%s)", bcm_port1, rv, bcm_errmsg(rv));
-        return L7_FAILURE;
-      }
-    }
     
     /* Add ports to VLAN table */
     rv = bcm_vlan_port_add(bcm_unit, vlanId, pbmp, ubmp);
     if (rv != BCM_E_NONE)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error adding bcm_port %u and %u to VLAN Id %u: %d (%s)",
-                 bcm_port1, bcm_port2, vlanId, rv, bcm_errmsg(rv));
+                 bcm_port_front, bcm_port_back, vlanId, rv, bcm_errmsg(rv));
       return L7_FAILURE;
     }
 
     /* Configure crossconnects */
-    rv = bcm_vlan_cross_connect_add(bcm_unit, vlanId, BCM_VLAN_INVALID, gport1, gport2);
+    rv = bcm_vlan_cross_connect_add(bcm_unit, vlanId, BCM_VLAN_INVALID, gport_front, gport_back);
     if (rv != BCM_E_NONE)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_vlan_cross_connect_add: %d (%s)", rv, bcm_errmsg(rv));
@@ -6656,7 +6705,7 @@ L7_RC_t ag16ga_xconnect_init(void)
     }
 
     PT_LOG_INFO(LOG_CTX_HAPI, "Created crossconnect between port %u/bcm_port %u/gport 0x%x <-> port %u/bcm_port %u/gport 0x%x, VLAN %u",
-                port_back, bcm_port1, gport1, port_pon, bcm_port2, gport2, vlanId);
+                port_back, bcm_port_front, gport_front, port_front, bcm_port_back, gport_back, vlanId);
   }
 
   PT_LOG_INFO(LOG_CTX_HAPI, "Crossconnects configured\r\n");
@@ -6680,12 +6729,36 @@ static L7_RC_t ae48ge_copy_pbits(void);
  */
 L7_RC_t ae48ge_xconnect_init(void)
 {
+  /* Crossconnects are configuired at APPLICATION layer (ptin_evc_startup) */
+
+  if (ae48ge_copy_pbits() != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error configuring field processor!");
+    return L7_FAILURE;
+  }
+
+  PT_LOG_INFO(LOG_CTX_HAPI, "AE48GE special initialized done!");
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Translation configurations for AG16GA board
+ * 
+ * @author mruas (05/07/19)
+ * 
+ * @param void 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ae48ge_xlate_init(void)
+{
+  int vid_new;
+  bcm_vlan_action_set_t action;
   int         usp_unit;
   DAPI_USP_t  usp;
   BROAD_PORT_t *hapiPortPtr;
   bcm_error_t rv;
-
-  /* Crossconnects are configuired at APPLICATION layer (ptin_evc_startup) */
 
   unitMgrNumberGet(&usp_unit);
   usp.unit = (L7_int8) usp_unit;
@@ -6700,12 +6773,16 @@ L7_RC_t ae48ge_xconnect_init(void)
       return L7_FAILURE;
   }
 
-  /* 4 PONs for each backplane interface */
+  PT_LOG_INFO(LOG_CTX_HAPI, "Max usp.port=%d", dapi_g->unit[usp.unit]->slot[usp.slot]->numOfPortsInSlot);
+
+  /* BCK ports */
   /* Run all usp ports */
   for (usp.port = 0;
        usp.port < dapi_g->unit[usp.unit]->slot[usp.slot]->numOfPortsInSlot;
        usp.port++)
   {
+    PT_LOG_INFO(LOG_CTX_HAPI, "usp.port=%d", usp.port);
+
     hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
 
     /* Hardware configuration protection */
@@ -6714,23 +6791,91 @@ L7_RC_t ae48ge_xconnect_init(void)
         continue;
     }
 
-    /* Always add the default VLAN on PON ports */
-    rv = bcm_port_dtag_mode_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
-                                usp.port < PTIN_SYSTEM_N_ETH ? BCM_PORT_DTAG_MODE_EXTERNAL : BCM_PORT_DTAG_MODE_INTERNAL);
+    PT_LOG_INFO(LOG_CTX_HAPI, "usp.port=%d", usp.port);
+
+    /* First key: First do a lookup for port + outerVlan + innerVlan.
+       Second key: If failed do a second lookup for port + outerVlan */
+    if ( ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanPortTranslateKeyFirst , bcmVlanTranslateKeyPortDouble)) != BCM_E_NONE) ||
+         ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanPortTranslateKeySecond, bcmVlanTranslateKeyPortOuter)) != BCM_E_NONE) )
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting translation keys (rv=%d)", rv);
+      return L7_FAILURE;
+    }
+
+    PT_LOG_INFO(LOG_CTX_HAPI, "usp.port=%d", usp.port);
+
+    /* Enable ingress and egress translations.
+       Also, drop packets that do not fullfil any translation entry. */
+    if ( ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanTranslateIngressEnable,   1)) != BCM_E_NONE) ||
+         ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmVlanTranslateIngressMissDrop, 1)) != BCM_E_NONE) /*||
+         ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, bcm_port, bcmVlanTranslateEgressEnable,    1)) != BCM_E_NONE) ||
+         ((rv=bcm_vlan_control_port_set(hapiPortPtr->bcm_unit, bcm_port, bcmVlanTranslateEgressMissDrop,  1)) != BCM_E_NONE)*/ )
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting translation enables");
+      return L7_FAILURE;
+    }
+
+    /* Always service provider ports */
+    rv = bcm_port_dtag_mode_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, BCM_PORT_DTAG_MODE_INTERNAL);
     if (rv != BCM_E_NONE)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting dtag type to bcm_port %u: error=%d (%s)", hapiPortPtr->bcm_port, rv, bcm_errmsg(rv));
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting NNI type to bcm_port %u: error=%d (%s)",
+                 hapiPortPtr->bcm_port, rv, bcm_errmsg(rv));
       return L7_FAILURE;
+    }
+
+    PT_LOG_INFO(LOG_CTX_HAPI, "usp.port=%d", usp.port);
+
+    /* Only for front ports */
+    if ((PTIN_SYSTEM_ETH_PORTS_MASK & (1ULL << usp.port)) != 0)
+    {
+      PT_LOG_INFO(LOG_CTX_HAPI, "Configuring usp.port %d, bcm_port %u", usp.port, hapiPortPtr->bcm_port);
+
+      vid_new  = 100 + usp.port;
+
+      bcm_vlan_action_set_t_init(&action);
+
+      /* VLAN actions */
+      action.dt_outer      = bcmVlanActionAdd;
+      action.dt_inner      = bcmVlanActionNone;
+      action.ot_outer      = bcmVlanActionAdd;
+      action.ot_inner      = bcmVlanActionNone;
+      action.new_outer_vlan= vid_new;
+
+      PT_LOG_INFO(LOG_CTX_HAPI, "Configuring bcm_port %u / gport 0x%x with vid 0-4095 => %u", hapiPortPtr->bcm_port, hapiPortPtr->bcmx_lport, vid_new);
+
+      rv = bcm_vlan_translate_action_range_add(hapiPortPtr->bcm_unit, hapiPortPtr->bcmx_lport, 0, 4095, BCM_VLAN_INVALID, BCM_VLAN_INVALID, &action);
+
+      if (rv == BCM_E_EXISTS)
+      {
+        PT_LOG_WARN(LOG_CTX_HAPI, "Entry already exists: %d (\"%s\")", rv, bcm_errmsg(rv));
+        return L7_ALREADY_CONFIGURED;
+      }
+      else if (rv == BCM_E_FULL)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Translation resources exhausted: rv=%d (%s)", rv, bcm_errmsg(rv));
+        return L7_NO_RESOURCES;
+      }
+      else if (rv != BCM_E_NONE)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_action_range_add function: %d (\"%s\")", rv, bcm_errmsg(rv));
+        return L7_FAILURE;
+      }
+
+      /* Set default VLAN on PON ports */
+      rv = bcm_port_untagged_vlan_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, vid_new);
+      if (rv != BCM_E_NONE)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error default VLAN %u to bcm_port %u: error=%d (%s)",
+                   vid_new, hapiPortPtr->bcm_port, rv, bcm_errmsg(rv));
+        return L7_FAILURE;
+      }
+
+      PT_LOG_INFO(LOG_CTX_HAPI, "Success configuring bcm_port %u / gport %u with vid 0-4095 => %u", hapiPortPtr->bcm_port, hapiPortPtr->bcmx_lport, vid_new);
     }
   }
 
-  if (ae48ge_copy_pbits() != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error configuring field processor!");
-    return L7_FAILURE;
-  }
-
-  PT_LOG_INFO(LOG_CTX_HAPI, "AE48GE special initialized done!");
+  PT_LOG_INFO(LOG_CTX_HAPI, "Translations configured\r\n");
 
   return L7_SUCCESS;
 }

@@ -1001,6 +1001,45 @@ bcm_error_t ptin_phyctrl_link_get(bcm_port_t bcm_port)
 
 // Ingress Translations (single tagged packets)
 
+int ptin_vlan_single_translate_action_push(int port, bcm_vlan_t oVlanId, bcm_vlan_t newOVlanId)
+{
+  int error;
+  bcm_port_t  bcm_port;
+  bcm_gport_t gport;
+  bcm_vlan_translate_key_t keyType;
+  bcm_vlan_action_set_t action;
+
+  // Validate port, and get bcm_port reference
+  if (port>=PTIN_SYSTEM_N_PORTS || hapi_ptin_bcmPort_get(port,&bcm_port)!=L7_SUCCESS)
+  {
+    printf("Port is invalid\r\n");
+    return -1;
+  }
+
+  // Calculate gport
+  BCM_GPORT_LOCAL_SET(gport,bcm_port);
+
+  keyType = bcmVlanTranslateKeyPortOuter;
+
+  bcm_vlan_action_set_t_init(&action);
+  action.dt_outer      = bcmVlanActionAdd;
+  action.dt_inner      = bcmVlanActionNone;
+  action.dt_outer_prio = bcmVlanActionNone;
+  action.dt_inner_prio = bcmVlanActionNone;
+
+  action.ot_outer      = bcmVlanActionAdd;
+  action.ot_inner      = bcmVlanActionNone;
+  action.ot_outer_prio = bcmVlanActionNone;
+
+  action.new_outer_vlan = newOVlanId;
+
+  error = bcm_vlan_translate_action_add(0,gport,keyType,oVlanId,0,&action);
+
+  printf("bcm_vlan_translate_action_add(0,%u[%d],%u,%u,%u,&action) => %d (\"%s\")\r\n",gport,bcm_port,keyType,oVlanId,0,error,bcm_errmsg(error));
+
+  return error;
+}
+
 int ptin_vlan_single_translate_action_add(int port, bcm_vlan_t oVlanId, bcm_vlan_t newOVlanId)
 {
   int error;
