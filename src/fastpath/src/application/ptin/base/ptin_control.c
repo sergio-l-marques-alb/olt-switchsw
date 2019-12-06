@@ -2185,6 +2185,7 @@ void slot_monitor_dump(void)
  */
 static void ptin_control_linkstatus_report(void)
 {
+#if (!PTIN_BOARD_IS_PASSIVE_LC)
   L7_uint8 active_matrix;
   L7_int   port, i;
   L7_uint8 number_of_ports, port_list[4];
@@ -2308,6 +2309,7 @@ static void ptin_control_linkstatus_report(void)
   }
 
   PT_LOG_TRACE(LOG_CTX_CONTROL, "LinkStatus Report sent");
+#endif
 }
 #endif /*PTIN_BOARD_IS_LINECARD*/
 
