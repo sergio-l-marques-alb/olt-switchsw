@@ -35,10 +35,15 @@
 #if (PTIN_BOARD == PTIN_BOARD_AE48GE)
 /* Mapping from sysintf (id) to virtual port index (for AE48GE) */
 int sysintf_to_vport_map_ae48gea[][PTIN_SYSTEM_N_ETH] = SYSINTF_TO_VPORT_MAP_AE48GEA;
-int sysintf_to_vport_map_ae48ge[][PTIN_SYSTEM_N_ETH] = SYSINTF_TO_VPORT_MAP_AE48GE;
-
 int backplane_intlag_map_ae48gea[8][2] = BACKPLANE_INTLAG_MAP_AE48GEA;
-int backplane_intlag_map_ae48ge[8][2] = BACKPLANE_INTLAG_MAP_AE48GE;
+
+#ifdef PTIN_BOARD_AE48GEv2_IN_USE
+int sysintf_to_vport_map_ae48ge[][PTIN_SYSTEM_N_ETH] = SYSINTF_TO_VPORT_MAP_AE48GEv2;
+int backplane_intlag_map_ae48ge[8][2] = BACKPLANE_INTLAG_MAP_AE48GEv2;
+#else
+int sysintf_to_vport_map_ae48ge[][PTIN_SYSTEM_N_ETH] = SYSINTF_TO_VPORT_MAP_AE48GEv3;
+int backplane_intlag_map_ae48ge[8][2] = BACKPLANE_INTLAG_MAP_AE48GEv3;
+#endif
 
 #if 0
 int vport_to_intlag_map_ae48ge[][PTIN_SYSTEM_N_ETH] = VPORT_TO_INTLAG_MAP_AE48GE;

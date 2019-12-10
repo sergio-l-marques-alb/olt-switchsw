@@ -109,7 +109,7 @@ xgxs_tx_lane_map_46=0x0213
 xgxs_rx_lane_map_46=0x0123
                         
 
-# Backplane: TSCE4
+# Backplane: TSCE4 TX/RX={W6,P6,W7,P7}->{P6,P7,W6,W7}
 portmap_50=74:10
 portmap_51=75:10
 portmap_52=76:10
@@ -117,7 +117,7 @@ portmap_53=77:10
 xgxs_tx_lane_map_50=0x2031
 xgxs_rx_lane_map_50=0x2031
 
-# Backplane: TSCE5
+# Backplane: TSCE5 TX/RX={W4,P4,W5,P5}->{P4,P5,W4,W5}
 portmap_54=78:1
 portmap_55=79:1
 portmap_56=80:1
@@ -130,17 +130,24 @@ portmap_58=82:10
 portmap_59=83:10
 portmap_60=84:10
 portmap_61=85:10
-xgxs_tx_lane_map_58=0x2301
-xgxs_rx_lane_map_58=0x2031
+# HW_V2: TX={P3,P2,P1,P0}->{P2,P3,P0,P1} / RX={W2,P2,W3,P3}->{P2,P3,W2!,W3!}
+#xgxs_tx_lane_map_58=0x2301
+#xgxs_rx_lane_map_58=0x2031
+# HW_V3: TX={P3,P2,P1,P0}->{P0,P1,P2,P3} / RX={P0,P1,P2,P3}
+xgxs_tx_lane_map_58=0x0123
+xgxs_rx_lane_map_58=0x3120
 
 # Backplane: TSCF
 portmap_62=86:10
 portmap_63=87:10
 portmap_64=88:10
 portmap_65=89:10
-xgxs_tx_lane_map_62=0x1032
-xgxs_rx_lane_map_62=0x2031
-
+# HW_V2: TX={W0,W1,W2,W3}->{W2,W3,W0,W1} / RX={W0,P0,W1,P1}->{P0!,P1!,W0,W1}
+#xgxs_tx_lane_map_62=0x1032
+#xgxs_rx_lane_map_62=0x2031
+# HW_V3: TX/RX={W0,W1,W2,W3}
+xgxs_tx_lane_map_62=0x3210
+xgxs_rx_lane_map_62=0x3120
 
 pbmp_xport_ge=0x003c3fffffffffffc
 pbmp_xport_xe=0x3fc3c000000000000
