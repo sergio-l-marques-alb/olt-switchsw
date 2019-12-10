@@ -6492,8 +6492,6 @@ L7_RC_t ag16ga_xlate_init(void)
     /* Only for backplane ports */
     if ((PTIN_SYSTEM_10G_PORTS_MASK & (1ULL << usp.port)) != 0)
     {
-      PT_LOG_INFO(LOG_CTX_HAPI, "Configuring usp.port %d, bcm_port %u", usp.port, hapiPortPtr->bcm_port);
-
       /* 4 PONs for each backplane interface */
       for (i = 0; i < 4; i++)
       {
@@ -6508,8 +6506,6 @@ L7_RC_t ag16ga_xlate_init(void)
         action.ot_outer      = bcmVlanActionAdd;
         action.ot_inner      = bcmVlanActionNone;
         action.new_outer_vlan= vid_new;
-
-        PT_LOG_INFO(LOG_CTX_HAPI, "Configuring bcm_port %u / gport 0x%x with vid %u..%u => %u", hapiPortPtr->bcm_port, hapiPortPtr->bcmx_lport, vid_base, vid_base + 1024 - 1, vid_new);
 
         rv = bcm_vlan_translate_action_range_add(hapiPortPtr->bcm_unit, hapiPortPtr->bcmx_lport, vid_base, vid_base + 1024 - 1, BCM_VLAN_INVALID, BCM_VLAN_INVALID, &action);
 
@@ -6536,20 +6532,24 @@ L7_RC_t ag16ga_xlate_init(void)
     /* Only for front (PON) ports */
     if ((PTIN_SYSTEM_PON_PORTS_MASK & (1ULL << usp.port)) != 0)
     {
-      PT_LOG_INFO(LOG_CTX_HAPI, "Configuring usp.port %d, bcm_port %u", usp.port, hapiPortPtr->bcm_port);
-
       vid_new  = usp.port + 1;
 
-      bcm_vlan_action_set_t_init(&action);
+      /* Set default VLAN on PON ports */
+      rv = bcm_port_untagged_vlan_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, vid_new);
+      if (rv != BCM_E_NONE)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error default VLAN %u to bcm_port %u: error=%d (%s)",
+                   vid_new, hapiPortPtr->bcm_port, rv, bcm_errmsg(rv));
+        return L7_FAILURE;
+      }
 
       /* VLAN actions */
+      bcm_vlan_action_set_t_init(&action);
       action.dt_outer      = bcmVlanActionAdd;
       action.dt_inner      = bcmVlanActionNone;
       action.ot_outer      = bcmVlanActionAdd;
       action.ot_inner      = bcmVlanActionNone;
       action.new_outer_vlan= vid_new;
-
-      PT_LOG_INFO(LOG_CTX_HAPI, "Configuring bcm_port %u / gport 0x%x with vid 0-4095 => %u", hapiPortPtr->bcm_port, hapiPortPtr->bcmx_lport, vid_new);
 
       rv = bcm_vlan_translate_action_range_add(hapiPortPtr->bcm_unit, hapiPortPtr->bcmx_lport, 0, 4095, BCM_VLAN_INVALID, BCM_VLAN_INVALID, &action);
 
@@ -6566,15 +6566,6 @@ L7_RC_t ag16ga_xlate_init(void)
       else if (rv != BCM_E_NONE)
       {
         PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_action_range_add function: %d (\"%s\")", rv, bcm_errmsg(rv));
-        return L7_FAILURE;
-      }
-
-      /* Set default VLAN on PON ports */
-      rv = bcm_port_untagged_vlan_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, vid_new);
-      if (rv != BCM_E_NONE)
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error default VLAN %u to bcm_port %u: error=%d (%s)",
-                   vid_new, hapiPortPtr->bcm_port, rv, bcm_errmsg(rv));
         return L7_FAILURE;
       }
 
@@ -6766,16 +6757,12 @@ L7_RC_t ae48ge_xlate_init(void)
       return L7_FAILURE;
   }
 
-  PT_LOG_INFO(LOG_CTX_HAPI, "Max usp.port=%d", dapi_g->unit[usp.unit]->slot[usp.slot]->numOfPortsInSlot);
-
   /* BCK ports */
   /* Run all usp ports */
   for (usp.port = 0;
        usp.port < dapi_g->unit[usp.unit]->slot[usp.slot]->numOfPortsInSlot;
        usp.port++)
   {
-    PT_LOG_INFO(LOG_CTX_HAPI, "usp.port=%d", usp.port);
-
     hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
 
     /* Hardware configuration protection */
@@ -6783,8 +6770,6 @@ L7_RC_t ae48ge_xlate_init(void)
     {
         continue;
     }
-
-    PT_LOG_INFO(LOG_CTX_HAPI, "usp.port=%d", usp.port);
 
     /* First key: First do a lookup for port + outerVlan + innerVlan.
        Second key: If failed do a second lookup for port + outerVlan */
@@ -6794,8 +6779,6 @@ L7_RC_t ae48ge_xlate_init(void)
       PT_LOG_ERR(LOG_CTX_HAPI, "Error setting translation keys (rv=%d)", rv);
       return L7_FAILURE;
     }
-
-    PT_LOG_INFO(LOG_CTX_HAPI, "usp.port=%d", usp.port);
 
     /* Enable ingress and egress translations.
        Also, drop packets that do not fullfil any translation entry. */
@@ -6817,25 +6800,27 @@ L7_RC_t ae48ge_xlate_init(void)
       return L7_FAILURE;
     }
 
-    PT_LOG_INFO(LOG_CTX_HAPI, "usp.port=%d", usp.port);
-
     /* Only for front ports */
     if ((PTIN_SYSTEM_ETH_PORTS_MASK & (1ULL << usp.port)) != 0)
     {
-      PT_LOG_INFO(LOG_CTX_HAPI, "Configuring usp.port %d, bcm_port %u", usp.port, hapiPortPtr->bcm_port);
-
       vid_new  = PTIN_SYSTEM_BASE_INTERNAL_VLAN + usp.port;
 
-      bcm_vlan_action_set_t_init(&action);
+      /* Set default VLAN on PON ports */
+      rv = bcm_port_untagged_vlan_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, vid_new);
+      if (rv != BCM_E_NONE)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error default VLAN %u to bcm_port %u: error=%d (%s)",
+                   vid_new, hapiPortPtr->bcm_port, rv, bcm_errmsg(rv));
+        return L7_FAILURE;
+      }
 
       /* VLAN actions */
+      bcm_vlan_action_set_t_init(&action);
       action.dt_outer      = bcmVlanActionAdd;
       action.dt_inner      = bcmVlanActionNone;
       action.ot_outer      = bcmVlanActionAdd;
       action.ot_inner      = bcmVlanActionNone;
       action.new_outer_vlan= vid_new;
-
-      PT_LOG_INFO(LOG_CTX_HAPI, "Configuring bcm_port %u / gport 0x%x with vid 0-4095 => %u", hapiPortPtr->bcm_port, hapiPortPtr->bcmx_lport, vid_new);
 
       rv = bcm_vlan_translate_action_range_add(hapiPortPtr->bcm_unit, hapiPortPtr->bcmx_lport, 0, 4095, BCM_VLAN_INVALID, BCM_VLAN_INVALID, &action);
 
@@ -6852,15 +6837,6 @@ L7_RC_t ae48ge_xlate_init(void)
       else if (rv != BCM_E_NONE)
       {
         PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_action_range_add function: %d (\"%s\")", rv, bcm_errmsg(rv));
-        return L7_FAILURE;
-      }
-
-      /* Set default VLAN on PON ports */
-      rv = bcm_port_untagged_vlan_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, vid_new);
-      if (rv != BCM_E_NONE)
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error default VLAN %u to bcm_port %u: error=%d (%s)",
-                   vid_new, hapiPortPtr->bcm_port, rv, bcm_errmsg(rv));
         return L7_FAILURE;
       }
 
