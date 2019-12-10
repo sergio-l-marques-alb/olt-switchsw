@@ -105,6 +105,18 @@ void ptin_AddDoubleTag(L7_ushort16 outer_tpid, L7_ushort16 outer_vlanId, L7_usho
   data[19]= (L7_uchar8) ( inner_vlanId       & 0xFF);
   *data_length += 8;
 }
+
+void ptin_removeTag(L7_uchar8 *data, L7_uint32 *data_length)
+{
+  L7_int i;
+
+  /* Free 4 bytes to insert the tag */
+  for (i=12; i < *data_length-1; i++)
+    data[i] = data[i+4];
+
+  *data_length -= 4;
+}
+
 #endif
 static void ptin_ipdtl0_task(void)
 {
@@ -210,6 +222,9 @@ static void ptin_ipdtl0_task(void)
                 {
                     int pcap_vlan = 2046;
 #if (PTIN_BOARD == PTIN_BOARD_AG16GA)
+                    /* Remove internal Vlan added in xlate*/
+                    ptin_removeTag(msg.payload, &msg.payloadLen);
+
                     /* Add 2046 VLAN and intfNum vlan to the packet reach toa agent with the interface information*/
                     ptin_AddDoubleTag(L7_ETYPE_8021Q, pcap_vlan, L7_ETYPE_8021Q,
                                       msg.intIfNum, msg.payload, &msg.payloadLen);
