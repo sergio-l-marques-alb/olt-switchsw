@@ -214,7 +214,7 @@ static void *pUslSystemBcmxSema = L7_NULLPTR;
 #define USL_BCMX_IS_LPORT_CONFIGURABLE_CHECK(lport) \
     if (USL_BCMX_IS_LPORT_CONFIGURABLE(lport) == L7_FALSE) \
     { \
-        PT_LOG_PEDANTIC(LOG_CTX_INTF, "Lport 0x%08x is not physically mapped", lport); \
+        PT_LOG_TRACE(LOG_CTX_INTF, "Lport 0x%08x is not physically mapped", lport); \
         return BCM_E_NONE; \
     }
 
