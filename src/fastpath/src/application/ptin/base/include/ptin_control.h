@@ -186,12 +186,12 @@ extern L7_RC_t ptin_control_reboot(void);
  * 
  * @author mruas (17/07/19)
  * 
- * @param mx_is_protection : 0-Working, 1-Protection
+ * @param mx_is_working : 1-Working, 0-Protection
  * 
  * @return L7_RC_t 
  */
 extern 
-L7_RC_t ptin_control_mx_switchover(L7_uint8 mx_is_protection);
+L7_RC_t ptin_control_mx_switchover(L7_uint8 mx_is_working);
 
 #endif /* _PTIN_CONTROL_H */
 

@@ -2316,11 +2316,11 @@ static void ptin_control_linkstatus_report(void)
  * 
  * @author mruas (17/07/19)
  * 
- * @param mx_is_protection : 0-Working, 1-Protection
+ * @param mx_is_working : 1-Working, 0-Protection
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_control_mx_switchover(L7_uint8 mx_is_protection)
+L7_RC_t ptin_control_mx_switchover(L7_uint8 mx_is_working)
 {
 #if (PTIN_BOARD == PTIN_BOARD_AE48GE)
   L7_uint32 lag_id, lag_intIfNum, intIfNum_add, intIfNum_del;
@@ -2334,13 +2334,13 @@ L7_RC_t ptin_control_mx_switchover(L7_uint8 mx_is_protection)
       return L7_FAILURE;
     }
 
-    if (mx_is_protection)
+    if (mx_is_working)
     {
-      PT_LOG_INFO(LOG_CTX_CONTROL,"CX is protection");
-      PT_LOG_INFO(LOG_CTX_EVENTS ,"CX is protection");
+      PT_LOG_INFO(LOG_CTX_CONTROL,"CX is WORKING");
+      PT_LOG_INFO(LOG_CTX_EVENTS ,"CX is WORKING");
 
-      if (ptin_intf_port2intIfNum(BACKPLANE_1ST_MEMBER(lag_id), &intIfNum_del) != L7_SUCCESS ||
-          ptin_intf_port2intIfNum(BACKPLANE_2ND_MEMBER(lag_id), &intIfNum_add) != L7_SUCCESS)
+      if (ptin_intf_port2intIfNum(BACKPLANE_1ST_MEMBER(lag_id), &intIfNum_add) != L7_SUCCESS ||
+          ptin_intf_port2intIfNum(BACKPLANE_2ND_MEMBER(lag_id), &intIfNum_del) != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_CONTROL,"Failure");
         return L7_FAILURE;
@@ -2348,11 +2348,11 @@ L7_RC_t ptin_control_mx_switchover(L7_uint8 mx_is_protection)
     }
     else
     {
-      PT_LOG_INFO(LOG_CTX_CONTROL,"CX is working");
-      PT_LOG_INFO(LOG_CTX_EVENTS ,"CX is working");
+      PT_LOG_INFO(LOG_CTX_CONTROL,"CX is PROTECTION");
+      PT_LOG_INFO(LOG_CTX_EVENTS ,"CX is PROTECTION");
 
-      if (ptin_intf_port2intIfNum(BACKPLANE_1ST_MEMBER(lag_id), &intIfNum_add) != L7_SUCCESS ||
-          ptin_intf_port2intIfNum(BACKPLANE_2ND_MEMBER(lag_id), &intIfNum_del) != L7_SUCCESS)
+      if (ptin_intf_port2intIfNum(BACKPLANE_1ST_MEMBER(lag_id), &intIfNum_del) != L7_SUCCESS ||
+          ptin_intf_port2intIfNum(BACKPLANE_2ND_MEMBER(lag_id), &intIfNum_add) != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_CONTROL,"Failure");
         return L7_FAILURE;
@@ -2366,7 +2366,7 @@ L7_RC_t ptin_control_mx_switchover(L7_uint8 mx_is_protection)
       PT_LOG_ERR(LOG_CTX_CONTROL,"Failure");
       //return L7_FAILURE;
     }
-    PT_LOG_INFO(LOG_CTX_CONTROL,"Success switching to mx %u", mx_is_protection);
+    PT_LOG_INFO(LOG_CTX_CONTROL,"Success switching to mx %u", mx_is_working);
   }
 #endif
 
