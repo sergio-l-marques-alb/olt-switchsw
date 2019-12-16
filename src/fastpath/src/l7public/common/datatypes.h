@@ -32,6 +32,30 @@
 #include <stdio.h>
 #endif
 
+#ifdef PTRS_ARE_64BITS
+typedef unsigned long long      ptr_addr_t;
+#define PTR_GET_ADDR(ptr)       ((L7_uint64 *) (ptr))
+#define PTR_GET_VALUE(ptr)      *((L7_uint64 *) (ptr))
+#define PTR_SET_VALUE(ptr)      *((L7_uint64 *) (ptr))
+#define WORD_SIZE   sizeof(L7_uint64)
+#else
+typedef unsigned long           ptr_addr_t;
+#define PTR_GET_ADDR(ptr)       ((L7_uint32 *) (ptr))
+#define PTR_GET_VALUE(ptr)      *((L7_uint32 *) (ptr))
+#define PTR_SET_VALUE(ptr)      *((L7_uint32 *) (ptr))
+#define WORD_SIZE   sizeof(L7_uint32)
+#endif
+#ifndef PTR_TO_UINT32
+#define PTR_TO_UINT32(ptr) ((unsigned long) (ptr_addr_t) (ptr))
+#endif
+#ifndef PTR_TO_UINT64
+#define PTR_TO_UINT64(ptr) ((unsigned long long) (ptr_addr_t) (ptr))
+#endif
+
+#ifndef UINT_TO_PTR
+#define UINT_TO_PTR(val) ((void *) (ptr_addr_t) (val))
+#endif
+
 typedef char            L7_char8;
 typedef unsigned char   L7_uchar8;
 

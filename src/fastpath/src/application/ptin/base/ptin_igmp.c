@@ -10471,9 +10471,8 @@ static L7_RC_t ptin_igmp_device_client_remove(L7_uint ptin_port, L7_uint client_
       }
       else
       {
-        PT_LOG_CRITIC(LOG_CTX_IGMP," Some value out of range! (EvcId %d Internal Service ID %d OnuId %d) ", 
+        PT_LOG_CRITIC(LOG_CTX_IGMP," Some value out of range! (EvcId %d OnuId %d) ", 
                      clientGroup->evcId,
-                     ptinIgmpAdmissionControlMulticastInternalServiceId[clientGroup->evcId],
                      clientGroup->onuId);
       }
 #endif
