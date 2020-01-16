@@ -1,9 +1,6 @@
 #ifndef _PTIN_GLOBALDEFS_OLT1T0F_H
 #define _PTIN_GLOBALDEFS_OLT1T0F_H
 
-/* Kernel information */
-//extern L7_uint olt1t0f_config_mode;
-
 /* If SSM is not supported, comment this line */
 #define SYNC_SSM_IS_SUPPORTED
 

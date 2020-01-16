@@ -3426,21 +3426,27 @@ extern int soc_robo_mmu_init(int );
 
   /* For katana2, expand XE ports to 4x1G ports regarding to PON and front 1G ports */
 #if (PTIN_BOARD == PTIN_BOARD_OLT1T0F || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_AG16GA)
-  SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 1, bcmPortControlLanes, 4),  "Port xe0(1) lanes 4");
-  SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 5, bcmPortControlLanes, 4),  "Port xe0(5) lanes 4");
-  SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 9, bcmPortControlLanes, 4),  "Port xe0(9) lanes 4");
-  SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 13, bcmPortControlLanes, 4), "Port xe0(13) lanes 4");
+  SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 1, bcmPortControlLanes, 4),  "Port ge0(1) lanes 4");
+  SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 5, bcmPortControlLanes, 4),  "Port ge4(5) lanes 4");
+  SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 9, bcmPortControlLanes, 4),  "Port ge8(9) lanes 4");
+  SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 13, bcmPortControlLanes, 4), "Port ge12(13) lanes 4");
 
-  if (soc_property_get(unit, spn_BCM5645X_CONFIG, 2) == 2)
+  if (soc_property_get(unit, spn_BCM5645X_CONFIG, 5) == 4)
+  {
+    /* OLT1T0F in mode 4 */
+    SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 17, bcmPortControlLanes, 4), "Port ge16(17) lanes 4");
+    SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 21, bcmPortControlLanes, 4), "Port ge20(21) lanes 4");
+  }
+  else if (soc_property_get(unit, spn_BCM5645X_CONFIG, 5) == 5)
+  {
+    /* OLT1T0F/TG16GF in mode 5 */
+    SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 28, bcmPortControlLanes, 4), "Port xe2(28) lanes 4");
+  }
+  else if (soc_property_get(unit, spn_BCM5645X_CONFIG, 5) == 2)
   {
     /* OLT1T0F in mode 2 */
     SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 27, bcmPortControlLanes, 4), "Port xe4(27) lanes 4");
     SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 28, bcmPortControlLanes, 4), "Port xe4(28) lanes 4");
-  }
-  else
-  {
-    /* OLT1T0F/TG16GF in mode 5 */
-    SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 28, bcmPortControlLanes, 4), "Port xe2(28) lanes 4");
   }
 #endif
 

@@ -1162,6 +1162,30 @@ HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56
 {       0,      16,          0,      40,       "" }, /* GS port for FPGA */
 };
 
+/* PTin added: new switch 56450 (Katana2) - OLT1T0F_V3 */
+HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1_HWV3[] =
+/* slotNum  portNum bcm_cpuunit bcm_port portName *
+ * -------  ------- ----------- -------- -------- */
+{
+{       0,       0,          0,       1,       "" }, /* 2.5G ETH */
+{       0,       1,          0,       2,       "" },
+{       0,       2,          0,       3,       "" },
+{       0,       3,          0,       4,       "" },
+{       0,       4,          0,       5,       "" },
+{       0,       5,          0,       6,       "" },
+{       0,       6,          0,       7,       "" },
+{       0,       7,          0,       8,       "" },
+{       0,       8,          0,      21,       "" }, /* 1G ETH */
+{       0,       9,          0,      22,       "" },
+{       0,      10,          0,      23,       "" },
+{       0,      11,          0,      24,       "" },
+{       0,      12,          0,      27,       "" }, /* 10G ETH */
+{       0,      13,          0,      33,       "" },
+{       0,      14,          0,      28,       "" },
+{       0,      15,          0,      30,       "" },
+{       0,      16,          0,      40,       "" }, /* GS port for FPGA */
+};
+
 /* PTin added: new switch 56450 (Katana2) - TG16GF && AG16GA */
 HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_16_GIG_4_TENGIG_1_GS_56450_REV_1[] =
 /* slotNum  portNum bcm_cpuunit bcm_port portName *
