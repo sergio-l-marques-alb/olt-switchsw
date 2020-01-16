@@ -21,7 +21,7 @@ Historico:  VM 2006.06.22 - Criacao do modulo V1.0.0.0
 
 #define TRAP_ARRANQUE       0x3001
 #define TRAP_ALARME_GENERAL 0x3003
-#define TRAP_ALARME_INTF    0x3004
+#define TRAP_ALARME_INTF    0x3202
 #define TRAP_ALARME_SWITCH  0x3007
 #define TRAP_LINECARD_INTF  0x300f
 
