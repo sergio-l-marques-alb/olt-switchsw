@@ -1002,60 +1002,6 @@ L7_RC_t osapiTaskDelay(L7_int32 ticks)
   return(L7_SUCCESS);
 }
 
-/**************************************************************************
-*
-* @purpose  Show all active tasks in system
-*
-* @param    none.
-*
-* @returns  none.
-*
-* @comments    none.
-*
-* @end
-*
-*************************************************************************/
-void osapiShowTasks(void)
-{
-  osapi_task_t *curTask;
-
-#ifdef _POSIX_THREAD_ATTR_STACKSIZE
-#define SHOW_TASK_HEADING " Name            OPri  PPri CPri sSize     Stat     WaitQ    TaskID       PID\n"
-#define SHOW_TASK_FMT " %-14.14s %4d %4d %4d  %8d %8x %8x %#8x %8d\n"
-#else
-#define SHOW_TASK_HEADING " Name            OPri  PPri CPri     Stat     WaitQ    TaskID       PID\n"
-#define SHOW_TASK_FMT " %-14.14s %4d %4d %4d %8x %8x %#8x %8d\n"
-#endif
-
-  pthread_cleanup_push((void (*)(void *))pthread_mutex_unlock,
-                       (void *)&task_list_lock);
-  if (pthread_mutex_lock(&task_list_lock) != 0)
-  {
-    osapi_printf("osapiShowTasks: task_list_lock error\n");
-  }
-
-  osapi_printf(SHOW_TASK_HEADING);
-  for (curTask = task_list_head; curTask != NULL;
-      curTask = curTask->chain_next)
-  {
-    osapi_printf(SHOW_TASK_FMT,
-                 curTask->name,
-                 curTask->osapi_prio,
-                 curTask->pthread_prio,
-                 curTask->cur_prio,
-#ifdef _POSIX_THREAD_ATTR_STACKSIZE
-                 curTask->stack_size,
-#endif
-                 curTask->flags,
-                 curTask->waiting,
-                 curTask,
-                 curTask->PID);
-
-  }
-
-  pthread_cleanup_pop(1);
-
-}
 
 #if 1 /* osapiTaskLock() is now deprecated */
 /**************************************************************************
@@ -2235,3 +2181,53 @@ void osapiCpuUtilMonitorTask(L7_ulong32 numArgs, L7_uint32 *argv )
 
   return;
 }
+
+void osapiShowTasks(void)
+{
+  osapi_task_t *curTask;
+  L7_uint32     stack_used_1000;
+
+#ifdef _POSIX_THREAD_ATTR_STACKSIZE
+#define SHOW_TASK_HEADING " Name            OPri PPri CPri     sSize sUsed        Stat      WaitQ     TaskID      PID teste\n"
+//                          12345678901234  1234 1234 1234  12345678 100.0* 0x12345678 0x12345678 0x12345678 12345678
+#define SHOW_TASK_FMT " %-14.14s  %4u %4u %4u  %8d %3u.%1u%c 0x%08x 0x%08x 0x%08x %8d\n"
+#else
+#define SHOW_TASK_HEADING " Name            OPri PPri CPri        Stat      WaitQ     TaskID      PID\n"
+//                          12345678901234  1234 1234 1234  0x12345678 0x12345678 0x12345678 12345678
+#define SHOW_TASK_FMT " %-14.14s  %4u %4u %4u  0x%08x 0x%08x 0x%08x %8d\n"
+#endif
+
+  pthread_cleanup_push((void (*)(void *))pthread_mutex_unlock,
+                       (void *)&task_list_lock);
+  if (pthread_mutex_lock(&task_list_lock) != 0)
+  {
+    osapi_printf("osapiShowTasks: task_list_lock error\n");
+  }
+
+  osapi_printf(SHOW_TASK_HEADING);
+  for (curTask = task_list_head; curTask != NULL;
+      curTask = curTask->chain_next)
+  {
+    stack_used_1000 = ( ( curTask->stack_size - osapiStackFree( curTask ) ) * 1000 ) / curTask->stack_size;
+
+    osapi_printf(SHOW_TASK_FMT,
+                 curTask->name,
+                 curTask->osapi_prio,
+                 curTask->pthread_prio,
+                 curTask->cur_prio,
+#ifdef _POSIX_THREAD_ATTR_STACKSIZE
+                 curTask->stack_size,
+                 stack_used_1000 / 10, stack_used_1000 % 10,
+                 ( stack_used_1000 > 800 ) ? '+' : ( stack_used_1000 < 200 ) ? '-' : ' ',
+#endif
+                 curTask->flags,
+                 curTask->waiting,
+                 curTask,
+                 curTask->PID);
+
+  }
+
+  pthread_cleanup_pop(1);
+
+}
+
