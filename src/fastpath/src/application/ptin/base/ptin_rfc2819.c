@@ -741,6 +741,13 @@ void ptin_rfc2819_task( void )
 
     for (Port=0; Port<ptin_sys_number_of_ports; Port++)
     {
+      /* Skip ports where RFC2819 probing is disabled (both RX and TX) */
+      if (RFC2819_probes_Rx[Port].conf.estado == 0 &&
+          RFC2819_probes_Tx[Port].conf.estado == 0)
+      {
+        continue;
+      }
+
       //load counters every 15min period. 
       // We don't need to load every second because we only need to proccess counters in periods of 15min/24hours.
       if ((tgl_clock & PERIODO_15MIN)!=0) {  
