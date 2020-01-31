@@ -43,10 +43,6 @@ startup()
     #SLOT=`/usr/local/ptin/bin/getslotid`
     #ftpget -u root -p lampada 192.168.200.`expr $SLOT + 100` /usr/local/ptin/var/bcm_port_map
 
-    rm /var/log/switchdrvr*
-    mkdir -p /var/log/switchdrvr
-    rm /usr/local/ptin/log/fastpath/*
-
     insert_modules;
 
     # Launch app
@@ -54,6 +50,9 @@ startup()
 
     # Wait 200 seconds for FP to boot up
     $cli ping 10 20
+
+    # Post configurations
+    $ptin_path/sbin/fastpath-post.sh
 
     # Redirect output to the default pipes
     exec 1>&- 2>&-
