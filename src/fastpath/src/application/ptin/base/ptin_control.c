@@ -520,7 +520,8 @@ void ptin_alarms_init(void)
 
   #elif (PTIN_BOARD_IS_LINECARD)
     #if (PTIN_BOARD_IS_ACTIVETH)
-    if (port < PTIN_SYSTEM_N_ETH)
+    /* AE48GE: Disable alarms only for physical ports */
+    if (port >= PTIN_SYSTEM_N_PORTS && port < (PTIN_SYSTEM_N_PORTS + PTIN_SYSTEM_N_LAGS))
     #endif
   #endif
     {
