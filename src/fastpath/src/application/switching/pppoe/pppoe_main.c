@@ -55,8 +55,8 @@ extern L7_uint64 hapiBroadReceice_pppoe_count;
 /********************************************************************* 
 *  Static Methods 
 *********************************************************************/
-static void    pppoeProcessServerFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx);
-static void    pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx);
+static void    pppoeProcessServerFrame(L7_uchar8* frame, L7_uint32 frameLen, L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx);
+static void    pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 frameLen, L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx);
 static L7_RC_t pppoeServerFrameFlood(L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx);
 static L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx);
 static L7_RC_t pppoeClientFrameSend(L7_uint32 intIfNum, L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx);
@@ -438,7 +438,7 @@ L7_RC_t pppoePacketQueue(L7_uchar8 *frame, L7_uint32 dataLen,
   pppoeFrameMsg.frameLen = dataLen;
   pppoeFrameMsg.innerVlanId = innerVlanId;
   pppoeFrameMsg.client_idx  = *client_idx;
-
+PT_LOG_DEBUG(LOG_CTX_PPPOE, "");
   if (osapiMessageSend(pppoe_Packet_Queue, &pppoeFrameMsg, sizeof(pppoeFrameMsg_t), L7_NO_WAIT,
                        L7_MSG_PRIORITY_NORM) == L7_SUCCESS)
   {
@@ -449,7 +449,7 @@ L7_RC_t pppoePacketQueue(L7_uchar8 *frame, L7_uint32 dataLen,
    /* This may be fairly normal, so don't log. DHCP should recover. */
 //     dsInfo->debugStats.frameMsgTxError++;
   }
-
+PT_LOG_DEBUG(LOG_CTX_PPPOE, "");
   return L7_SUCCESS;
 }
 
@@ -477,11 +477,13 @@ L7_RC_t pppoeFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
 
    if(ptin_pppoe_is_intfRoot(intIfNum, vlanId) == L7_TRUE)
    {
-      pppoeProcessServerFrame(frame, intIfNum, vlanId, innerVlanId, client_idx);
+      pppoeProcessServerFrame(frame, frameLen, intIfNum, vlanId, innerVlanId,
+                              client_idx);
    }
    else
    {
-      pppoeProcessClientFrame(frame, intIfNum, vlanId, innerVlanId, client_idx);
+      pppoeProcessClientFrame(frame, frameLen, intIfNum, vlanId, innerVlanId,
+                              client_idx);
    }
 
   return L7_SUCCESS;
@@ -623,9 +625,16 @@ L7_RC_t pppoeAddVendorIdTlv(L7_uchar8 *framePtr, L7_uint32 intIfNum, L7_ushort16
 L7_RC_t pppoeCopyTlv(L7_uchar8 *originalFramePtr, L7_uchar8 *newFramePtr)
 {
    L7_tlv_header_t *tlv_header;
+   unsigned short l;
 
    tlv_header = (L7_tlv_header_t*) originalFramePtr;
-   memcpy(newFramePtr, originalFramePtr, sizeof(L7_tlv_header_t) + osapiNtohs(tlv_header->length));
+   l = osapiNtohs(tlv_header->length);
+   if (l>=PPPOE_PACKET_SIZE_MAX) {
+       PT_LOG_ERR(LOG_CTX_PPPOE, "tlv_header->length=%u", tlv_header->length);
+       return L7_ERROR;
+   }
+   PT_LOG_TRACE(LOG_CTX_PPPOE, "tlv_header->length=%u", tlv_header->length);
+   memcpy(newFramePtr, originalFramePtr, sizeof(L7_tlv_header_t) + l);
 
    return L7_SUCCESS;
 }
@@ -1044,7 +1053,7 @@ L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 v
 *
 * @end
 *********************************************************************/
-void pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx)
+void pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 frameLen, L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx)
 {
    L7_uchar8                  *eth_header_ptr, *pppoe_header_ptr, *tlv_header_ptr;
    L7_uchar8                  *eth_header_copy_ptr, *pppoe_header_copy_ptr, *tlv_header_copy_ptr;
@@ -1054,20 +1063,23 @@ void pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 v
    L7_uchar8                  frame_copy[PPPOE_PACKET_SIZE_MAX];
    L7_BOOL                    tlv_vendor_id_found = L7_FALSE;
    ptinPppoeClientDataKey_t   binding_table_key, *result;
+   int                        ethHeaderSize;
 
    if (ptin_debug_pppoe_snooping)
      PT_LOG_DEBUG(LOG_CTX_PPPOE, "PPPoE: Received new client message");
 
    eth_header_ptr       = frame;
+   ethHeaderSize        = sysNetDataOffsetGet(frame);
    eth_header           = (L7_ethHeader_t*) eth_header_ptr;
-   pppoe_header_ptr     = eth_header_ptr + sysNetDataOffsetGet(eth_header_ptr);
+   pppoe_header_ptr     = eth_header_ptr + ethHeaderSize;
    pppoe_header         = (L7_pppoe_header_t*) pppoe_header_ptr;
 
    /* Copy received frame up to the end of the PPPoE header */
    memset(frame_copy, 0x00, PPPOE_PACKET_SIZE_MAX);
-   memcpy(frame_copy, frame, sysNetDataOffsetGet(eth_header_ptr) + sizeof(L7_pppoe_header_t) + osapiNtohs(pppoe_header->length));
+   //memcpy(frame_copy, frame, sysNetDataOffsetGet(eth_header_ptr) + sizeof(L7_pppoe_header_t) + osapiNtohs(pppoe_header->length));
+   memcpy(frame_copy, frame, frameLen);
    eth_header_copy_ptr   = frame_copy;
-   pppoe_header_copy_ptr = eth_header_copy_ptr + sysNetDataOffsetGet(eth_header_copy_ptr);
+   pppoe_header_copy_ptr = eth_header_copy_ptr + ethHeaderSize;
    pppoe_header_copy     = (L7_pppoe_header_t*) pppoe_header_copy_ptr;
 
    if (ptin_debug_pppoe_snooping)
@@ -1128,13 +1140,25 @@ void pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 v
    }  
 
    /* Parse every TLV header */
-   while(frame_len > 0)
+   while(frame_len >= sizeof(L7_tlv_header_t))
    {
       L7_tlv_header_t *tlv_header;
+      L7_ushort16      tlv_hdr_len;
+      L7_ushort16      tlv_hdr_type;
 
       tlv_header = (L7_tlv_header_t*) tlv_header_ptr;
+      tlv_hdr_len=  osapiNtohs(tlv_header->length);
+      tlv_hdr_type= osapiNtohs(tlv_header->type);
 
-      switch(osapiNtohs(tlv_header->type))
+      if ( tlv_hdr_len > ( frame_len - sizeof(L7_tlv_header_t) ) ) {
+          PT_LOG_ERR(LOG_CTX_PPPOE, "invalid tlv_hdr_len=%u" , tlv_hdr_len );
+          break;
+      }
+
+      /* Debug */
+      PT_LOG_DEBUG(LOG_CTX_PPPOE, "TLV: type=0x%04X length=%u frame_len=%d", tlv_hdr_type, tlv_hdr_len, frame_len);
+
+      switch(tlv_hdr_type)
       {
          case L7_TLV_TAGTYPE_VENDOR_ID:
          {
@@ -1163,16 +1187,21 @@ void pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 v
          }
          default:
          {
-            /* Copy existing TLV header to our new frame */
-            pppoeCopyTlv(tlv_header_ptr, tlv_header_copy_ptr);
-            tlv_header_copy_ptr += sizeof(L7_tlv_header_t) + osapiNtohs(tlv_header->length);
+            /* Copy existing TLV header to our new frame */PT_LOG_TRACE(LOG_CTX_PPPOE, "");
+            pppoeCopyTlv(tlv_header_ptr, tlv_header_copy_ptr);PT_LOG_TRACE(LOG_CTX_PPPOE, "");
+            tlv_header_copy_ptr += sizeof(L7_tlv_header_t) + tlv_hdr_len;
          }
-      }
+      }//switch
 
       /* We finished parsing this TLV. Advance to the next one */
-      tlv_header_ptr += sizeof(L7_tlv_header_t) + osapiNtohs(tlv_header->length);
-      frame_len      -= sizeof(L7_tlv_header_t) + osapiNtohs(tlv_header->length);
-   }
+      tlv_header_ptr += sizeof(L7_tlv_header_t) + tlv_hdr_len;
+      frame_len      -= sizeof(L7_tlv_header_t) + tlv_hdr_len;
+
+      if (L7_TLV_TAGTYPE_END_OF_LIST == tlv_hdr_type) {
+          PT_LOG_DEBUG(LOG_CTX_PPPOE, "end of tag list");
+          break;
+      }
+   }//while
 
    /* If the VENDOR ID TLV header is not present in the frame, add it */
    if(L7_TRUE != tlv_vendor_id_found)
@@ -1206,7 +1235,7 @@ void pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 v
 *
 * @end
 *********************************************************************/
-void pppoeProcessServerFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx)
+void pppoeProcessServerFrame(L7_uchar8* frame, L7_uint32 frameLen, L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx)
 {
    L7_uchar8                  *eth_header_ptr, *pppoe_header_ptr, *tlv_header_ptr;
    L7_uchar8                  *eth_header_copy_ptr, *pppoe_header_copy_ptr, *tlv_header_copy_ptr;
@@ -1216,20 +1245,23 @@ void pppoeProcessServerFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 v
    L7_uchar8                  frame_copy[PPPOE_PACKET_SIZE_MAX];
    ptinPppoeClientDataKey_t   binding_table_key;
    ptinPppoeBindingInfoData_t *binding_table_data;
+   int                        ethHeaderSize;
 
    if (ptin_debug_pppoe_snooping)
      PT_LOG_DEBUG(LOG_CTX_PPPOE, "PPPoE: Received new server message");
 
    eth_header_ptr       = frame;
+   ethHeaderSize        = sysNetDataOffsetGet(frame);
    eth_header           = (L7_ethHeader_t*) eth_header_ptr;
-   pppoe_header_ptr     = eth_header_ptr + sysNetDataOffsetGet(eth_header_ptr);
+   pppoe_header_ptr     = eth_header_ptr + ethHeaderSize;
    pppoe_header         = (L7_pppoe_header_t*) pppoe_header_ptr;
 
    /* Copy received frame up to the end of the PPPoE header */
    memset(frame_copy, 0x00, PPPOE_PACKET_SIZE_MAX);
-   memcpy(frame_copy, frame, sysNetDataOffsetGet(eth_header_ptr) + sizeof(L7_pppoe_header_t) + osapiNtohs(pppoe_header->length));
+   //memcpy(frame_copy, frame, sysNetDataOffsetGet(eth_header_ptr) + sizeof(L7_pppoe_header_t) + osapiNtohs(pppoe_header->length));
+   memcpy(frame_copy, frame, frameLen);
    eth_header_copy_ptr   = frame_copy;
-   pppoe_header_copy_ptr = eth_header_copy_ptr + sysNetDataOffsetGet(eth_header_copy_ptr);
+   pppoe_header_copy_ptr = eth_header_copy_ptr + ethHeaderSize;
    pppoe_header_copy     = (L7_pppoe_header_t*) pppoe_header_copy_ptr;
 
    if (ptin_debug_pppoe_snooping)
@@ -1276,13 +1308,25 @@ void pppoeProcessServerFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 v
    }  
 
    /* Parse every TLV header */
-   while(frame_len > 0)
+   while(frame_len >= sizeof(L7_tlv_header_t))
    {
       L7_tlv_header_t *tlv_header;
+      L7_ushort16      tlv_hdr_len;
+      L7_ushort16      tlv_hdr_type;
 
       tlv_header = (L7_tlv_header_t*) tlv_header_ptr;
+      tlv_hdr_len=  osapiNtohs(tlv_header->length);
+      tlv_hdr_type= osapiNtohs(tlv_header->type);
 
-      switch(osapiNtohs(tlv_header->type))
+      if ( tlv_hdr_len > ( frame_len - sizeof(L7_tlv_header_t) ) ) {
+          PT_LOG_ERR(LOG_CTX_PPPOE, "invalid tlv_hdr_len=%u" , tlv_hdr_len );
+          break;
+      }
+
+      /* Debug */
+      PT_LOG_DEBUG(LOG_CTX_PPPOE, "TLV: type=0x%04X length=%u frame_len=%d", tlv_hdr_type, tlv_hdr_len, frame_len);
+
+      switch(tlv_hdr_type)
       {
          case L7_TLV_TAGTYPE_VENDOR_ID:
          {
@@ -1298,16 +1342,21 @@ void pppoeProcessServerFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 v
          }
          default:
          {
-            /* Copy existing TLV header to our new frame */
-            pppoeCopyTlv(tlv_header_ptr, tlv_header_copy_ptr);
-            tlv_header_copy_ptr += sizeof(L7_tlv_header_t) + osapiNtohs(tlv_header->length);
+            /* Copy existing TLV header to our new frame */PT_LOG_TRACE(LOG_CTX_PPPOE, "");
+            pppoeCopyTlv(tlv_header_ptr, tlv_header_copy_ptr);PT_LOG_TRACE(LOG_CTX_PPPOE, "");
+            tlv_header_copy_ptr += sizeof(L7_tlv_header_t) + tlv_hdr_len;
          }
       }
 
       /* We finished parsing this TLV. Advance to the next one */
-      tlv_header_ptr += sizeof(L7_tlv_header_t) + osapiNtohs(tlv_header->length);
-      frame_len      -= sizeof(L7_tlv_header_t) + osapiNtohs(tlv_header->length);
-   }
+      tlv_header_ptr += sizeof(L7_tlv_header_t) + tlv_hdr_len;
+      frame_len      -= sizeof(L7_tlv_header_t) + tlv_hdr_len;
+
+      if (L7_TLV_TAGTYPE_END_OF_LIST == tlv_hdr_type) {
+          PT_LOG_DEBUG(LOG_CTX_PPPOE, "end of tag list");
+          break;
+      }
+   }//while
 
    pppoeClientFrameSend(intIfNum, frame_copy, vlanId, innerVlanId, client_idx);
 }
