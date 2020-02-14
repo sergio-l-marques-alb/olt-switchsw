@@ -999,6 +999,7 @@ typedef struct L7_tlv_header_s
 /* TLV Tag Types */
 typedef enum
 {
+  L7_TLV_TAGTYPE_END_OF_LIST      = 0x0000,
   L7_TLV_TAGTYPE_SERVICE_NAME     = 0x0101,
   L7_TLV_TAGTYPE_SERVER_NAME      = 0x0102,
   L7_TLV_TAGTYPE_AC_COOKIES       = 0x0104,
