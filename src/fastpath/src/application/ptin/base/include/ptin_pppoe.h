@@ -125,33 +125,6 @@ extern L7_RC_t ptin_pppoe_enable(L7_BOOL enable);
 extern L7_RC_t ptin_pppoe_is_evc_used(L7_uint32 evcId);
 
 /**
- * Creates a PPPOE instance
- * 
- * @param evc_idx : Unicast evc id 
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_pppoe_instance_add(L7_uint32 evc_idx);
-
-/**
- * Removes a PPPOE instance
- * 
- * @param evc_idx : Unicast evc id 
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_pppoe_instance_remove(L7_uint32 evc_idx);
-
-/**
- * Update PPPOE entries, when EVCs are deleted
- * 
- * @param evcId : evc index
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_pppoe_instance_destroy(L7_uint32 evcId);
-
-/**
  * Associate an EVC to a PPPOE instance
  * 
  * @param evc_idx : Unicast evc id 
@@ -440,18 +413,6 @@ L7_BOOL ptin_pppoe_intf_validate(L7_uint32 intIfNum);
  * @return L7_BOOL : L7_TRUE/L7_FALSE
  */
 L7_BOOL ptin_pppoe_vlan_validate(L7_uint16 intVlanId);
-
-/**
- * Validate interface, internal vlan and innervlan received in a 
- * PPPOE packet 
- * 
- * @param intIfNum    : interface
- * @param intVlanId   : internal vlan
- * @param innerVlanId : client vlan
- * 
- * @return L7_BOOL : L7_TRUE/L7_FALSE
- */
-L7_BOOL ptin_pppoe_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlanId /*, L7_uint16 innerVlanId*/);
 
 /**
  * Set all interfaces as untrusted
