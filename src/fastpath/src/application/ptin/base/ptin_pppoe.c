@@ -156,7 +156,6 @@ typedef struct {
 /* PPPOE Instance config struct */
 typedef struct {
   L7_BOOL                     inUse;
-  L7_uint32                   evc_idx;
   L7_uint16                   nni_ovid;          /* NNI outer vlan */
   L7_uint16                   n_evcs;
   L7_uint16                   evcPppoeOptions;   /* PPPOE Options (0x01=Option82; 0x02=Option37; 0x02=Option18) */
@@ -208,7 +207,6 @@ static L7_RC_t ptin_pppoe_inst_get_fromIntVlan(L7_uint16 intVlan, st_PppoeInstCf
 static L7_RC_t ptin_pppoe_instance_find_free(L7_uint *idx);
 static L7_RC_t ptin_pppoe_instance_find(L7_uint32 evc_idx, L7_uint *pppoe_idx);
 static L7_RC_t ptin_pppoe_instance_find_agg(L7_uint16 nni_ovlan, L7_uint *pppoe_idx);
-static L7_RC_t ptin_pppoe_trap_configure(L7_uint pppoe_idx, L7_BOOL enable);
 static L7_RC_t ptin_pppoe_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable);
 static void    ptin_pppoe_evc_ethprty_get(ptin_AccessNodeCircuitId_t *evc_circuitid, L7_uint8 *ethprty);
 static L7_RC_t ptin_pppoe_circuitid_set_instance(L7_uint32 pppoe_idx, L7_char8 *template_str, L7_uint32 mask, L7_char8 *access_node_id, L7_uint8 chassis,
@@ -528,144 +526,6 @@ L7_RC_t ptin_pppoe_is_evc_used(L7_uint32 evcId)
 }
 
 /**
- * Creates an PPPOE instance
- * 
- * @param evc_idx : Unicast evc id 
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_pppoe_instance_add(L7_uint32 evc_idx)
-{
-  L7_uint pppoe_idx;
-
-  /* Validate arguments */
-  if (evc_idx>=PTIN_SYSTEM_N_EXTENDED_EVCS)
-  {
-    PT_LOG_ERR(LOG_CTX_PPPOE,"Invalid eEVC id: ucEvcId=%u",evc_idx);
-    return L7_FAILURE;
-  }
-
-  /* These evcs must be active */
-  if (!ptin_evc_is_in_use(evc_idx))
-  {
-    PT_LOG_ERR(LOG_CTX_PPPOE,"eEVC id is not active: ucEvcId%u",evc_idx);
-    return L7_FAILURE;
-  }
-
-  /* Check if there is an instance with these parameters */
-  if (ptin_pppoe_instance_find(evc_idx, &pppoe_idx) != L7_SUCCESS)
-  {
-    /* Find an empty instance to be used */
-    if (ptin_pppoe_instance_find_free(&pppoe_idx)!=L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_PPPOE,"There is no free instances to be used");
-      return L7_FAILURE;
-    }
-
-    /* Save direct referencing to pppoe index from evc ids */
-    if (ptin_evc_pppoeInst_set(evc_idx, pppoe_idx) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_IGMP,"Error setting PPPoE instance to ext evc id %u", evc_idx);
-      return L7_FAILURE;
-    }
-
-    /* Save data in free instance */
-    pppoeInstances[pppoe_idx].evc_idx   = evc_idx;
-    pppoeInstances[pppoe_idx].nni_ovid  = 0;
-    pppoeInstances[pppoe_idx].n_evcs    = 1;
-    pppoeInstances[pppoe_idx].inUse     = L7_TRUE;
-  }
-  else
-  {
-    PT_LOG_WARN(LOG_CTX_PPPOE,"There is already an instance with eEvcId%u", evc_idx);
-  }
-
-  /* Make sure trap rule is disabled */
-  (void) ptin_pppoe_trap_configure(pppoe_idx, L7_DISABLE);
-
-  /* Configure querier for this instance */
-  if (ptin_pppoe_trap_configure(pppoe_idx, L7_ENABLE) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_PPPOE,"Error configuring PPPOE snooping for pppoe_idx=%u",pppoe_idx);
-    memset(&pppoeInstances[pppoe_idx],0x00,sizeof(st_PppoeInstCfg_t));
-    ptin_evc_pppoeInst_set(evc_idx, PPPOE_INVALID_ENTRY);
-    return L7_FAILURE;
-  }
-
-  /* PPPOE index in use */
-
-  return L7_SUCCESS;
-}
-
-/**
- * Removes an PPPOE instance
- * 
- * @param evc_idx : Unicast evc id 
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_pppoe_instance_remove(L7_uint32 evc_idx)
-{
-  L7_uint pppoe_idx;
-
-  /* Validate arguments */
-  if (evc_idx>=PTIN_SYSTEM_N_EXTENDED_EVCS)
-  {
-    PT_LOG_ERR(LOG_CTX_PPPOE,"Invalid eEVC ids: ucEvcId=%u",evc_idx);
-    return L7_FAILURE;
-  }
-
-  /* Check if there is an instance with these parameters */
-  if (ptin_pppoe_instance_find(evc_idx, &pppoe_idx)!=L7_SUCCESS)
-  {
-    PT_LOG_WARN(LOG_CTX_PPPOE,"There is no instance with ucEvcId=%u",evc_idx);
-    return L7_SUCCESS;
-  }
-
-  /* Remove all clients attached to this instance */
-  if (ptin_pppoe_instance_deleteAll_clients(pppoe_idx)!=L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_PPPOE,"Error removing all clients from pppoe_idx %u (evc_idx=%u)",pppoe_idx,evc_idx);
-    return L7_FAILURE;
-  }
-
-  /* Configure packet trapping for this instance */
-  if (ptin_pppoe_trap_configure(pppoe_idx, L7_DISABLE)!=L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_PPPOE,"Error unconfiguring PPPOE snooping for pppoe_idx=%u",pppoe_idx);
-    return L7_FAILURE;
-  }
-
-  /* Clear direct referencing to pppoe index from evc ids */
-  if (ptin_evc_pppoeInst_set(evc_idx, PPPOE_INVALID_ENTRY) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_IGMP,"Error resetting PPPoE instance to ext evc id %u", evc_idx);
-    return L7_FAILURE;
-  }
-
-  /* Clear data and free instance */
-  pppoeInstances[pppoe_idx].evc_idx   = 0;
-  pppoeInstances[pppoe_idx].nni_ovid  = 0;
-  pppoeInstances[pppoe_idx].n_evcs    = 0;
-  pppoeInstances[pppoe_idx].inUse     = L7_FALSE;
-
-  return L7_SUCCESS;
-}
-
-/**
- * Update PPPOE entries, when EVCs are deleted
- * 
- * @param evcId : evc index
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_pppoe_instance_destroy(L7_uint32 evcId)
-{
-  return ptin_pppoe_instance_remove(evcId);
-}
-
-
-/**
  * Associate an EVC to a PPPOE instance
  * 
  * @param evc_idx : Unicast evc id 
@@ -741,7 +601,6 @@ L7_RC_t ptin_pppoe_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
     if (new_instance)
     {
       /* Save data in free instance */
-      pppoeInstances[pppoe_idx].evc_idx   = evc_idx;
       pppoeInstances[pppoe_idx].nni_ovid  = (nni_ovlan>=PTIN_VLAN_MIN && nni_ovlan<=PTIN_VLAN_MAX) ? nni_ovlan : 0;;
       pppoeInstances[pppoe_idx].n_evcs    = 0;
       pppoeInstances[pppoe_idx].inUse     = L7_TRUE;
@@ -861,7 +720,6 @@ L7_RC_t ptin_pppoe_evc_remove(L7_uint32 evc_idx)
   if ( remove_instance )
   {
     /* Clear data and free instance */
-    pppoeInstances[pppoe_idx].evc_idx   = 0;
     pppoeInstances[pppoe_idx].nni_ovid  = 0;
     pppoeInstances[pppoe_idx].n_evcs    = 0;
     pppoeInstances[pppoe_idx].inUse     = L7_FALSE;
@@ -2517,82 +2375,6 @@ L7_BOOL ptin_pppoe_vlan_validate(L7_uint16 intVlanId)
 }
 
 /**
- * Validate interface, internal vlan and innervlan received in a 
- * PPPOE packet 
- * 
- * @param intIfNum    : interface
- * @param intVlanId   : internal vlan
- * @param innerVlanId : client vlan
- * 
- * @return L7_BOOL : L7_TRUE/L7_FALSE
- */
-L7_BOOL ptin_pppoe_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlanId /*, L7_uint16 innerVlanId*/)
-{
-  L7_uint pppoe_idx;
-  ptin_intf_t ptin_intf;
-  ptin_evc_intfCfg_t intfCfg;
-  st_PppoeInstCfg_t *pppoeInst;
-
-  /* Validate arguments */
-  if ( intIfNum==0 || intIfNum>=L7_MAX_INTERFACE_COUNT ||
-       intVlanId<PTIN_VLAN_MIN || intVlanId>PTIN_VLAN_MAX )
-  {
-    if (ptin_debug_pppoe_snooping)
-      PT_LOG_ERR(LOG_CTX_PPPOE,"Invalid arguments: intIfNum=%u intVlan=%u",intIfNum,intVlanId);
-    return L7_FALSE;
-  }
-
-  /* Convert interface to ptin_port */
-  if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)!=L7_SUCCESS)
-  {
-    if (ptin_debug_pppoe_snooping)
-      PT_LOG_ERR(LOG_CTX_PPPOE,"Invalid intIfNum %u",intIfNum);
-    return L7_FALSE;
-  }
-
-  /* PPPOE instance, from internal vlan */
-  if (ptin_pppoe_inst_get_fromIntVlan(intVlanId,&pppoeInst,&pppoe_idx)!=L7_SUCCESS)
-  {
-    if (ptin_debug_pppoe_snooping)
-      PT_LOG_ERR(LOG_CTX_PPPOE,"No PPPOE instance associated to intVlan %u",intVlanId);
-    return L7_FALSE;
-  }
-
-  /* Get interface configuration */
-  if (ptin_evc_intfCfg_get(pppoeInst->evc_idx,&ptin_intf,&intfCfg)!=L7_SUCCESS)
-  {
-    if (ptin_debug_pppoe_snooping)
-      PT_LOG_ERR(LOG_CTX_PPPOE,"Error acquiring interface %u/%u configuarion from EVC id %u",
-              ptin_intf.intf_type,ptin_intf.intf_id,pppoeInst->evc_idx);
-    return L7_FALSE;
-  }
-
-  /* Interface must be in use */
-  if (!intfCfg.in_use)
-  {
-    if (ptin_debug_pppoe_snooping)
-      PT_LOG_ERR(LOG_CTX_PPPOE,"Interface %u/%u (intIfNum=%u) is not in use for EVC %u",
-              ptin_intf.intf_type,ptin_intf.intf_id,intIfNum,pppoeInst->evc_idx);
-    return L7_FALSE;
-  }
-
-  #if 0
-  /* For untrusted interfaces, we must have an inner vlan (for non CXP360G) */
-  #if ( PTIN_BOARD != PTIN_BOARD_CXP360G )
-  if ( intfCfg.type==PTIN_EVC_INTF_LEAF && (innerVlanId==0 || innerVlanId>=4095) )
-  {
-    if (ptin_debug_pppoe_snooping)
-      PT_LOG_ERR(LOG_CTX_PPPOE,"For unstrusted interface %u/%u (evc=%u) inner vlan must be used",
-              ptin_intf.intf_type,ptin_intf.intf_id,pppoeInst->evc_idx);
-    return L7_FALSE;
-  }
-  #endif
-  #endif
-
-  return L7_TRUE;
-}
-
-/**
  * Set all interfaces as untrusted
  */
 void ptin_pppoe_intfTrusted_init(void)
@@ -3069,7 +2851,7 @@ L7_RC_t ptin_pppoe_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint1
     if (ptin_pppoe_client_find(pppoe_idx,&client,&client_info)!=L7_SUCCESS)
     {
       if (ptin_debug_pppoe_snooping)
-        PT_LOG_ERR(LOG_CTX_PPPOE,"Non existent client in PPPOE instance %u (EVC id %u)",pppoe_idx,pppoeInstances[pppoe_idx].evc_idx);
+        PT_LOG_ERR(LOG_CTX_PPPOE,"Non existent client in PPPOE instance %u", pppoe_idx);
       return L7_FAILURE;
     }
 
@@ -3228,8 +3010,7 @@ L7_RC_t ptin_pppoe_client_options_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_
       if (ptin_pppoe_client_find(pppoe_idx, &client, &client_info) != L7_SUCCESS)
       {
          if (ptin_debug_pppoe_snooping)
-            PT_LOG_ERR(LOG_CTX_PPPOE, "Non existent client in PPPOE instance %u (EVC id %u)",
-                  pppoe_idx, pppoeInstances[pppoe_idx].evc_idx);
+            PT_LOG_ERR(LOG_CTX_PPPOE, "Non existent client in PPPOE instance %u", pppoe_idx);
          return L7_FAILURE;
       }
 
@@ -3703,14 +3484,6 @@ static L7_RC_t ptin_pppoe_inst_get_fromIntVlan(L7_uint16 intVlan, st_PppoeInstCf
     return L7_FAILURE;
   }
 
-  /* Check if EVCs are in use */
-  if (!ptin_evc_is_in_use(pppoeInstances[pppoe_idx].evc_idx))
-  {
-    if (ptin_debug_pppoe_snooping)
-      PT_LOG_ERR(LOG_CTX_PPPOE,"Inconsistency: PPPOE index %u (EVCid=%u, Vlan %u) has EVC not in use (evc=%u)",pppoe_idx,evc_idx,intVlan,pppoeInstances[pppoe_idx].evc_idx);
-    return L7_FAILURE;
-  }
-
   /* Return pppoe instance */
   if (pppoeInst!=L7_NULLPTR)     *pppoeInst     = &pppoeInstances[pppoe_idx];
   if (pppoeInst_idx!=L7_NULLPTR) *pppoeInst_idx = pppoe_idx;
@@ -3792,33 +3565,6 @@ static L7_RC_t ptin_pppoe_instance_find(L7_uint32 evc_idx, L7_uint *pppoe_idx)
 
   return L7_SUCCESS;
   #endif
-}
-
-/**
- * Configure trapping vlans
- * 
- * @param evc_idx 
- * @param enable 
- * 
- * @return L7_RC_t 
- */
-static L7_RC_t ptin_pppoe_trap_configure(L7_uint pppoe_idx, L7_BOOL enable)
-{
-  /* Validate argument */
-  if (pppoe_idx>=PTIN_SYSTEM_N_PPPOE_INSTANCES)
-  {
-    PT_LOG_ERR(LOG_CTX_PPPOE,"Invalid pppoe instance index (%u)",pppoe_idx);
-    return L7_FAILURE;
-  }
-  /* PPPOE instance must be in use */
-  if (!pppoeInstances[pppoe_idx].inUse)
-  {
-    PT_LOG_ERR(LOG_CTX_PPPOE,"pppoe instance index %u is not in use",pppoe_idx);
-    return L7_FAILURE;
-  }
-
-  /* Apply configurations for this evc */
-  return ptin_pppoe_evc_trap_configure(pppoeInstances[pppoe_idx].evc_idx, enable);
 }
 
 /**
@@ -4005,8 +3751,8 @@ void ptin_pppoe_dump(L7_BOOL show_clients)
       continue;
     }
 
-    printf("PPPoE instance %02u: EVC_idx=%-5u NNI_VLAN=%-4u #evcs=%-5u options=0x%04x [CircuitId Template: %s]  ", i,
-           pppoeInstances[i].evc_idx, pppoeInstances[i].nni_ovid, pppoeInstances[i].n_evcs,
+    printf("PPPoE instance %02u: NNI_VLAN=%-4u #evcs=%-5u options=0x%04x [CircuitId Template: %s]  ", i,
+           pppoeInstances[i].nni_ovid, pppoeInstances[i].n_evcs,
            pppoeInstances[i].evcPppoeOptions, pppoeInstances[i].circuitid.template_str);
     printf("\r\n");
 
