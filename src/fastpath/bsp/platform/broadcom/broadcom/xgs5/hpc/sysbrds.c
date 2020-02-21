@@ -979,10 +979,6 @@ L7_RC_t hpcConfigBoardSet()
           {
             case 1:
               PT_LOG_INFO(LOG_CTX_STARTUP, "Config Mode 1");
-              /* Port mapping */
-              memcpy(hapiSlotMapPtr,
-                     dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_24PLUS8_TENGIG_56170_AE48GEv2,
-                     sizeof(HAPI_CARD_SLOT_MAP_t) * sysapiHpcCardInfoPtr->numOfNiPorts);
               /* Speeds */
               memcpy(sysapiHpcCardInfoPtr->portInfo,
                      hpcPortInfoTable_CARD_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1_MODE1,
@@ -990,20 +986,12 @@ L7_RC_t hpcConfigBoardSet()
               break;
             case 2:
               PT_LOG_INFO(LOG_CTX_STARTUP, "Config Mode 2");
-              /* Port mapping */
-              memcpy(hapiSlotMapPtr,
-                     dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_24PLUS8_TENGIG_56170_AE48GEv2,
-                     sizeof(HAPI_CARD_SLOT_MAP_t) * sysapiHpcCardInfoPtr->numOfNiPorts);
               /* Speeds */
               memcpy(sysapiHpcCardInfoPtr->portInfo,
                      hpcPortInfoTable_CARD_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1_MODE2,
                      sizeof(SYSAPI_HPC_PORT_DESCRIPTOR_t) * sysapiHpcCardInfoPtr->numOfNiPorts);
               break;
             default:
-              /* Port mapping */
-              memcpy(hapiSlotMapPtr,
-                     dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1,
-                     sizeof(HAPI_CARD_SLOT_MAP_t) * sysapiHpcCardInfoPtr->numOfNiPorts);
               /* Speeds */
               memcpy(sysapiHpcCardInfoPtr->portInfo,
                      hpcPortInfoTable_CARD_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1,
