@@ -144,7 +144,7 @@ L7_uint8 req, status, r=-1;
     else
     if (RReq_NONE==req1 || RReq_EVENT==req1) {req=req0; status=status0; r=0;}
     else
-    if (req0>req1) {req=req0; status=status0; r=0;}
+    if (req0>=req1) {req=req0; status=status0; r=0;}
     else
     if (req0<req1) {req=req1; status=status1; r=1;}
     else
