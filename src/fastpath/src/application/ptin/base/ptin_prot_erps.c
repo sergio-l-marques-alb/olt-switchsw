@@ -1868,33 +1868,27 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     if ( SF[PROT_ERPS_PORT0] ) {
         localRequest = LReq_SF;
         reqPort = PROT_ERPS_PORT0;
+        if (SF[PROT_ERPS_PORT0] != tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT0])
+            PT_LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: SF[PROT_ERPS_PORT0]", erps_idx);
     }
-    if ( (SF[PROT_ERPS_PORT0] != tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT0]) ) {
-      if ( (SF[PROT_ERPS_PORT0]) ) {
+    else
+    if ( SF[PROT_ERPS_PORT1] ) {
         localRequest = LReq_SF;
-        reqPort = PROT_ERPS_PORT0;
-        PT_LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: SF[PROT_ERPS_PORT0]", erps_idx);
-      } else /*if ( !(SF[PROT_ERPS_PORT0]) )*/ {
+        reqPort = PROT_ERPS_PORT1;
+        if (SF[PROT_ERPS_PORT1] != tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT1])
+            PT_LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: SF[PROT_ERPS_PORT1]", erps_idx);
+    }
+    else
+    if (SF[PROT_ERPS_PORT0] != tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT0]) {
         localRequest = LReq_SFc;
         reqPort = PROT_ERPS_PORT0;
         PT_LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: SF[PROT_ERPS_PORT0] Clear", erps_idx);
-      }
     }
-
-    if ( (SF[PROT_ERPS_PORT1]) && (localRequest == LReq_NONE) ) {
-        localRequest = LReq_SF;
-        reqPort = PROT_ERPS_PORT1;
-    }
-    if ( (SF[PROT_ERPS_PORT1] != tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT1]) ) {
-      if ( (SF[PROT_ERPS_PORT1]) && (localRequest != LReq_SF) && (reqPort != PROT_ERPS_PORT1) ) {
-        localRequest = LReq_SF;
-        reqPort = PROT_ERPS_PORT1;
-        PT_LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: SF[PROT_ERPS_PORT1]", erps_idx);
-      } else if ( !(SF[PROT_ERPS_PORT1]) && (localRequest != LReq_SFc) ) {
+    else
+    if (SF[PROT_ERPS_PORT1] != tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT1]) {
         localRequest = LReq_SFc;
         reqPort = PROT_ERPS_PORT1;
         PT_LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: SF[PROT_ERPS_PORT1] Clear", erps_idx);
-      }
     }
 
     /* Validate */
@@ -1903,6 +1897,9 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       PT_LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: reqPort %u not valid", erps_idx, reqPort);
       return PROT_ERPS_INDEX_VIOLATION;
     }
+
+
+
 
     // 4.   Local Signal Fail (OAM / control-plane / server indication)
     if (localRequest == LReq_SF) {
@@ -2071,9 +2068,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       PT_LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Updating SF[PROT_ERPS_PORT1] from %d to %d", erps_idx, tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT1], SF[PROT_ERPS_PORT1]);
       tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT1] = SF[PROT_ERPS_PORT1];
     }
-  }
 
-  if ( (localRequest != LReq_NONE) ) {
     if ( (tbl_erps[erps_idx].localRequest != localRequest) /*|| (tbl_erps[erps_idx].localReqPort != reqPort)*/ ) {
     
       PT_LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: localRequest: change from %s to %s on port %d", erps_idx, locReqToString[tbl_erps[erps_idx].localRequest - 100], locReqToString[localRequest - 100], reqPort);
@@ -2084,6 +2079,11 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       else PT_LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Remote Request with higher Priority...", erps_idx);
     }
   }
+  else {
+      tbl_erps[erps_idx].localRequest                     = LReq_NONE;
+      tbl_erps[erps_idx].localReqPort                     = PROT_ERPS_PORT0;
+  }
+
   if ( remoteRequest != RReq_NONE ) {
     if ( remoteRequest != tbl_erps[erps_idx].remoteRequest ) {
       
