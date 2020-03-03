@@ -26,8 +26,6 @@ CROSS_COMPILE = ppc_85xxDP-
 KERNEL_PATH = $(OLT_DIR)/../lib/kernel/linux-denx-3.18.25_cxo640g-mx
 SDK_PATH    = $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-xgs-fastpath-6.4.3/broadcom
 
-NUM_CPUS = 1
-
 # Comilation logging level
 export LVL7_MAKEFILE_LOGGING := N
 export LVL7_MAKEFILE_DISPLAY_MODE := S
