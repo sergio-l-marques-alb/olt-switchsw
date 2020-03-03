@@ -240,7 +240,7 @@ MODULE_PARM_DESC(spi_devid,
 
 /* Select SPI device revision (cannot be probed) */
 static uint32_t spi_revid = 1;
-LKM_MOD_PARAM(spi_revid, "i", uint, 1);
+LKM_MOD_PARAM(spi_revid, "i", uint, 0/*1*/);
 MODULE_PARM_DESC(spi_revid,
 "Select device revision for SPI slave device");
 
@@ -2408,7 +2408,7 @@ static unsigned int _dma_mem_size = DMA_MEM_DEFAULT;
 static mpool_handle_t _dma_pool = NULL;
 static void *_dma_vbase = NULL;
 static uint32_t _dma_pbase = 0;
-static int _use_himem = 0;
+static int _use_himem = 1;
 static LIST_HEAD(_dma_seg);
 
 /*
@@ -4908,7 +4908,8 @@ lkbde_get_dma_info(uint32_t *pbase, uint32_t *size)
         if (_dma_mem_size == 0) {
             _dma_mem_size = DMA_MEM_DEFAULT;
         }
-        _alloc_mpool(_dma_mem_size);
+gprintk("%s: _dma_mem_size %u\n", __FUNCTION__, _dma_mem_size);        
+	_alloc_mpool(_dma_mem_size);
     }
     *pbase = _dma_pbase;
     *size = _dma_mem_size;
