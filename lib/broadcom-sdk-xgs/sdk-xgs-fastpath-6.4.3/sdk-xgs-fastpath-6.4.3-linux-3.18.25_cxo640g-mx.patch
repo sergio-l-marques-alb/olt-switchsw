@@ -1,0 +1,77 @@
+diff -rupN ori/broadcom/esw_sdk/make/Makefile.linux-pq3-2_6 mod/broadcom/esw_sdk/make/Makefile.linux-pq3-2_6
+--- ori/broadcom/esw_sdk/make/Makefile.linux-pq3-2_6	2020-03-02 10:19:35.426169987 +0000
++++ mod/broadcom/esw_sdk/make/Makefile.linux-pq3-2_6	2020-03-02 10:22:38.638280133 +0000
+@@ -198,7 +198,8 @@ endif
+ 
+ # Default Linux include directory
+ ifeq (,$(LINUX_INCLUDE))
+-LINUX_INCLUDE := $(KERNDIR)/include
++#LINUX_INCLUDE := $(KERNDIR)/include
++LINUX_INCLUDE := $(KERNDIR)/linux-inc/include
+ endif
+ 
+ CFGFLAGS += -DSYS_BE_PIO=1 -DSYS_BE_PACKET=0 -DSYS_BE_OTHER=1
+@@ -251,7 +252,8 @@ CFLAGS += -DBCM_PLX9656_LOCAL_BUS -DBDE_
+ endif
+ 
+ ifeq (,$(KFLAGS))
+-KFLAGS := -D__KERNEL__ -m32 -Wp, -nostdinc -isystem $(KFLAG_INCLD) -I$(LINUX_INCLUDE) -include $(LINUX_INCLUDE)/linux/version.h -include $(LINUX_INCLUDE)/linux/autoconf.h -I$(KERNDIR)/arch/powerpc -I$(KERNDIR)/arch/powerpc/include -I$(KERNDIR)/include/asm-generic -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -msoft-float -pipe -ffixed-r2 -mmultiple -mno-altivec -funit-at-a-time -Wa,-me500 -fomit-frame-pointer  -Wdeclaration-after-statement -Wno-pointer-sign
++#KFLAGS := -D__KERNEL__ -m32 -Wp, -nostdinc -isystem $(KFLAG_INCLD) -I$(LINUX_INCLUDE) -include $(LINUX_INCLUDE)/linux/version.h -include $(LINUX_INCLUDE)/linux/autoconf.h -I$(KERNDIR)/arch/powerpc -I$(KERNDIR)/arch/powerpc/include -I$(KERNDIR)/include/asm-generic -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -msoft-float -pipe -ffixed-r2 -mmultiple -mno-altivec -funit-at-a-time -Wa,-me500 -fomit-frame-pointer  -Wdeclaration-after-statement -Wno-pointer-sign
++KFLAGS := -D__KERNEL__ -D__BOTIJAS__ -m32 -Wp, -nostdinc -isystem $(KFLAG_INCLD) -I$(KERNDIR)/include -include $(LINUX_INCLUDE)/../linux-inc/include/linux/version.h -include $(LINUX_INCLUDE)/generated/autoconf.h -I$(KERNDIR)/arch/powerpc -I$(KERNDIR)/arch/powerpc/include -I$(KERNDIR)/arch/powerpc/include/generated -I$(KERNDIR)/include/asm-generic -I$(KERNDIR)/arch/powerpc/include/asm -I$(LINUX_INCLUDE)/../linux-inc/include -Wundef -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -msoft-float -pipe -ffixed-r2 -mmultiple -mno-altivec -funit-at-a-time -Wa,-me500 -fomit-frame-pointer -Wdeclaration-after-statement -Wno-pointer-sign
+ endif
+ 
+ # Use MSI interrupts if kernel is compiled with MSI support.
+diff -rupN ori/broadcom/esw_sdk/src/sal/core/linux/thread.c mod/broadcom/esw_sdk/src/sal/core/linux/thread.c
+--- ori/broadcom/esw_sdk/src/sal/core/linux/thread.c	2020-03-02 10:19:35.910164995 +0000
++++ mod/broadcom/esw_sdk/src/sal/core/linux/thread.c	2020-03-02 10:21:14.612146872 +0000
+@@ -618,7 +618,8 @@ sal_sleep(int sec)
+ 
+     assert(!in_interrupt());
+     init_waitqueue_head(&queue);
+-    interruptible_sleep_on_timeout(&queue, sec * HZ);
++    //interruptible_sleep_on_timeout(&queue, sec * HZ);
++    wait_event_interruptible_timeout(queue, TRUE, sec * HZ);
+     thread_check_signals();
+ #ifndef LKM_2_6
+     mb();
+@@ -661,7 +662,8 @@ sal_usleep(uint32 usec)
+             } while ((sal_time_usecs() - start_usec) < usec);
+         } else {
+             init_waitqueue_head(&queue);
+-            interruptible_sleep_on_timeout(&queue, USEC_TO_JIFFIES(usec));
++            //interruptible_sleep_on_timeout(&queue, USEC_TO_JIFFIES(usec));
++            wait_event_interruptible_timeout(queue, TRUE, USEC_TO_JIFFIES(usec));
+             thread_check_signals();
+         }
+     }
+diff -rupN ori/broadcom/esw_sdk/systems/bde/linux/kernel/linux-kernel-bde.c mod/broadcom/esw_sdk/systems/bde/linux/kernel/linux-kernel-bde.c
+--- ori/broadcom/esw_sdk/systems/bde/linux/kernel/linux-kernel-bde.c	2020-03-02 10:19:35.414170111 +0000
++++ mod/broadcom/esw_sdk/systems/bde/linux/kernel/linux-kernel-bde.c	2020-03-02 10:21:40.011884871 +0000
+@@ -240,7 +240,7 @@ MODULE_PARM_DESC(spi_devid,
+ 
+ /* Select SPI device revision (cannot be probed) */
+ static uint32_t spi_revid = 1;
+-LKM_MOD_PARAM(spi_revid, "i", uint, 1);
++LKM_MOD_PARAM(spi_revid, "i", uint, 0/*1*/);
+ MODULE_PARM_DESC(spi_revid,
+ "Select device revision for SPI slave device");
+ 
+@@ -2408,7 +2408,7 @@ static unsigned int _dma_mem_size = DMA_
+ static mpool_handle_t _dma_pool = NULL;
+ static void *_dma_vbase = NULL;
+ static uint32_t _dma_pbase = 0;
+-static int _use_himem = 0;
++static int _use_himem = 1;
+ static LIST_HEAD(_dma_seg);
+ 
+ /*
+@@ -4908,7 +4908,8 @@ lkbde_get_dma_info(uint32_t *pbase, uint
+         if (_dma_mem_size == 0) {
+             _dma_mem_size = DMA_MEM_DEFAULT;
+         }
+-        _alloc_mpool(_dma_mem_size);
++gprintk("%s: _dma_mem_size %u\n", __FUNCTION__, _dma_mem_size);        
++	_alloc_mpool(_dma_mem_size);
+     }
+     *pbase = _dma_pbase;
+     *size = _dma_mem_size;

@@ -618,7 +618,8 @@ sal_sleep(int sec)
 
     assert(!in_interrupt());
     init_waitqueue_head(&queue);
-    interruptible_sleep_on_timeout(&queue, sec * HZ);
+    //interruptible_sleep_on_timeout(&queue, sec * HZ);
+    wait_event_interruptible_timeout(queue, TRUE, sec * HZ);
     thread_check_signals();
 #ifndef LKM_2_6
     mb();
@@ -661,7 +662,8 @@ sal_usleep(uint32 usec)
             } while ((sal_time_usecs() - start_usec) < usec);
         } else {
             init_waitqueue_head(&queue);
-            interruptible_sleep_on_timeout(&queue, USEC_TO_JIFFIES(usec));
+            //interruptible_sleep_on_timeout(&queue, USEC_TO_JIFFIES(usec));
+            wait_event_interruptible_timeout(queue, TRUE, USEC_TO_JIFFIES(usec));
             thread_check_signals();
         }
     }
