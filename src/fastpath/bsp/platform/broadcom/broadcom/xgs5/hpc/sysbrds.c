@@ -977,13 +977,6 @@ L7_RC_t hpcConfigBoardSet()
 
           switch (board_config_mode)
           {
-            case 1:
-              PT_LOG_INFO(LOG_CTX_STARTUP, "Config Mode 1");
-              /* Speeds */
-              memcpy(sysapiHpcCardInfoPtr->portInfo,
-                     hpcPortInfoTable_CARD_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1_MODE1,
-                     sizeof(SYSAPI_HPC_PORT_DESCRIPTOR_t) * sysapiHpcCardInfoPtr->numOfNiPorts);
-              break;
             case 2:
               PT_LOG_INFO(LOG_CTX_STARTUP, "Config Mode 2");
               /* Speeds */
@@ -992,20 +985,18 @@ L7_RC_t hpcConfigBoardSet()
                      sizeof(SYSAPI_HPC_PORT_DESCRIPTOR_t) * sysapiHpcCardInfoPtr->numOfNiPorts);
               break;
             default:
+              PT_LOG_INFO(LOG_CTX_STARTUP, "Config Mode 1");
               /* Speeds */
               memcpy(sysapiHpcCardInfoPtr->portInfo,
-                     hpcPortInfoTable_CARD_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1,
+                     hpcPortInfoTable_CARD_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1_MODE1,
                      sizeof(SYSAPI_HPC_PORT_DESCRIPTOR_t) * sysapiHpcCardInfoPtr->numOfNiPorts);
-              PT_LOG_INFO(LOG_CTX_STARTUP, "Config Mode 0");
+              break;
           }
 
           for (port = 0; port < dapiCardPtr->numOfSlotMapEntries; port++)
           {
             switch (board_config_mode)
             {
-              case 1:
-                hapiSlotMapPtr[port].is_hw_mapped = ((port <= 51) || (port >= 54 && port <= 59) || (port >= 62));
-                break;
               case 2:
                 if (port >= 32 && port < 48)
                 {
@@ -1018,7 +1009,8 @@ L7_RC_t hpcConfigBoardSet()
                 }
                 break;
               default:
-                hapiSlotMapPtr[port].is_hw_mapped = ((port <= 51) || (port >= 56 && port <= 59));
+                hapiSlotMapPtr[port].is_hw_mapped = ((port <= 48) || (port >= 51 && port <= 53) || (port >= 56));
+                break;
             }
           }
 

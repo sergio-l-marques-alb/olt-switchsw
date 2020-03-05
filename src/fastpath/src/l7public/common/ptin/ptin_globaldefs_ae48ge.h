@@ -27,7 +27,7 @@
 # define PTIN_SLOT_WORK                0
 # define PTIN_SLOT_PROT                1
 
-# define PTIN_SYSTEM_N_PORTS           64
+# define PTIN_SYSTEM_N_PORTS           58
 # define PTIN_SYSTEM_N_PONS            0
 # define PTIN_SYSTEM_N_ETH             48
 # define PTIN_SYSTEM_N_LAGS_EXTERNAL   0
@@ -140,28 +140,22 @@
 Working/Protection sides:
 Backplane | Virtual ports | Sysintf 
 ----------+---------------+-------- 
-        0 |          0-7  |  0-7
-        1 |          8-15 |  8-15
-        2 |         16-23 | 16-23
-        3 |         24-31 | 24-31
-        4 |         32-39 | Not mapped
-        5 |         40-47 | Not mapped
-        6 |         48-54 | 32-39
-        7 |         55-63 | 40-47
+        0 |          0-31 |  0-31
+        1 |           x   |   x
+        2 |           x   |   x
+        3 |         40-47 | 32-39
+        4 |         48-55 | 40-47
 ----------+---------------+--------
 */
 /* AE48GEv3 - Mode 2
 Working/Protection sides
 Backplane | Virtual ports | Sysintf
 ----------+---------------+-------- 
-        0 |          0-7  |  0-1 ,16-17,32
-        1 |          8-15 |  2-3 ,18-19,34
-        2 |         16-23 |  4-5 ,20-21,36
-        3 |         24-31 |  6-7 ,22-23,38
-        4 |         32-39 |  8-9 ,24-25,40
-        5 |         40-47 | 10-11,26-27,42
-        6 |         48-54 | 12-13,28-29,44
-        7 |         55-63 | 14-15,30-31,46
+        0 |          0-31 |  0-31
+        1 |         32-35 |  32-35
+        2 |         36-39 |  40-43
+        3 |         40-47 |  36-39
+        4 |         48-55 |  44-47
 ----------+---------------+--------
 */
 
@@ -176,40 +170,41 @@ Backplane | Virtual ports | Sysintf
       32, 33, 34, 35, 36, 37, 38, 39, \
       40, 41, 42, 43, 44, 45, 46, 47, \
     }, \
-    /* Mode 1: for AE48GEv3 ports are mapped in reversed order */ \
+    /* Mode 1: for AE48GEv2 ports are mapped in reversed order */ \
     {  0,  1,  2,  3,  4,  5,  6,  7, \
        8,  9, 10, 11, 12, 13, 14, 15, \
       16, 17, 18, 19, 20, 21, 22, 23, \
       24, 25, 26, 27, 28, 29, 30, 31, \
+      40, 41, 42, 43, 44, 45, 46, 47, \
       48, 49, 50, 51, 52, 53, 54, 55, \
-      56, 57, 58, 59, 60, 61, 62, 63, \
     }, \
-    /* Mode 2: for AE48GEv3 ports are mapped in reversed order */ \
-    {  0,  1,  8,  9, 16, 17, 24, 25, 32, 33, 40, 41, 48, 49, 56, 57, \
-       2,  3, 10, 11, 18, 19, 26, 27, 34, 35, 42, 43, 50, 51, 58, 59, \
-       4,  5, 12, 13, 20, 21, 28, 29, 36, 37, 44, 45, 52, 53, 60, 61, \
+    /* Mode 2: for AE48GEv2 ports are mapped in reversed order */ \
+    {  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, \
+      16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, \
+      32, 33, 34, 35, 44, 45, 46, 47, 36, 37, 38, 39, 52, 53, 54, 55, \
     }, \
   }
 
 #define BACKPLANE_INTLAG_MAP_AE48GEv3 \
   { \
-    { 48 /*1w*/, 56 /*3p*/},  /* LAG 0 */ \
-    { 49 /*2w*/, 57 /*4p*/},  /* LAG 1 */ \
-    { 50 /*3w*/, 58 /*1p*/},  /* LAG 2 */ \
-    { 51 /*4w*/, 59 /*2p*/},  /* LAG 3 */ \
-    { 52 /*5w*/, 60 /*5p*/},  /* LAG 4 */ \
-    { 53 /*6w*/, 61 /*6p*/},  /* LAG 5 */ \
-    { 54 /*7w*/, 62 /*7p*/},  /* LAG 6 */ \
-    { 55 /*8w*/, 63 /*8p*/},  /* LAG 7 */ \
+    { 48 /*1w*/, 53 /*3p*/},  /* LAG 0 */ \
+    { 49 /*2w*/, 54 /*4p*/},  /* LAG 1 */ \
+    { 50 /*3w*/, 55 /*1p*/},  /* LAG 2 */ \
+    { 51 /*4w*/, 56 /*2p*/},  /* LAG 3 */ \
+    { 52 /*5w*/, 57 /*5p*/},  /* LAG 4 */ \
   }
 
 #define AE48GE_SYSINTF_TO_VPORT(sysintf)   sysintf_to_vport_map_ae48ge[BOARD_CONFIG_MODE][sysintf]
-#define AE48GE_VPORT_TO_INTLAG(vport)      ((vport)/8)
+#define AE48GE_VPORT_TO_INTLAG(vport)      ((vport <= 31) ? (0) /* vport  0-31 => Backport 0 */ : \
+                                            (vport <= 35) ? (1) /* vport 32-35 => Backport 1 */ : \
+                                            (vport <= 39) ? (2) /* vport 36-39 => Backport 2 */ : \
+                                            (vport <= 47) ? (3) /* vport 40-47 => Backport 3 */ : \
+                                                            (4) /* vport 48-55 => Backport 1 */ )
 #define AE48GE_SYSINTF_TO_INTLAG(sysintf)  AE48GE_VPORT_TO_INTLAG(AE48GE_SYSINTF_TO_VPORT(sysintf))
 #define AE48GE_BACKPLANE_INTLAGS_MAX       (sizeof(backplane_intlag_map_ae48ge)/sizeof(backplane_intlag_map_ae48ge[0]))
 
 extern int sysintf_to_vport_map_ae48ge[][PTIN_SYSTEM_N_ETH];
-extern int backplane_intlag_map_ae48ge[8][2];
+extern int backplane_intlag_map_ae48ge[5][2];
 
 #define SYSINTF_TO_VPORT(sysintf)   AE48GE_SYSINTF_TO_VPORT(sysintf)
 #define VPORT_TO_INTLAG(vport)      AE48GE_VPORT_TO_INTLAG(vport)

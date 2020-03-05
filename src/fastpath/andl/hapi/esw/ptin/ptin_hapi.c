@@ -1156,13 +1156,31 @@ L7_RC_t ptin_hapi_phy_init_ae48ge(void)
       continue;
     }
 
-    if (ptin_hapi_sfi_set(bcm_port) != L7_SUCCESS)
+    if (i == PTIN_SYSTEM_N_ETH ||
+        i == PTIN_SYSTEM_N_ETH + 5)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing port %u (bcm_port %u) at SFI", i, bcm_port);
-      rc = L7_FAILURE;
+      if (ptin_hapi_xlaui_set(bcm_port) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing port %u (bcm_port %u) at XLAUI", i, bcm_port);
+        rc = L7_FAILURE;
+      }
+      else
+      {
+        PT_LOG_NOTICE(LOG_CTX_HAPI, "Port %u (bcm_port %u) at XLAUI mode", i, bcm_port);
+      }
     }
-
-    PT_LOG_NOTICE(LOG_CTX_HAPI, "Port %u (bcm_port %u) at SFI mode", i, bcm_port);
+    else
+    {
+      if (ptin_hapi_sfi_set(bcm_port) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing port %u (bcm_port %u) at SFI", i, bcm_port);
+        rc = L7_FAILURE;
+      }
+      else
+      {
+        PT_LOG_NOTICE(LOG_CTX_HAPI, "Port %u (bcm_port %u) at SFI mode", i, bcm_port);
+      }
+    }
   }
 
 #else
@@ -5500,12 +5518,15 @@ L7_RC_t ptin_hapi_xlaui_set(bcm_port_t bcm_port)
     return L7_FAILURE;
   }
 
+  /* Not necessary for AE48GEv3 */
+#if 0
   /* Deactivate FW mode 2 */
   if (bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_MODE, 0) != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error removing Firmware mode 2 to bcm_port %u", bcm_port);
     return L7_FAILURE;
   }
+#endif
 
   /* XLAUI mode */
   rc = bcm_port_interface_set(0, bcm_port, BCM_PORT_IF_XLAUI);
@@ -5520,6 +5541,15 @@ L7_RC_t ptin_hapi_xlaui_set(bcm_port_t bcm_port)
   if (L7_BCMX_OK(rc) != L7_TRUE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
+
+  /* Enable DFE for all ports */
+  rc = bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_DFE_ENABLE, 1); // DFE ON
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error@bcm_port_phy_control_set(BCM_PORT_PHY_CONTROL_FIRMWARE_DFE_ENABLE=1), bcm_port %d: rv=%d\n",
+               bcm_port, rc);
     return L7_FAILURE;
   }
 
@@ -5548,12 +5578,15 @@ L7_RC_t ptin_hapi_xlaui_set(bcm_port_t bcm_port)
   }
 #endif
 
+  /* Not necessary for AE48GEv3 */
+#if 0
   /* Activate FW mode 2 */
   if (bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_MODE, 2) != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error applying Firmware mode 2 to bcm_port %u", bcm_port);
     return L7_FAILURE;
   }
+#endif
 
   rc = bcm_port_enable_set(0, bcm_port, 1);
   if (L7_BCMX_OK(rc) != L7_TRUE)
@@ -5576,14 +5609,14 @@ L7_RC_t ptin_hapi_xlaui_set(bcm_port_t bcm_port)
  */
 L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
 {
-  bcm_error_t rc = BCM_E_NONE;
+  bcm_error_t rc;
 
   /* Disable port */
   rc = bcm_port_enable_set(0, bcm_port, 0);
   if (L7_BCMX_OK(rc) != L7_TRUE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing bcm_port %u", bcm_port);
-    return rc;
+    return L7_FAILURE;
   }
 
   /* SFI mode */
@@ -5591,7 +5624,7 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
   if (L7_BCMX_OK(rc) != L7_TRUE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_interface_set to bcm_port %u", bcm_port);
-    return rc;
+    return L7_FAILURE;
   }
 
 #if 0
@@ -5601,7 +5634,7 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
   if (rc != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error removing Firmware mode 2 to bcm_port %u (rc=%d)", bcm_port, rc);
-    return rc;
+    return L7_FAILURE;
   }
   PT_LOG_DEBUG(LOG_CTX_HAPI, "Success applying Firmware mode 2 to bcm_port %u", bcm_port);
 #endif
@@ -5612,21 +5645,30 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
   if (L7_BCMX_OK(rc) != L7_TRUE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcm_port %u to 10G speed", bcm_port);
-    return rc;
+    return L7_FAILURE;
   }
+  /* Enable DFE for all ports */
+  rc = bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_DFE_ENABLE, 1); // DFE ON
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error@bcm_port_phy_control_set(BCM_PORT_PHY_CONTROL_FIRMWARE_DFE_ENABLE=1), bcm_port %d: rv=%d\n",
+               bcm_port, rc);
+    return L7_FAILURE;
+  }
+
   /* Disable Auto-neg */
   rc = bcm_port_autoneg_set(0, bcm_port, L7_DISABLE);
   if (L7_BCMX_OK(rc) != L7_TRUE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_autoneg_set to bcm_port %u", bcm_port);
-    return rc;
+    return L7_FAILURE;
   }
   /* Enable duplex */
   rc = bcm_port_duplex_set(0, bcm_port, L7_ENABLE);
   if (L7_BCMX_OK(rc) != L7_TRUE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_duplex_set to bcm_port %u", bcm_port);
-    return rc;
+    return L7_FAILURE;
   }
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_CXO640G /*|| PTIN_BOARD == PTIN_BOARD_AE48GE*/)
@@ -5635,7 +5677,7 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
   if (rc != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error applying Firmware mode 2 to bcm_port %u (rc=%d)", bcm_port, rc);
-    return rc;
+    return L7_FAILURE;
   }
   PT_LOG_DEBUG(LOG_CTX_HAPI, "Success applying Firmware mode 2 to bcm_port %u", bcm_port);
 #endif
@@ -5646,7 +5688,7 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
   if (rc != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error setting preemphasis on bcm_port %u (rc=%d)", bcm_port, rc);
-    return rc;
+    return L7_FAILURE;
   }
 #endif
 

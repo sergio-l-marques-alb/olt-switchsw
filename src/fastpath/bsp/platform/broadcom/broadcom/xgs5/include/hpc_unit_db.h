@@ -631,7 +631,7 @@
          {CARD_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1_ID}
        }
      },
-     16,     /* 16 stacking ports */
+     10,     /* 10 stacking ports */
      {
          /* First Stacking Port Descriptor */
          {
@@ -647,7 +647,7 @@
           0, 49,  /* slot/port for the stacking port */
           {'0', '/', '4', '9'},  /* Port identifier */
           10,       /* 10 Gb/s */
-          0,63,0,0  /* Bcm unit, Bcm port, unused, unused */
+          0,56,0,0  /* Bcm unit, Bcm port, unused, unused */
          },
          /* third Stacking Port Descriptor */
          {
@@ -655,7 +655,7 @@
           0, 50,  /* slot/port for the stacking port */
           {'0', '/', '5', '0'},  /* Port identifier */
           10,       /* 10 Gb/s */
-          0,64,0,0  /* Bcm unit, Bcm port, unused, unused */
+          0,57,0,0  /* Bcm unit, Bcm port, unused, unused */
          },
          /* fourth Stacking Port Descriptor */
          {
@@ -663,7 +663,7 @@
           0, 51,  /* slot/port for the stacking port */
           {'0', '/', '5', '1'},  /* Port identifier */
           10,       /* 10 Gb/s */
-          0,65,0,0  /* Bcm unit, Bcm port, unused, unused */
+          0,52,0,0  /* Bcm unit, Bcm port, unused, unused */
          },
          /* 5th Stacking Port Descriptor */
          {
@@ -671,7 +671,7 @@
           0, 52,  /* slot/port for the stacking port */
           {'0', '/', '5', '2'},  /* Port identifier */
           10,       /* 10 Gb/s */
-          0,56,0,0  /* Bcm unit, Bcm port, unused, unused */
+          0,53,0,0  /* Bcm unit, Bcm port, unused, unused */
          },
          /* 6th Stacking Port Descriptor */
          {
@@ -679,7 +679,7 @@
           0, 53,  /* slot/port for the stacking port */
           {'0', '/', '5', '3'},  /* Port identifier */
           10,       /* 10 Gb/s */
-          0,57,0,0  /* Bcm unit, Bcm port, unused, unused */
+          0,58,0,0  /* Bcm unit, Bcm port, unused, unused */
          },
          /* 7th Stacking Port Descriptor */
          {
@@ -687,7 +687,7 @@
           0, 54,  /* slot/port for the stacking port */
           {'0', '/', '5', '4'},  /* Port identifier */
           10,       /* 10 Gb/s */
-          0,52,0,0  /* Bcm unit, Bcm port, unused, unused */
+          0,54,0,0  /* Bcm unit, Bcm port, unused, unused */
          },
          /* 8th Stacking Port Descriptor */
          {
@@ -695,7 +695,7 @@
           0, 55,  /* slot/port for the stacking port */
           {'0', '/', '5', '5'},  /* Port identifier */
           10,       /* 10 Gb/s */
-          0,53,0,0  /* Bcm unit, Bcm port, unused, unused */
+          0,55,0,0  /* Bcm unit, Bcm port, unused, unused */
          },
          /* 9th Stacking Port Descriptor */
          {
@@ -703,7 +703,7 @@
           0, 56,  /* slot/port for the stacking port */
           {'0', '/', '5', '6'},  /* Port identifier */
           10,       /* 10 Gb/s */
-          0,58,0,0  /* Bcm unit, Bcm port, unused, unused */
+          0,50,0,0  /* Bcm unit, Bcm port, unused, unused */
          },
          /* 10th Stacking Port Descriptor */
          {
@@ -711,56 +711,8 @@
           0, 57,  /* slot/port for the stacking port */
           {'0', '/', '5', '7'},  /* Port identifier */
           10,       /* 10 Gb/s */
-          0,59,0,0  /* Bcm unit, Bcm port, unused, unused */
-         },
-         /* 11th Stacking Port Descriptor */
-         {
-          1,     /* Front Panel Stacking stacking port */
-          0, 58,  /* slot/port for the stacking port */
-          {'0', '/', '5', '8'},  /* Port identifier */
-          10,       /* 10 Gb/s */
-          0,60,0,0  /* Bcm unit, Bcm port, unused, unused */
-         },
-         /* 12th Stacking Port Descriptor */
-         {
-          1,     /* Front Panel Stacking stacking port */
-          0, 59,  /* slot/port for the stacking port */
-          {'0', '/', '5', '9'},  /* Port identifier */
-          10,       /* 10 Gb/s */
-          0,61,0,0  /* Bcm unit, Bcm port, unused, unused */
-         },
-         /* 13th Stacking Port Descriptor */
-         {
-          1,     /* Front Panel Stacking stacking port */
-          0, 60,  /* slot/port for the stacking port */
-          {'0', '/', '6', '0'},  /* Port identifier */
-          10,       /* 10 Gb/s */
-          0,54,0,0  /* Bcm unit, Bcm port, unused, unused */
-         },
-         /* 14th Stacking Port Descriptor */
-         {
-          1,     /* Front Panel Stacking stacking port */
-          0, 61,  /* slot/port for the stacking port */
-          {'0', '/', '6', '1'},  /* Port identifier */
-          10,       /* 10 Gb/s */
-          0,55,0,0  /* Bcm unit, Bcm port, unused, unused */
-         },
-         /* 15th Stacking Port Descriptor */
-         {
-          1,     /* Front Panel Stacking stacking port */
-          0, 62,  /* slot/port for the stacking port */
-          {'0', '/', '6', '2'},  /* Port identifier */
-          10,       /* 10 Gb/s */
-          0,50,0,0  /* Bcm unit, Bcm port, unused, unused */
-         },
-         /* 16th Stacking Port Descriptor */
-         {
-          1,     /* Front Panel Stacking stacking port */
-          0, 63,  /* slot/port for the stacking port */
-          {'0', '/', '6', '3'},  /* Port identifier */
-          10,       /* 10 Gb/s */
           0,51,0,0  /* Bcm unit, Bcm port, unused, unused */
-         }
+         },
        }
    },
    hpc_data_UNIT_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1        /* pointer to hpc platform specific data */

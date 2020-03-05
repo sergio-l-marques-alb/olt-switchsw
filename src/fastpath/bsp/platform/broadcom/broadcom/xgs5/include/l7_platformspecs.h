@@ -170,9 +170,9 @@
 /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
 #elif (PTIN_BOARD == PTIN_BOARD_AE48GE)
 #define L7_MAX_PHYSICAL_SLOTS_PER_UNIT           1
-#define L7_MAX_PORTS_PER_SLOT                    64
-#define L7_MAX_PHYSICAL_PORTS_PER_SLOT           64
-#define L7_MAX_PHYSICAL_PORTS_PER_UNIT           64
+#define L7_MAX_PORTS_PER_SLOT                    58
+#define L7_MAX_PHYSICAL_PORTS_PER_SLOT           58
+#define L7_MAX_PHYSICAL_PORTS_PER_UNIT           58
 
 /* PTin added: new switch 56843 (Trident) */
 #elif (PTIN_BOARD == PTIN_BOARD_CXP360G)

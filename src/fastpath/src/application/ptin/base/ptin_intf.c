@@ -34,7 +34,7 @@
 
 #if (PTIN_BOARD == PTIN_BOARD_AE48GE)
 int sysintf_to_vport_map_ae48ge[][PTIN_SYSTEM_N_ETH] = SYSINTF_TO_VPORT_MAP_AE48GEv3;
-int backplane_intlag_map_ae48ge[8][2] = BACKPLANE_INTLAG_MAP_AE48GEv3;
+int backplane_intlag_map_ae48ge[5][2] = BACKPLANE_INTLAG_MAP_AE48GEv3;
 #endif
 
 #define LINKSCAN_MANAGEABLE_BOARD (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
@@ -46,11 +46,11 @@ static ptin_NGPON2_groups_t NGPON2_groups_info[PTIN_SYSTEM_MAX_NGPON2_GROUPS];
 
 /* Uplink protection */
 #if (PTIN_BOARD_IS_MATRIX)
-static L7_uint64 forcelinked_ports_bmp        = 0;
+static L7_uint64 forcelinked_ports_bmp = 0;
 #endif
 
 #ifdef PTIN_SYSTEM_PROTECTION_LAGID_BASE
-static L7_uint64 uplink_protection_ports_bmp  = 0;
+static L7_uint64 uplink_protection_ports_bmp = 0;
 static L7_uint64 uplink_protection_ports_active_bmp = 0;
 static L7_uint64 lag_uplink_protection_ports_bmp[PTIN_SYSTEM_N_LAGS - PTIN_SYSTEM_PROTECTION_LAGID_BASE +1];
 #endif

@@ -315,7 +315,7 @@ HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_48_GIG_4_TENGIG_56643_REV_1[] =
  ******************************************************************************************************/
 HPC_BROAD_SLOT_MAC_ALLOCATION_t mac_allocation_UNIT_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1[] =
 {
-{ 0,  L7_TRUE,   64, 1},   /* physical slot with 56 port card (24x1G + 24x10G + 8x10G) */
+{ 0,  L7_TRUE,   58, 1},   /* physical slot with 56 port card (24x1G + 24x10G + 8x10G) */
 { 1,  L7_FALSE,  1,  0},   /* logical CPU card */
 { 2,  L7_TRUE,   8, 70},   /* logical LAG card */
 { 3,  L7_TRUE,   8, 78}    /* logical Router card */
@@ -326,17 +326,11 @@ HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_24_GIG_24PLUS8_TENGI
 {
  /* bcm_unit, bcm_port */
   {0, 62},
-  {0, 63},
-  {0, 64},
-  {0, 65},
   {0, 56},
   {0, 57},
   {0, 52},
   {0, 53},
   {0, 58},
-  {0, 59},
-  {0, 60},
-  {0, 61},
   {0, 54},
   {0, 55},
   {0, 50},
@@ -1710,12 +1704,6 @@ HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_24_GIG_24PLUS8_TENGIG_5
 {    55}, 
 {    56}, 
 {    57}, 
-{    58}, 
-{    59}, 
-{    60}, 
-{    61}, 
-{    62}, 
-{    63}, 
 };
 
 HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1[] = 
@@ -1769,22 +1757,16 @@ HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_24PLUS8_TENGIG_5
 {       0,      45,          0,     32,           1,       "" },    /* TSC4Q1:2    NIF 44, bcm_port 32 */
 {       0,      46,          0,     49,           1,       "" },    /* TSC4E3:0 NIF 70, bcm_port 49 */
 {       0,      47,          0,     33,           1,       "" },    /* TSC4Q1:3    NIF 45, bcm_port 33 */
-{       0,      48,          0,     62,           1,       "" },    /* W0: TSC4F:0  NIF 86, bcm_port 62 */
-{       0,      49,          0,     63,           1,       "" },    /* W1: TSC4F:1  NIF 87, bcm_port 63 */
-{       0,      50,          0,     64,           1,       "" },    /* W2: TSC4F:2  NIF 88, bcm_port 64 */
-{       0,      51,          0,     65,           1,       "" },    /* W3: TSC4F:3  NIF 89, bcm_port 65 */
-{       0,      52,          0,     56,           1,       "" },    /* W4: TSC4E5:0 NIF 78, bcm_port 56 */
-{       0,      53,          0,     57,           1,       "" },    /* W5: TSC4E5:2 NIF 80, bcm_port 57 */
-{       0,      54,          0,     52,           1,       "" },    /* W6: TSC4E4:0 NIF 74, bcm_port 52 */
-{       0,      55,          0,     53,           1,       "" },    /* W7: TSC4E4:2 NIF 76, bcm_port 53 */
-{       0,      56,          0,     58,           1,       "" },    /* P0: TSC4E6:3 NIF 85 (TX) / TSC4E6:0 NIF 82 (RX), bcm_port 58 */
-{       0,      57,          0,     59,           1,       "" },    /* P1: TSC4E6:2 NIF 84, bcm_port 59 */
-{       0,      58,          0,     60,           1,       "" },    /* P2: TSC4E6:1 NIF 83, bcm_port 60 */
-{       0,      59,          0,     61,           1,       "" },    /* P3: TSC4E6:0 NIF 82 (TX) / TSC4E6:3 NIF 85 (RX), bcm_port 61 */
-{       0,      60,          0,     54,           1,       "" },    /* P4: TSC4E5:1 NIF 79, bcm_port 54 */
-{       0,      61,          0,     55,           1,       "" },    /* P5: TSC4E5:3 NIF 81, bcm_port 55 */
-{       0,      62,          0,     50,           1,       "" },    /* P6: TSC4E4:1 NIF 75, bcm_port 50 */
-{       0,      63,          0,     51,           1,       "" },    /* P7: TSC4E4:3 NIF 77, bcm_port 51 */
+{       0,      48,          0,     62,           1,       "" },    /* W0: TSC4F:0-3  NIF 86, bcm_port 62 */
+{       0,      49,          0,     56,           1,       "" },    /* W4: TSC4E5:0 NIF 78, bcm_port 56 */
+{       0,      50,          0,     57,           1,       "" },    /* W5: TSC4E5:2 NIF 80, bcm_port 57 */
+{       0,      51,          0,     52,           1,       "" },    /* W6: TSC4E4:0 NIF 74, bcm_port 52 */
+{       0,      52,          0,     53,           1,       "" },    /* W7: TSC4E4:2 NIF 76, bcm_port 53 */
+{       0,      53,          0,     58,           1,       "" },    /* P0: TSC4E6:3-0 NIF 85 (TX) / TSC4E6:0-3 NIF 82 (RX), bcm_port 58 */
+{       0,      54,          0,     54,           1,       "" },    /* P4: TSC4E5:1 NIF 79, bcm_port 54 */
+{       0,      55,          0,     55,           1,       "" },    /* P5: TSC4E5:3 NIF 81, bcm_port 55 */
+{       0,      56,          0,     50,           1,       "" },    /* P6: TSC4E4:1 NIF 75, bcm_port 50 */
+{       0,      57,          0,     51,           1,       "" },    /* P7: TSC4E4:3 NIF 77, bcm_port 51 */
 };
 
 DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1 = {
@@ -1794,25 +1776,6 @@ dapiBroadBaseCardPortMap_CARD_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1, sizeof(da
 0, NULL, 0,
 };
 
-SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1[]= 
-{
-{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
-{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
-{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
-{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
-{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
-{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},
-{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},
-{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},
-{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},
-{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},
-{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN}, {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN}, {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN}, {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN}, {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-};
 
 SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_24_GIG_24PLUS8_TENGIG_56170_REV_1_MODE1[]= 
 {
@@ -1828,9 +1791,9 @@ SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_24_GIG_24PLUS8_TENGIG_5
 {L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
 {L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
 {L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
+{L7_PORT_DESC_BCOM_40G_XLAUI},
 {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN}, {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN}, {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN}, {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_40G_XLAUI},
 {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN}, {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
 };
 
@@ -1848,9 +1811,9 @@ SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_24_GIG_24PLUS8_TENGIG_5
 {L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_1G_AN},
 {L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_1G_AN},
 {L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_1G_AN},
+{L7_PORT_DESC_BCOM_40G_XLAUI},
 {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN}, {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN}, {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN}, {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_40G_XLAUI},
 {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN}, {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
 };
 

@@ -2328,7 +2328,7 @@ L7_RC_t ptin_control_mx_switchover(L7_uint8 mx_is_working)
 #if (PTIN_BOARD == PTIN_BOARD_AE48GE)
   L7_uint32 lag_id, lag_intIfNum, intIfNum_add, intIfNum_del;
 
-  for (lag_id = 0; lag_id < 8; lag_id++)
+  for (lag_id = 0; lag_id < BACKPLANE_INTLAGS_MAX; lag_id++)
   {
     /* Cannot retrieve lag intIfNum: reset commutation machine */
     if (ptin_intf_lag2intIfNum(lag_id, &lag_intIfNum) != L7_SUCCESS)
@@ -2339,25 +2339,25 @@ L7_RC_t ptin_control_mx_switchover(L7_uint8 mx_is_working)
 
     if (mx_is_working)
     {
-      PT_LOG_INFO(LOG_CTX_CONTROL,"CX is WORKING");
-      PT_LOG_INFO(LOG_CTX_EVENTS ,"CX is WORKING");
+      PT_LOG_INFO(LOG_CTX_CONTROL,"lag_id %u: CX is WORKING", lag_id);
+      PT_LOG_INFO(LOG_CTX_EVENTS ,"lag_id %u: CX is WORKING", lag_id);
 
       if (ptin_intf_port2intIfNum(BACKPLANE_1ST_MEMBER(lag_id), &intIfNum_add) != L7_SUCCESS ||
           ptin_intf_port2intIfNum(BACKPLANE_2ND_MEMBER(lag_id), &intIfNum_del) != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_CONTROL,"Failure");
+        PT_LOG_ERR(LOG_CTX_CONTROL,"lag_id %u: Failure", lag_id);
         return L7_FAILURE;
       }
     }
     else
     {
-      PT_LOG_INFO(LOG_CTX_CONTROL,"CX is PROTECTION");
-      PT_LOG_INFO(LOG_CTX_EVENTS ,"CX is PROTECTION");
+      PT_LOG_INFO(LOG_CTX_CONTROL,"lag_id %u: CX is PROTECTION", lag_id);
+      PT_LOG_INFO(LOG_CTX_EVENTS ,"lag_id %u: CX is PROTECTION", lag_id);
 
       if (ptin_intf_port2intIfNum(BACKPLANE_1ST_MEMBER(lag_id), &intIfNum_del) != L7_SUCCESS ||
           ptin_intf_port2intIfNum(BACKPLANE_2ND_MEMBER(lag_id), &intIfNum_add) != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_CONTROL,"Failure");
+        PT_LOG_ERR(LOG_CTX_CONTROL,"lag_id %u: Failure", lag_id);
         return L7_FAILURE;
       }
     }
