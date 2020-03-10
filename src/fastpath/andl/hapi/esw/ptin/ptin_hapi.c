@@ -5647,6 +5647,8 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
     PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcm_port %u to 10G speed", bcm_port);
     return L7_FAILURE;
   }
+
+#if (PTIN_BOARD == PTIN_BOARD_AE48GE)
   /* Enable DFE for all ports */
   rc = bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_DFE_ENABLE, 1); // DFE ON
   if (L7_BCMX_OK(rc) != L7_TRUE)
@@ -5655,6 +5657,7 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
                bcm_port, rc);
     return L7_FAILURE;
   }
+#endif
 
   /* Disable Auto-neg */
   rc = bcm_port_autoneg_set(0, bcm_port, L7_DISABLE);
