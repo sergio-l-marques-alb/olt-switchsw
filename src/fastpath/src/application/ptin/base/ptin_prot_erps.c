@@ -2063,10 +2063,12 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     if (SF[PROT_ERPS_PORT0] != tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT0]) {
       PT_LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Updating SF[PROT_ERPS_PORT0] from %d to %d", erps_idx, tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT0], SF[PROT_ERPS_PORT0]);
       tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT0] = SF[PROT_ERPS_PORT0];
+      if (topPriorityRequest>100) haveChanges = L7_TRUE;
     }
     if (SF[PROT_ERPS_PORT1] != tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT1]) {
       PT_LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Updating SF[PROT_ERPS_PORT1] from %d to %d", erps_idx, tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT1], SF[PROT_ERPS_PORT1]);
       tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT1] = SF[PROT_ERPS_PORT1];
+      if (topPriorityRequest>100) haveChanges = L7_TRUE;
     }
 
     if ( (tbl_erps[erps_idx].localRequest != localRequest) /*|| (tbl_erps[erps_idx].localReqPort != reqPort)*/ ) {
