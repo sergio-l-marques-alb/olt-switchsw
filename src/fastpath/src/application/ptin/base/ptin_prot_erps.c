@@ -2178,6 +2178,8 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
     #ifdef SM_PTIN_MODS
     tbl_erps[erps_idx].remoteRequest = RReq_NONE;
+    tbl_erps[erps_idx].apsReqStatusRx[PROT_ERPS_PORT0]  = 0;
+    tbl_erps[erps_idx].apsReqStatusRx[PROT_ERPS_PORT1]  = 0;
     #endif
   } else {
     reqPort = apsRxPort;
