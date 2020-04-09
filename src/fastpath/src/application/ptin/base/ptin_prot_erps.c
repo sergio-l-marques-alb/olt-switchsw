@@ -1721,6 +1721,8 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
     L7_uint8 apsReqRxOtherPort;
     L7_uint8 apsStatusRxOtherPort;
+    //L7_uint32 v;
+    L7_uint8 r;
 
     if (apsRxPort > PROT_ERPS_PORT1)
     {
@@ -1741,7 +1743,9 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     apsReqStatusRx = tbl_erps[erps_idx].apsReqStatusRx[apsRxPort];
     tbl_erps[erps_idx].apsReqStatusRx[apsRxPort] = ((apsReqRx << 12) & 0xF000) | (apsStatusRx & 0x00FF);
 
-    if (apsReqStatusRx != tbl_erps[erps_idx].apsReqStatusRx[apsRxPort]) {
+    if (RReq_SF==apsReqRx
+        ||
+        apsReqStatusRx != tbl_erps[erps_idx].apsReqStatusRx[apsRxPort]) {
 
       PT_LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Received R-APS Request(0x%x) = %s(0x%x), apsRxPort %d, Node Id %.2x%.2x%.2x%.2x%.2x%.2x", erps_idx, apsReqRx,
               remReqToString[apsReqRx], APS_GET_STATUS(apsStatusRx), apsRxPort,
@@ -1752,7 +1756,36 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
               apsNodeIdRx[4],
               apsNodeIdRx[5]);
 
-      RReq_priority_resolution(apsReqRx, apsStatusRx, apsReqRxOtherPort, apsStatusRxOtherPort, &remoteRequest, NULL);
+      switch(r=RReq_priority_resolution(apsReqRx, apsStatusRx, apsReqRxOtherPort, apsStatusRxOtherPort, &remoteRequest, NULL)) {
+      case 0: break;
+#if 0 /*This change should work, but results were bad; just maintaining debug*/
+      case 1:
+          //Toggle to resolved priority
+          apsRxPort ^= 1;
+
+          v=apsStatusRxOtherPort;
+          apsStatusRxOtherPort=apsStatusRx;
+          apsStatusRx=v;
+
+          v=apsReqStatusRxOtherPort;
+          apsReqStatusRxOtherPort=apsReqStatusRx;
+          apsReqStatusRx=v;
+
+          v=apsReqRxOtherPort;
+          apsReqRxOtherPort=apsReqRx;
+          apsReqRx=v;
+          break;
+#endif
+      default:
+          PT_LOG_ERR(LOG_CTX_ERPS,"Errored RReq_priority_resolution()");
+          return PROT_ERPS_INDEX_VIOLATION;
+      }//switch(RReq_priority_resolution(
+
+      PT_LOG_TRACE(LOG_CTX_ERPS,
+                   "RReq_priority_resolution()=%u "
+                   "R-APS Request(0x%x) = %s(0x%x), apsRxPort %d", r, apsReqRx,
+              remReqToString[apsReqRx], APS_GET_STATUS(apsStatusRx), apsRxPort);
+
       if (apsReqRx != apsReqRxOtherPort) {
         //remoteRequest = apsReqRx;
       }
