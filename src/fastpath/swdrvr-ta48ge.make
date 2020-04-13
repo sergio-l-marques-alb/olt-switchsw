@@ -23,8 +23,8 @@ export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
 CROSS_COMPILE = ppc_85xxDP-
 
 # Kernel and SDK paths
-KERNEL_PATH = $(OLT_DIR)/../lib/kernel/linux-2.6.35
-SDK_PATH    = $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-xgs-switchdrvr-6.5.7/broadcom
+KERNEL_PATH ?= $(OLT_DIR)/../lib/kernel/linux-2.6.35
+SDK_PATH    ?= $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-xgs-switchdrvr-6.5.7/broadcom
 
 # Comilation logging level
 export LVL7_MAKEFILE_LOGGING := N
