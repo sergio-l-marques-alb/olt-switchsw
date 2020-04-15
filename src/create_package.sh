@@ -107,13 +107,19 @@ if [ ! -d $APPS_PATH/image ]; then
   exit 1;
 fi
 
-if [ ! -d $APPS_PATH/image/`echo "$DEV_BOARD_SW" | tr a-z A-Z`/rootfs ]; then
-  echo "Missing folders 5 in $APPS_PATH/image/$DEV_BOARD_SW/rootfs" >> $LOG_FILE
+if [ "$DEV_BOARD_SW" == "cxo640g" ]; then
+   PLATFORM_FOLDER="CXO640G-MX";
+else
+   PLATFORM_FOLDER=`echo "$DEV_BOARD_SW" | tr a-z A-Z`
+fi
+
+if [ ! -d $APPS_PATH/image/$PLATFORM_FOLDER/rootfs ]; then
+  echo "Missing folders 5 in $APPS_PATH/image/$PLATFORM_FOLDER/rootfs" >> $LOG_FILE
   exit 1;
 fi
 
 # create swdrv.ver
-cd $APPS_PATH/image/`echo "$DEV_BOARD_SW" | tr a-z A-Z`/rootfs
+cd $APPS_PATH/image/$PLATFORM_FOLDER/rootfs
 mkdir -pv var/log/switchdrvr/
 mkdir -pv usr/local/scripts/swdrv-scripts/
 rm -f *.tgz
