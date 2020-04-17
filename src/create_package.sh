@@ -109,6 +109,10 @@ fi
 
 if [ "$DEV_BOARD_SW" == "cxo640g" ]; then
    PLATFORM_FOLDER="CXO640G-MX";
+elif [ "$DEV_BOARD_SW" == "olt1t0" ]; then
+   PLATFORM_FOLDER="CXOLT1T0";
+elif [ "$DEV_BOARD_SW" == "olt1t0-ac" ]; then
+   PLATFORM_FOLDER="CXOLT1T0-AC";
 else
    PLATFORM_FOLDER=`echo "$DEV_BOARD_SW" | tr a-z A-Z`
 fi
