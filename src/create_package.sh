@@ -113,6 +113,8 @@ elif [ "$DEV_BOARD_SW" == "olt1t0" ]; then
    PLATFORM_FOLDER="CXOLT1T0";
 elif [ "$DEV_BOARD_SW" == "olt1t0-ac" ]; then
    PLATFORM_FOLDER="CXOLT1T0-AC";
+elif [ "$DEV_BOARD_SW" == "olt1t0f" ]; then
+   PLATFORM_FOLDER="CXOLT1T0-F";
 else
    PLATFORM_FOLDER=`echo "$DEV_BOARD_SW" | tr a-z A-Z`
 fi
