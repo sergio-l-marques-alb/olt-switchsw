@@ -30,7 +30,9 @@ mv -v .svn .svn.tmp
 make clean
 make oldconfig
 make -j `grep -c '^processor' /proc/cpuinfo`
-
+make modules -j `grep -c '^processor' /proc/cpuinfo`
+make modules_install INSTALL_MOD_PATH=$PWD/rootfs
+make headers_install ARCH=$ARCH INSTALL_HDR_PATH=$PWD/linux-inc
 if [ $? -ne 0 ]; then
   echo ""
   echo "******* ERROR *******"
