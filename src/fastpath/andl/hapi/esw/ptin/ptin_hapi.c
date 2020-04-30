@@ -4333,7 +4333,7 @@ L7_RC_t hapi_ptin_stormControl_cpu_set(L7_BOOL enable, L7_uint32 cir1, L7_uint32
 
     /* Only apply to internal priorities 0-7 */
     cos_value = 8;
-    cos_mask  = 0xf;
+    cos_mask  = 0x8;
     rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INT_PRIO, (L7_uchar8 *)&cos_value, (L7_uchar8 *)&cos_mask);
     if (rc != L7_SUCCESS)
     {
