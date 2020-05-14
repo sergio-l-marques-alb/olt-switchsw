@@ -30,4 +30,4 @@ echo "Image -> uImage"
 ./mk_uimage.sh $LDADDR
 
 mv -v .svn.tmp .svn
-
+exit 0
