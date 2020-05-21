@@ -1692,11 +1692,12 @@ void hpcHardwareDefaultConfigApply(void)
 
           /* Set up a one to one mapping of internal priority to CPU cosq. */
           BCM_RX_REASON_CLEAR_ALL(no_reason);
-          for (internal_priority = 0; internal_priority < 8; internal_priority++)
+          for (internal_priority = 0; internal_priority < 16; internal_priority++)
           {
-            rv = bcm_rx_cosq_mapping_set(i, index, no_reason, no_reason, internal_priority, 0x07, 0, 0, internal_priority);
+            rv = bcm_rx_cosq_mapping_set(i, index, no_reason, no_reason, internal_priority, 0x0f, 0, 0, internal_priority);
             if (rv != BCM_E_NONE)
             {
+              PT_LOG_ERR(LOG_CTX_STARTUP, "Error at internal_priority=%u: rv=%d", internal_priority, rv);
               L7_LOG_ERROR(rv);
             }
             index++;

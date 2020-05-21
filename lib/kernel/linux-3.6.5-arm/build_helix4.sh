@@ -16,7 +16,8 @@ mv -v svn .svn.tmp
 
 #cp ../../buildroot/board/broadcom/helix4/linux-3.6.5-flash.config .config #update config to last config used
 make clean
-make menuconfig
+#make menuconfig
+make oldconfig
 make -j `grep -c '^processor' /proc/cpuinfo` 
 
 if [ $? -ne 0 ]; then
@@ -29,4 +30,4 @@ echo "Image -> uImage"
 ./mk_uimage.sh $LDADDR
 
 mv -v .svn.tmp .svn
-
+exit 0

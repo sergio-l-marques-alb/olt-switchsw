@@ -23,8 +23,8 @@ export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
 CROSS_COMPILE             = arm-linux-
 
 # Kernel and SDK paths
-KERNEL_PATH = $(OLT_DIR)/../lib/kernel/linux-3.6.5-arm
-SDK_PATH    = $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-xgs-fastpath-6.4.3/broadcom
+KERNEL_PATH ?= $(OLT_DIR)/../lib/kernel/linux-3.6.5-arm
+SDK_PATH    ?= $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-xgs-fastpath-6.4.3/broadcom
 
 # Comilation logging level
 export LVL7_MAKEFILE_LOGGING := N
