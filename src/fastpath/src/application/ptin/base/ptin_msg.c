@@ -1612,6 +1612,60 @@ L7_RC_t ptin_msg_PhyCounters_clear(msg_HWEthRFC2819_PortStatistics_t *msgPortSta
 }
 
 
+
+/**
+ * Read Slot counters (Backplane aggregated port counters)
+ * 
+ * @param msgPortStats : Array of stats (one for each port) 
+ * @param msgRequest   : Array of requests (one for each port) 
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_SlotCounters_read(msg_HwGenReq_t *msgRequest, msg_HWEthRFC2819_PortStatistics_t *msgPortStats)
+{
+    ptin_HWEthRFC2819_PortStatistics_t portStats;
+
+    memset(msgPortStats, 0x00, sizeof(msg_HWEthRFC2819_PortStatistics_t));
+    memset((char*)&portStats, 0x00, sizeof(ptin_HWEthRFC2819_PortStatistics_t));
+
+    if (ptin_intf_get_slot_counters(msgRequest->generic_id, &portStats)!= L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error getting Aggregated statistics for this Slot");
+      memset(msgPortStats, 0x00, sizeof(msg_HWEthRFC2819_PortStatistics_t));
+      return L7_FAILURE;
+    }
+
+    /* Copy data from ptin to msg structure */
+    ptin_msg_PortStats_convert(msgPortStats, &portStats);
+
+    /* Output info read */
+    PT_LOG_TRACE(LOG_CTX_MSG, "Slotid=%u, Port # %2u", msgPortStats->SlotId, msgPortStats->Port);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.DropEvents           = %15llu  | Tx.DropEvents           = %15llu", ENDIAN_SWAP64(msgPortStats->Rx.etherStatsDropEvents),           ENDIAN_SWAP64(msgPortStats->Tx.etherStatsDropEvents));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Octets               = %15llu  | Tx.Octets               = %15llu", ENDIAN_SWAP64(msgPortStats->Rx.etherStatsOctets),               ENDIAN_SWAP64(msgPortStats->Tx.etherStatsOctets));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts                 = %15llu  | Tx.Pkts                 = %15llu", ENDIAN_SWAP64(msgPortStats->Rx.etherStatsPkts),                 ENDIAN_SWAP64(msgPortStats->Tx.etherStatsPkts));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.BroadcastPkts        = %15llu  | Tx.BroadcastPkts        = %15llu", ENDIAN_SWAP64(msgPortStats->Rx.etherStatsBroadcastPkts),        ENDIAN_SWAP64(msgPortStats->Tx.etherStatsBroadcastPkts));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.MulticastPkts        = %15llu  | Tx.MulticastPkts        = %15llu", ENDIAN_SWAP64(msgPortStats->Rx.etherStatsMulticastPkts),        ENDIAN_SWAP64(msgPortStats->Tx.etherStatsMulticastPkts));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.CRCAlignErrors       = %15llu  | Tx.CRCAlignErrors       = %15llu", ENDIAN_SWAP64(msgPortStats->Rx.etherStatsCRCAlignErrors),       ENDIAN_SWAP64(msgPortStats->Tx.etherStatsCRCAlignErrors));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.UndersizePkts        = %15llu  | Tx.OversizePkts         = %15llu", ENDIAN_SWAP64(msgPortStats->Rx.etherStatsUndersizePkts),        ENDIAN_SWAP64(msgPortStats->Tx.etherStatsOversizePkts));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.OversizePkts         = %15llu  | Tx.Fragments            = %15llu", ENDIAN_SWAP64(msgPortStats->Rx.etherStatsOversizePkts),         ENDIAN_SWAP64(msgPortStats->Tx.etherStatsFragments));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Fragments            = %15llu  | Tx.Jabbers              = %15llu", ENDIAN_SWAP64(msgPortStats->Rx.etherStatsFragments),            ENDIAN_SWAP64(msgPortStats->Tx.etherStatsJabbers));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Jabbers              = %15llu  | Tx.Collisions           = %15llu", ENDIAN_SWAP64(msgPortStats->Rx.etherStatsJabbers),              ENDIAN_SWAP64(msgPortStats->Tx.etherStatsCollisions));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts64Octets         = %15llu  | Tx.Pkts64Octets         = %15llu", ENDIAN_SWAP64(msgPortStats->Rx.etherStatsPkts64Octets),         ENDIAN_SWAP64(msgPortStats->Tx.etherStatsPkts64Octets));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts65to127Octets    = %15llu  | Tx.Pkts65to127Octets    = %15llu", ENDIAN_SWAP64(msgPortStats->Rx.etherStatsPkts65to127Octets),    ENDIAN_SWAP64(msgPortStats->Tx.etherStatsPkts65to127Octets));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts128to255Octets   = %15llu  | Tx.Pkts128to255Octets   = %15llu", ENDIAN_SWAP64(msgPortStats->Rx.etherStatsPkts128to255Octets),   ENDIAN_SWAP64(msgPortStats->Tx.etherStatsPkts128to255Octets));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts256to511Octets   = %15llu  | Tx.Pkts256to511Octets   = %15llu", ENDIAN_SWAP64(msgPortStats->Rx.etherStatsPkts256to511Octets),   ENDIAN_SWAP64(msgPortStats->Tx.etherStatsPkts256to511Octets));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts512to1023Octets  = %15llu  | Tx.Pkts512to1023Octets  = %15llu", ENDIAN_SWAP64(msgPortStats->Rx.etherStatsPkts512to1023Octets),  ENDIAN_SWAP64(msgPortStats->Tx.etherStatsPkts512to1023Octets));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts1024to1518Octets = %15llu  | Tx.Pkts1024to1518Octets = %15llu", ENDIAN_SWAP64(msgPortStats->Rx.etherStatsPkts1024to1518Octets), ENDIAN_SWAP64(msgPortStats->Tx.etherStatsPkts1024to1518Octets));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts1519toMaxOctets  = %15llu  | Tx.Pkts1519toMaxOctets  = %15llu", ENDIAN_SWAP64(msgPortStats->Rx.etherStatsPkts1519toMaxOctets),  ENDIAN_SWAP64(msgPortStats->Tx.etherStatsPkts1519toMaxOctets));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Throughput (bps)     = %15llu  | Tx.Throughput (bps)     = %15llu", ENDIAN_SWAP64(msgPortStats->Rx.Throughput),                     ENDIAN_SWAP64(msgPortStats->Tx.Throughput));
+
+    return L7_SUCCESS;
+}
+
+
+
+
+
 /* Slot mode configuration ****************************************************/
 
 /**

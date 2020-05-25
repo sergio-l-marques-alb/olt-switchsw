@@ -1444,6 +1444,33 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break; /* CCMSG_ETH_PHY_COUNTERS_CLEAR */
     }
 
+    /* CCMSG_ETH_SLOT_AGG_COUNTERS_GET *********************************************/
+    case CCMSG_ETH_SLOT_AGG_COUNTERS_GET:
+    {
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_SLOT_AGG_COUNTERS_GET (0x%04X)", msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_HwGenReq_t);
+
+      msg_HwGenReq_t                    *request;
+      msg_HWEthRFC2819_PortStatistics_t *portStats;
+
+      request   = (msg_HwGenReq_t *) inbuffer->info;
+      portStats = (msg_HWEthRFC2819_PortStatistics_t *) outbuffer->info;
+
+      /* Get values */
+      if (L7_SUCCESS != ptin_msg_SlotCounters_read(request, portStats))
+      {
+        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting aggregated counters, cxo=%u", ENDIAN_SWAP8(request->generic_id));
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPC_INFODIM(sizeof(msg_HWEthRFC2819_PortStatistics_t));
+      break;  /* CCMSG_ETH_SLOT_COUNTERS_GET */
+    }
+
+
     /************************************************************************** 
      * Port Type Settings
      **************************************************************************/

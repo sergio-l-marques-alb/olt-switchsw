@@ -130,6 +130,19 @@ extern L7_RC_t ptin_intf_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portS
 extern L7_RC_t ptin_intf_counters_clear(L7_uint ptin_port);
 
 /**
+* 
+* 
+* @author richard (22/05/2020)
+* 
+* @param cxo            : read counters for a cxo connection
+* @param portStats      : port Statistics
+* 
+* @return L7_RC_t 
+*/
+extern L7_RC_t ptin_intf_get_slot_counters(L7_uint8 cxo, ptin_HWEthRFC2819_PortStatistics_t *aggPortStats);
+
+
+/**
  * Read counters activity (of physical ports)
  * 
  * @param portActivity Structure to save port counters activity (at the 

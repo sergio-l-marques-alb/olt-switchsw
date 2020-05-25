@@ -1474,8 +1474,166 @@ L7_RC_t ptin_intf_counters_clear(L7_uint ptin_port)
 }
 
 
+
+static L7_RC_t ptin_PortStats_add(ptin_HWEthRFC2819_PortStatistics_t stats, ptin_HWEthRFC2819_PortStatistics_t *portStats)
+{
+
+    if (portStats == NULL) 
+    {
+        return L7_FAILURE;
+    }
+                                                                                                                                
+    portStats->Mask   |= stats.Mask;
+    portStats->RxMask |= stats.RxMask;
+    portStats->TxMask |= stats.TxMask;
+
+    if (stats.Mask & 0x01 ) //RX counters 
+    {
+        if (stats.RxMask & 0x00000001) { portStats->Rx.etherStatsDropEvents           += stats.Rx.etherStatsDropEvents;           }
+        if (stats.RxMask & 0x00000001) { portStats->Rx.etherStatsOctets               += stats.Rx.etherStatsOctets;               }
+        if (stats.RxMask & 0x00000001) { portStats->Rx.etherStatsPkts                 += stats.Rx.etherStatsPkts;                 }
+        if (stats.RxMask & 0x00000001) { portStats->Rx.etherStatsBroadcastPkts        += stats.Rx.etherStatsBroadcastPkts;        }
+        if (stats.RxMask & 0x00000001) { portStats->Rx.etherStatsMulticastPkts        += stats.Rx.etherStatsMulticastPkts;        }
+        if (stats.RxMask & 0x00000001) { portStats->Rx.etherStatsCRCAlignErrors       += stats.Rx.etherStatsCRCAlignErrors;       }
+        if (stats.RxMask & 0x00000001) { portStats->Rx.etherStatsUndersizePkts        += stats.Rx.etherStatsUndersizePkts;        }
+        if (stats.RxMask & 0x00000001) { portStats->Rx.etherStatsOversizePkts         += stats.Rx.etherStatsOversizePkts;         }
+        if (stats.RxMask & 0x00000001) { portStats->Rx.etherStatsFragments            += stats.Rx.etherStatsFragments;            }
+        if (stats.RxMask & 0x00000001) { portStats->Rx.etherStatsJabbers              += stats.Rx.etherStatsJabbers;              }
+        if (stats.RxMask & 0x00000001) { portStats->Rx.etherStatsCollisions           += stats.Rx.etherStatsCollisions;           }
+        if (stats.RxMask & 0x00000001) { portStats->Rx.etherStatsPkts64Octets         += stats.Rx.etherStatsPkts64Octets;         }
+        if (stats.RxMask & 0x00000001) { portStats->Rx.etherStatsPkts65to127Octets    += stats.Rx.etherStatsPkts65to127Octets;    }
+        if (stats.RxMask & 0x00000001) { portStats->Rx.etherStatsPkts128to255Octets   += stats.Rx.etherStatsPkts128to255Octets;   }
+        if (stats.RxMask & 0x00000001) { portStats->Rx.etherStatsPkts256to511Octets   += stats.Rx.etherStatsPkts256to511Octets;   }
+        if (stats.RxMask & 0x00000001) { portStats->Rx.etherStatsPkts512to1023Octets  += stats.Rx.etherStatsPkts512to1023Octets;  }
+        if (stats.RxMask & 0x00000001) { portStats->Rx.etherStatsPkts1024to1518Octets += stats.Rx.etherStatsPkts1024to1518Octets; }
+        if (stats.RxMask & 0x00000001) { portStats->Rx.etherStatsPkts1519toMaxOctets  += stats.Rx.etherStatsPkts1519toMaxOctets;  }
+        if (stats.RxMask & 0x00000001) { portStats->Rx.Throughput                     += stats.Rx.Throughput;                     }
+    }
+
+    if (stats.Mask & 0x02 ) //TX counters
+    {
+        if (stats.TxMask & 0x00000001) { portStats->Tx.etherStatsDropEvents           += stats.Tx.etherStatsDropEvents;           }
+        if (stats.TxMask & 0x00000001) { portStats->Tx.etherStatsOctets               += stats.Tx.etherStatsOctets;               }
+        if (stats.TxMask & 0x00000001) { portStats->Tx.etherStatsPkts                 += stats.Tx.etherStatsPkts;                 }
+        if (stats.TxMask & 0x00000001) { portStats->Tx.etherStatsBroadcastPkts        += stats.Tx.etherStatsBroadcastPkts;        }
+        if (stats.TxMask & 0x00000001) { portStats->Tx.etherStatsMulticastPkts        += stats.Tx.etherStatsMulticastPkts;        }
+        if (stats.TxMask & 0x00000001) { portStats->Tx.etherStatsCRCAlignErrors       += stats.Tx.etherStatsCRCAlignErrors;       }
+        if (stats.TxMask & 0x00000001) { portStats->Tx.etherStatsUndersizePkts        += stats.Tx.etherStatsUndersizePkts;        }
+        if (stats.TxMask & 0x00000001) { portStats->Tx.etherStatsOversizePkts         += stats.Tx.etherStatsOversizePkts;         }
+        if (stats.TxMask & 0x00000001) { portStats->Tx.etherStatsFragments            += stats.Tx.etherStatsFragments;            }
+        if (stats.TxMask & 0x00000001) { portStats->Tx.etherStatsJabbers              += stats.Tx.etherStatsJabbers;              }
+        if (stats.TxMask & 0x00000001) { portStats->Tx.etherStatsCollisions           += stats.Tx.etherStatsCollisions;           }
+        if (stats.TxMask & 0x00000001) { portStats->Tx.etherStatsPkts64Octets         += stats.Tx.etherStatsPkts64Octets;         }
+        if (stats.TxMask & 0x00000001) { portStats->Tx.etherStatsPkts65to127Octets    += stats.Tx.etherStatsPkts65to127Octets;    }
+        if (stats.TxMask & 0x00000001) { portStats->Tx.etherStatsPkts128to255Octets   += stats.Tx.etherStatsPkts128to255Octets;   }
+        if (stats.TxMask & 0x00000001) { portStats->Tx.etherStatsPkts256to511Octets   += stats.Tx.etherStatsPkts256to511Octets;   }
+        if (stats.TxMask & 0x00000001) { portStats->Tx.etherStatsPkts512to1023Octets  += stats.Tx.etherStatsPkts512to1023Octets;  }
+        if (stats.TxMask & 0x00000001) { portStats->Tx.etherStatsPkts1024to1518Octets += stats.Tx.etherStatsPkts1024to1518Octets; }
+        if (stats.TxMask & 0x00000001) { portStats->Tx.etherStatsPkts1519toMaxOctets  += stats.Tx.etherStatsPkts1519toMaxOctets;  }
+        if (stats.TxMask & 0x00000001) { portStats->Tx.Throughput                     += stats.Tx.Throughput;                     }
+    }
+
+
+    return L7_SUCCESS;
+}
+
 /**
- * Read counters activity (of physical ports)
+* 
+* 
+* @author richard (22/05/2020)
+* 
+* @param cxo            : read counters for a cxo connection
+* @param portStats      : port Statistics
+* 
+* @return L7_RC_t 
+*/
+L7_RC_t ptin_intf_get_slot_counters(L7_uint8 cxo, ptin_HWEthRFC2819_PortStatistics_t *aggPortStats)
+{
+    ptin_HWEthRFC2819_PortStatistics_t portStats;
+    L7_uint8 port;
+
+    memset((char*)&portStats, 0x00, sizeof(ptin_HWEthRFC2819_PortStatistics_t));
+
+    #if (PTIN_BOARD == PTIN_BOARD_AE48GE)
+
+        for (port=0; port < AE48GE_BACKPLANE_INTLAGS_MAX; port++) 
+        {
+            /* Read statistics */
+            if (cxo == 1) 
+            {
+                portStats.Port = BACKPLANE_1ST_MEMBER(port);
+            }
+            else if (cxo == 2)
+            {
+                portStats.Port = BACKPLANE_2ND_MEMBER(port);
+            }
+            else
+            {
+                PT_LOG_ERR(LOG_CTX_MSG, "Error specifying cxo, cxo=%u", cxo);
+                return L7_FAILURE;
+            }
+            portStats.Mask = 0xFF;
+            portStats.RxMask = 0xFFFFFFFF;
+            portStats.TxMask = 0xFFFFFFFF;
+            if (ptin_intf_counters_read(&portStats) != L7_SUCCESS)
+            {
+              PT_LOG_ERR(LOG_CTX_MSG, "Error getting statistics of port# %u", portStats.Port);
+              return L7_FAILURE;
+            }
+
+            /* Output info read */
+            PT_LOG_TRACE(LOG_CTX_MSG,  "Getting statistics of port# %u", portStats.Port);
+            PT_LOG_TRACE(LOG_CTX_MSG, " Rx.DropEvents           = %15llu  | Tx.DropEvents           = %15llu", portStats.Rx.etherStatsDropEvents,           portStats.Tx.etherStatsDropEvents);
+            PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Octets               = %15llu  | Tx.Octets               = %15llu", portStats.Rx.etherStatsOctets,               portStats.Tx.etherStatsOctets);
+            PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts                 = %15llu  | Tx.Pkts                 = %15llu", portStats.Rx.etherStatsPkts,                 portStats.Tx.etherStatsPkts);
+            PT_LOG_TRACE(LOG_CTX_MSG, " Rx.BroadcastPkts        = %15llu  | Tx.BroadcastPkts        = %15llu", portStats.Rx.etherStatsBroadcastPkts,        portStats.Tx.etherStatsBroadcastPkts);
+            PT_LOG_TRACE(LOG_CTX_MSG, " Rx.MulticastPkts        = %15llu  | Tx.MulticastPkts        = %15llu", portStats.Rx.etherStatsMulticastPkts,        portStats.Tx.etherStatsMulticastPkts);
+            PT_LOG_TRACE(LOG_CTX_MSG, " Rx.CRCAlignErrors       = %15llu  | Tx.CRCAlignErrors       = %15llu", portStats.Rx.etherStatsCRCAlignErrors,       portStats.Tx.etherStatsCRCAlignErrors);
+            PT_LOG_TRACE(LOG_CTX_MSG, " Rx.UndersizePkts        = %15llu  | Tx.OversizePkts         = %15llu", portStats.Rx.etherStatsUndersizePkts,        portStats.Tx.etherStatsOversizePkts);
+            PT_LOG_TRACE(LOG_CTX_MSG, " Rx.OversizePkts         = %15llu  | Tx.Fragments            = %15llu", portStats.Rx.etherStatsOversizePkts,         portStats.Tx.etherStatsFragments);
+            PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Fragments            = %15llu  | Tx.Jabbers              = %15llu", portStats.Rx.etherStatsFragments,            portStats.Tx.etherStatsJabbers);
+            PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Jabbers              = %15llu  | Tx.Collisions           = %15llu", portStats.Rx.etherStatsJabbers,              portStats.Tx.etherStatsCollisions);
+            PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts64Octets         = %15llu  | Tx.Pkts64Octets         = %15llu", portStats.Rx.etherStatsPkts64Octets,         portStats.Tx.etherStatsPkts64Octets);
+            PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts65to127Octets    = %15llu  | Tx.Pkts65to127Octets    = %15llu", portStats.Rx.etherStatsPkts65to127Octets,    portStats.Tx.etherStatsPkts65to127Octets);
+            PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts128to255Octets   = %15llu  | Tx.Pkts128to255Octets   = %15llu", portStats.Rx.etherStatsPkts128to255Octets,   portStats.Tx.etherStatsPkts128to255Octets);
+            PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts256to511Octets   = %15llu  | Tx.Pkts256to511Octets   = %15llu", portStats.Rx.etherStatsPkts256to511Octets,   portStats.Tx.etherStatsPkts256to511Octets);
+            PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts512to1023Octets  = %15llu  | Tx.Pkts512to1023Octets  = %15llu", portStats.Rx.etherStatsPkts512to1023Octets,  portStats.Tx.etherStatsPkts512to1023Octets);
+            PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts1024to1518Octets = %15llu  | Tx.Pkts1024to1518Octets = %15llu", portStats.Rx.etherStatsPkts1024to1518Octets, portStats.Tx.etherStatsPkts1024to1518Octets);
+            PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts1519toMaxOctets  = %15llu  | Tx.Pkts1519toMaxOctets  = %15llu", portStats.Rx.etherStatsPkts1519toMaxOctets,  portStats.Tx.etherStatsPkts1519toMaxOctets);
+            PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Throughput (bps)     = %15llu  | Tx.Throughput (bps)     = %15llu", portStats.Rx.Throughput,                     portStats.Tx.Throughput);
+
+
+            //Add Counters
+            ptin_PortStats_add(portStats, aggPortStats);
+        }
+    #endif
+
+    #if (PTIN_BOARD == PTIN_BOARD_AG16GA)
+
+        for (port=PTIN_SYSTEM_N_PONS; port <= PTIN_SYSTEM_N_PORTS-1; port++) 
+        {
+            /* Read statistics */
+            portStats.Port = port;
+            portStats.Mask = 0xFF;
+            portStats.RxMask = 0xFFFFFFFF;
+            portStats.TxMask = 0xFFFFFFFF;
+            if (ptin_intf_counters_read(&portStats) != L7_SUCCESS)
+            {
+              PT_LOG_ERR(LOG_CTX_MSG, "Error getting statistics of port# %u", portStats.Port);
+              return L7_FAILURE;
+            }
+
+            //Add Counters
+            ptin_PortStats_add(portStats, aggPortStats);
+        }
+
+    #endif
+
+    return L7_SUCCESS;
+}
+
+
+/**
  * 
  * @param portActivity Structure to save port counters activity (at the 
  * moment, masks are ignored, therefore all values are read for all ports) 
@@ -1492,7 +1650,11 @@ L7_RC_t ptin_intf_counters_activity_get(ptin_HWEth_PortsActivity_t *portActivity
   }
 
   return dtlPtinCountersActivityGet(portActivity);
+
 }
+
+
+
 
 /****************************************************************************** 
  * Board management

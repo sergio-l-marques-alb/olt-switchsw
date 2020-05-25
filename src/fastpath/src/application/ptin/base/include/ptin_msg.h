@@ -239,6 +239,18 @@ extern L7_RC_t ptin_msg_PhyCounters_read(msg_HwGenReq_t *msgRequest, msg_HWEthRF
  */
 extern L7_RC_t ptin_msg_PhyCounters_clear(msg_HWEthRFC2819_PortStatistics_t *msgPortStats);
 
+/**
+ * Read Slot counters (Backplane aggregated port counters)
+ * 
+ * @param msgPortStats : Array of stats (one for each port) 
+ * @param msgRequest   : Array of requests (one for each port) 
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern
+L7_RC_t ptin_msg_SlotCounters_read(msg_HwGenReq_t *msgRequest, msg_HWEthRFC2819_PortStatistics_t *msgPortStats);
+
+
 /* Slot mode configuration ****************************************************/
 
 /**

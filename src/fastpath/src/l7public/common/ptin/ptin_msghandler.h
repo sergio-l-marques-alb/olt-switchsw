@@ -55,6 +55,9 @@
 
 #define CCMSG_ETH_PHY_ACTIVITY_GET          0x9019  // struct msg_HWEthPhyActivity_t
 
+#define CCMSG_ETH_SLOT_AGG_COUNTERS_GET     0x9500  // struct msg_HWEthRFC2819_PortStatistics_t
+
+
 #define CCMSG_ETH_LACP_LAG_GET              0x9020  // struct msg_LACPLagInfo_t
 #define CCMSG_ETH_LACP_LAG_ADD              0x9021  // struct msg_LACPLagInfo_t
 #define CCMSG_ETH_LACP_LAG_REMOVE           0x9022  // struct msg_LACPLagInfo_t
