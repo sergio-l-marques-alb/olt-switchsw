@@ -628,6 +628,9 @@ L7_RC_t hpcConfigBoardSet()
         //if (sal_config_set(spn_MMU_MULTI_PACKETS_PER_CELL, "1") != 0)
         //  return(L7_FAILURE);
 
+        if (sal_config_set(spn_MMU_DYNAMIC_SCHED_UPDATE, "0") != 0)
+            return(L7_FAILURE);
+
         PT_LOG_TRACE(LOG_CTX_STARTUP,"Katana2 ready to be started!");
         break;
 
