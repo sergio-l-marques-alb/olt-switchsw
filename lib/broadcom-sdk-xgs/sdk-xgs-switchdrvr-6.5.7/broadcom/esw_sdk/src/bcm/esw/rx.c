@@ -2671,7 +2671,7 @@ _bcm_tr3_rx_cosq_mapping_set(int unit, int index,
                 match_count[ovx]++;
             }
         }
-        if (max_match < match_count[ovx]) {
+        if (max_match <= match_count[ovx]) {
             max_match = match_count[ovx];
             match_ovx = ovx;
         }
