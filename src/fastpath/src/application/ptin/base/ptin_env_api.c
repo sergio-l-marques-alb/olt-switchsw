@@ -22,6 +22,7 @@
 #include "ptin_env_api.h"
 #include "logger.h"
 
+static unsigned int _board_hw_version = 1;
 static unsigned int _board_config_mode = 0;
 
 /**
@@ -35,13 +36,24 @@ L7_RC_t ptin_env_init(void)
 {
     char *str;
 
-    PT_LOG_NOTICE(LOG_CTX_STARTUP, "Getting shell variable BOARD_HWVER...");
+    str = getenv("HW_VERSION");
+    if (NULL == str)
+    {
+        _board_hw_version = 1;
+        PT_LOG_WARN(LOG_CTX_STARTUP, "HW_VERSION not found");
+    }
+    else
+    {
+        _board_hw_version = atoi(str);//strtol(str, NULL, 10);
+    }
+    
+    PT_LOG_NOTICE(LOG_CTX_STARTUP, "HW_VERSION: %u", _board_config_mode);
 
     str = getenv("BOARD_CONFIG_MODE");
     if (NULL == str)
     {
         _board_config_mode = 0;
-        PT_LOG_WARN(LOG_CTX_STARTUP, "BOARD_HWVER not found");
+        PT_LOG_WARN(LOG_CTX_STARTUP, "BOARD_CONFIG_MODE not found");
     }
     else
     {
@@ -54,9 +66,23 @@ L7_RC_t ptin_env_init(void)
         _board_config_mode = 0;
     }
     
-    PT_LOG_NOTICE(LOG_CTX_STARTUP, "BOARD_HWVER: %u", _board_config_mode);
+    PT_LOG_NOTICE(LOG_CTX_STARTUP, "BOARD_CONFIG_MODE: %u", _board_config_mode);
 
     return L7_SUCCESS;
+}
+
+/**
+ * Return board config mode
+ * 
+ * @author mruas (14/06/19)
+ * 
+ * @param void 
+ * 
+ * @return unsigned int : config mode
+ */
+L7_uint32 ptin_env_board_config_mode_get(void)
+{
+    return _board_config_mode;
 }
 
 /**
@@ -68,8 +94,8 @@ L7_RC_t ptin_env_init(void)
  * 
  * @return unsigned int : HW version
  */
-L7_uint32 ptin_env_board_config_mode_get(void)
+L7_uint32 ptin_env_board_hw_version_get(void)
 {
-    return _board_config_mode;
+    return _board_hw_version;
 }
 

@@ -287,6 +287,15 @@ int fp_main(int argc, char *argv[])
     return L7_FAILURE;
   }
 
+#if (PTIN_BOARD == PTIN_BOARD_AE48GE)
+  if (ptin_env_board_hw_version_get() < 3)
+  {
+    PT_LOG_CRITIC(LOG_CTX_STARTUP,"AE48GE board: HW-version %u is not supported!",
+                  ptin_env_board_hw_version_get());
+    return L7_FAILURE;
+  }
+#endif
+
   /* PTin added: CPLD and FPGA mapping */
   rc = ptin_fpga_init();
   if (rc != L7_SUCCESS)
