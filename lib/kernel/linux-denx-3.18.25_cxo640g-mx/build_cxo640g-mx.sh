@@ -7,8 +7,16 @@ export CROSS=$DEVDIR/bin/ppc_85xxDP-
 export ARCH=powerpc
 export CROSS_COMPILE=${CROSS}
 
-patch -p1 -R < tg16g.patch
-patch -p1 < cxo640_uP2.patch
+patch -R -p1 -N --dry-run --silent < tg16g.patch
+if [ $? -eq 0 ]; then
+   #patch is applied, remove it
+   patch -N -r - -p1 -R < tg16g.patch
+fi
+patch -p1 -N --dry-run --silent < cxo640_uP2.patch
+if [ $? -eq 0 ]; then
+   #apply the patch
+   patch -N -r - -p1 < cxo640_uP2.patch
+fi
 rm -rf .config
 cp config_cxo640g_uP2 .config
 
