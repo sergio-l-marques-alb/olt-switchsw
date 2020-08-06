@@ -551,7 +551,10 @@ L7_RC_t ptin_intf_portExt_init(void)
   #elif ( !PTIN_BOARD_IS_MATRIX )
     if (port < PTIN_SYSTEM_N_PONS || port < PTIN_SYSTEM_N_ETH)
     {
-      mefExt.macLearn_stationMove_prio = 0;
+      /* do not permit moves between downlinks */
+      mefExt.macLearn_stationMove_prio    = 0;
+      mefExt.macLearn_stationMove_enable  = L7_FALSE;
+      mefExt.macLearn_stationMove_samePrio= 0;
       mefExt.egress_type = PTIN_PORT_EGRESS_TYPE_ISOLATED;
     }
     else
@@ -562,13 +565,13 @@ L7_RC_t ptin_intf_portExt_init(void)
   #endif
 
     /* Only for linecards at slot systems */
-    #if ( PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
+  #if ( PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
     /* If is an internal/backplane port, set as trusted */
     if (!((PTIN_SYSTEM_PON_PORTS_MASK >> port) & 1) && !((PTIN_SYSTEM_ETH_PORTS_MASK >> port) & 1))
     {
       mefExt.dhcp_trusted = L7_TRUE;
     }
-    #endif
+  #endif
 
     /* Apply MEF EXT defaults */
     if (ptin_intf_portExt_set(&ptin_intf, &mefExt)!=L7_SUCCESS)
