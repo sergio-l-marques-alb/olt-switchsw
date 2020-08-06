@@ -38,6 +38,7 @@
 #include "dhcp_snooping_exports.h"
 #include "ptin_dhcp.h"
 #include "ptin_packet.h"
+#include "ptin_evc.h"
 
 #include "dot1q_api.h"
 #include "dot3ad_api.h"
@@ -62,6 +63,7 @@
 #if 1
 #include "ptin_dhcp.h"
 #include "ptin_evc.h"
+#include "dtl_ptin.h"
 #include "ptin_intf.h"
 #include "logger.h"
 
@@ -1525,7 +1527,10 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
   L7_enetHeader_t    *mac_header = 0;
   L7_uint32           relayOptIntIfNum = 0;
   L7_uchar8           broadcast_flag;  
-  
+  L7_uchar8           keyToFind[L7_FDB_KEY_SIZE];
+  dot1dTpFdbData_t    fdbEntry;
+  L7_uint32           ptin_port;
+
   memset(&dhcp_binding, 0x00, sizeof(dhcp_binding));   
 
   ethHdrLen  = sysNetDataOffsetGet(frame);
@@ -1537,6 +1542,59 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
   dhcpPktLen = ipPktLen - ipHdrLen - sizeof(L7_udp_header_t);
   if (ptin_debug_dhcp_snooping)
     PT_LOG_TRACE(LOG_CTX_DHCP, "Packet frameLen = %d, initial UDP length = %d ", frameLen, osapiNtohs(udp_header->length) );
+
+  rc = ptin_intf_intIfNum2port(intIfNum, &ptin_port);
+  if (rc != L7_SUCCESS)
+  {
+    if (ptin_debug_dhcp_snooping)
+    {
+      PT_LOG_ERR(LOG_CTX_DHCP, "intfNum:%u is invalid", intIfNum);
+    }
+    return L7_FAILURE;
+  }
+
+  /* Check for downlink if the MAC is learned and
+     if can be learn .i.e MAC limiting status*/
+  if (ptin_port < PTIN_SYSTEM_N_PONS)
+  {
+    /* Vlan+MAC to search for */
+    keyToFind[0] = (L7_uint8)((vlanId >> 8) & 0x0f);
+    keyToFind[1] = (L7_uint8)(vlanId & 0xff);
+    memcpy(&keyToFind[L7_FDB_IVL_ID_LEN], &dhcpPacket->chaddr, sizeof(L7_uint8) * L7_FDB_MAC_ADDR_LEN);
+
+    /* Search for this key: if  found, return success.
+       For DHCP relay agent if a MAC is already learn continue, else try to see if the MAC can be learned*/
+    if (fdbFind(keyToFind, L7_MATCH_EXACT, &fdbEntry) != L7_SUCCESS)
+    {
+      ptin_l2_maclimit_vp_st_t entry;
+      memset(&entry, 0x00, sizeof(entry));
+      if (ptin_debug_dhcp_snooping)
+      {
+        PT_LOG_TRACE(LOG_CTX_L2, "Entry of Vlan=%u and MAC=%02x:%02x:%02x:%02x:%02x:%02x not found",
+                     vlanId, keyToFind[2], keyToFind[3], keyToFind[4], keyToFind[5], keyToFind[6], keyToFind[7]);
+      }
+
+      entry.vport_id = intf_vp_calc(ptin_port, innerVlanId);
+      if (entry.vport_id != 0x0 && 
+          entry.vport_id != (L7_uint32) -1)
+      {
+        PT_LOG_TRACE(LOG_CTX_L2, "vport id %d ",
+                     entry.vport_id);
+        rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L2_MACLIMIT_VPORT_STATUS, DAPI_CMD_GET, sizeof(ptin_l2_maclimit_vp_st_t), &entry);
+        if (entry.status == L7_TRUE ||
+            rc != L7_SUCCESS)
+        {
+          if (ptin_debug_dhcp_snooping)
+          {
+            PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent:Packet reject, vport_id %d has already reached mac limit (status %d)",
+                       entry.vport_id,
+                       entry.status);
+          }
+          return L7_FAILURE;
+        }
+      }
+    }
+  }
 
   /* Update Binding database only when DHCP Snooping is enabled */
   if ((dsCfgData->dsGlobalAdminMode == L7_ENABLE) && (dsVlanIntfIsSnooping(vlanId,intIfNum) == L7_TRUE))

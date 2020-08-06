@@ -86,6 +86,7 @@ typedef enum
   PTIN_DTL_MSG_EXAMPLE=0,
   PTIN_DTL_MSG_L2_MACLIMIT,
   PTIN_DTL_MSG_L2_MACLIMIT_STATUS,
+  PTIN_DTL_MSG_L2_MACLIMIT_VPORT_STATUS,
   PTIN_DTL_MSG_L3_INTF,
   PTIN_DTL_MSG_L3_IPMC,
   PTIN_DTL_MSG_QOS_CLASSIFY,
@@ -197,6 +198,13 @@ typedef struct
   L7_uint32   status;                  // Check if is over or within the limit. 0-Over, 1- Within*/
 
 } ptin_l2_maclimit_status_t;
+
+/* L2 MAC Limiting status */
+typedef struct
+{
+  L7_uint32   vport_id;                /* vport id */
+  L7_uint8    status;                  /* Check if is over or within the limit. 0-Over, 1- Within */
+} ptin_l2_maclimit_vp_st_t;
 
 typedef struct
 {

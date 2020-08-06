@@ -1081,5 +1081,13 @@ extern L7_RC_t ptin_evc_flow_replicate(L7_uint32 ptin_port, L7_uint32 evc_ext_id
 extern L7_RC_t ptin_evc_p2p_bridge_replicate(L7_uint32 evc_ext_id, L7_uint32 ptin_port, L7_uint32 ptin_port_ngpon2, ptin_HwEthMef10Intf_t *intf);
 extern L7_RC_t ptin_evc_flow_remove_port(L7_uint32 ptin_port, L7_uint32 evc_ext_id);
 extern L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *profile);
-
+/**
+ * Determine vport from pon port and gem id
+ * 
+ * @param pon_port
+ * @param gem_id 
+ * 
+ * @return vport_id (output) 
+ */
+extern L7_uint32 intf_vp_calc(L7_uint16 pon_port, L7_uint16 gem_id);
 #endif /* _PTIN_EVC_H */

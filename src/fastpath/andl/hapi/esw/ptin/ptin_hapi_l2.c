@@ -1060,6 +1060,48 @@ L7_RC_t ptin_hapi_vport_maclimit_setmax(bcm_gport_t gport, L7_uint8 mac_limit)
   return L7_SUCCESS;
 }
 
+
+/**
+ * Get MAC limit state of a particular vport
+ * 
+ * @param vport_id    : vport_id (virtual port)
+ * @param over_limit  : if updated to TRUE is over limit (or 
+ *                    error), if FALSE is under_limit
+ *  
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_hapi_vport_maclimit_status_get(L7_uint32 vport_id, L7_uint8 *over_limit)
+{
+  /* Virtual port ID is valid? */
+  if (vport_id >= MAX_GPORTS)
+  {
+    PT_LOG_NOTICE(LOG_CTX_HAPI, "GPORT is out of range! (vport_id=%u max=%u)", vport_id, MAX_GPORTS);
+    *over_limit = L7_TRUE;
+    return L7_FAILURE;
+  }
+
+  /* Check if the limit is enable and if is over limit */
+  if (macLearn_info_flow[vport_id].enable == TRUE &&
+      macLearn_info_flow[vport_id].mac_counter >= macLearn_info_flow[vport_id].mac_limit)
+  {
+
+    PT_LOG_TRACE(LOG_CTX_HAPI, "GPORT=0x%x is over limit (counter %d , limit %d) ",
+                 vport_id,
+                 macLearn_info_flow[vport_id].mac_counter,
+                 macLearn_info_flow[vport_id].mac_limit);
+    *over_limit = L7_TRUE;
+    return L7_SUCCESS;
+  }
+
+  PT_LOG_TRACE(LOG_CTX_HAPI, "GPORT=0x%x is under limit (counter %d , limit %d) ",
+               vport_id,
+               macLearn_info_flow[vport_id].mac_counter,
+               macLearn_info_flow[vport_id].mac_limit);
+  *over_limit = L7_FALSE;
+  return L7_SUCCESS;  
+}
+
+
 /**
  * Set maximum number of learned MAC addresses
  * 

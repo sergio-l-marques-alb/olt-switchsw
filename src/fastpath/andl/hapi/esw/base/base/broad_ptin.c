@@ -38,6 +38,7 @@ typedef L7_RC_t (*broad_ptin_generic_f)(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t oper
 L7_RC_t broad_ptin_example(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_l2_maclimit(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_l2_maclimit_status(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
+L7_RC_t broad_ptin_l2_maclimit_vport_status(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_l3_intf(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_l3_ipmc(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_qos_classify(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
@@ -54,13 +55,14 @@ L7_RC_t broad_ptin_shaper_max_burst_get(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t oper
 
 
 
-L7_RC_t broadPtin_oam_tx( int unit, int flags, bcm_gport_t gport_dst, bcm_mac_t *mac_dst, bcm_mac_t *mac_src, bcm_oam_endpoint_info_t *endpoint_info);
+L7_RC_t broadPtin_oam_tx(int unit, int flags, bcm_gport_t gport_dst, bcm_mac_t *mac_dst, bcm_mac_t *mac_src, bcm_oam_endpoint_info_t *endpoint_info);
 /* List of callbacks */
-broad_ptin_generic_f ptin_dtl_callbacks[PTIN_DTL_MSG_MAX] = {  
+broad_ptin_generic_f ptin_dtl_callbacks[PTIN_DTL_MSG_MAX] = {
   broad_ptin_example,
   broad_ptin_l2_maclimit,
   broad_ptin_l2_maclimit_status,
-  broad_ptin_l3_intf, 
+  broad_ptin_l2_maclimit_vport_status,
+  broad_ptin_l3_intf,
   broad_ptin_l3_ipmc,
   broad_ptin_qos_classify,
   broad_ptin_qos_remark,
@@ -175,6 +177,35 @@ L7_RC_t broad_ptin_l2_maclimit_status(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operat
 
   rc = ptin_hapi_maclimit_status(usp, &entry->number_mac_learned, &entry->status, dapi_g);
 
+  return rc;
+}
+
+/**
+ * Get a state of MAC limit state of a particular vport
+ * 
+ *
+ *  
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t broad_ptin_l2_maclimit_vport_status(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
+{
+  L7_RC_t rc = L7_SUCCESS;
+  ptin_l2_maclimit_vp_st_t *entry;
+
+  entry = (ptin_l2_maclimit_vp_st_t *)data;
+
+  PT_LOG_TRACE(LOG_CTX_HAPI, "%s: usp={%d,%d,%d} operation=%u dataSize=%u", __FUNCTION__,
+               usp->unit,
+               usp->slot,
+               usp->port,
+               operation,
+                dataSize);
+
+  rc = ptin_hapi_vport_maclimit_status_get(entry->vport_id, &entry->status);
+  if (rc != L7_SUCCESS)
+  {
+     PT_LOG_ERR(LOG_CTX_HAPI, "Failed to get MAC limit state of vport_id %d", entry->vport_id);
+  }
   return rc;
 }
 
