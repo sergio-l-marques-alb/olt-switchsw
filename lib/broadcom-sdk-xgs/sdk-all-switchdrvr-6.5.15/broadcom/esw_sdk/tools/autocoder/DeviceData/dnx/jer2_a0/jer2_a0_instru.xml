@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jer2_a0" module="instru">
+    <includes>
+        <include>bcm/instru.h</include>
+        <include>sal/limits.h</include>
+        <include>soc/dnx/dbal/auto_generated/dbal_defines_fields.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_snif.h</include>
+    </includes>
+
+    <sub_module name="ipt">
+        <numerics>
+        </numerics>
+
+        <tables>
+            <table name="profile_info">
+                <key name="profile_id" size="8"></key>
+                <value name="type" default="-1"></value>
+                <entries>
+                    <entry profile_id="1" type="bcmInstruIptNodeTypeTail"></entry>
+                    <entry profile_id="2" type="bcmInstruIptNodeTypeIntOverVxlanIntermediate"></entry>
+                    <entry profile_id="4" type="bcmInstruIptNodeTypeIntOverVxlanFirst"></entry>
+                    <entry profile_id="6" type="bcmInstruIptNodeTypeIntOverVxlanLast"></entry>                    
+                </entries>
+            </table>
+            
+            <table name="metadata">
+                <key name="flag_id" size="32"></key>
+                <value name="bit" default="SAL_UINT32_MAX"></value>
+                <value name="size" default="SAL_UINT32_MAX"></value>
+                <entries>
+                    <entry flag_id="0" bit="0" size="6"></entry>  <!-- BCM_INSTRU_IPT_METADATA_FLAG_INGRESS_TOD --> 
+                    <entry flag_id="1" bit="1" size="2"></entry>  <!-- BCM_INSTRU_IPT_METADATA_FLAG_INGRESS_SYS_PORT -->
+                    <entry flag_id="2" bit="2" size="2"></entry>  <!-- BCM_INSTRU_IPT_METADATA_FLAG_INGRESS_DEV_ID -->
+                    <entry flag_id="3" bit="3" size="4"></entry>  <!-- BCM_INSTRU_IPT_METADATA_FLAG_INGRESS_RESERVED -->
+                    <entry flag_id="4" bit="4" size="6"></entry>  <!-- BCM_INSTRU_IPT_METADATA_FLAG_EGRESS_TOD -->
+                    <entry flag_id="5" bit="5" size="2"></entry>  <!-- BCM_INSTRU_IPT_METADATA_FLAG_EGRESS_SYS_PORT -->
+                    <entry flag_id="6" bit="6" size="2"></entry>  <!-- BCM_INSTRU_IPT_METADATA_FLAG_EGRESS_DEV_ID -->
+                    <entry flag_id="7" bit="7" size="2"></entry>  <!-- BCM_INSTRU_IPT_METADATA_FLAG_SWITCH_ID -->
+                    <entry flag_id="8" bit="8" size="2"></entry>  <!-- BCM_INSTRU_IPT_METADATA_FLAG_EGRESS_RESERVED -->
+                    <entry flag_id="9" bit="3" size="4"></entry>  <!-- BCM_INSTRU_IPT_METADATA_FLAG_QUEUE_INFO -->                   
+                </entries>
+            </table>
+                        
+        </tables>
+
+    </sub_module>
+    
+    <sub_module name="sflow">
+        <defines>
+            <define name="max_nof_sflow_encaps" value="DATA(snif,ingress,mirror_nof_profiles)"></define>
+            <define name="nof_sflow_raw_entries_per_stack" value="2"></define>
+        </defines>
+    </sub_module>
+    
+
+</device_data>

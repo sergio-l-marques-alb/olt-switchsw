@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="elk" bsl_flag="BSL_LS_BCMDNX_ELKDNX">
+    <includes>
+        <include>soc/kbp/alg_kbp/include/init.h</include>
+    </includes>
+
+    <sub_module name="general" doc="ELK general data.">
+        <defines>
+            <define name="max_ports" doc="Max Elk ports"></define>
+            <define name="rop_fifo_depth" doc="ROP Fifo memory depth in EGW"></define>
+            <define name="max_lane_id" doc="KBP MAX lane id"></define>
+        </defines>
+
+        <numerics>
+            <numeric name="device_type" doc="External Tcam device type."></numeric>
+        </numerics>
+
+        <features>
+        </features>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="application" doc="ELK forwarding applications.">
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <features>
+            <feature name="ipv4" doc="KBP IPv4 application enabled"></feature>
+            <feature name="ipv6" doc="KBP IPv6 application enabled"></feature>
+        </features>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="connectivity" doc="ELK connectivity parameters.">
+        <defines>
+        </defines>
+
+        <numerics>
+            <numeric name="connect_mode" doc="External Tcam connect mode."></numeric>
+            <numeric name="mdio_id" doc="KBP MDIO ID."></numeric>
+        </numerics>
+
+        <features>
+            <feature name="blackhole" doc="KBP Blackhole mode enabled"></feature>
+        </features>
+
+        <tables>
+            <table name="ilkn_reverse" doc="External lookup (elk) ILKN lanes swap">
+                <key name="ilkn_id" size="2" doc="port id elk device side"></key>
+                <value name="reverse" type="uint32" doc="If set, reverse the lanes numbering order on elk device side"></value>
+            </table>
+            <table name="topology" doc="KBP to Jericho connection topology.">
+                <value name="start_lane" type="uint32[DNX_DATA_MAX_ELK_GENERAL_MAX_PORTS]" doc="Start lane number for each kbp port."></value>
+                <value name="port_core_mapping" type="uint32[DNX_DATA_MAX_ELK_GENERAL_MAX_PORTS]" doc="KBP port to Jericho2 core mapping."></value>
+            </table>
+            <table name="kbp_serdes_tx_taps" doc="PHY TX tap configuration on KBP side">
+                <key name="lane_id" size="DATA(elk,general,max_lane_id)" doc="lane id on KBP side"></key>
+                <value name="pre" type="int" doc="Tx fir pre tap"></value>
+                <value name="main" type="int" doc="Tx fir main tap"></value>
+                <value name="post" type="int" doc="Tx fir post tap"></value>
+                <value name="pre2" type="int" doc="Tx fir pre2 tap"></value>
+                <value name="post2" type="int" doc="Tx fir post2 tap"></value>
+                <value name="post3" type="int" doc="Tx fir post3 tap"></value>
+                <value name="txfir_tap_enable" type="enum kbp_blackhawk_tsc_txfir_tap_enable_enum" doc="TXFIR Tap Enable Enum"></value>
+            </table>
+        </tables>
+    </sub_module>
+    <sub_module name="recovery" doc="ELK general data.">
+        <defines>
+        </defines>
+
+        <numerics>
+            <numeric name="enable" doc="Enable the KBP recovery sequence."></numeric>
+            <numeric name="iteration" doc="KBP recovery iteration."></numeric>
+        </numerics>
+
+        <features>
+        </features>
+
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>

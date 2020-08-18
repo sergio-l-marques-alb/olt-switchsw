@@ -1,0 +1,217 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="l3" bsl_flag="BSL_LS_BCMDNX_L3">
+    <sub_module name="egr_pointed" doc="Virtual egress objects which do not access GLEM">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name = "nof_bits_in_egr_pointed_id"  doc = "Number of bits representing one virtual egress pointed object id"></define>
+            <define name = "nof_egr_pointed_ids" doc = "Number of virtual egress pointed object ids"></define>
+            <define name = "first_egr_pointed_id"
+                    doc = "Identifier of very first virtual egress pointed object.
+                           Range is from 'first_egr_pointed_id' to 'nof_egr_pointed_ids - 1'"></define>
+        </defines>
+
+        <numerics>
+        </numerics>        
+        
+        <tables>
+        </tables>
+    </sub_module>
+    <sub_module name="fec" doc="FEC data">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="nof_fecs" doc="The maximal number of FECs supported by the device."></define>
+            <define name="max_fec_id_26k_granularity" doc="The maximal FEC ID when using a 26k FEC granularity."></define> 
+            <define name="max_fec_id_52k_granularity" doc="The maximal FEC ID when using a 52k FEC granularity ."></define>
+            <define name="max_default_fec" doc="The maximal FEC id that can be used for default route."></define>
+            <define name="fec_stage_map_size" doc="The smallest number of FECs which belong to the same hierarchy"></define>
+            <define name="max_fec_stage_map_size" doc="The biggest number of FECs which belong to the same bank"></define>
+            <define name="nof_super_fecs_per_bank" doc="The number of SUPER FEC IDs per resource manager bank."></define>
+            <define name="nof_physical_fecs_per_bank" doc="The number of physical FEC IDs per bank."></define>
+            <define name="super_fec_size" doc="The number of bits of a single super FEC in the MDB."></define>
+            <define name="fec_row_size" doc="The number of bits in a single row in the FEC MDB table."></define>
+            <define name="fec_max_nof_banks" doc="The maximal NOF possible banks in the device (not MDB profile dependent)."></define>
+            <define name="first_bank_without_id_alloc" doc="the first fec allocation bank that can be used for allocating FECs without an ID"></define>
+            <define name="max_super_fec_id" doc="The max ID of the super FEC"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+    <sub_module name="source_address" doc="Source address data.">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="source_address_table_size" doc="The number of entries in the source address table."></define>
+            <define name="custom_sa_use_dual_homing" doc="Indication whether ARP custom sa feature is using EEDB dual homing field or full mac address from source address table."></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="vrf" doc="vrf data.">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="nof_vrf" doc="The maximal number of VRFs supported by the device."></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="routing_enablers" doc="routing enablers data.">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="nof_routing_enablers_profiles" doc="The maximal number of references for a routing enablers vector."></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="rif" doc="Routing interface">
+    
+        <defines>
+            <define name="max_nof_rifs" doc="Maximum number of rifs supported by the device."></define>
+        </defines>
+    
+        <numerics>
+            <numeric name="nof_rifs" doc="Number of rifs available in the system."></numeric>
+        </numerics>
+    </sub_module>
+    
+    <sub_module name="fwd" doc="Forwarding data">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="max_mc_group_lpm" doc="The maximum number of MC group ID for IPMC route entries."></define>
+            <define name="max_mc_group_em" doc="The maximum number of MC group ID for IPMC host entries."></define>
+            <define name="nof_my_mac_prefixes" doc="The number of my MACs prefixes."></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="ecmp" doc="ECMP data">
+
+        <features>
+            <feature name="ecmp_extended" doc="Allows extended number of ECMPs.">
+            </feature>
+        </features>
+
+        <defines>
+            <define name="max_group_size" doc="The maximal size of an ECMP group."></define>
+            <define name="nof_ecmp_per_bank_of_low_ecmps" doc="The low 32k ECMP are placed in a memory of 16 banks, each bank holds 2k ECMPS."></define>
+            <define name="nof_ecmp_basic_mode" doc="Number of ECMP groups that can be created in basic mode as opposed to extended mode"></define>
+            <define name="total_nof_ecmp" doc="The total number of IDs that are considered to be in the ECMP range."></define>
+            <define name="max_ecmp_basic_mode" doc="Maximum ECMP group ID that can be created in basic mode as opposed to extended mode"></define>
+            <define name="max_ecmp_extended_mode" doc="Maximum ECMP group ID that can be created in extended mode"></define>
+            <define name="nof_ecmp_per_bank_of_extended_ecmps" doc="The upper 8k ECMP (from 32k to 40k) are placed in a memory of 16 banks, each bank holds 512 ECMPS."></define>
+            <define name="nof_fec_banks_per_extended_ecmp_bank" doc="nof fec protection banks to be used for 1 ecmp extended bank"></define>
+            <define name="nof_group_profiles_per_hierarchy" doc="Number of profiles that are available for each ECMP hierarchy."></define>
+            <define name="members_table_size_in_bits" doc="The available space for the members table in bits."></define>
+            <define name="ecmp_stage_map_size" doc="The smallest number of consecutive ECMP groups which belong to the same hierarchy"></define>
+            <define name="nof_ecmp_banks_basic" doc="The number of ECMP banks in the basic range of IDs."></define>
+            <define name="nof_ecmp_banks_extended" doc="The number of ECMP banks in the extended range of IDs."></define>
+            <define name="first_valid_ecmp_group_id" doc="The ID of the first valid ECMP group which can be created"></define>
+            <define name="nof_ecmp" doc="Number of ECMPs in the system."></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="source_address_ethernet" doc="SOURCE_ADDRESS_ETHERNET data">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="nof_mymac_prefixes" doc="Number of mymac prefixes"></define>
+        </defines>
+
+        <numerics>
+        </numerics>        
+
+        <tables>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="vrrp" doc="VRRP (multiple my mac) data">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="nof_protocol_groups" doc="Number of L3 protocol groups"></define>
+            <define name="nof_tcam_entries" doc="Size of VRRP TCAM table"></define>
+            <define name="nof_vsi_tcam_entries" doc="Number of enries in VRRP TCAM table that can be used by VSI table"></define>
+            <define name="exem_vrid_ipv4_tcam_index" doc="TCAM index for EXEM VRRP VRID IPv4 protocol"></define>
+            <define name="exem_vrid_ipv6_tcam_index" doc="TCAM index for EXEM VRRP VRID IPv6 protocol"></define>
+            <define name="exem_vrid_ip_tcam_index" doc="TCAM index for EXEM VRRP VRID IPv6 and IPv4 protocols"></define>
+            <define name="exem_default_tcam_index" doc="TCAM index for EXEM VSI LSB or SOURCE-PORT multiple my mac"></define>
+            <define name="exem_default_tcam_index_msb" doc="TCAM index for EXEM VSI MSB multiple my mac"></define>                                             
+        </defines>
+
+        <numerics>
+        </numerics>        
+
+        <tables>
+        </tables>
+    </sub_module>    
+    <sub_module name="hw_bug" doc="L3-related HW bugs">
+
+        <features>
+            <feature name="ipv6_mc_compatible_dmac" doc="IPv6 compatible MC destination MAC is considered UC"></feature>
+            <feature name="fec_hit_bit" doc="Hit bit retrieval for FEC is not supported."></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>
+
+
+
+

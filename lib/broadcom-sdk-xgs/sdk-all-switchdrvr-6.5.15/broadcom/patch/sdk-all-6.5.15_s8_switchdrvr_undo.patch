@@ -1,0 +1,209 @@
+Index: src/soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_mact_mgmt.c
+===================================================================
+--- src/soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_mact_mgmt.c	(revision 2083)
++++ src/soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_mact_mgmt.c	(revision 2084)
+@@ -7142,14 +7142,17 @@ soc_error_t arad_pp_frwrd_mact_learning_
+ 
+     soc_endian_get(unit, &dont,&care,&endian);
+     soc_reg_field_set(unit, CMIC_CMC0_FIFO_CH0_RD_DMA_CFGr, &reg, ENDIANESSf, endian!=0);
+     soc_pci_write(unit, CMIC_CMCx_FIFO_CHy_RD_DMA_CFG_OFFSET(cmc, ch), reg);
+ 
+     /* Set the DMA's source to be the OLP */
+-    SOC_SAND_SOC_IF_ERROR_RETURN(res, 31, exit, MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_mgmt_dma_fifo_channel_set, (unit, channel_number, dma_fifo_channel_src_olp)));                     
++    SOC_SAND_SOC_IF_ERROR_RETURN(res, 31, exit, MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_mgmt_dma_fifo_channel_set, (unit, channel_number, dma_fifo_channel_src_olp)));  
+ 
++    res = jer_mact_fifo_init(unit);
++    SOC_SAND_CHECK_FUNC_RESULT(res, 150, exit);
++                  
+     /* Unmask fifo dma channle ARAD_LEARNING_DMA_CHANNEL_USED interrupts */
+     soc_cmicm_cmcx_intr0_enable(unit, cmc, IRQ_CMCx_FIFO_CH_DMA(ch));
+ 
+ exit:
+     SOC_SAND_EXIT_AND_SEND_ERROR_SOCDNX((_BSL_SOCDNX_SAND_MSG("Something went wrong in arad_pp_frwrd_mact_learning_dma_set")));
+ }
+@@ -7185,13 +7188,16 @@ soc_error_t arad_pp_frwrd_mact_learning_
+             soc_cm_sfree(unit, g_dma_host_memory[unit]);
+         }
+         
+         /* Disonnect DMA engine from the OLP. */
+         SOC_SAND_SOC_IF_ERROR_RETURN(res, 31, exit, MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_mgmt_dma_fifo_channel_set, (unit, channel_number, dma_fifo_channel_src_reserved)));                 
+         
+-        soc_cmicm_cmcx_intr0_disable(unit, cmc, IRQ_CMCx_FIFO_CH_DMA(ch));        
++        soc_cmicm_cmcx_intr0_disable(unit, cmc, IRQ_CMCx_FIFO_CH_DMA(ch));
++        
++        res = jer_mact_fifo_cleanup(unit);
++        SOC_SAND_CHECK_FUNC_RESULT(res, 150, exit);        
+     }
+ 
+ exit:
+     SOC_SAND_EXIT_AND_SEND_ERROR_SOCDNX((_BSL_SOCDNX_SAND_MSG("Something went wrong")));
+ }
+ 
+@@ -7315,12 +7321,110 @@ soc_error_t arad_pp_frwrd_mact_opport_mo
+   *opport = fld_val;
+ 
+ exit:
+   SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_frwrd_mact_opport_mode_set()", opport,0);
+ }
+ 
++VOLATILE sal_sem_t     jer_mact_fifo_sem[SOC_SAND_MAX_DEVICE];
++VOLATILE sal_thread_t  jer_mact_fifo_tid[SOC_SAND_MAX_DEVICE];
++VOLATILE uint8         jer_mact_fifo_terminate[SOC_SAND_MAX_DEVICE];
++
++
++static void jer_mact_fifo_thread(void *param)
++{
++    int             unit = PTR_TO_INT(param);
++    int             channel_number= -1;
++    int             ch = 0;
++    int             cmc = 0;
++    uint32          ret;
++    char            thread_name[SAL_THREAD_NAME_MAX_LEN];
++    sal_thread_t    thread;
++
++    SOCDNX_INIT_FUNC_DEFS;
++    thread = sal_thread_self();
++    thread_name[0] = 0;
++    sal_thread_name(thread, thread_name, sizeof (thread_name));
++
++    bsl_printf("%s - Entered, unit=%d \n", __FUNCTION__, unit);
++    ret = MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_mgmt_dma_fifo_channel_get, (unit, dma_fifo_channel_src_olp, &channel_number));
++    if ((ret != BCM_E_NONE) ||(channel_number == -1))
++        SOCDNX_EXIT_WITH_ERR(SOC_E_MEMORY, (_BSL_SOCDNX_MSG("%s - Cannot get FIFO Channel Number, unit=%d - rc=%d \n"), __FUNCTION__, unit, ret));
++
++    if (soc_feature(unit, soc_feature_cmicm_multi_dma_cmc)) {
++        cmc = channel_number / NOF_DMA_FIFO_PER_CMC;
++        ch = channel_number % NOF_DMA_FIFO_PER_CMC;
++    }
++    bsl_printf("%s - channel=0x%x, cmc=%d, ch=%d \n", __FUNCTION__, channel_number, cmc, ch);
++
++    while (jer_mact_fifo_terminate[unit] == 0)
++    {
++        (void) sal_sem_take(jer_mact_fifo_sem[unit], sal_sem_FOREVER);
++        arad_pp_frwrd_mact_learning_dma_event_handler(INT_TO_PTR(unit), 0, INT_TO_PTR(cmc), INT_TO_PTR(ch), 0);
++    }
++
++exit:
++    soc_cmicm_cmcx_intr0_disable(unit, cmc, IRQ_CMCx_FIFO_CH_DMA(ch));
++    sal_sem_destroy(jer_mact_fifo_sem[unit]);
++    jer_mact_fifo_sem[unit] = NULL;
++    jer_mact_fifo_terminate[unit] = 0;
++    jer_mact_fifo_tid[unit] = SAL_THREAD_ERROR;
++    bsl_printf("%s - Thread Exiting ... \n", __FUNCTION__);
++    sal_thread_exit(0);
++       SOCDNX_FUNC_RETURN_VOID; // make compiler happy for '_rv' variable not used.
++    return;
++}
++
++uint32 jer_mact_fifo_init(int unit)
++{
++  char                        thread_name[SAL_THREAD_NAME_MAX_LEN];
++
++  SOCDNX_INIT_FUNC_DEFS;
++  sal_snprintf(thread_name, sizeof(thread_name), "MACT_fifo_thread.%d", unit);
++  jer_mact_fifo_sem[unit] = sal_sem_create("MACT_fifo_sem", sal_sem_BINARY, 1);
++  //bsl_printf("%s - Entered, unit=%d \n", __FUNCTION__, unit);
++  if(jer_mact_fifo_sem[unit] == NULL) {
++    jer_mact_fifo_cleanup(unit);
++    SOCDNX_EXIT_WITH_ERR(SOC_E_MEMORY, (_BSL_SOCDNX_MSG("Sempahore allocation failure (MACT_fifo_sem.%d"), unit));
++  }
++  jer_mact_fifo_terminate[unit] = 0;
++
++  jer_mact_fifo_tid[unit] = sal_thread_create(thread_name,
++                                              SAL_THREAD_STKSZ,
++                                              50 /* priority */,
++                                              jer_mact_fifo_thread,
++                                              INT_TO_PTR(unit));
++
++  if ((jer_mact_fifo_tid[unit] == NULL) || (jer_mact_fifo_tid[unit] == SAL_THREAD_ERROR)) {
++    jer_mact_fifo_cleanup(unit);
++    SOCDNX_EXIT_WITH_ERR(SOC_SAND_GEN_ERR, (_BSL_SOCDNX_MSG("%s create failed. \n"), thread_name));
++  }
++  bsl_printf("%s - Task %s Craeted - %p \n", __FUNCTION__, thread_name, jer_mact_fifo_tid[unit]);
++
++exit:
++    SOCDNX_FUNC_RETURN;
++}
++
++uint32 jer_mact_fifo_cleanup(int unit)
++{
++    SOCDNX_INIT_FUNC_DEFS;
++
++    bsl_printf("%s - Entered, unit=%d \n", __FUNCTION__, unit);
++    /* Signal the thread to exit and the em if it is active, otherwise directly destroy them */
++    if ((jer_mact_fifo_tid[unit] != NULL) && (jer_mact_fifo_tid[unit] != SAL_THREAD_ERROR)) {
++        jer_mact_fifo_terminate[unit] = 1;
++        sal_sem_give(jer_mact_fifo_sem[unit]);
++    } else {
++        if (jer_mact_fifo_sem[unit]) {
++             sal_sem_destroy(jer_mact_fifo_sem[unit]);
++            jer_mact_fifo_sem[unit] = NULL;
++       }
++    }
++
++    SOCDNX_FUNC_RETURN;
++}
++
+ /* } */
+ 
+ #include <soc/dpp/SAND/Utils/sand_footer.h>
+ 
+ 
+ #endif /* of #if defined(BCM_88650_A0) */
+Index: include/soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_mact_mgmt.h
+===================================================================
+--- include/soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_mact_mgmt.h	(revision 2083)
++++ include/soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_mact_mgmt.h	(revision 2084)
+@@ -1634,12 +1634,19 @@ soc_error_t arad_pp_frwrd_mact_clear_acc
+ 
+ soc_error_t arad_pp_frwrd_mact_opport_mode_get(
+     SOC_SAND_IN  int                   unit,
+     SOC_SAND_OUT  uint32                *opport
+   );
+ 
++extern volatile sal_sem_t     jer_mact_fifo_sem[SOC_SAND_MAX_DEVICE];
++extern volatile sal_thread_t  jer_mact_fifo_tid[SOC_SAND_MAX_DEVICE];
++extern volatile uint8         jer_mact_fifo_terminate[SOC_SAND_MAX_DEVICE];
++
++uint32 jer_mact_fifo_init(int unit);
++uint32 jer_mact_fifo_cleanup(int unit);
++
+ /* } */
+ 
+ #include <soc/dpp/SAND/Utils/sand_footer.h>
+ 
+ /* } __ARAD_PP_FRWRD_MACT_INCLUDED__*/
+ 
+Index: src/soc/common/intr_cmicm.c
+===================================================================
+--- src/soc/common/intr_cmicm.c	(revision 2083)
++++ src/soc/common/intr_cmicm.c	(revision 2084)
+@@ -773,26 +773,16 @@ soc_cmicm_fifo_dma_done(int unit, uint32
+                 }
+             }
+ #endif
+ 
+     } else if (SOC_IS_JERICHO(unit) && (vchan == olp_channel))  {
+ #ifdef BCM_PETRA_SUPPORT
+-        uint32 rv;
+ 
+         /* Enable is done in the end of the handler */
+-        (void)soc_cmicm_cmcx_intr0_disable(unit, cmc, IRQ_CMCx_FIFO_CH_DMA(ch));
+-        rv = sal_dpc(arad_pp_frwrd_mact_learning_dma_event_handler, INT_TO_PTR(unit), 0, INT_TO_PTR(cmc), INT_TO_PTR(ch), 0);
+-        if (rv)
+-        {
+-            LOG_INFO(BSL_LS_SOC_INTR,
+-                         (BSL_META_U(unit,
+-                                     "sal_dpc failed to queue arad_pp_frwrd_mact_learning_dma_event_handler !!\n")));
+-
+-            /* sal_dpc failed. Enable the interrupt */
+-            soc_cmicm_cmcx_intr0_enable(unit, cmc, IRQ_CMCx_FIFO_CH_DMA(ch));
+-        }
++         if (jer_mact_fifo_sem[unit])
++             sal_sem_give(jer_mact_fifo_sem[unit]);
+ #endif
+     }
+     else if (SOC_IS_DFE(unit))
+     {
+ #ifdef BCM_DFE_SUPPORT
+         if (SOC_DFE_CONTROL(unit)->rx_thread_fifo_dma_semaphore != NULL)

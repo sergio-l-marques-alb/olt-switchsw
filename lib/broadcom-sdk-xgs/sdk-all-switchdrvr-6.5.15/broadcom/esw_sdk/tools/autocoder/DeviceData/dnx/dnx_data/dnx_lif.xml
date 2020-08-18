@@ -1,0 +1,128 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="lif" bsl_flag="BSL_LS_BCMDNX_LIF">
+    <sub_module name="global_lif" doc="Global lif attributes">
+
+        <features>
+        </features>
+        
+        
+        <defines>
+            <define name="nof_global_l2_gport_lifs" doc="The mpls and vlan ports don't have enough bits to support the full global lif address.
+Their number is limited by this value."></define>
+            <define name="glem_rif_optimization_enabled" doc="Amount of out RIFs one GLEM entry can hold for optimized GLEM usage is 4."></define>
+        </defines>
+
+        <numerics>
+            <numeric name="nof_global_in_lifs" doc="Number of in global lifs in the device."></numeric>
+            <numeric name="nof_global_out_lifs" doc="Number of out global lifs in the device."></numeric>
+            <numeric name="nof_glem_lines" doc="Number of entries in the GLEM.
+                    This is the maximum number of egress global lifs in the system."></numeric>
+        </numerics>
+
+        <tables>
+        </tables>
+        
+    </sub_module>
+
+    <sub_module name="in_lif" doc="In lif attributes">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="inlif_index_bit_size" doc="This is the size of a single index in the inlif table. Divide the entry 
+bit size by this to get its size in indexes."></define>
+            <define name="inlif_minimum_index_size" doc="The minimum size in indexes of an inlif entry"></define>
+            <define name="inlif_resource_tag_size" doc ="The size of the inlif resource's n-packs. The packs are used to 
+prevent fragmentation by assigning each pack a fixed entry size. The pack should be 
+the least common denominator of every possible entry side. See the SDD for full description."></define>
+            <define name="nof_in_lif_profiles" doc="Number of possible in_lif profiles."></define>
+            <define name="nof_used_in_lif_profile_bits" doc="Number of used in_lif_profile bits out of 8."></define>
+            <define name="nof_used_eth_rif_profile_bits" doc="Number of used eth_rif_profile bits."></define>
+            <define name="nof_in_lif_incoming_orientation" doc="Number of possible in_lif profile incoming orientation groups."></define>
+            <define name="nof_eth_rif_profiles" doc="Number of possible eth_rif profiles."></define>
+            <define name="nof_da_not_found_destination_profiles" doc="Number of da_not_found_destination profiles."></define>
+            <define name="default_da_not_found_destination_profile" doc="Default da_not_found_destination profile."></define>
+            <define name="drop_in_lif" doc="local in_lif id performing trap with drop action."></define>
+        </defines > 
+
+
+        <numerics>
+            <numeric name="nof_dpc_local_in_lifs" doc="Number of duplicate per core local inlifs in the device. This value is per core,
+so the overall number is twice that."></numeric>
+            <numeric name="dpc_local_inlif_array_sw_size" doc="Size of sw array needed for dpc local inlif. This value is for the
+whole system, and not just per core."></numeric>
+            <numeric name="dpc_local_inlif_hash_sw_size" doc="Size of sw hash table needed for dpc local inlif. This value is for the
+whole system, and not just per core."></numeric>
+
+            <numeric name="nof_sbc_local_in_lifs" doc="Number of shared by cores local inlifs in the device."></numeric>
+            <numeric name="sbc_local_inlif_array_sw_size" doc="Size of sw array needed for sbc local inlif."></numeric>
+            <numeric name="sbc_local_inlif_hash_sw_size" doc="Size of sw hash table needed for sbc local inlif."></numeric>
+
+            <numeric name="all_local_inlifs_array_sw_size" doc="Size of sw array needed for dpc + sbc local inlifs. This value is for the
+whole system, and not just per core."></numeric>
+            <numeric name="all_local_inlif_hash_sw_size" doc="Size of sw hash table needed for dpc local inlif. This value is for the
+whole system, and not just per core."></numeric>
+
+            <numeric name="in_lif_profile_allocate_orientaion" doc="number of bits needed for egress property in_lif_orientation in in_lif_profile"></numeric>
+            <numeric name="in_lif_profile_allocate_policer_inner_dp" doc="number of bits needed for egress property ive_inner_qos_dp_profile in in_lif_profile."></numeric>
+            <numeric name="in_lif_profile_allocate_policer_outer_dp" doc="number of bits needed for egress property ive_outer_qos_dp_profile in in_lif_profile."></numeric>
+            <numeric name="in_lif_profile_allocate_same_interface_mode" doc="number of bits needed for egress property in_lif_profile_allocate_same_interface_mode in in_lif_profile."></numeric>
+        </numerics>
+
+
+        <tables>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="out_lif" doc="Out lif attributes">
+
+        <features>
+        </features>
+        <defines>
+            <define name="nof_out_lif_profiles" doc="Number of possible out_lif profiles."></define>
+            <define name="nof_out_lif_outgoing_orientation" doc="Number of possible out_lif profile outgoing orientation groups."></define>
+            <define name="outlif_pointer_size" doc="The number of bits in the outlif pointer used in the system."></define>
+            <define name="local_outlif_width" doc="The number of bits in the local outlif from GLEM."></define>
+            <define name="outlif_profile_width" doc="The number of bits in the outlif profile from GLEM."></define>
+            <define name="glem_result" doc="The number of bits in GLEM result."></define>
+            <define name="nof_local_out_lifs" doc="Number of potential local outlifs in the device. Derived from the pointer size."></define>
+            <define name="allocation_bank_size" doc="Size of the outlif bank used by the outlif allocation algorithm."></define>
+            <define name="physical_bank_pointer_size" doc="How many bits from the outlif pointer are used to indicate the physical bank."></define>
+            <define name="physical_bank_size" doc="Size of the outlif bank used by the phase map and mags. Derived from the outlif pointer size 
+and the physical bank pointer size."></define>
+        </defines>
+        <numerics>
+        </numerics>
+
+
+        <tables>
+            <table name="logical_to_physical_phase_map" doc="Map outlif logical phase to physical phase. 
+The reverse mapping is implied from this.">
+                <key name="logical_phase" doc="Logical phase to map."></key>
+                <value name="physical_phase" type="int" doc="Mapped physical phase."></value>
+            </table>
+        </tables>
+        
+
+    </sub_module>
+
+    <sub_module name="lif_table_manager" doc="module for local lif allocation">
+
+        <features>
+        </features>
+        
+        
+        <defines>
+            <define name="max_nof_lif_tables" doc="Maximal number of logical lif tables (inlif + outlif)"></define>
+            <define name="max_nof_result_types" doc="Maximal number of result types in lif table"></define>
+            <define name="max_fields_per_result_type" doc="Maximal number of fields for one result types in lif table"></define>
+        </defines>
+
+        <tables>
+        </tables>
+        
+    </sub_module>
+
+</device_data>

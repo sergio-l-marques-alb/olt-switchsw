@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="access" bsl_flag="BSL_LS_BCMDNX_ACCESSDNX">
+    <includes>
+        <include>bcm/port.h</include>
+    </includes>
+
+    <sub_module name="mdio" doc="mdio related data">
+
+        <features>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+            <numeric name="ext_divisor" doc="external MDIO clock rate divisor"></numeric>
+            <numeric name="int_divisor" doc="internal MDIO clock rate divisor"></numeric>
+            <numeric name="out_delay" doc="number of clock delay between the rising edge of MDC and the starting data of MDIO"></numeric>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+    <sub_module name="rcpu" doc="rcpu related data">
+
+        <features>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        <table name="rx" doc="general data about rx">
+        <value name="pbmp" type="bcm_pbmp_t" doc="valid ports on which RCPU packets can be received by slave device"></value>
+            </table>
+        </tables>
+
+    </sub_module>
+</device_data>

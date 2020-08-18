@@ -1,0 +1,309 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jer2_b0"  module="field">
+
+    <includes>
+        <include>bcm_int/dnx/field/field_map.h</include>
+    </includes>
+    
+    <sub_module name="efes" doc="EFES data">
+        <defines>
+            <!--
+                This value represents the maximum number of key_selects that can access a single field IO.
+                Determined by the biggest field_io, a double key direct extraction (that is 320 bits).                
+            -->
+            <define name="max_nof_key_selects_per_field_io" value="11"></define>
+        </defines>
+        <tables>
+            <table name="key_select_properties">
+                <key name="stage" size="DNX_FIELD_STAGE_NOF"></key>
+                <key name="field_io" size="DBAL_NOF_ENUM_FIELD_IO_VALUES"></key>
+                <value name="key_select" default="-1"/>
+                <value name="num_bits" default="0"></value>
+                <value name="lsb" default="0"></value>
+                <value name="num_bits_not_on_key" default="0"></value>
+                <entries>
+                    <!--
+                        Each entry in this table represents a field IO (for example, the result of the second TCAM lookup in the stage,
+                        or of th first key that can be used be direct extraction.
+                        For each field IO, we have arrays, with each index relevant for a single key select that can access the field IO.
+                        For each key select, we provide 3 parameters: 
+                            num_bits: The number of bits of the field IO that the key select can read.
+                            lsb: The first bit on the field IO read by the key_select.
+                            num_bits_not_on_key: The number of bits on the LSB of the key select before the first bit on the field_io.
+                                                 Note that bits on the MSB of the key select not on the field io are not counted here.
+                        For example, let's take DBAL_ENUM_FVAL_FIELD_IO_LEXEM. It is composed of 60 bits (we do not count zero padding)
+                        and can be Accessed by 3 key selects:
+                        
+                             <______________________IELD_IO_LEXEM______________________________> 
+           <________KEY_SELECT_LEXEM_27_0_4_B0_TCAM_7_63_32________> 
+                        <_______KEY_SELECT_LEXEM_59_0_4_B0_____________________________________>
+                                                                    <__________KEY_SELECT_SEXEM_27_0_4_B0_LEXEM_59_28________>                             
+                        KEY_SELECT_LEXEM_27_0_4_B0_TCAM_7_63_32 includes 32 bits from an earlier field_io, 4 bits of zero padding and then 
+                        28 bits from the beginning of the field_io. So num_bits=28, lsb=0 and num_bits_not_on_key=32+4=36.
+                        KEY_SELECT_LEXEM_59_0_4_B0 includes 4 bytes of zero padding,and then the entire field io, so
+                        num_bits=60 lsb=0 num_bits_not_on_key=4.
+                        KEY_SELECT_SEXEM_27_0_4_B0_LEXEM_59_28 includes 32 bits from the field_io starting from bit 28, plus 4 bits zero padding,
+                        plus 28 bits from the next field_io. So num_bits=32 lsb=28 and num_bits_not_on_key=0
+                        Note that the names of the key selects indicate what they contain, from MSB to LSB.
+                        Also note that each key select contains 64 bits, and is another 32 bits displacement from the last key select.
+                    -->
+                    <!-- Entries for iPMF1/2  -->
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_0" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_0_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_1_31_0_TCAM_0_63_32"
+                        num_bits="64, 32" lsb= "0, 32" num_bits_not_on_key="0, 0"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_1" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_1_31_0_TCAM_0_63_32, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_1_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_2_31_0_TCAM_1_63_32"
+                        num_bits="32, 64, 32" lsb= "0, 0, 32" num_bits_not_on_key="32, 0, 0"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_2" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_2_31_0_TCAM_1_63_32, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_2_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_3_31_0_TCAM_2_63_32"
+                        num_bits="32, 64, 32" lsb= "0, 0, 32" num_bits_not_on_key="32, 0, 0"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_3" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_3_31_0_TCAM_2_63_32, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_3_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_4_31_0_TCAM_3_63_32"
+                        num_bits="32, 64, 32" lsb= "0, 0, 32" num_bits_not_on_key="32, 0, 0"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_4" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_4_31_0_TCAM_3_63_32, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_4_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_5_31_0_TCAM_4_63_32"
+                        num_bits="32, 64, 32" lsb= "0, 0, 32" num_bits_not_on_key="32, 0, 0"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_5" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_5_31_0_TCAM_4_63_32, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_5_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_6_31_0_TCAM_5_63_32"
+                        num_bits="32, 64, 32" lsb= "0, 0, 32" num_bits_not_on_key="32, 0, 0"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_6" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_6_31_0_TCAM_5_63_32, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_6_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_7_31_0_TCAM_6_63_32"
+                        num_bits="32, 64, 32" lsb= "0, 0, 32" num_bits_not_on_key="32, 0, 0"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_7" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_7_31_0_TCAM_6_63_32, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_7_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_LEXEM_27_0_4_B0_TCAM_7_63_32"
+                        num_bits="32, 64, 32" lsb= "0, 0, 32" num_bits_not_on_key="32, 0, 0"></entry>
+                        
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_0_1" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_0_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_1_31_0_TCAM_0_63_32, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_1_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_2_31_0_TCAM_1_63_32"
+                        num_bits="64, 64, 64, 32" lsb= "0, 32, 64, 96" num_bits_not_on_key="0, 0, 0, 0"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_1_2" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_1_31_0_TCAM_0_63_32, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_1_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_2_31_0_TCAM_1_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_2_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_3_31_0_TCAM_2_63_32"
+                        num_bits="32, 64, 64, 64, 32" lsb= "0, 0, 32, 64, 96" num_bits_not_on_key="32, 0, 0, 0, 0"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_2_3" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_2_31_0_TCAM_1_63_32, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_2_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_3_31_0_TCAM_2_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_3_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_4_31_0_TCAM_3_63_32"
+                        num_bits="32, 64, 64, 64, 32" lsb= "0, 0, 32, 64, 96" num_bits_not_on_key="32, 0, 0, 0, 0"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_4_5" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_4_31_0_TCAM_3_63_32, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_4_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_5_31_0_TCAM_4_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_5_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_6_31_0_TCAM_5_63_32"
+                        num_bits="32, 64, 64, 64, 32" lsb= "0, 0, 32, 64, 96" num_bits_not_on_key="32, 0, 0, 0, 0"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_5_6" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_5_31_0_TCAM_4_63_32, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_5_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_6_31_0_TCAM_5_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_6_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_7_31_0_TCAM_6_63_32"
+                        num_bits="32, 64, 64, 64, 32" lsb= "0, 0, 32, 64, 96" num_bits_not_on_key="32, 0, 0, 0, 0"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_6_7" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_6_31_0_TCAM_5_63_32, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_6_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_7_31_0_TCAM_6_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_7_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_LEXEM_27_0_4_B0_TCAM_7_63_32"
+                        num_bits="32, 64, 64, 64, 32" lsb= "0, 0, 32, 64, 96" num_bits_not_on_key="32, 0, 0, 0, 0"></entry>
+                    
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_LEXEM" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_LEXEM_27_0_4_B0_TCAM_7_63_32, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_LEXEM_59_0_4_B0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_SEXEM_27_0_4_B0_LEXEM_59_28"
+                        num_bits="28, 60, 32" lsb= "0, 0, 28" num_bits_not_on_key="36, 4, 0"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_SEXEM" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_SEXEM_27_0_4_B0_LEXEM_59_28, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_SEXEM_59_0_4_B0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_I_31_0_SEXEM_59_28"
+                        num_bits="28, 60, 32" lsb= "0, 0, 28" num_bits_not_on_key="36, 4, 0"></entry>
+                        
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_DIRECT_0" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_DIRECT_0_23_0_8_B0_KEY_J_159_128, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_DIRECT_0_55_0_8_B0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_DIRECT_0_87_24,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_DIRECT_0_119_56,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_DIRECT_1_23_0_8_B0_DIRECT_0_119_88"
+                        num_bits="24, 56, 64, 64, 32" lsb= "0, 0, 24, 56, 88" num_bits_not_on_key="40, 8, 0, 0, 0"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_DIRECT_1" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_DIRECT_1_23_0_8_B0_DIRECT_0_119_88, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_DIRECT_1_55_0_8_B0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_DIRECT_1_87_24,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_DIRECT_1_119_56,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_DIRECT_1_119_88"
+                        num_bits="24, 56, 64, 64, 32" lsb= "0, 0, 24, 56, 88" num_bits_not_on_key="40, 8, 0, 0, 0"></entry>
+                        
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_DIR_EXT_KEY_0" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_I_31_0_SEXEM_59_28, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_I_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_I_95_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_I_127_64,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_I_159_96,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_J_31_0_KEY_I_159_128"
+                        num_bits="32, 64, 64, 64, 64, 32" lsb= "0, 0, 32, 64, 96, 128" num_bits_not_on_key="32, 0, 0, 0, 0, 0"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_DIR_EXT_KEY_1" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_J_31_0_KEY_I_159_128, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_J_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_J_95_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_J_127_64,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_J_159_96,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_DIRECT_0_23_0_8_B0_KEY_J_159_128"
+                        num_bits="32, 64, 64, 64, 64, 32" lsb= "0, 0, 32, 64, 96, 128" num_bits_not_on_key="32, 0, 0, 0, 0, 0"></entry>
+                        
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_DIR_EXT_KEY_0_1" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_I_31_0_SEXEM_59_28, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_I_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_I_95_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_I_127_64,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_I_159_96,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_J_31_0_KEY_I_159_128,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_J_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_J_95_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_J_127_64,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_J_159_96,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_DIRECT_0_23_0_8_B0_KEY_J_159_128"
+                        num_bits="32, 64, 64, 64, 64, 64, 64, 64, 64, 64, 32" lsb= "0, 0, 32, 64, 96, 128, 160, 192, 224, 256, 288" num_bits_not_on_key="32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0"></entry>
+                    
+                    <!-- Entries for iPMF3  -->
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_0" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_TCAM_0_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_TCAM_1_31_0_TCAM_0_63_32"
+                        num_bits="64, 32" lsb= "0, 32" num_bits_not_on_key="0, 0"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_1" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_TCAM_1_31_0_TCAM_0_63_32, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_TCAM_1_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_SEXEM_27_0_4_B0_TCAM_1_63_32"
+                        num_bits="32, 64, 32" lsb= "0, 0, 32" num_bits_not_on_key="32, 0, 0"></entry>
+                        
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_0_1" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_TCAM_0_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_TCAM_1_31_0_TCAM_0_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_TCAM_1_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_SEXEM_27_0_4_B0_TCAM_1_63_32"
+                        num_bits="64, 64, 64, 32" lsb= "0, 32, 64, 96" num_bits_not_on_key="0, 0, 0, 0"></entry>
+                        
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" field_io="DBAL_ENUM_FVAL_FIELD_IO_SEXEM" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_SEXEM_27_0_4_B0_TCAM_1_63_32, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_SEXEM_59_0_4_B0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_A_31_0_SEXEM_59_28"
+                        num_bits="28, 60, 32" lsb= "0, 0, 28" num_bits_not_on_key="36, 4, 0"></entry>
+                        
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" field_io="DBAL_ENUM_FVAL_FIELD_IO_DIRECT_0" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_DIRECT_31_0_KEY_B_159_128, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_DIRECT_55_0_8_B0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_DIRECT_87_24,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_DIRECT_119_56"
+                        num_bits="24, 56, 64, 64" lsb= "0, 0, 24, 56" num_bits_not_on_key="40, 8, 0, 0"></entry>
+                        
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" field_io="DBAL_ENUM_FVAL_FIELD_IO_DIR_EXT_KEY_0" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_A_31_0_SEXEM_59_28, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_A_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_A_95_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_A_127_64,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_A_159_96,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_B_31_0_KEY_A_159_128"
+                        num_bits="32, 64, 64, 64, 64, 32" lsb= "0, 0, 32, 64, 96, 128" num_bits_not_on_key="32, 0, 0, 0, 0, 0"></entry>
+                        
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" field_io="DBAL_ENUM_FVAL_FIELD_IO_DIR_EXT_KEY_1" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_B_31_0_KEY_A_159_128, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_B_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_B_95_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_B_127_64,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_B_159_96,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_DIRECT_31_0_KEY_B_159_128"
+                        num_bits="32, 64, 64, 64, 64, 32" lsb= "0, 0, 32, 64, 96, 128" num_bits_not_on_key="32, 0, 0, 0, 0, 0"></entry>
+                        
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" field_io="DBAL_ENUM_FVAL_FIELD_IO_DIR_EXT_KEY_0_1" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_A_31_0_SEXEM_59_28, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_A_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_A_95_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_A_127_64,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_A_159_96,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_B_31_0_KEY_A_159_128,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_B_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_B_95_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_B_127_64,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_B_159_96,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_DIRECT_31_0_KEY_B_159_128"
+                        num_bits="32, 64, 64, 64, 64, 64, 64, 64, 64, 64, 32" lsb= "0, 0, 32, 64, 96, 128, 160, 192, 224, 256, 288" num_bits_not_on_key="32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0"></entry>
+                        
+                    <!-- Entries for ePMF  -->
+                    <entry stage="DNX_FIELD_STAGE_EPMF" field_io="DBAL_ENUM_FVAL_FIELD_IO_LEXEM" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_E_PMF_FES_KEY_SELECT_LEXEM_4_B0_59_0, 
+                                    DBAL_ENUM_FVAL_FIELD_E_PMF_FES_KEY_SELECT_TCAM_0_PAYLOAD_31_0_4_B0_LEXEM_59_32"
+                        num_bits="60, 32" 
+                        lsb= "0, 28" 
+                        num_bits_not_on_key="4, 0"></entry>
+                        
+                    <entry stage="DNX_FIELD_STAGE_EPMF" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_0" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_E_PMF_FES_KEY_SELECT_TCAM_0_PAYLOAD_31_0_4_B0_LEXEM_59_32, 
+                                    DBAL_ENUM_FVAL_FIELD_E_PMF_FES_KEY_SELECT_TCAM_0_PAYLOAD_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_E_PMF_FES_KEY_SELECT_TCAM_1_PAYLOAD_31_0_TCAM_0_PAYLOAD_63_32"
+                        num_bits="32, 64, 32" lsb= "0, 0, 32" num_bits_not_on_key="32, 0, 0"></entry>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_1" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_E_PMF_FES_KEY_SELECT_TCAM_1_PAYLOAD_31_0_TCAM_0_PAYLOAD_63_32, 
+                                    DBAL_ENUM_FVAL_FIELD_E_PMF_FES_KEY_SELECT_TCAM_1_PAYLOAD_63_0"
+                        num_bits="32, 64" lsb= "0, 0" num_bits_not_on_key="32, 0"></entry>
+                        
+                    <entry stage="DNX_FIELD_STAGE_EPMF" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_0_1" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_E_PMF_FES_KEY_SELECT_TCAM_0_PAYLOAD_31_0_4_B0_LEXEM_59_32, 
+                                    DBAL_ENUM_FVAL_FIELD_E_PMF_FES_KEY_SELECT_TCAM_0_PAYLOAD_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_E_PMF_FES_KEY_SELECT_TCAM_1_PAYLOAD_31_0_TCAM_0_PAYLOAD_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_E_PMF_FES_KEY_SELECT_TCAM_1_PAYLOAD_63_0"
+                        num_bits="32, 64, 64, 64" lsb= "0, 0, 32, 64" num_bits_not_on_key="32, 0, 0, 0"></entry>
+                        
+                    <!-- Entries for ACE  -->
+                    <entry stage="DNX_FIELD_STAGE_ACE" field_io="DBAL_ENUM_FVAL_FIELD_IO_ACE" 
+                        key_select="0"
+                        num_bits="104" lsb= "0" num_bits_not_on_key="0"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="init" doc="Field defines and features related to init.">
+        <defines>
+            <define name="wa_fec_dest" value="1"></define>
+            <define name="wa_l4_trap" value="0"></define>
+            <define name="wa_oam_layer_index" value="1"></define>
+            <define name="wa_oam_stat" value="0"></define>
+            <define name="wa_flow_id" value="1"></define>
+            <define name="wa_roo" value="1"></define>
+            <define name="wa_j1_same_port" value="1"></define>
+
+        </defines>
+    </sub_module>
+    
+    <sub_module name="minor_changes_j2_a0_b0">
+        <defines>
+            <define name="lr_eth_is_da_mac_valid" value="1"></define>
+            <!-- FIXME SDK-155362: Enable tcam_result_flip_eco when ECO gets supported by C-model -->
+            <define name="tcam_result_flip_eco" value="1"></define>
+            <define name="per_pp_port_pmf_profile_cs_offset" value="83"></define>
+        </defines>
+    </sub_module>
+    
+</device_data>
