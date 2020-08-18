@@ -1617,6 +1617,8 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init)
  */
 L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable)
 {
+  /* Code regarding to forcelinks procedures is going to be removed */
+#if (SDK_VERSION_IS <= SDK_VERSION(6,5,7,0))
   int fault, linkStatus;
   bcm_pbmp_t pbmp;
 
@@ -1670,7 +1672,7 @@ L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable)
   }
 
   PT_LOG_DEBUG(LOG_CTX_HAPI, "Linkscan applied to bcm_port %u (enable=%u)", bcm_port, enable);
-
+#endif
   return L7_SUCCESS;
 }
 
@@ -2193,6 +2195,8 @@ L7_RC_t ptin_hapi_linkscan_get(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 *enable
  */
 L7_RC_t ptin_hapi_linkscan_set(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
 {
+  /* Code regarding to forcelinks procedures is going to be removed */
+#if (SDK_VERSION_IS <= SDK_VERSION(6,5,7,0))
   PT_LOG_DEBUG(LOG_CTX_HAPI, "Linkscan procedure to usp {%d,%d,%d}", usp->unit, usp->slot, usp->port);
 
   DAPI_PORT_t  *dapiPortPtr;
@@ -2300,6 +2304,9 @@ L7_RC_t ptin_hapi_linkscan_set(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
                usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable, rc);
 
   return rc;
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /**
@@ -2314,6 +2321,8 @@ L7_RC_t ptin_hapi_linkscan_set(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
  */
 L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_uint8 enable)
 {
+  /* Code regarding to forcelinks procedures is going to be removed */
+#if (SDK_VERSION_IS <= SDK_VERSION(6,5,7,0))
   PT_LOG_DEBUG(LOG_CTX_HAPI, "Force link procedure (link=%u, enable=%u) for usp {%d,%d,%d}", link, enable, usp->unit, usp->slot, usp->port);
 
   DAPI_PORT_t  *dapiPortPtr;
@@ -2532,6 +2541,9 @@ L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_
   }
 
   return rc;
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /**
