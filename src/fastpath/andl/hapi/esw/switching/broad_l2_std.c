@@ -60,7 +60,6 @@
 #else
 #include "bcm_int/esw/draco.h"
 #endif
-#include "bcm_int/robo/l2.h"
 #include "bcm_int/esw/firebolt.h"
 /* PTin removed: SDK 6.3.0 */
 #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
@@ -73,7 +72,6 @@
 #include "l7_usl_bcmx_port.h"
 #include "l7_usl_api.h"
 #include "bcm/auth.h"
-#include "bcm_int/robo/auth.h"
 #include "osapi_support.h"
 #include "dot1s_exports.h"
 #if defined(L7_METRO_PACKAGE) && defined(L7_DOT1AD_PACKAGE)
@@ -1521,24 +1519,6 @@ L7_RC_t hapiBroadIntfDoubleVlanTagConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *
         {
           return L7_FAILURE;
         }
-
-#if defined(L7_METRO_PACKAGE) && defined(L7_DOT1AD_PACKAGE)
-      if(hapiBroadRoboVariantCheck() == __BROADCOM_53115_ID)
-      {
-         if (hapiBroadRoboDoubleVlanDenyRule(dapi_g, L7_TRUE)!= L7_SUCCESS)
-         {
-            SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                     "\n%s %d: In %s call to 'hapiBroadRoboDoubleVlanDenyRule' - FAILED\n",
-                     __FILE__, __LINE__, __FUNCTION__);
-         }
-         if (hapiBroadDot1adProtoSnoopInstall(dapi_g, L7_TRUE)!= L7_SUCCESS)
-         {
-            SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                     "\n%s %d: In %s call to 'hapiBroadDot1adProtoSnoopInstall' - FAILED\n",
-                     __FILE__, __LINE__, __FUNCTION__);
-         }
-      }
-#endif
     }
 
     if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr) == L7_TRUE)
@@ -1583,27 +1563,10 @@ L7_RC_t hapiBroadIntfDoubleVlanTagConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *
 #else
       rv = usl_bcmx_dvlan_mode_set(HAPI_BROAD_DTAG_MODE_NONE);
 #endif
-        if (L7_BCMX_OK(rv) != L7_TRUE)
-        {
-          return L7_FAILURE;
-        }
-#if defined(L7_METRO_PACKAGE) && defined(L7_DOT1AD_PACKAGE)
-      if(hapiBroadRoboVariantCheck() == __BROADCOM_53115_ID)
+      if (L7_BCMX_OK(rv) != L7_TRUE)
       {
-         if (hapiBroadRoboDoubleVlanDenyRule(dapi_g,L7_FALSE)!= L7_SUCCESS)
-         {
-            SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                     "\n%s %d: In %s call to 'hapiBroadRoboDoubleVlanDenyRule' - FAILED\n",
-                     __FILE__, __LINE__, __FUNCTION__);
-         }
-         if (hapiBroadDot1adProtoSnoopInstall(dapi_g, L7_FALSE)!= L7_SUCCESS)
-         {
-            SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                     "\n%s %d: In %s call to 'hapiBroadDot1adProtoSnoopInstall' - FAILED\n",
-                     __FILE__, __LINE__, __FUNCTION__);
-         }
+        return L7_FAILURE;
       }
-#endif
       dapi_g->system->dvlanEnable = L7_FALSE;
     }
     /*Only modify the counter in case the mode is different from the previous setting*/
@@ -1932,9 +1895,7 @@ L7_RC_t hapiBroadIntfMacLockConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
   DAPI_PORT_t             *dapiPortPtr;
   BROAD_PORT_t            *hapiPortPtr;
   bcmx_lport_t            lport;
-#ifdef L7_ROBO_SUPPORT
-  int mode = 0, rv;
-#endif
+
   if (dapiCmd->cmdData.macLockConfig.getOrSet != DAPI_CMD_SET)
   {
     result = L7_FAILURE;
@@ -1964,39 +1925,12 @@ L7_RC_t hapiBroadIntfMacLockConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
   {
     if (dapiCmd->cmdData.macLockConfig.lock == L7_TRUE)
     {
-#ifdef L7_ROBO_SUPPORT
-      mode = (BCM_AUTH_MODE_AUTH |BCM_AUTH_SEC_SIMPLIFY_MODE);
-
-      /* Always start with  uncontrolled */
-      rv = bcmx_auth_mode_set (lport, BCM_AUTH_MODE_UNCONTROLLED);
-      if (rv != BCM_E_NONE) {
-        printf("[%s] Error setting AUTH mode flags 'Uncontrolled' for port %d rv %d\n",
-                __FUNCTION__, lport, rv);
-      }
-
-      /* Set the BCM_AUTH_MODE_AUTH */
-      rv = bcmx_auth_mode_set (lport, mode);
-      if (rv != BCM_E_NONE) {
-        printf("[%s] Error setting AUTH mode flags %d for port %d rv %d\n",
-                __FUNCTION__, mode, lport, rv);
-      }
-#endif
       /* disable HW learning on this port */
       hapiBroadLearnSet(usp, BCM_PORT_LEARN_CPU, dapi_g);
 
     } else
     {
-      /* enable learning on this port */
-#ifdef L7_ROBO_SUPPORT
-      mode = BCM_AUTH_MODE_UNCONTROLLED;
-      rv = bcmx_auth_mode_set (lport, mode);
-      if (rv != BCM_E_NONE && !SOC_IS_ROBO53115(hapiPortPtr->bcm_unit))
-      {
-        printf("[%s] Error setting auth mode flag %d for port %d",
-                __FUNCTION__, mode, lport);
-      }
-#endif
-       /* enable HW learning on this port if CP is not enabled */
+      /* enable HW learning on this port if CP is not enabled */
       if (hapiPortPtr->cpEnabled == L7_FALSE)
       {
         if (hpcSoftwareLearningEnabled () == L7_TRUE)
@@ -3583,12 +3517,6 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
     }
   }
 
-  if(hapiBroadRoboCheck() == L7_TRUE)
-  {
-    hapiBroadLportToTgidUspConvert(bcmx_l2_addr->lport, &usp, dapi_g);
-  }
-
-
   /* Make sure that card is not removed while we are processing the callback.
   */
   dapiCardRemovalReadLockTake ();
@@ -3603,17 +3531,6 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
     return;
   }
 
-  #ifdef BCM_ROBO_SUPPORT
-  /* Add the address to the non-native devices */
-  if (hapiBroadRoboVariantCheck() != __BROADCOM_53115_ID)
-  {
-    rv = usl_bcmx_l2_addr_add(bcmx_l2_addr, L7_NULL);
-  }
-  else
-  {
-    rv = BCM_E_NONE;
-  }
-  #else
   rv = BCM_E_NONE;
   /* If pending flag is active, check if MAC should be learnt */
   if (bcmx_l2_addr->flags & BCM_L2_PENDING)
@@ -3654,7 +3571,6 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
     rv = usl_bcmx_l2_addr_add(bcmx_l2_addr, L7_NULL);
     //printf("%s(%d) Yeah!\r\n",__FUNCTION__,__LINE__);
   }
-  #endif
 
   if (rv == BCM_E_NONE)
   {
@@ -3857,15 +3773,13 @@ void hapiBroadAddrMacUpdateAge(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
     {
       /* Remove address from hardware */
       /* Do not check return code, no guarentee that the address will be present in all devices */
-      if(hapiBroadRoboVariantCheck() != __BROADCOM_53115_ID)
-      {
-        PT_LOG_TRACE(LOG_CTX_HAPI, "hapiBroadAddrMacUpdateAge: VID %d, GPORT 0x%08X, flags 0x%x",
-                  bcmx_l2_addr->vid, bcmx_l2_addr->lport, bcmx_l2_addr->flags);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "hapiBroadAddrMacUpdateAge: VID %d, GPORT 0x%08X, flags 0x%x",
+                bcmx_l2_addr->vid, bcmx_l2_addr->lport, bcmx_l2_addr->flags);
 
-        rv = usl_bcmx_l2_addr_delete(bcmx_l2_addr->mac,bcmx_l2_addr->vid);
-        /* PTin added: MAC learning limit */
-        ptin_hapi_maclimit_dec(bcmx_l2_addr);
-      }
+      rv = usl_bcmx_l2_addr_delete(bcmx_l2_addr->mac,bcmx_l2_addr->vid);
+      /* PTin added: MAC learning limit */
+      ptin_hapi_maclimit_dec(bcmx_l2_addr);
+
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
         /* Keep coverity happy by checking return code */
@@ -3955,78 +3869,6 @@ void hapiDebugMacStatsPrint()
 }
 
 #ifndef L7_STACKING_PACKAGE
-#ifdef BCM_ROBO_SUPPORT
-extern void
-_bcm_robo_l2_from_arl(int unit, bcm_l2_addr_t *l2addr, l2_arl_sw_entry_t *arl_entry);
-/*********************************************************************
-** Callback function for MAC synchronization.
-**
-*********************************************************************/
-int mac_sync_callback (void *user_data, shr_avl_datum_t *datum , void *extra_data)
-{
-  int                  unit, i;
-  l2_arl_sw_entry_t    *l2x_entry;
-  bcm_l2_addr_t        l2Addr, *macAddr;
-  int rv;
-
-  if (NULL == datum)
-  {
-    return BCM_E_NONE;
-  }
-
-  unit = (int) extra_data;
-  l2x_entry = (l2_arl_sw_entry_t *) datum;
-
-  if (SOC_IS_ROBO(unit))
-  {
-    _bcm_robo_l2_from_arl(unit, &l2Addr,l2x_entry);
-  }
-
-  macAddr = &l2Addr;
-
-  /* Sync the mac learned on trunks only */
-  if (!(macAddr->flags & BCM_L2_TRUNK_MEMBER))
-   return BCM_E_NONE;
-
-  /* Get the entry on the local unit */
-  rv = bcm_l2_addr_get(unit, macAddr->mac,macAddr->vid, &l2Addr);
-
-  /* If the entry is present in the hardware table and the HIT bit is set,
-  ** then check if entry should be added on other units.
-  */
-  if ((rv == BCM_E_NONE) && (!(l2Addr.flags & BCM_L2_STATIC)) &&
-    (l2Addr.flags & (BCM_L2_HIT | BCM_L2_SRC_HIT)))
-  {
-  /* Check if the L2 entry is gone from all the chips */
-    for (i = 0; i < bde->num_devices(BDE_SWITCH_DEVICES); i++)
-    {
-    bcm_l2_addr_t tmpL2Addr;
-
-    /* Skip this unit */
-    if (i == unit)
-    {
-    continue;
-    }
-
-    rv = bcm_l2_addr_get(i, macAddr->mac,macAddr->vid, &tmpL2Addr);
-    if (rv == BCM_E_NOT_FOUND)
-    {
-    /* Clear the HIT bit and add the entry on this unit */
-    l2Addr.flags &= ~(BCM_L2_HIT | BCM_L2_SRC_HIT);
-    rv = bcm_l2_addr_add(i, &l2Addr);
-
-    }
-  }
-
-  }
-
-  osapiTaskYield ();
-
-  return BCM_E_NONE;
-
-}
-#else
-
 /*********************************************************************
 ** Callback function for MAC synchronization.
 **
@@ -4099,7 +3941,6 @@ int mac_sync_callback (void *user_data, shr_avl_datum_t *datum , void *extra_dat
 
   return BCM_E_NONE;
 }
-#endif
 
 /*********************************************************************
 ** Walk the shadow table to synchronize tables

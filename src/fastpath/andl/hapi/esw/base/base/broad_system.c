@@ -53,7 +53,6 @@
 #include "soc/macipadr.h"
 #include "soc/mem.h"
 #include "soc/cm.h"
-#include "soc/robo.h"
 
 #include "bcmx/l2.h"
 #include "bcmx/port.h"
@@ -277,48 +276,17 @@ L7_RC_t hapiBroadStdPortInit(DAPI_PORT_t *dapiPortPtr)
 *********************************************************************/
 void hapiBroadMirrorEnable (void)
 {
-  int rv;
   bcm_chip_family_t board_family;
 
   hapiBroadGetSystemBoardFamily(&board_family);
-
-  if(board_family == BCM_FAMILY_ROBO)
-  {
-    rv = bcmx_mirror_mode_set(BCM_MIRROR_L2);
-    if (L7_BCMX_OK(rv) != L7_TRUE)
-    {
-       L7_LOG_ERROR(rv);
-    }
-
-    /* TODO: SDK 6.3.0 */
-    #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-    rv = BCM_E_NONE;    /* Always enabled */
-    #else
-    rv = bcmx_mirror_pfmt_set(1);
-    #endif
-    if (L7_BCMX_OK(rv) != L7_TRUE)
-    {
-      L7_LOG_ERROR(rv);
-    }
-  }
 }
 
 
 static void hapiBroadMirrorDisable (void)
 {
-  int rv;
   bcm_chip_family_t board_family;
 
   hapiBroadGetSystemBoardFamily(&board_family);
-
-  if(board_family == BCM_FAMILY_ROBO)
-  {
-    rv = bcmx_mirror_mode_set(BCM_MIRROR_DISABLE);
-    if (L7_BCMX_OK(rv) != L7_TRUE)
-    {
-       L7_LOG_ERROR(rv);
-    }
-  }
 }
 
 /*********************************************************************
@@ -856,14 +824,7 @@ L7_RC_t hapiBroadSystemMacAddress(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
   if (dapiCmd->cmdData.systemMacAddress.getOrSet == DAPI_CMD_CLEAR)
   {
     /* remove previous system MAC address / mgmt vlan id, if configured */    
-#ifndef BCM_ROBO_SUPPORT
   hapiBroadFfpSysMacInstall(dapi_g, 0, L7_NULLPTR);
-#else
-  if (hapiBroadRoboVariantCheck() != __BROADCOM_53115_ID)
-  {
-    hapiBroadFfpSysMacInstall(dapi_g, 0, L7_NULLPTR);
-  }
-#endif
 
 #ifdef L7_DOT1AG_PACKAGE
    hapiBroadDot1agPolicyInstall(dapi_g, L7_NULLPTR);
@@ -934,18 +895,9 @@ L7_RC_t hapiBroadSystemMacAddress(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
   /* This function will remove the current MAC address if its there, and 
   ** install the new MAC address in the filtering database.
   */
-#ifndef BCM_ROBO_SUPPORT
   hapiBroadFfpSysMacInstall (dapi_g,
                              dapiCmd->cmdData.systemMacAddress.vlanId,
                              dapiCmd->cmdData.systemMacAddress.macAddr.addr);
-#else
-  if (hapiBroadRoboVariantCheck() != __BROADCOM_53115_ID)
-  {
-    hapiBroadFfpSysMacInstall (dapi_g,
-                               dapiCmd->cmdData.systemMacAddress.vlanId,
-                               dapiCmd->cmdData.systemMacAddress.macAddr.addr);
-  }
-#endif
 
 #ifdef L7_DOT1AG_PACKAGE
    hapiBroadDot1agPolicyInstall(dapi_g, dapiCmd->cmdData.systemMacAddress.macAddr.addr);
@@ -967,21 +919,7 @@ L7_RC_t hapiBroadSystemMacAddress(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
 
   memcpy(hapiSystemPtr->bridgeMacAddr.addr, dapiCmd->cmdData.systemMacAddress.macAddr.addr, sizeof (mac_addr_t));
   hapiSystemPtr->mgmtVlanId = dapiCmd->cmdData.systemMacAddress.vlanId;
-#ifdef BCM_ROBO_SUPPORT
-#ifdef L7_DOT1AD_PACKAGE
-      if (hapiBroadRoboVariantCheck() == __BROADCOM_53115_ID)
-      {
-         if (dapi_g->system->dvlanEnable == L7_TRUE)
-         {
-           hapiBroadRoboDoubleVlanDenyRule(dapi_g, L7_TRUE);
-         }
-         else
-         {
-           hapiBroadRoboDoubleVlanDenyRule(dapi_g, L7_FALSE);
-         }
-      }
-#endif
-#endif
+
   return result;
 }
 
@@ -1149,32 +1087,18 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
     units = L7_RATE_UNIT_KBPS;
 
   #else
-    if( (hapiBroadRoboCheck() == L7_TRUE))
-    {
-      rate = (portSpeed * threshold) /100;
-    }
-    else
-    {
-      /* Port speed is in kpbs. Apply threshold (1000 * threshold/100) */
-      rate = ((L7_int64)portSpeed * 10 * threshold);
+    /* Port speed is in kpbs. Apply threshold (1000 * threshold/100) */
+    rate = ((L7_int64)portSpeed * 10 * threshold);
 
-      /* Convert the bps value to lpps units assuming an average pkt size.
-       * Account for IFG(12) and Preamble(8) bytes for accuracy.
-       */
-      rate =  rate/ ((L7_STORMCONTROL_AVG_PKT_SIZE+12+8) * 8);
-    }
+    /* Convert the bps value to lpps units assuming an average pkt size.
+     * Account for IFG(12) and Preamble(8) bytes for accuracy.
+     */
+    rate =  rate/ ((L7_STORMCONTROL_AVG_PKT_SIZE+12+8) * 8);
   #endif
   }
   else if (dapiCmd->cmdData.broadcastControl.unit == L7_RATE_UNIT_PPS) 
   {
-    if( (hapiBroadRoboCheck() == L7_TRUE))
-    {
-      rate  = ((L7_int64)(dapiCmd->cmdData.broadcastControl.threshold)* 512 * 8) / (1000) ;
-    }
-    else
-    {
-      rate  = (L7_int64)dapiCmd->cmdData.broadcastControl.threshold;
-    }
+    rate  = (L7_int64)dapiCmd->cmdData.broadcastControl.threshold;
 
     /* PTin added: StormControl: units */
     units = L7_RATE_UNIT_PPS;
@@ -2682,19 +2606,11 @@ L7_RC_t hapiBroadConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g)
       As a result MLD packets will not be trapped to CPU.
       To fix this problem, we need to install protocol snooping rules at higher
       priority compared to DOT1AD rules.*/
-    if((hapiBroadRoboVariantCheck() ==  __BROADCOM_53115_ID) ||
-       (board_family == BCM_FAMILY_TRIUMPH) || (board_family == BCM_FAMILY_TRIUMPH2))
+    if((board_family == BCM_FAMILY_TRIUMPH) || (board_family == BCM_FAMILY_TRIUMPH2))
     {
       if (mldSnoopId == BROAD_POLICY_INVALID)
       {
-
-        if((hapiBroadRoboVariantCheck() ==  __BROADCOM_53115_ID) &&
-            (dapi_g->system->dvlanEnable == L7_TRUE)
-          ) 
-        {
-          rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_DOT1AD_SNOOP);
-        }
-        else if((board_family == BCM_FAMILY_TRIUMPH) || (board_family == BCM_FAMILY_TRIUMPH2))
+        if((board_family == BCM_FAMILY_TRIUMPH) || (board_family == BCM_FAMILY_TRIUMPH2))
         {
           rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
         }
@@ -2833,20 +2749,6 @@ L7_RC_t hapiBroadConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g)
           hapiBroadPolicyCreateCancel();
           return L7_FAILURE;
         }
-
-
-#if defined(FEAT_METRO_CPE_V1_0)
-        if(hapiBroadRoboVariantCheck() ==  __BROADCOM_53115_ID)
-        {
-          if((rc = hapiBroadPolicyRuleQualifierAdd(ruleId,
-              BROAD_FIELD_PKT_FORMAT, (L7_uchar8 *)&ipV6_format, exact_match)) !=
-              L7_SUCCESS)
-          { 
-            hapiBroadPolicyCreateCancel();
-            return L7_FAILURE;
-          }
-        }
-#endif
       }
 
       /* MLD packets are assigned MEDIUM priority (less than OSPF/RIP, BPDU range,
@@ -2949,8 +2851,7 @@ L7_RC_t hapiBroadConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g)
   else
   {
 #if defined(L7_METRO_PACKAGE) && defined(L7_DOT1AD_PACKAGE)
-    if((hapiBroadRoboVariantCheck() ==  __BROADCOM_53115_ID) ||
-       (board_family == BCM_FAMILY_TRIUMPH) || (board_family == BCM_FAMILY_TRIUMPH2))
+    if((board_family == BCM_FAMILY_TRIUMPH) || (board_family == BCM_FAMILY_TRIUMPH2))
     {
       if (mldSnoopId != BROAD_POLICY_INVALID )
       {
@@ -3609,15 +3510,6 @@ L7_RC_t hapiBroadConfigTrap(DAPI_USP_t *usp, cmdData_snoopConfig_t *snoopConfig,
         result = hapiBroadConfigIgmpFilterRaptor(snoopConfig->enable);
         break;
       }
-      if (hapiBroadRoboCheck() == L7_TRUE)
-      {
-        /* TODO: SDK 6.3.0 */
-        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-        /* Nothing to be done */
-        #else
-        bcmx_igmp_snooping_enable_set(snoopConfig->enable);
-        #endif
-      }
 
       result = hapiBroadConfigIgmpTrap(ptin_trap_policy[index].vlan, ptin_trap_policy[index].vlan_mask, switchFrame, dapi_g,
                                        &ptin_trap_policy[index].policyId);
@@ -3708,24 +3600,11 @@ L7_RC_t hapiBroadConfigIgmpTrap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_BOOL 
   do
   {
   #if defined(FEAT_METRO_CPE_V1_0)
-    /*On bcm53115 with DOT1AD package, dot1ad related rules in TCAM will be
-      hit first for IGMP packets (as DOT1AD rules are only based on VLAN tags).
-      As a result IGMP packets will not be trapped to CPU.
-      To fix this problem, we need to install protocol snooping rules at higher
-      priority compared to DOT1AD rules.*/
-    if( (hapiBroadRoboVariantCheck()==  __BROADCOM_53115_ID) &&
-        (dapi_g->system->dvlanEnable == L7_TRUE) )
-    {
-     result = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_DOT1AD_SNOOP);
-    }
-    else
-    {
-      /* Don't create the policy now. */
-      /* In CPE code if the IGMP Snooping is enabled a call will be made to this 
-         function after dvlan is enabled */ 
-      return result;
-      result = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
-    }
+    /* Don't create the policy now. */
+    /* In CPE code if the IGMP Snooping is enabled a call will be made to this 
+       function after dvlan is enabled */ 
+    return result;
+    result = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
   #else
     result = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
   #endif
@@ -3763,9 +3642,6 @@ L7_RC_t hapiBroadConfigIgmpTrap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_BOOL 
     if (result != L7_SUCCESS)  break;
     PT_LOG_TRACE(LOG_CTX_HAPI, "Qualifier BROAD_FIELD_PROTO defined");
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_DEFAULT, 0, 0);
-  #ifdef BCM_ROBO_SUPPORT 
-    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_REASON_CODE, 8, 0, 0);
-  #endif
     if (result != L7_SUCCESS)  break;
 
     /* Check if IGMP frames should be switched or not */
@@ -3851,24 +3727,11 @@ L7_RC_t hapiBroadConfigIgmpTrapAll(L7_BOOL switchFrame, DAPI_t *dapi_g,
   do
   {
 #if defined(FEAT_METRO_CPE_V1_0)
-    /*On bcm53115 with DOT1AD package, dot1ad related rules in TCAM will be
-      hit first for IGMP packets (as DOT1AD rules are only based on VLAN tags).
-      As a result IGMP packets will not be trapped to CPU.
-      To fix this problem, we need to install protocol snooping rules at higher
-      priority compared to DOT1AD rules.*/
-    if ((hapiBroadRoboVariantCheck() ==  __BROADCOM_53115_ID) &&
-        (dapi_g->system->dvlanEnable == L7_TRUE))
-    {
-      result = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_DOT1AD_SNOOP);
-    }
-    else
-    {
-      /* Don't create the policy now. */
-      /* In CPE code if the IGMP Snooping is enabled a call will be made to this 
-         function after dvlan is enabled */
-      return result;
-      result = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
-    }
+    /* Don't create the policy now. */
+    /* In CPE code if the IGMP Snooping is enabled a call will be made to this 
+       function after dvlan is enabled */
+    return result;
+    result = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
 #else
     result = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
 #endif
@@ -3891,9 +3754,6 @@ L7_RC_t hapiBroadConfigIgmpTrapAll(L7_BOOL switchFrame, DAPI_t *dapi_g,
     if (result != L7_SUCCESS)  break;
     PT_LOG_TRACE(LOG_CTX_HAPI, "Qualifier BROAD_FIELD_PROTO defined");
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_DEFAULT, 0, 0);
-#ifdef BCM_ROBO_SUPPORT
-    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_REASON_CODE, 8, 0, 0);
-#endif
     if (result != L7_SUCCESS)  break;
 
     /* Check if IGMP frames should be switched or not */
@@ -6675,13 +6535,10 @@ L7_RC_t hapiBroadSystemDosSynAckFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, 
       hapiBroadPolicyCreate(BROAD_POLICY_TYPE_PORT);
        
       hapiBroadPolicyRuleAdd(&rule_id);
-      if  (hapiBroadRoboCheck() != L7_TRUE)
-      {
-        /* ETHER TYPE = IP */
-        hapiBroadPolicyRuleQualifierAdd(rule_id, BROAD_FIELD_ETHTYPE,ip_ethtype, exact_match);
-        /* Protocol TCP */
-        hapiBroadPolicyRuleQualifierAdd(rule_id, BROAD_FIELD_PROTO,   tcp_proto,  exact_match);
-      }
+      /* ETHER TYPE = IP */
+      hapiBroadPolicyRuleQualifierAdd(rule_id, BROAD_FIELD_ETHTYPE,ip_ethtype, exact_match);
+      /* Protocol TCP */
+      hapiBroadPolicyRuleQualifierAdd(rule_id, BROAD_FIELD_PROTO,   tcp_proto,  exact_match);
       /* Any Destination Ip */
       hapiBroadPolicyRuleQualifierAdd(rule_id, BROAD_FIELD_DIP,(L7_uchar8 *)&dstIpValue,(L7_uchar8 *)&dstIpMask);
 

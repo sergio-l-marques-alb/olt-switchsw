@@ -210,7 +210,6 @@ xLibRC_t fpObjSet_basePortTest_PortTestType (void *wap, void *bufp)
   }
   else if(objPortTestType == L7_PORT_LOOPBACK_MAC)
   {
-#ifndef L7_ROBO_SUPPORT
     owa.l7rc = usmDbPortTestEnDisSet (keyinterfaceValue,L7_TRUE);
     if(owa.l7rc == L7_SUCCESS)
     {
@@ -248,11 +247,6 @@ xLibRC_t fpObjSet_basePortTest_PortTestType (void *wap, void *bufp)
       portLoopbackPassValue = L7_TRUE;
       owa.rc = XLIBRC_SUCCESS;  
     }
-#else
-      owa.l7rc = L7_NOT_SUPPORTED;
-      owa.rc = XLIBRC_COMMON_PORTCFG_MAC_LOOP_ERROR;
-      portLoopbackPassValue = L7_FALSE;
-#endif
   }
   else if(objPortTestType == L7_PORT_LOOPBACK_NONE)
   {
@@ -265,12 +259,10 @@ xLibRC_t fpObjSet_basePortTest_PortTestType (void *wap, void *bufp)
     portLoopbackPassValue = L7_FALSE;
   }
 
-#ifndef L7_ROBO_SUPPORT
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
   }
-#endif
 
   FPOBJ_TRACE_EXIT (bufp, owa);
   return owa.rc;

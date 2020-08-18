@@ -74,7 +74,6 @@ L7_BOOL hpcIsBcmPortStacking (L7_uint32 bcm_unit, L7_uint32 bcm_port)
 }
 
 
-#ifndef L7_ROBO_SUPPORT
 static cpudb_t *hpcBroadLocalCpudbCreate(void)
 {
   cpudb_t *cpudbPtr;
@@ -141,7 +140,6 @@ static cpudb_t *hpcBroadLocalCpudbCreate(void)
 
   return(cpudbPtr);
 }
-#endif
 
 #if (SDK_VERSION_IS < SDK_VERSION(6,4,0,0))
 #ifndef SOC_NDEV_IDX2DEV
@@ -294,7 +292,6 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
   ** NOTE: this will not affect strata when its only
   ** one chip.
   */
-#ifndef L7_ROBO_SUPPORT
   {
      memset(&system_topo, 0, sizeof(system_topo));
 
@@ -329,7 +326,6 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
        L7_LOG_ERROR(rv);
      }
   }
-#endif
 
 /* Added this for non-stackable, it was lifted from hpcBroadTransportInit */
   for (i = 0; i < bde->num_devices(BDE_SWITCH_DEVICES); i++)
