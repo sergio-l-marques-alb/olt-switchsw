@@ -47,6 +47,14 @@
 #include "broad_l3_debug.h"
 #include "wireless_exports.h"
 
+#if (SDK_VERSION_IS >= SDK_VERSION(6,5,15,0))
+#define BCM_XGS3_EGRESS_IDX_MIN_VAL       BCM_XGS3_EGRESS_IDX_MIN(0)
+#define BCM_XGS3_MPATH_EGRESS_IDX_MIN_VAL BCM_XGS3_MPATH_EGRESS_IDX_MIN(0)
+#else
+#define BCM_XGS3_EGRESS_IDX_MIN_VAL       BCM_XGS3_EGRESS_IDX_MIN
+#define BCM_XGS3_MPATH_EGRESS_IDX_MIN_VAL BCM_XGS3_MPATH_EGRESS_IDX_MIN
+#endif
+
 /* Egress objects table resources - next hop objs and multipath objects */
 void               *uslIpEgrNhopDbSema = L7_NULLPTR;
 avlTreeTables_t    *uslOperIpEgrNhopTreeHeap = L7_NULLPTR;
@@ -7274,7 +7282,7 @@ L7_RC_t usl_l3_egr_nhop_hw_id_generator_sync()
            sizeof(elemInfo.elemIndex));
 
     egrId = ((usl_egr_nhop_db_elem_t *)elemInfo.dbElem)->egrId;
-    tblIdx = egrId - BCM_XGS3_EGRESS_IDX_MIN;
+    tblIdx = egrId - BCM_XGS3_EGRESS_IDX_MIN_VAL;
     if ((tblIdx > uslL3EgrNhopHwIdMax) || (tblIdx < uslL3EgrNhopHwIdMin))
     {
       L7_LOG_ERROR(*index);
@@ -7357,7 +7365,7 @@ int usl_l3_egr_nhop_hw_id_allocate(usl_bcm_l3_egress_t *egressInfo,
       if (dbRv == BCM_E_NONE) /* L3 Intf found */
       {
         *index = nhopElem.egrId;
-        tblIdx = *index - BCM_XGS3_EGRESS_IDX_MIN;
+        tblIdx = *index - BCM_XGS3_EGRESS_IDX_MIN_VAL;
         if ((tblIdx > uslL3EgrNhopHwIdMax) || (tblIdx < uslL3EgrNhopHwIdMin))
         {
           L7_LOG_ERROR(*index);
@@ -7376,7 +7384,7 @@ int usl_l3_egr_nhop_hw_id_allocate(usl_bcm_l3_egress_t *egressInfo,
       if (pUslL3EgrNhopHwIdList[idx].used == L7_FALSE)
       {
         pUslL3EgrNhopHwIdList[idx].used = L7_TRUE;
-        *index = idx + BCM_XGS3_EGRESS_IDX_MIN;
+        *index = idx + BCM_XGS3_EGRESS_IDX_MIN_VAL;
         rv = BCM_E_NONE;
         break;
       }
@@ -7404,7 +7412,7 @@ int usl_l3_egr_nhop_hw_id_free(bcm_if_t index)
   int rv = BCM_E_NONE;
   int tblIdx;
 
-  tblIdx = index - BCM_XGS3_EGRESS_IDX_MIN;
+  tblIdx = index - BCM_XGS3_EGRESS_IDX_MIN_VAL;
 
   if ((tblIdx < uslL3EgrNhopHwIdMin) || (tblIdx > uslL3EgrNhopHwIdMax))
   {
@@ -7524,7 +7532,7 @@ L7_RC_t usl_l3_mpath_egr_nhop_hw_id_generator_sync()
            sizeof(elemInfo.elemIndex));
 
     egrId = ((usl_mpath_egr_nhop_db_elem_t *)elemInfo.dbElem)->avlKey;
-    tblIdx = (egrId - BCM_XGS3_MPATH_EGRESS_IDX_MIN)/(uslL3MpathEgrNhopHwIdOffset);
+    tblIdx = (egrId - BCM_XGS3_MPATH_EGRESS_IDX_MIN_VAL)/(uslL3MpathEgrNhopHwIdOffset);
     if ((tblIdx > uslL3MpathEgrNhopHwIdMax) ||
         (tblIdx < uslL3MpathEgrNhopHwIdMin))
     {
@@ -7605,7 +7613,7 @@ int usl_l3_mpath_egr_nhop_hw_id_allocate(L7_uint32 intf_count,
       if (dbRv == BCM_E_NONE) /* Found */
       {
         *index = mpathNhop.avlKey;
-        tblIdx = (*index - BCM_XGS3_MPATH_EGRESS_IDX_MIN)/(uslL3MpathEgrNhopHwIdOffset);
+        tblIdx = (*index - BCM_XGS3_MPATH_EGRESS_IDX_MIN_VAL)/(uslL3MpathEgrNhopHwIdOffset);
         if ((tblIdx > uslL3MpathEgrNhopHwIdMax) ||
             (tblIdx < uslL3MpathEgrNhopHwIdMin))
         {
@@ -7625,7 +7633,7 @@ int usl_l3_mpath_egr_nhop_hw_id_allocate(L7_uint32 intf_count,
       if (pUslL3MpathEgrNhopHwIdList[idx].used == L7_FALSE)
       {
         pUslL3MpathEgrNhopHwIdList[idx].used = L7_TRUE;
-        *index = (idx * uslL3MpathEgrNhopHwIdOffset) + BCM_XGS3_MPATH_EGRESS_IDX_MIN;
+        *index = (idx * uslL3MpathEgrNhopHwIdOffset) + BCM_XGS3_MPATH_EGRESS_IDX_MIN_VAL;
         rv = BCM_E_NONE;
         break;
       }
@@ -7651,7 +7659,7 @@ int usl_l3_mpath_egr_nhop_hw_id_free(bcm_if_t index)
   int rv = BCM_E_NONE;
   int tblIdx;
 
-  tblIdx = (index - BCM_XGS3_MPATH_EGRESS_IDX_MIN)/(uslL3MpathEgrNhopHwIdOffset);
+  tblIdx = (index - BCM_XGS3_MPATH_EGRESS_IDX_MIN_VAL)/(uslL3MpathEgrNhopHwIdOffset);
 
   if ((tblIdx < uslL3MpathEgrNhopHwIdMin) || (tblIdx > uslL3MpathEgrNhopHwIdMax))
   {
@@ -7883,7 +7891,7 @@ int usl_l3_db_dataplane_cleanup(L7_int32 *missing_mod_ids,
 
     if (nhopIsInvalid)
     {
-      egrNhopIdx = egrNhopPtr->egrId - BCM_XGS3_EGRESS_IDX_MIN;
+      egrNhopIdx = egrNhopPtr->egrId - BCM_XGS3_EGRESS_IDX_MIN_VAL;
       if (egrNhopIdx < maxNhops)
       {
         invalidNhops[egrNhopIdx] = 1;
@@ -7911,7 +7919,7 @@ int usl_l3_db_dataplane_cleanup(L7_int32 *missing_mod_ids,
 
     for (mpathEgrNhopIdx = 0; mpathEgrNhopIdx < mpathEgrNhopPtr->intfCount; mpathEgrNhopIdx++)
     {
-      egrNhopIdx = mpathEgrNhopPtr->intf[mpathEgrNhopIdx] - BCM_XGS3_EGRESS_IDX_MIN;
+      egrNhopIdx = mpathEgrNhopPtr->intf[mpathEgrNhopIdx] - BCM_XGS3_EGRESS_IDX_MIN_VAL;
       if (egrNhopIdx < maxNhops)
       {
         if (invalidNhops[egrNhopIdx] == 1)
