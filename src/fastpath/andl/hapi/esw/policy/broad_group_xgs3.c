@@ -1841,7 +1841,7 @@ static int _policy_super_qset_init_efp(int unit)
 static int _policy_super_qset_init(int unit)
 {
   int  i, j;
-  char str[301], val[21];
+  char str[501], val[21];
 
   for (i = 0; i < SUPER_QSET_TABLE_SIZE; i++)
   {
