@@ -329,7 +329,7 @@ static L7_RC_t ospfMappingThreadCreate(void)
     /* Create mapping layer thread */
     ospfProcTaskHandle = osapiTaskCreate(OSPF_PROC_TASK,
                                          ospfProcTask,
-                                         L7_NULL, L7_NULLPTR,
+                                         L7_NULLPTR, L7_NULL,
                                          L7_DEFAULT_STACK_SIZE,
                                          L7_DEFAULT_TASK_PRIORITY,
                                          L7_DEFAULT_TASK_SLICE);

@@ -275,8 +275,7 @@ void hpcPoePrintfTaskStart(void)
 
   hpcPoePrintfTaskID = osapiTaskCreate("hpcPoePrintf",
                                        hpcPoePrintfMsgQueueTask,
-                                       0,
-                                       L7_NULLPTR,
+                                       L7_NULLPTR, 0,
                                        L7_DEFAULT_STACK_SIZE,
                                        L7_DEFAULT_TASK_PRIORITY - 5,
                                        L7_DEFAULT_TASK_SLICE);
@@ -4951,8 +4950,7 @@ static L7_RC_t hpcPwrdsinePoeInitPhase2(L7_uint32 cardIndex)
     /* create the POE monitor task */
     poeMonitorTaskId = osapiTaskCreate("poe_monitor",
                                        hpcPwrdsinePoeMonitorTask,
-                                       0,
-                                       L7_NULLPTR,
+                                       L7_NULLPTR, 0,
                                        L7_DEFAULT_STACK_SIZE,
                                        L7_TASK_PRIORITY_LEVEL(L7_DEFAULT_TASK_PRIORITY),
                                        L7_DEFAULT_TASK_SLICE);
@@ -5259,7 +5257,7 @@ L7_RC_t hpcPwrdsinePoeFirmwareErase(L7_uint32 cardIndex)
  * @end
  *
  *********************************************************************/
-static L7_RC_t hpcPwrdsinePoeFirmwareDownloadTask(L7_uint32 args, L7_uint32 *argv)
+static L7_RC_t hpcPwrdsinePoeFirmwareDownloadTask(L7_uint32 *argv, L7_uint32 args)
 {
   L7_RC_t       rc;
   char          s19_line[128];
@@ -5510,8 +5508,7 @@ L7_RC_t hpcPwrdsinePoeFirmwareDownloadBegin(L7_uint32 cardIndex)
   /* The priority of the task that does Firmware download should be the highest */
   if (L7_ERROR == osapiTaskCreate(fw_dwnld_task_name,
                                   hpcPwrdsinePoeFirmwareDownloadTask,
-                                  1,
-                                  &card_id[cardIndex],
+                                  &card_id[cardIndex], 1,
                                   L7_DEFAULT_STACK_SIZE,
                                   L7_TASK_PRIORITY_LEVEL(L7_DEFAULT_TASK_PRIORITY - 1),
                                   L7_DEFAULT_TASK_SLICE))
@@ -5534,7 +5531,7 @@ L7_RC_t hpcPwrdsinePoeFirmwareDownloadBegin(L7_uint32 cardIndex)
  * returns  none
  *
  ********************************************************************/
-static void hpcPwrdsinePoeReadTask(L7_uint32 numArgs, L7_uint32 *argv)
+static void hpcPwrdsinePoeReadTask(L7_uint32 *argv, L7_uint32 numArgs)
 {
   L7_int        byte_count = 0;
   L7_int        bytes_read;
@@ -5862,8 +5859,7 @@ static L7_RC_t hpcPwrdsinePoeInit(SYSAPI_POE_MSG_t *const msg)
        */
       if (L7_ERROR == osapiTaskCreate(readTaskName,
                                       hpcPwrdsinePoeReadTask,
-                                      1,
-                                      &taskData,
+                                      &taskData, 1,
                                       L7_DEFAULT_STACK_SIZE,
                                       L7_TASK_PRIORITY_LEVEL(L7_DEFAULT_TASK_PRIORITY - 2),
                                       L7_DEFAULT_TASK_SLICE))

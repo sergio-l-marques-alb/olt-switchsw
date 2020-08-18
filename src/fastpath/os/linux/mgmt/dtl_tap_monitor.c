@@ -219,7 +219,7 @@ L7_RC_t tap_monitor_init(L7_uint32 num_interfaces)
       *create the monitor task
       */
      PRINT_CTRL_MSG("creating tap_monitor_task\n");
-     if(osapiTaskCreate("tap_monitor_task",tap_monitor_task_fn,0,NULL,
+     if(osapiTaskCreate("tap_monitor_task", tap_monitor_task_fn, NULL, 0,
 			L7_DEFAULT_STACK_SIZE,
 			L7_DEFAULT_TASK_PRIORITY,
 			L7_DEFAULT_TASK_SLICE) == L7_ERROR)

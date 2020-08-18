@@ -905,7 +905,7 @@ static L7_RC_t dsThreadCreate(void)
 
   dsTaskHandle = osapiTaskCreate(DHCP_SNOOP_TASK,
                                  dhcpSnoopTask,
-                                 L7_NULL, L7_NULLPTR,
+                                 L7_NULLPTR, L7_NULL,
                                  L7_DEFAULT_STACK_SIZE,
                                  L7_DEFAULT_TASK_PRIORITY,
                                  L7_DEFAULT_TASK_SLICE);

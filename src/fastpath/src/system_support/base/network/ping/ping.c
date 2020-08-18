@@ -377,7 +377,7 @@ pingSessionAsync( void )
     {
         rxArgs[0] = 0;
         if ((pingAsyncTaskId =  osapiTaskCreate( (L7_uchar8 *)"pingAsync",
-                        (void *)pingASyncTask, 1, &rxArgs,
+                        (void *)pingASyncTask, &rxArgs, 1, 
                         L7_DEFAULT_STACK_SIZE, L7_DEFAULT_TASK_PRIORITY,
                         L7_DEFAULT_TASK_SLICE)) == L7_FAILURE)
         {

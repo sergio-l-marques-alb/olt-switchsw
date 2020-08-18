@@ -266,7 +266,7 @@ static void *hapiBroadRoutingMcastQueue;       /* Work available queue. */
 static void *hapiBroadMcastAsyncCmdQueue;      /* Multicast group add/remove queue. */
 static void *hapiBroadMcastAsyncRpfQueue;      /* Queue for RPF resolution events. */
 static void *hapiBroadL3McastAsyncWaitSema;    /* Wait for the mcast async task. */
-void hapiBroadRoutingMcastAsyncTask(L7_uint32 num_args, DAPI_t *dapi_g); /* The async task main loop */
+void hapiBroadRoutingMcastAsyncTask(DAPI_t *dapi_g, L7_uint32 num_args); /* The async task main loop */
 void hapiBroadL3McastAsyncFailureCallback(void *data);
 void hapiBroadL3McastAsyncNotify(void);        /* API to tell Mcast async task that there is work to do. */
 
@@ -1185,7 +1185,7 @@ L7_RC_t hapiBroadL3McastInit(DAPI_t *dapi_g)
 
   /* spawn task */
   if (osapiTaskCreate("hapiMcAsyncTask", hapiBroadRoutingMcastAsyncTask,
-                      1, dapi_g, (1024 * 48),
+                      dapi_g, 1, (1024 * 48),
                       L7_DEFAULT_TASK_PRIORITY,
                       L7_DEFAULT_TASK_SLICE) == L7_ERROR)
   {
@@ -4195,7 +4195,7 @@ void hapiBroadL3McastAsyncRouteAddDeleteHandle(DAPI_t *dapi_g)
 * @end
 *
 *********************************************************************/
-void hapiBroadRoutingMcastAsyncTask(L7_uint32 num_args, DAPI_t *dapi_g)
+void hapiBroadRoutingMcastAsyncTask(DAPI_t *dapi_g, L7_uint32 num_args)
 {
   L7_uint32 work_available;
 

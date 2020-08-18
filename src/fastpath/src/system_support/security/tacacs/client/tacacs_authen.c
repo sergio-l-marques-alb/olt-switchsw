@@ -799,8 +799,7 @@ static void tacacsConnectionOpen(tacacsAuthSession_t *session,
   session->connectArgv[2] = socket;
   taskId = (L7_uint32)osapiTaskCreate("tacacsConnectTask",
                                       (void *)tacacsConnectTask,
-                                      3,
-                                      session->connectArgv,
+                                      session->connectArgv, 3,
                                       L7_DEFAULT_STACK_SIZE,
                                       L7_DEFAULT_TASK_PRIORITY,
                                       L7_DEFAULT_TASK_SLICE);

@@ -3399,7 +3399,7 @@ L7_RC_t hapiBroadApplyConfig(L7_uint32 unit,L7_uint32 slot, DAPI_t *dapi_g)
 * @end
 *
 *******************************************************************************/
-void hapiBroadStackCardPluginsPostProcess(L7_uint32 args, DAPI_t *dapi_g)
+void hapiBroadStackCardPluginsPostProcess(DAPI_t *dapi_g, L7_uint32 args)
 {
   L7_uint32             unitIdx, slotIdx;
   L7_RC_t               result;
@@ -3462,7 +3462,7 @@ void hapiBroadStackCardPluginsPostProcess(L7_uint32 args, DAPI_t *dapi_g)
 void hapiBroadStackCardPluginsFinishTimerProcess(L7_uint32 arg1, L7_uint32 arg2)
 {
   /* Move the post init processing to another task */
-  if (osapiTaskCreate ("HAPI_BROAD_STACK_CARD_PLUGIN_TASK", hapiBroadStackCardPluginsPostProcess,1,(void *)arg1,
+  if (osapiTaskCreate ("HAPI_BROAD_STACK_CARD_PLUGIN_TASK", hapiBroadStackCardPluginsPostProcess, 1, (void *)arg1,
                        L7_DEFAULT_STACK_SIZE,
                        L7_DEFAULT_TASK_PRIORITY,
                        L7_DEFAULT_TASK_SLICE) == L7_ERROR)

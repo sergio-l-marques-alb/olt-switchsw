@@ -469,7 +469,7 @@ dbgTraceRouteWalkRespTable( void )
 * @end
 *********************************************************************/
 void
-dbgTraceRouteSync( L7_uint32 argc, L7_uchar8 *argv[] )
+dbgTraceRouteSync( L7_uchar8 *argv[], L7_uint32 argc )
 {
     L7_RC_t rc;
     L7_uint32 addr;
@@ -610,7 +610,7 @@ dbgTraceRouteRandom( int count )
         {
         case 0:
             if ((taskHandle =  osapiTaskCreate( "dbgTraceRouteRandomSync",
-                        dbgTraceRouteSync, 1, &rxArgs, L7_DEFAULT_STACK_SIZE,
+                        dbgTraceRouteSync, &rxArgs, 1, L7_DEFAULT_STACK_SIZE,
                         L7_DEFAULT_TASK_PRIORITY,
                         L7_DEFAULT_TASK_SLICE)) == L7_FAILURE)
             {

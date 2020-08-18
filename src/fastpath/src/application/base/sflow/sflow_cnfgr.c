@@ -1102,7 +1102,7 @@ static L7_RC_t sFlowAgentCreate(void)
   /* create sFlow task */
   if ((agent.sFlowTaskHandle = osapiTaskCreate(SFLOW_TASK,
                                           sFlowTask,
-                                          L7_NULL, L7_NULLPTR,
+                                          L7_NULLPTR, L7_NULL,
                                           FD_CNFGR_SFLOW_DEFAULT_STACK_SIZE,
                                           FD_CNFGR_SFLOW_DEFAULT_TASK_PRIORITY,
                                           FD_CNFGR_SFLOW_DEFAULT_TASK_SLICE))

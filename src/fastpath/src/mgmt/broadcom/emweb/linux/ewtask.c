@@ -178,7 +178,7 @@ appAuthHandle         appAuthHndle[2];
 
 int tEmWebTid = 0;
 
-int emweb_main(int, char **);
+int emweb_main(char **, int);
 
 #define EMWEB_MAX_NAME_LEN 64
 
@@ -218,7 +218,7 @@ int ewaTaskStart(void) {
 
    /* start OSAPI task w/ emweb_main as entry */
    return (osapiTaskCreate("emWeb", emweb_main,
-                           2, emweb_argv,
+                           emweb_argv, 2,
                            L7_DEFAULT_STACK_SIZE * 4,  /* 128K */
                            L7_DEFAULT_TASK_PRIORITY,
                            L7_DEFAULT_TASK_SLICE));
@@ -232,7 +232,7 @@ int ewaTaskStart(void) {
 extern void cliWebIOStdIOFdStore ( void );
 
 int
-emweb_main(int argc, char **argv)
+emweb_main(char **argv, int argc)
 {
   int             exit_status;
   char*           cp;

@@ -793,7 +793,7 @@ extern BROAD_L3_HW_STATS_t  broadL3HwEcmpStats;
 * @end
 *
 *******************************************************************************/
-void hapiBroadL3AsyncTask(L7_uint32 num_args, DAPI_t *dapi_g);
+void hapiBroadL3AsyncTask(DAPI_t *dapi_g, L7_uint32 num_args);
 
 
 /******************************************************************************

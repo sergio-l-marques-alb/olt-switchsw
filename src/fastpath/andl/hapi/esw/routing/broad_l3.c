@@ -295,7 +295,7 @@ L7_RC_t hapiBroadL3Init(DAPI_t *dapi_g)
 
   /* Finally, create L3 Async task for processing the work lists */
   if (osapiTaskCreate("hapiL3AsyncTask", hapiBroadL3AsyncTask,
-                      1, dapi_g, L7_DEFAULT_STACK_SIZE,
+                      dapi_g, 1, L7_DEFAULT_STACK_SIZE,
                       L7_DEFAULT_TASK_PRIORITY,
                       L7_DEFAULT_TASK_SLICE) == L7_ERROR)
   {

@@ -27,7 +27,7 @@
 T_IPC ipc_canais[IPCLIB_MAX_CANAIS];		// variavel que suporta os canais de comunicacao
 
 #ifdef IPC_LIB_PTHREAD
-static int clone_proc_msg (L7_uint32 argc, void *argv);
+static int clone_proc_msg (void *argv, L7_uint32 argc);
 #else
 static int clone_proc_msg (void* canal_id);
 #endif
@@ -213,7 +213,8 @@ int open_ipc (int porto_rx, unsigned int ipaddr, int  (*MessageHandler)(ipc_msg 
       ipc_canais[canal_id].keep_running = TRUE;
 
 #ifdef IPC_LIB_PTHREAD
-      if (L7_ERROR == (ipc_canais[canal_id].clone_ipc_id = (L7_uint32)osapiTaskCreate("ipc_task", (void *)clone_proc_msg, 1, (void*)&ipc_canais[canal_id].canal_id,
+      if (L7_ERROR == (ipc_canais[canal_id].clone_ipc_id = (L7_uint32)osapiTaskCreate("ipc_task", (void *)clone_proc_msg,
+                                            (void*)&ipc_canais[canal_id].canal_id, 1,
                                             IPCLIB_STACK_SIZE,
                                             L7_DEFAULT_TASK_PRIORITY,
                                             L7_DEFAULT_TASK_SLICE))
@@ -481,7 +482,7 @@ int send_data (int canal_id, int porto_destino, unsigned int ipdest, ipc_msg *se
 //                 S_OK		: Operação decorrida com sucesso                       *
 // ********************************************************************************
 #ifdef IPC_LIB_PTHREAD
-static int clone_proc_msg (L7_uint32 argc, void *argv)
+static int clone_proc_msg (void *argv, L7_uint32 argc)
 #else
 static int clone_proc_msg (void* canal_id)
 #endif

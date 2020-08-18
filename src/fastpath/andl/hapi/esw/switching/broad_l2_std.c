@@ -3358,7 +3358,7 @@ void hapiBroadLportToTgidUspConvert(L7_uint32 lport, DAPI_USP_t *usp, DAPI_t *da
 * @end
 *
 *********************************************************************/
-void hapiBroadAddrMacFrameAsyncLearn(L7_uint32 numArgs, DAPI_t *dapi_g)
+void hapiBroadAddrMacFrameAsyncLearn(DAPI_t *dapi_g, L7_uint32 numArgs)
 {
     bcmx_l2_addr_t bcmx_l2_addr;
 
@@ -3400,7 +3400,7 @@ static void hapiBroadAddrMacFrameAsyncLearnCreate(DAPI_t *dapi_g)
 
     if (osapiTaskCreate("hapiBroadAddrMacFrameAsyncLearn",
                         hapiBroadAddrMacFrameAsyncLearn,
-                        1, dapi_g, (1024*8),
+                        dapi_g, 1, (1024*8),
                         L7_DEFAULT_TASK_PRIORITY,
                         L7_DEFAULT_TASK_SLICE) == L7_ERROR)
     {
@@ -4144,7 +4144,7 @@ L7_RC_t mac_hardware_sync (void)
 * @end
 *
 *********************************************************************/
-void hapiBroadL2AddrMacSyncTask(L7_uint32 numArgs, DAPI_t *dapi_g)
+void hapiBroadL2AddrMacSyncTask(DAPI_t *dapi_g, L7_uint32 numArgs)
 {
 
 
@@ -4186,7 +4186,7 @@ L7_RC_t hapiBroadL2AddrMacSyncInit (DAPI_t *dapi_g)
 
   /* spawn task */
   if (osapiTaskCreate("hapiL2AddrMacSyncTask", hapiBroadL2AddrMacSyncTask,
-                      1, dapi_g, L7_DEFAULT_STACK_SIZE,
+                      dapi_g, 1, L7_DEFAULT_STACK_SIZE,
                       L7_DEFAULT_TASK_PRIORITY,
                       L7_DEFAULT_TASK_SLICE) == L7_ERROR)
   {
@@ -4460,7 +4460,7 @@ L7_RC_t hapiBroadL2AddrFlushInit (DAPI_t *dapi_g)
 
   /* spawn task */
   if (osapiTaskCreate("hapiL2AddrFlushTask", hapiBroadL2AddrFlushTask,
-                      1, dapi_g, L7_DEFAULT_STACK_SIZE,
+                      dapi_g, 1, L7_DEFAULT_STACK_SIZE,
                       L7_DEFAULT_TASK_PRIORITY,
                       L7_DEFAULT_TASK_SLICE) == L7_ERROR)
   {
@@ -4484,7 +4484,7 @@ L7_RC_t hapiBroadL2AddrFlushInit (DAPI_t *dapi_g)
 * @end
 *
 *********************************************************************/
-void hapiBroadL2AddrFlushTask(L7_uint32 numArgs, DAPI_t *dapi_g)
+void hapiBroadL2AddrFlushTask(DAPI_t *dapi_g, L7_uint32 numArgs)
 {
   BROAD_L2ADDR_FLUSH_t   l2addr_flush;
   bcmx_lport_t           lport;
@@ -5219,7 +5219,7 @@ void hapiBroadDot1sAsyncDoneWait(void)
 * @end
 *
 *********************************************************************/
-static void hapiBroadL2AsyncTask(L7_uint32 num_args, DAPI_t *dapi_g)
+static void hapiBroadL2AsyncTask(DAPI_t *dapi_g, L7_uint32 num_args)
 {
   L7_uint32 num_dot1s_msg, num_lag_msg;
   L7_RC_t   rc;
@@ -5338,7 +5338,7 @@ L7_RC_t hapiBroadL2AsyncInit(DAPI_t *dapi_g)
    * the DOT1S state machine.
    */
   if (osapiTaskCreate("hapiL2AsyncTask", hapiBroadL2AsyncTask,
-                      1, dapi_g, L7_DOT1S_STACK_SIZE,
+                      dapi_g, 1, L7_DOT1S_STACK_SIZE,
                       L7_DEFAULT_TASK_PRIORITY,
                       L7_DEFAULT_TASK_SLICE) == L7_ERROR)
   {

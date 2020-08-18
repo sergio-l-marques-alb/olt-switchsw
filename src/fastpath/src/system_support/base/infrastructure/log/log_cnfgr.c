@@ -819,7 +819,7 @@ static L7_RC_t logCfgTaskCreate(void)
   /* Create configurator layer thread */
   logCfgTaskId = osapiTaskCreate(LOG_CNFGR_TASK,
                                  logCfgTask,
-                                 L7_NULL, L7_NULLPTR,
+                                 L7_NULLPTR, L7_NULL,
                                  FD_CNFGR_LOG_DEFAULT_STACK_SIZE,
                                  FD_CNFGR_LOG_DEFAULT_TASK_PRI,
                                  FD_CNFGR_LOG_DEFAULT_TASK_SLICE);

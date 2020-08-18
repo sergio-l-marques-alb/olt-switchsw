@@ -439,8 +439,8 @@ EXT_API L7_RC_t osapiMsgQueueGetNumMsgs( void * queue_ptr, L7_int32 *bptr);
 *************************************************************************/
 EXT_API L7_int32 osapiTaskCreate(L7_char8 *task_name,
                                 void *task_entry,
-                                L7_uint32 argc,
                                 /*@null@*/void *argv,
+                                L7_uint32 argc,
                                 L7_uint32 stack_size,
                                 L7_uint32 priority,
                                 L7_uint32 time_slice );
@@ -4476,7 +4476,7 @@ int osapiTaskPidGet( L7_int32 task_id);
 * @end
 *
 *********************************************************************/
-void osapiCpuUtilMonitorTask(L7_ulong32 numArgs, L7_uint32 *argv );
+void osapiCpuUtilMonitorTask(L7_uint32 *argv, L7_ulong32 numArgs);
 /**************************************************************************
 *
 * @purpose  To convert a formatted time string to tm struct

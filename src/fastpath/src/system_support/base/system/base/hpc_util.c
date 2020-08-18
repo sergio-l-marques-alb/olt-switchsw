@@ -1403,7 +1403,7 @@ void hpcDebugRemoteDevshell(L7_uint32 unit, char *command)
   }
 }
 
-void hpcDebugRemoteDevshellTask(int numArgs, void * arg)
+void hpcDebugRemoteDevshellTask(void *arg, int numArgs)
 {
   /* execute the requested command */
   (void)osapiDevShellExec((L7_char8 *) arg);
@@ -1436,7 +1436,7 @@ void hpcDebugRemoteDevshellCb(L7_enetMacAddr_t src_key,
   strncpy((L7_char8 *)command_text, buffer, msg_len+1);
 
   /* dispatch the command to the devshell function on it's own thread */
-  thread_id = osapiTaskCreate("rmtdevshell", hpcDebugRemoteDevshellTask, 1, command_text,
+  thread_id = osapiTaskCreate("rmtdevshell", hpcDebugRemoteDevshellTask, command_text, 1, 
                               L7_DEFAULT_STACK_SIZE, L7_DEFAULT_TASK_PRIORITY, L7_DEFAULT_TASK_SLICE);
   return;
 }

@@ -90,9 +90,9 @@ t_Handle p_Uart;
 #define MAX_PRINT_STRING_SIZE 63 /*print string size limit */
 
 
-static void _LVL7timerLoop(int argc, L7_uint32 *argv[]);
+static void _LVL7timerLoop(L7_uint32 *argv[], int argc);
 static void _timerLoop(e_Err (*)(), ulng);
-void        _handleLVL7Task(int argc, L7_uint32 *argv[]);
+void        _handleLVL7Task(L7_uint32 *argv[], int argc);
 void        _handleTask(e_Err (*)(void *), OS_Thread *);
 void        _handlePermTask(e_Err (*)(void *), OS_Thread *);
 
@@ -1377,7 +1377,7 @@ e_Err OS_XX_CreateTmrTsk ( ulng period, e_Err (*f_Tick) (void), t_Handle *p_Time
    sprintf ( TmrTskName, "tL7Timer%d", timerNum++ );
    /* packing the address for passing to taskSpawn */
 
-    TimerTaskId = osapiTaskCreate(TmrTskName, _LVL7timerLoop, argc, Argv,
+    TimerTaskId = osapiTaskCreate(TmrTskName, _LVL7timerLoop, Argv, argc,
                                   20000, 100, L7_DEFAULT_TASK_SLICE);
 
     if (TimerTaskId == L7_ERROR)
@@ -1486,7 +1486,7 @@ e_Err OS_XX_CreateThread(byte priority, e_Err (*f_Thread) (void *),
            ThreadName, argc, priority, numQueues);
 #endif /* DCB_XX_DEBUG */
 
-    p_thread->TaskID = osapiTaskCreate(ThreadName, _handleLVL7Task, argc, Argv,
+    p_thread->TaskID = osapiTaskCreate(ThreadName, _handleLVL7Task, Argv, argc,
                                        40000, priority, L7_DEFAULT_TASK_SLICE);
 
     if (p_thread->TaskID == L7_ERROR)
@@ -1624,7 +1624,7 @@ void OS_XX_FreeNoCache( void *buf )
 /*=====================================================*/
 
 /*========== Timer task handle ========================*/
-static void _LVL7timerLoop(int argc, L7_uint32 *argv[])
+static void _LVL7timerLoop(L7_uint32 *argv[], int argc)
 {
   L7_uint32 *local_argv[2];
   L7_uint32 i;
@@ -1690,7 +1690,7 @@ static void _timerLoop(e_Err (*f_Tick)(), ulng period)
 }
 
 /*======== Task handles ======================*/
-void _handleLVL7Task(int argc, L7_uint32 *argv[])
+void _handleLVL7Task(L7_uint32 *argv[], int argc)
 {
     L7_uint32   *local_argv[3];
     L7_uint32   i;
