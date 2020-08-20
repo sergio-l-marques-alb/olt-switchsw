@@ -319,6 +319,7 @@ extern int l7_rpc_client_tunnel_terminator_delete(
                                      bcm_tunnel_terminator_t *terminator,
                                      L7_uint32 numChips, L7_uint32 *chips);
 
+/* PTin removed: BCMX */
 /*********************************************************************
 * @purpose  Convert BCMX terminator structure to the BCM terminator structure
 *
@@ -329,8 +330,10 @@ extern int l7_rpc_client_tunnel_terminator_delete(
 *
 * @end
 *********************************************************************/
+#if 0
 extern void l7_bcmx_terminator_to_bcm(bcmx_tunnel_terminator_t *l3xtun,
                                       bcm_tunnel_terminator_t *l3tun);
+#endif
 
 /*********************************************************************
 * @purpose  Initialize custom L3 RPC calls.

@@ -49,7 +49,6 @@
 
 #include "bcmx/port.h"
 #include "bcmx/lport.h"
-#include "bcmx/l3.h"
 #include "bcmx/stg.h"
 #include "bcmx/auth.h"
 #include "bcmx/vlan.h"

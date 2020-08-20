@@ -1538,11 +1538,20 @@ int l7_rpc_client_l3_egress_multipath_create(L7_uint32 flags, L7_int32 intf_coun
   int rv = BCM_E_NONE;
   hpcHwRpcData_t rpc_data;
   l7RpcMpathEgrInfo_t rpcMpathEgrInfo;
+  int bcm_unit;
 
   if (use_lvl7_rpc == 0)
   {
-    /* Call BCMX API instead of L7 RPC implementation */
-    rv = bcmx_l3_egress_multipath_create(flags, intf_count, intf_array, mpintf);
+    /* Run all units */
+    for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
+    {
+      /* Call BCM API instead of L7 RPC implementation */
+      rv = bcm_l3_egress_multipath_create(bcm_unit, flags, intf_count, intf_array, mpintf);
+      if (L7_BCMX_OK(rv) != L7_TRUE)
+      {
+        break;
+      }
+    }
   }
   else
   {
@@ -1673,12 +1682,21 @@ int l7_rpc_client_l3_egress_multipath_destroy(bcm_if_t mpintf,
                                               L7_uint32 numChips, 
                                               L7_uint32 *chips)
 {
-  int rv;
+  int rv = BCM_E_NONE;
   hpcHwRpcData_t rpc_data;
+  int bcm_unit;
 
   if (use_lvl7_rpc == 0)
   {
-    rv = bcmx_l3_egress_multipath_destroy(mpintf);
+    /* Run all units */
+    for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
+    {
+      rv = bcm_l3_egress_multipath_destroy(bcm_unit, mpintf);
+      if (L7_BCMX_OK(rv) != L7_TRUE)
+      {
+        break;
+      }
+    }
   }
   else
   {

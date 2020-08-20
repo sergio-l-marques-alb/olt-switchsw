@@ -26,7 +26,6 @@
 #include "broad_policy.h"
 #include "broad_l2_vlan.h"
 #include "commdefs.h"
-#include "bcm/tunnel.h"
 #include "bcm/error.h"
 #include "bcmx/port.h"
 #include "l7_usl_bcmx_l2.h"

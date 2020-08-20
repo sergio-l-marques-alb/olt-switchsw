@@ -72,7 +72,6 @@
 #else
 #include "bcmx/filter.h"
 #endif
-#include "bcmx/l3.h"
 #include "bcm/vlan.h"
 
 //#include "soc/debug.h"

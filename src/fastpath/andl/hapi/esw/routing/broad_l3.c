@@ -4196,7 +4196,7 @@ static L7_RC_t hapiBroadL3HostEntryQuery(DAPI_USP_t *usp,
   int rv;                           /* result buffer for broadcom queries */
   BROAD_L3_HOST_ENTRY_t host;       /* host search buffer */
   BROAD_L3_HOST_ENTRY_t *pHostEntry;/* pointer to located host entry */
-  bcmx_l3_host_t hostInfo;          /* host query buffer */
+  bcm_l3_host_t hostInfo;           /* host query buffer */
   bcm_if_t theIf;                   /* interface for this host */
   L7_uint32 currUpTime;             /* current time; used as last hit time */
   L7_BOOL notInHw;                  /* indicates error submitting to hw */
@@ -4377,7 +4377,8 @@ static L7_RC_t hapiBroadL3HostEntryQuery(DAPI_USP_t *usp,
         hostInfo.l3a_intf = theIf;
 
         /* query the hardware for this host */
-        rv = bcmx_l3_host_find(&hostInfo);
+        /* FIXME: Only applied to unit 0 */
+        rv = bcm_l3_host_find(0 /*unit*/, &hostInfo);
         if ( L7_TRUE == L7_BCMX_OK(rv) )
         {
           /* found it; set the flags & time for source hit and dest hit */

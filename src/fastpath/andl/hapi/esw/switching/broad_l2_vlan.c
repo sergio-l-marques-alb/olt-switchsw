@@ -52,7 +52,6 @@
 #include "bcmx/vlan.h"
 #include "bcmx/port.h"
 #include "bcmx/cosq.h"
-#include "bcmx/l3.h"
 /* PTin removed: SDK 6.3.0 */
 #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
 /* No include */
@@ -819,7 +818,7 @@ L7_RC_t hapiBroadQvlanVlanPortAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
   /* First go through the tagged list and set tagging on specified ports.
   ** We look at tagging first to optimize performance during boot time. 
   ** We need to avoid setting ports to untagged than flipping them to tagged
-  ** because this requires extra RPC calls as well as a call to bcmx_l3_untagged_update().
+  ** because this requires extra RPC calls as well as a call to bcm_l3_untagged_update().
   */
   for (entry=0; entry < cmdVlanPortAdd->cmdData.vlanPortAdd.numOfTagSetEntries; entry++)
   {

@@ -839,7 +839,7 @@ int usl_bcmx_ipmc_wlan_l3_port_add(L7_int32 index, L7_int32 l3a_intf_id,
   }
   else
   {
-    sysapiPrintf(" usl_bcmx_l3_egress_create / bcmx_l3_egress_find failed  with port %d; rv = %d; mcindex %d egr_rv %d; egrintf %d\n", 
+    sysapiPrintf(" usl_bcmx_l3_egress_create / bcm_l3_egress_find failed  with port %d; rv = %d; mcindex %d egr_rv %d; egrintf %d\n", 
            port, rv, index, egr_rv, egrintf);
 
   }

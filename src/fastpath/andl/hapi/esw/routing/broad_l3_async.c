@@ -22,7 +22,6 @@
 *******************************************************************************/
 
 #include "broad_l3_int.h"
-#include "bcmx/tunnel.h"
 #include "bcm/error.h"
 #include "l7_usl_bcmx_l2.h"
 #include "l7_usl_bcmx_l3.h"
@@ -336,8 +335,8 @@ static void hapiBroadL3AsyncNhopWlistProcess (DAPI_t *dapi_g)
 *
 * @returns none
 *
-* @notes   Instead of using bcmx_l3_egress_multipath_add() and 
-*          bcmx_l3_egress_multipath_delete() APIs, the replace flag is used to 
+* @notes   Instead of using bcm_l3_egress_multipath_add() and 
+*          bcm_l3_egress_multipath_delete() APIs, the replace flag is used to 
 *          update multipath egress objects (single RPC call).
 *
 * @end
@@ -419,7 +418,7 @@ static void hapiBroadL3AsyncEcmpWlistProcess (DAPI_t *dapi_g)
           rv = usl_bcmx_l3_egress_multipath_create(flags, intf_count, intf, 
                                                    &pEcmp->egressId);
 
-          HAPI_BROAD_L3_BCMX_DBG(rv, "bcmx_l3_egress_multipath_create"
+          HAPI_BROAD_L3_BCMX_DBG(rv, "bcm_l3_egress_multipath_create"
                       " returned (%s) intf count %d, egress id %d \n", 
                        bcm_errmsg(rv), intf_count, pEcmp->egressId);
 
@@ -460,7 +459,7 @@ static void hapiBroadL3AsyncEcmpWlistProcess (DAPI_t *dapi_g)
          {
            rv = usl_bcmx_l3_egress_multipath_destroy(egrId);
  
-           HAPI_BROAD_L3_BCMX_DBG(rv, "bcmx_l3_egress_multipath_destroy:"
+           HAPI_BROAD_L3_BCMX_DBG(rv, "bcm_l3_egress_multipath_destroy:"
                                   " Id %d (%s)", egrId, bcm_errmsg(rv));
 
            HAPI_BROAD_L3_INCR_HW_STATS(&broadL3HwEcmpStats, 2, rv);
@@ -983,7 +982,7 @@ static void hapiBroadL3AsyncRouteWlistProcess (DAPI_t *dapi_g)
           usl_bcmx_l3_host_add (&bcmHostInfo, 1, &rv);
      
           HAPI_BROAD_L3_BCMX_DBG(rv, "128-bit prefix special case: "
-                    " bcmx_l3_host_add returned (%s)\n", bcm_errmsg(rv));
+                    " bcm_l3_host_add returned (%s)\n", bcm_errmsg(rv));
         }
         else
         {

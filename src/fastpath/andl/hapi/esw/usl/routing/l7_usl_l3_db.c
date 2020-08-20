@@ -28,7 +28,6 @@
 #include "osapi.h"
 #include "osapi_support.h"
 #include "l7_usl_sm.h"
-#include "bcmx/l3.h"
 #include "l7_usl_trunk_db.h"
 #include "l7_usl_l3_db.h"
 #include "l7_rpc_l3.h"

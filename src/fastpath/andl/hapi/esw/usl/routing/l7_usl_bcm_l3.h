@@ -26,8 +26,8 @@
 #ifdef L7_ROUTING_PACKAGE
 
 #include "dapi.h"
-#include "bcmx/l3.h"
-#include "bcmx/tunnel.h"
+#include "bcm/l3.h"
+#include "bcm/tunnel.h"
 
 extern L7_BOOL uslDebugL3Enable;
 
