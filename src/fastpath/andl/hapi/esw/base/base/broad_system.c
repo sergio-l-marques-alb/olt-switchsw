@@ -1574,7 +1574,7 @@ L7_RC_t hapiBroadIntfStpState(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_
         hapiPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp,dapi_g);
 
         /* issue bcm call to set stp state */
-        rv = bcmx_port_stp_set(hapiPortPtr->bcmx_lport, state);
+        rv = bcm_port_stp_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, state);
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
           L7_LOG_ERROR(rv);
@@ -1586,12 +1586,12 @@ L7_RC_t hapiBroadIntfStpState(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_
   else if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr) == L7_TRUE)
   {
     /* issue bcm call to set stp state */
-    rv = bcmx_port_stp_set(hapiPortPtr->bcmx_lport, state);
+    rv = bcm_port_stp_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, state);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       result =  L7_FAILURE;
       SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                     "\n%s %d: In %s call to 'bcmx_port_stp_set' failed!\n",
+                     "\n%s %d: In %s call to 'bcm_port_stp_set' failed!\n",
                      __FILE__, __LINE__, __FUNCTION__);
       return result;
     }
@@ -1649,18 +1649,19 @@ L7_RC_t hapiBroadIntfLoopbackConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
       {
         hapiPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp,dapi_g);
 
-        rv = bcmx_port_loopback_get(hapiPortPtr->bcmx_lport,  &loopback_val);
+        rv = bcm_port_loopback_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &loopback_val);
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
           result =  L7_FAILURE;
           SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                        "\n%s %d: In %s call to 'bcmx_port_loopback_get' failed!\n",
+                        "\n%s %d: In %s call to 'bcm_port_loopback_get' failed!\n",
                         __FILE__, __LINE__, __FUNCTION__);
           return result;
         }
         if(loopback_val != dapiCmd->cmdData.portLoopbackConfig.loopMode)
         {
-          rv = bcmx_port_loopback_set(hapiPortPtr->bcmx_lport, dapiCmd->cmdData.portLoopbackConfig.loopMode);
+          rv = bcm_port_loopback_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
+                                     dapiCmd->cmdData.portLoopbackConfig.loopMode);
           if (L7_BCMX_OK(rv) != L7_TRUE)
           {
             L7_LOG_ERROR(rv);
@@ -1672,24 +1673,25 @@ L7_RC_t hapiBroadIntfLoopbackConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
   }
   else if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr) == L7_TRUE)
   {
-    rv = bcmx_port_loopback_get(hapiPortPtr->bcmx_lport,  &loopback_val);
+    rv = bcm_port_loopback_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &loopback_val);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       result =  L7_FAILURE;
       SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                     "\n%s %d: In %s call to 'bcmx_port_loopback_get' failed!\n",
+                     "\n%s %d: In %s call to 'bcm_port_loopback_get' failed!\n",
                      __FILE__, __LINE__, __FUNCTION__);
       return result;
     }
 
     if(loopback_val != dapiCmd->cmdData.portLoopbackConfig.loopMode)
     {
-      rv = bcmx_port_loopback_set(hapiPortPtr->bcmx_lport, dapiCmd->cmdData.portLoopbackConfig.loopMode);
+      rv = bcm_port_loopback_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
+                                 dapiCmd->cmdData.portLoopbackConfig.loopMode);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
         result =  L7_FAILURE;
         SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                       "\n%s %d: In %s call to 'bcmx_port_loopback_set' failed!\n",
+                       "\n%s %d: In %s call to 'bcm_port_loopback_set' failed!\n",
                        __FILE__, __LINE__, __FUNCTION__);
         return result;
       }

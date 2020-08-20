@@ -2690,6 +2690,7 @@ L7_RC_t hapiBroadPortTpidSet(bcmx_lport_t lport, L7_ushort16 val, DAPI_t *dapi_g
   int rc = BCM_E_NONE;
   DAPI_USP_t lagUsp;
   DAPI_PORT_t  *dapiPortPtr;
+  int bcm_unit, bcm_port;
   int i;
 
   if (BCM_GPORT_IS_TRUNK(lport))
@@ -2706,7 +2707,7 @@ L7_RC_t hapiBroadPortTpidSet(bcmx_lport_t lport, L7_ushort16 val, DAPI_t *dapi_g
           BROAD_PORT_t   *hapiLagMemberPortPtr;
 
           hapiLagMemberPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
-          rc = bcmx_port_tpid_set(hapiLagMemberPortPtr->bcmx_lport, val);               
+          rc = bcm_port_tpid_set(hapiLagMemberPortPtr->bcm_unit, hapiLagMemberPortPtr->bcm_port, val);               
         }
       }
       hapiBroadLagCritSecExit();
@@ -2714,7 +2715,15 @@ L7_RC_t hapiBroadPortTpidSet(bcmx_lport_t lport, L7_ushort16 val, DAPI_t *dapi_g
   }
   else
   { 
-    rc = bcmx_port_tpid_set(lport, val);               
+    /* Convert to bcm_unit/port */
+    if (bcmx_lport_to_unit_port(lport, &bcm_unit, &bcm_port) == BCM_E_NONE)
+    {
+      rc = bcm_port_tpid_set(bcm_unit, bcm_port, val);
+    }
+    else
+    {
+      rc = BCM_E_PARAM;
+    }
   }
 
   return ((L7_BCMX_OK(rc))?L7_SUCCESS:L7_FAILURE);

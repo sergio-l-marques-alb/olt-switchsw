@@ -1035,7 +1035,7 @@ L7_RC_t hapiBroadIntfDot1xAuthModeUpdate( DAPI_USP_t *usp, BROAD_PORT_t *hapiPor
     if ( L7_BCMX_OK( rc ) != L7_TRUE )
     {
       SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-          "\n%s %d: In %s call to 'bcmx_port_learn_set' - FAILED : %d\n",
+          "\n%s %d: In %s call to 'bcm_port_learn_set' - FAILED : %d\n",
           __FILE__,
           __LINE__,
           routine_name,

@@ -1533,12 +1533,11 @@ L7_RC_t hapiBroadLagPortAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
     {
       hapiLagPortPtr = HAPI_PORT_GET(usp,dapi_g);
 
-      lport = hapiLagMemberPortPtr->bcmx_lport;
-
-      rc = bcmx_port_stp_set(lport, hapiLagPortPtr->hw_stp_state);
+      rc = bcm_port_stp_set(hapiLagMemberPortPtr->bcm_unit, hapiLagMemberPortPtr->bcm_port, hapiLagPortPtr->hw_stp_state);
       if (L7_BCMX_OK(rc) != L7_TRUE)
       {
-        L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set STP state for port %d, rv = %d", lport, rc);
+        L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set STP state for unit %d port %d, rv = %d",
+                hapiLagMemberPortPtr->bcm_unit, hapiLagMemberPortPtr->bcm_port, rc);
       }
     } else
     {
@@ -2045,7 +2044,7 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
     */
     if (L7_BRIDGE_SPEC_SUPPORTED == L7_BRIDGE_SPEC_802DOT1D)
     {
-      rc = bcmx_port_stp_set(hapiLagMemberPortPtr->bcmx_lport, hapiLagMemberPortPtr->hw_stp_state);
+      rc = bcm_port_stp_set(hapiLagMemberPortPtr->bcm_unit, hapiLagMemberPortPtr->bcm_port, hapiLagMemberPortPtr->hw_stp_state);
       if (L7_BCMX_OK(rc) != L7_TRUE)
       {
         L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set STP state for port 0x%x, rv = %d", hapiLagMemberPortPtr->bcmx_lport, rc);

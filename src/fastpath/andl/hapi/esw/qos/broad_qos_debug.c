@@ -108,7 +108,7 @@ L7_RC_t hapiBroadDebugDumpCosShaping(L7_uint32 unit,L7_uint32 port)
 
     hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
 
-    bcmx_port_rate_egress_get( hapiPortPtr->bcmx_lport, &kbits_sec, &kbits_burst);
+    bcm_port_rate_egress_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &kbits_sec, &kbits_burst);
 
     printf("COS Egress Rate   Port = %d   Rate = %d Kbps  \n",port,kbits_sec);
 
@@ -183,8 +183,8 @@ void hapiBroadDebugDumpDscpMap(int unit,int port)
     printf("DSCP Map from Broadcom Chip- ");
     for (index=0; index<L7_QOS_COS_MAP_NUM_IPDSCP; index++)
     {
-        /* result = bcmx_port_dscp_map_get(bcmx_lport_t port, int srccp, int mapcp, int prio);*/
-        bcmx_port_dscp_map_get(BCMX_LPORT_ETHER_ALL, index, &mapcp, &prio);
+        /* result = bcm_port_dscp_map_get(int unit, bcm_port_t port, int srccp, int mapcp, int prio);*/
+        bcm_port_dscp_map_get(hapiPortPtr->bcm_unit, -1 /*All ports*/, index, &mapcp, &prio);
 
         if ((index%8) == 0)
             printf("\n[%2.2d-%2.2d] ", index, index+7);

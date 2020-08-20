@@ -2000,8 +2000,8 @@ int usl_bcmx_port_sample_rate_set(bcmx_lport_t port,
 int usl_bcmx_port_sample_rate_get(bcmx_lport_t port,
                                   usl_bcm_port_sflow_config_t *sflowConfig)
 {
-
-  int     rv = BCM_E_NONE;
+  int bcm_unit, bcm_port;
+  int rv = BCM_E_NONE;
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -2011,9 +2011,14 @@ int usl_bcmx_port_sample_rate_get(bcmx_lport_t port,
     /* If USL caching is on then read from db */
     if (USL_BCMX_CONFIGURE_HW(USL_PORT_DB_ID) == L7_TRUE)
     {
-      rv = bcmx_port_sample_rate_get(port, 
-                                     &(sflowConfig->ingressSamplingRate),
-                                     &(sflowConfig->egressSamplingRate));
+      /* Convert gport to bcm unit/gport */
+      if (bcmx_lport_to_unit_port(port, &bcm_unit, &bcm_port) != BCM_E_NONE)
+      {
+          return BCM_E_PARAM;
+      }
+      rv = bcm_port_sample_rate_get(bcm_unit, bcm_port, 
+                                    &(sflowConfig->ingressSamplingRate),
+                                    &(sflowConfig->egressSamplingRate));
     }
     else
     {

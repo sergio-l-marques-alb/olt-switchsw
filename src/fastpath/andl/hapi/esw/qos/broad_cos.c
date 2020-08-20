@@ -318,22 +318,23 @@ L7_RC_t hapiBroadQosCosPortInit(DAPI_PORT_t *dapiPortPtr)
 * @end
 *
 *********************************************************************/
-static void hapiBroadQosCosResetDscpMapping(bcmx_lport_t port)
+static void hapiBroadQosCosResetDscpMapping(int unit, int port)
 {
   int rv;
   int RESET_CP = -1;   /* reset codepoint value */
 
   /* Remove global mappings */
-  rv = bcmx_port_dscp_map_set(BCMX_LPORT_ETHER_ALL, RESET_CP, RESET_CP, 0);
+  rv = bcm_port_dscp_map_set(unit, -1 /*All ports*/, RESET_CP, RESET_CP, 0);
 
   if (L7_BCMX_OK(rv) == L7_TRUE)
   {
-    rv = bcmx_port_dscp_map_mode_set(port, BCM_PORT_DSCP_MAP_NONE);
+    rv = bcm_port_dscp_map_mode_set(unit, port, BCM_PORT_DSCP_MAP_NONE);
   }
 
   if (L7_BCMX_OK(rv) != L7_TRUE)
   {
-    L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't reset DSCP mapping for lport 0x%x, rv = %d", port, rv);
+    L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't reset DSCP mapping for unit %d, port %d, rv = %d",
+            unit, port, rv);
   }
 }
 
@@ -596,7 +597,7 @@ static L7_RC_t hapiBroadQosCosIntfTrustIpDscp(BROAD_PORT_t *hapiPortPtr, L7_ucha
 
   if ( result == L7_SUCCESS)
   {
-    rv = bcmx_port_dscp_map_mode_set(hapiPortPtr->bcmx_lport, BCM_PORT_DSCP_MAP_ALL);
+    rv = bcm_port_dscp_map_mode_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, BCM_PORT_DSCP_MAP_ALL);
     if (L7_BCMX_OK(rv) != L7_TRUE)
       result = L7_FAILURE;
   }
@@ -609,8 +610,8 @@ static L7_RC_t hapiBroadQosCosIntfTrustIpDscp(BROAD_PORT_t *hapiPortPtr, L7_ucha
       for (dscp = 0; dscp < L7_QOS_COS_MAP_NUM_IPDSCP; dscp++)
       {
         /* Change global mapping table */
-        rv = bcmx_port_dscp_map_set(hapiPortPtr->bcmx_lport /*BCMX_LPORT_ETHER_ALL*/,
-                                    dscp, dscp, dscpMap[dscp]);
+        rv = bcm_port_dscp_map_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
+                                   dscp, dscp, dscpMap[dscp]);
 
         if (L7_BCMX_OK(rv) != L7_TRUE)
           result = L7_FAILURE;
@@ -976,19 +977,19 @@ static L7_RC_t hapiBroadQosCosApplyPolicy(BROAD_PORT_t *dstPortPtr, BROAD_PORT_t
     switch (qosPortPtr->cos.trustMode)
     {
     case DAPI_QOS_COS_INTF_MODE_UNTRUSTED:
-        hapiBroadQosCosResetDscpMapping(dstPortPtr->bcmx_lport);
+        hapiBroadQosCosResetDscpMapping(dstPortPtr->bcm_unit, dstPortPtr->bcm_port);
         hapiBroadQosCosRemoveIpPrec(dstPortPtr);
         result = hapiBroadQosCosIntfUntrusted(dstPortPtr, qosPortPtr->cos.defaultCos, L7_FALSE);
         break;
 
     case DAPI_QOS_COS_INTF_MODE_TRUST_DOT1P:
-        hapiBroadQosCosResetDscpMapping(dstPortPtr->bcmx_lport);
+        hapiBroadQosCosResetDscpMapping(dstPortPtr->bcm_unit, dstPortPtr->bcm_port);
         hapiBroadQosCosRemoveIpPrec(dstPortPtr);
         result = hapiBroadQosCosIntfTrustDot1p(dstPortPtr, srcPortPtr->dot1pMap);
         break;
 
     case DAPI_QOS_COS_INTF_MODE_TRUST_IPPREC:
-        hapiBroadQosCosResetDscpMapping(dstPortPtr->bcmx_lport);
+        hapiBroadQosCosResetDscpMapping(dstPortPtr->bcm_unit, dstPortPtr->bcm_port);
         result = hapiBroadQosCosIntfTrustIpPrec(dstPortPtr, qosPortPtr->cos.precMap, qosPortPtr->cos.defaultCos);
         break;
 
@@ -1015,7 +1016,7 @@ static L7_RC_t hapiBroadQosCosApplyPolicy(BROAD_PORT_t *dstPortPtr, BROAD_PORT_t
 
 #if defined(FEAT_METRO_CPE_V1_0)
     case DAPI_QOS_COS_INTF_MODE_TRUST_UNSET_IPDSCP:
-        hapiBroadQosCosResetDscpMapping(dstPortPtr->bcmx_lport);
+        hapiBroadQosCosResetDscpMapping(dstPortPtr->bcm_unit, dstPortPtr->bcm_port);
         qosPortPtr->cos.trustMode = DAPI_QOS_COS_INTF_MODE_UNTRUSTED;
          break;
     case DAPI_QOS_COS_INTF_MODE_TRUST_UNSET_DOT1P:
@@ -1216,8 +1217,8 @@ L7_RC_t hapiBroadQosCosIpDscpToTcMap(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data
             {
                 lagMemberPtr = HAPI_PORT_GET(&lagMemberSet[i].usp, dapi_g);
 
-                rv = bcmx_port_dscp_map_set(lagMemberPtr->bcmx_lport,
-                                            dscp, dscp, qosPortPtr->cos.dscpMap[dscp]);
+                rv = bcm_port_dscp_map_set(lagMemberPtr->bcm_unit, lagMemberPtr->bcm_port,
+                                           dscp, dscp, qosPortPtr->cos.dscpMap[dscp]);
                 if (BCM_E_NONE != rv)
                     break;
             }
@@ -1225,8 +1226,8 @@ L7_RC_t hapiBroadQosCosIpDscpToTcMap(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data
     }
     else
     {
-      rv = bcmx_port_dscp_map_set(hapiPortPtr->bcmx_lport,
-                                  dscp, dscp, qosPortPtr->cos.dscpMap[dscp]);
+      rv = bcm_port_dscp_map_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
+                                 dscp, dscp, qosPortPtr->cos.dscpMap[dscp]);
     }
     #else
     rv = bcmx_port_dscp_map_set(BCMX_LPORT_ETHER_ALL,
@@ -1234,7 +1235,7 @@ L7_RC_t hapiBroadQosCosIpDscpToTcMap(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data
     #endif
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error applying bcmx_port_dscp_map_set: rv=%d", rv);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error applying bcm_port_dscp_map_set: rv=%d", rv);
       result = L7_FAILURE;
     }
 
@@ -1628,7 +1629,7 @@ L7_RC_t hapiBroadQosCosIntfStatus(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
         {
           hapiPortPtr = HAPI_PORT_GET(&lagMemberSet[i].usp, dapi_g);
 
-          rv = bcmx_port_rate_egress_get(hapiPortPtr->bcmx_lport, &kbits_sec, &kbits_burst);
+          rv = bcm_port_rate_egress_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &kbits_sec, &kbits_burst);
           if (L7_BCMX_OK(rv) != L7_TRUE)
             result = L7_FAILURE;
           break;
@@ -1637,7 +1638,7 @@ L7_RC_t hapiBroadQosCosIntfStatus(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
     }
     else
     {
-      rv = bcmx_port_rate_egress_get(hapiPortPtr->bcmx_lport, &kbits_sec, &kbits_burst);
+      rv = bcm_port_rate_egress_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &kbits_sec, &kbits_burst);
     }
 
     if (L7_BCMX_OK(rv) != L7_TRUE)

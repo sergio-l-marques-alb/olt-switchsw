@@ -462,13 +462,13 @@ L7_RC_t hapiBroadL3IntfMtuSet (DAPI_USP_t *usp, L7_ulong32  mtu, DAPI_t *dapi_g)
   {
     dapiPortPtr->modeparm.physical.mtu = mtu;
 
-    rv = bcmx_port_l3_mtu_set(hapiPortPtr->bcmx_lport, (L7_int32)mtu);
+    rv = bcm_port_l3_mtu_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, (L7_int32)mtu);
 
     /* Ignore the E_UNAVAIL error code */
     if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
     {
-      HAPI_BROAD_L3_BCMX_DBG(rv, "bcmx_port_l3_mtu_set: returned %s",
-                              bcm_errmsg(rv));
+      HAPI_BROAD_L3_BCMX_DBG(rv, "bcm_port_l3_mtu_set: returned %s",
+                             bcm_errmsg(rv));
       result = L7_FAILURE;
     }
   }
@@ -500,11 +500,11 @@ L7_RC_t hapiBroadL3IntfMtuSet (DAPI_USP_t *usp, L7_ulong32  mtu, DAPI_t *dapi_g)
             {
               hapiPortPtr = HAPI_PORT_GET(&tUsp,dapi_g);
 
-              rv = bcmx_port_l3_mtu_set(hapiPortPtr->bcmx_lport, (L7_int32)mtu);
+              rv = bcm_port_l3_mtu_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, (L7_int32)mtu);
               if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
               {
-                 HAPI_BROAD_L3_BCMX_DBG(rv, "bcmx_port_l3_mtu_set: returned %s",
-                                         bcm_errmsg(rv));
+                 HAPI_BROAD_L3_BCMX_DBG(rv, "bcm_port_l3_mtu_set: returned %s",
+                                        bcm_errmsg(rv));
                  result = L7_FAILURE;
               }
             }
@@ -879,10 +879,10 @@ L7_RC_t hapiBroadL3PortVlanNotify(DAPI_USP_t  *usp,
     }
  
     /* hapiBroadL3IntfMtuSet cannot be used here as it is tied to L3 USP */
-    rv = bcmx_port_l3_mtu_set(hapiPortPtr->bcmx_lport, mtu);
+    rv = bcm_port_l3_mtu_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, mtu);
     if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
     {
-      HAPI_BROAD_L3_BCMX_DBG(rv, "bcmx_port_l3_mtu_set: returned %s",
+      HAPI_BROAD_L3_BCMX_DBG(rv, "bcm_port_l3_mtu_set: returned %s",
                              bcm_errmsg(rv));
     }
 

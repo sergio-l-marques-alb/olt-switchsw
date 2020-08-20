@@ -1729,8 +1729,8 @@ static L7_RC_t hapiBroadL3IntfDelete(DAPI_USP_t *usp,
     /* Restore STP state for port. */
     if (L7_BRIDGE_SPEC_SUPPORTED == L7_BRIDGE_SPEC_802DOT1D)
     {
-      rv = bcmx_port_stp_set(hapiPortPtr->bcmx_lport,
-                             hapiPortPtr->hw_stp_state);
+      rv = bcm_port_stp_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
+                            hapiPortPtr->hw_stp_state);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
         HAPI_BROAD_L3_L7_LOG_ERROR(hapiPortPtr->bcmx_lport);

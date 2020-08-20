@@ -1681,7 +1681,7 @@ static L7_RC_t hapiBroadPortDoubleVlanTagConfig(DAPI_USP_t *usp,
     if (L7_BCMX_OK(rc) != L7_TRUE)
     {
       SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                     "\n%s %d: In %s call to 'bcmx_port_dtag_mode_set' - FAILED : %d\n",
+                     "\n%s %d: In %s call to 'bcm_port_dtag_mode_set' - FAILED : %d\n",
                      __FILE__, __LINE__, __FUNCTION__, rc);
       result = L7_FAILURE;
       break;
@@ -1702,7 +1702,7 @@ static L7_RC_t hapiBroadPortDoubleVlanTagConfig(DAPI_USP_t *usp,
       if (L7_BCMX_OK(rc) != L7_TRUE)
       {
         SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                     "\n%s %d: In %s call to 'bcmx_port_tpid_set' - FAILED : %d\n",
+                     "\n%s %d: In %s call to 'bcm_port_tpid_set' - FAILED : %d\n",
                      __FILE__, __LINE__, __FUNCTION__, rc);
         result = L7_FAILURE;
         break;
@@ -1831,7 +1831,7 @@ void hapiBroadLearnSet(DAPI_USP_t *usp, L7_uint32 flags, DAPI_t *dapi_g)
     if (L7_BCMX_OK(rc) != L7_TRUE)
     {
       SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                     "\n%s %d: In %s call to 'bcmx_port_learn_set' - FAILED : %d\n",
+                     "\n%s %d: In %s call to 'bcm_port_learn_set' - FAILED : %d\n",
                      __FILE__, __LINE__, __FUNCTION__, rc);
     }
   } else if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr))
@@ -1852,7 +1852,7 @@ void hapiBroadLearnSet(DAPI_USP_t *usp, L7_uint32 flags, DAPI_t *dapi_g)
           if (L7_BCMX_OK(rc) != L7_TRUE)
           {
             SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                          "\n%s %d: In %s call to 'bcmx_port_learn_set' - FAILED : %d\n",
+                          "\n%s %d: In %s call to 'bcm_port_learn_set' - FAILED : %d\n",
                          __FILE__, __LINE__, __FUNCTION__, rc);
           }
         }

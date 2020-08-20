@@ -4917,7 +4917,8 @@ void hapiBroadGetSameVlanPbmpTx(L7_ushort16 vlanID, bcmx_lplist_t *lplist, L7_BO
             {
               /* PTin modified: filter considering link status */
               if (!filter_linkup ||
-                  (bcmx_port_link_status_get(hapiPortPtr->bcmx_lport, &link_status) == BCM_E_NONE && link_status == BCM_PORT_LINK_STATUS_UP))
+                  (bcm_port_link_status_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &link_status) == BCM_E_NONE
+                   && link_status == BCM_PORT_LINK_STATUS_UP))
               {
                 BCMX_LPLIST_ADD(lplist,hapiPortPtr->bcmx_lport);
               }

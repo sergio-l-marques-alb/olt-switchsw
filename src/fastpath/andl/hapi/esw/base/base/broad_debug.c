@@ -2221,7 +2221,7 @@ int hapiBroadDebugDuplexAdvertSet(int unit,int slot,int port,int duplex)
 
   hapiPortPtr = HAPI_PORT_GET(&usp,dapi_g);
 
-  rv = bcmx_port_advert_get(hapiPortPtr->bcmx_lport, &ability_mask);
+  rv = bcm_port_advert_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &ability_mask);
   if (L7_BCMX_OK(rv) != L7_TRUE)
   {
     return rv;
@@ -2238,7 +2238,7 @@ int hapiBroadDebugDuplexAdvertSet(int unit,int slot,int port,int duplex)
     ability_mask |=  (BCM_PORT_ABIL_10MB_FD | BCM_PORT_ABIL_100MB_FD | BCM_PORT_ABIL_1000MB_FD);
   }
 
-  rv = bcmx_port_advert_set(hapiPortPtr->bcmx_lport, ability_mask);
+  rv = bcm_port_advert_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, ability_mask);
 
   return rv;
 }
@@ -2831,6 +2831,8 @@ TKS_DEBUG(TKS_DBG_ERR,("TKS_DBG_TUNNELV=0x%lx  /* Tunnel verbose */\n", TKS_DBG_
 #endif
 #endif
 
+/* PTin removed: BCMX */
+#if 0
 extern _bcmx_port_t *_bcmx_port;
 extern int bcmx_lport_max;
 void debug_bcmx_db_print(void)
@@ -2853,6 +2855,7 @@ void hapiBroadDebugBcmxInfoDump(void)
 {
   _bcmx_port_info_dump();
 }
+#endif
 
 /* Dump specified PHY Register for the specified port */
 L7_int32 hapiBroadDebugSinglePhyRegDump(L7_int32 u, L7_uint32 p, L7_short16 phy_reg)

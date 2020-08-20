@@ -472,11 +472,10 @@ L7_RC_t hapiBroadPortLinkUp(DAPI_USP_t *usp, DAPI_t *dapi_g)
     hapiPortPtr->rx_pause = rxPauseStatus;
     hapiPortPtr->tx_pause = txPauseStatus;
 #if L7_FEAT_DUAL_PHY_COMBO
-    bcmx_port_autoneg_get(hapiPortPtr->bcmx_lport,&anStatus);
+    bcm_port_autoneg_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &anStatus);
     if(anStatus == L7_ENABLE)
     {
-      bcmx_port_advert_get(hapiPortPtr->bcmx_lport,
-                                       &abilityMask);
+      bcm_port_advert_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &abilityMask);
       hapiPortPtr->autonegotiationAbilityMask = abilityMask;
     } else {
       hapiPortPtr->autonegotiationAbilityMask = L7_DISABLE;
@@ -537,11 +536,10 @@ L7_RC_t hapiBroadPortLinkDown(DAPI_USP_t *usp, DAPI_t *dapi_g)
   hapiPortPtr->rx_pause = L7_FALSE;
   hapiPortPtr->tx_pause = L7_FALSE;
 #if L7_FEAT_DUAL_PHY_COMBO
-  bcmx_port_autoneg_get(hapiPortPtr->bcmx_lport,&anStatus);
+  bcm_port_autoneg_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &anStatus);
   if(anStatus == L7_ENABLE)
   {
-    bcmx_port_advert_get(hapiPortPtr->bcmx_lport,
-                                    &abilityMask);
+    bcm_port_advert_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &abilityMask);
     hapiPortPtr->autonegotiationAbilityMask = abilityMask;
   }
   else {
