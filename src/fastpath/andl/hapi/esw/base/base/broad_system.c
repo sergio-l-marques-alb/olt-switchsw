@@ -7137,7 +7137,7 @@ L7_RC_t hapiBroadSystemCardPortLinkupGenerate(L7_uint32 unit, L7_uint32 slot,
           (dapiPortPtr->modeparm.physical.isLinkUp == L7_FALSE))
       {
         portInfo.linkstatus = L7_TRUE;
-        hapiBroadPortLinkStatusChange(hapiPortPtr->bcmx_lport, &portInfo);
+        hapiBroadPortLinkStatusChange(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &portInfo);
       }
     }
   }

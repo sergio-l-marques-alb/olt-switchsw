@@ -750,7 +750,7 @@ int ptin_link_notify(bcm_port_t bcm_port)
     return -1;
   }
 
-  rv = bcm_port_link_status_get(0, bcm_port, &link_status);
+  rv = bcm_port_link_status_get(0 /*unit*/, bcm_port, &link_status);
   if (rv != BCM_E_NONE)
   {
     printf("%s(%d) bcm_port_link_status_get: rv=%u (\"%s\")\r\n", __FUNCTION__, __LINE__, rv, bcm_errmsg(rv));
@@ -758,7 +758,7 @@ int ptin_link_notify(bcm_port_t bcm_port)
   }
 
   info.linkstatus = link_status;
-  hapiBroadPortLinkStatusChange(lport, &info);
+  hapiBroadPortLinkStatusChange(0 /*unit*/, bcm_port, &info);
 
   printf("%s(%d) Notification sent: lport=0x%08x -> link=%d\r\n", __FUNCTION__, __LINE__, lport, link_status);
 

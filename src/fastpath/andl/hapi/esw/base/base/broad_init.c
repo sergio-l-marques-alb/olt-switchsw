@@ -82,7 +82,6 @@
 #include "bcm/ipmc.h"
 #include "bcm/stack.h"
 #include "bcmx/lport.h"
-#include "bcmx/link.h"
 /* PTin modified: SDK 6.3.0 */
 #include "ptin_globaldefs.h"
 #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
@@ -2274,10 +2273,14 @@ L7_RC_t hapiBroadBcmxRegisterUnit(L7_ushort16 unitNum,L7_ushort16 slotNum, DAPI_
   bcm_rlink_client_clear();
 #endif
 
-  /* refresh any linkscan registrations in the system to assure remote events are sent here */
-  rv = bcmx_linkscan_enable_set(-1);
-  BCM_UNIT_ITER(bcm_unit)
+  /* Run all units */
+  for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
   {
+    /* refresh any linkscan registrations in the system to assure remote events are sent here */
+    rv = bcm_linkscan_enable_set(bcm_unit, -1);
+
+    /* PTin removed: BCMX */
+#if 0
     rv = bcmx_linkscan_device_add(bcm_unit);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
@@ -2297,6 +2300,7 @@ L7_RC_t hapiBroadBcmxRegisterUnit(L7_ushort16 unitNum,L7_ushort16 slotNum, DAPI_
       result = L7_FAILURE;
       return result;
     }
+#endif
 
     /* Register for L2 notifications on standalone package */
 #ifndef L7_STACKING_PACKAGE
@@ -2310,16 +2314,16 @@ L7_RC_t hapiBroadBcmxRegisterUnit(L7_ushort16 unitNum,L7_ushort16 slotNum, DAPI_
       return result;
     }
 #endif
-  }
 
-  rv = bcmx_linkscan_register(hapiBroadPortLinkStatusChange);
-  if (L7_BCMX_OK(rv) != L7_TRUE)
-  {
-    L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DRIVER_COMPONENT_ID,
-            "Driver: Failed to register with linscan, error code %d\n", 
-            rv);
-    result = L7_FAILURE;
-    return result;
+    rv = bcm_linkscan_register(bcm_unit, hapiBroadPortLinkStatusChange);
+    if (L7_BCMX_OK(rv) != L7_TRUE)
+    {
+      L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DRIVER_COMPONENT_ID,
+              "Driver: Failed to register with linscan, error code %d\n", 
+              rv);
+      result = L7_FAILURE;
+      return result;
+    }
   }
 
   rv = bcmx_rx_register("hapiBroadReceive",

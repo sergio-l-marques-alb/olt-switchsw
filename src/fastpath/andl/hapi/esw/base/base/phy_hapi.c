@@ -40,7 +40,6 @@
 #include "bcm/link.h"
 #include "bcm/stat.h"
 #include "bcmx/port.h"
-#include "bcmx/link.h"
 
 #include "l7_usl_bcmx_port.h"
 

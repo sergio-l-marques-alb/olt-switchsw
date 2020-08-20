@@ -28,7 +28,10 @@
 
 typedef struct portLinkStatus_s 
 {
-  bcmx_lport_t lport;
+  int         bcm_unit;
+  bcm_port_t  bcm_port;
+  bcm_gport_t gport;
+  DAPI_USP_t  usp;
   int linkstatus;
 } portLinkStatus_t;
 
@@ -63,7 +66,7 @@ L7_RC_t hapiBroadPortCtlInit(DAPI_PORT_t *dapiPortPtr);
 * @end
 *
 *********************************************************************/
-void hapiBroadPortLinkStatusChange(bcmx_lport_t lport, bcm_port_info_t *portInfo);
+void hapiBroadPortLinkStatusChange(int unit, bcm_port_t port, bcm_port_info_t *portInfo);
 
 /*********************************************************************
 *

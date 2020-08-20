@@ -264,14 +264,44 @@ extern DAPI_t *dapi_g;
 * @end
 *
 *********************************************************************/
-void hapiBroadPortLinkStatusChange(bcmx_lport_t lport, bcm_port_info_t *portInfo)
+void hapiBroadPortLinkStatusChange(int unit, bcm_port_t port, bcm_port_info_t *portInfo)
 {
  portLinkStatus_t link_msg;
+ bcmx_uport_t     uport;
+ bcmx_lport_t     lport;
 
- PT_LOG_NOTICE(LOG_CTX_INTF  ,"LPort 0x%08x link=%d", lport, portInfo->linkstatus);
- PT_LOG_NOTICE(LOG_CTX_EVENTS,"LPort 0x%08x link=%d", lport, portInfo->linkstatus);
+ lport = bcmx_unit_port_to_lport(unit, port);
 
- link_msg.lport = lport;
+ PT_LOG_NOTICE(LOG_CTX_INTF  ,"unit %d, port %d, gport 0x%x: link=%d",
+               unit, port, lport, portInfo->linkstatus);
+ PT_LOG_NOTICE(LOG_CTX_EVENTS,"unit %d, port %d, gport 0x%x: link=%d",
+               unit, port, lport, portInfo->linkstatus);
+
+ /* Fill struct */
+ link_msg.bcm_unit = unit;
+ link_msg.bcm_port = port;
+ link_msg.gport = lport;
+
+ /* Get gport */
+ if (!BCMX_LPORT_VALID(lport))
+ {
+   PT_LOG_ERR(LOG_CTX_INTF,"Invalid unit %d, port %d: can't convert to gport", unit, port);
+   return;
+ }
+
+ /* Get usp */
+ uport = BCMX_UPORT_GET(lport);
+ HAPI_BROAD_UPORT_TO_USP(uport, &link_msg.usp);
+
+ if (isValidUsp(&link_msg.usp, dapi_g) == L7_FALSE)
+ {
+   PT_LOG_ERR(LOG_CTX_INTF,"Invalid usp {%d,%d,%d} from unit %d, port %d",
+              link_msg.usp.unit, link_msg.usp.slot, link_msg.usp.port,
+              unit, port);
+   return;
+ }
+
+ /* saving link status */
  link_msg.linkstatus = portInfo->linkstatus;
 
  if (osapiMessageSend(hapiLinkStatusQueue,
@@ -302,17 +332,18 @@ void hapiBroadPortLinkStatusChange(bcmx_lport_t lport, bcm_port_info_t *portInfo
  * @end
  *
  *********************************************************************/
-void hapiBroadPortLinkStatusChange(bcmx_lport_t lport, bcm_port_info_t *portInfo)
+void hapiBroadPortLinkStatusChange(int unit, bcm_port_t port, bcm_port_info_t *portInfo)
 {
   int linkstatus;
   DAPI_USP_t        usp;
   DAPI_PORT_t       *dapiPortPtr;
   bcmx_uport_t      uport;
+  bcmx_lport_t      lport;
 
   linkstatus = portInfo->linkstatus;
 
+  lport = bcmx_unit_port_to_lport(unit, port);
   uport = BCMX_UPORT_GET(lport);
-
   HAPI_BROAD_UPORT_TO_USP(uport,&usp);
 
   /* Make sure that card is not unplugged while we are using the
@@ -332,16 +363,16 @@ void hapiBroadPortLinkStatusChange(bcmx_lport_t lport, bcm_port_info_t *portInfo
   if ((dapiPortPtr->modeparm.physical.isLinkUp == L7_FALSE) && (linkstatus == TRUE))
   {
     /* link is up */
-    PT_LOG_NOTICE(LOG_CTX_INTF  ,"LPort 0x%08x link is up", lport);
-    PT_LOG_NOTICE(LOG_CTX_EVENTS,"LPort 0x%08x link is up", lport);
+    PT_LOG_NOTICE(LOG_CTX_INTF  ,"LPort 0x%08x / unit %d port %d link is up", lport, unit, port);
+    PT_LOG_NOTICE(LOG_CTX_EVENTS,"LPort 0x%08x / unit %d port %d link is up", lport, unit, port);
     dapiPortPtr->modeparm.physical.isLinkUp = L7_TRUE;
     hapiBroadPortLinkUp(&usp, dapi_g);
   }
   else if ((dapiPortPtr->modeparm.physical.isLinkUp == L7_TRUE) && (linkstatus == FALSE))
   {
     /* link is down */
-    PT_LOG_NOTICE(LOG_CTX_INTF  ,"LPort 0x%08x link is down", lport);
-    PT_LOG_NOTICE(LOG_CTX_EVENTS,"LPort 0x%08x link is down", lport);
+    PT_LOG_NOTICE(LOG_CTX_INTF  ,"LPort 0x%08x / unit %d port %d link is down", lport, unit, port);
+    PT_LOG_NOTICE(LOG_CTX_EVENTS,"LPort 0x%08x / unit %d port %d link is down", lport, unit, port);
     dapiPortPtr->modeparm.physical.isLinkUp = L7_FALSE;
     hapiBroadPortLinkDown(&usp, dapi_g);
   }
@@ -370,7 +401,6 @@ void hapiBroadPortLinkStatusTask(void)
 {
   DAPI_USP_t        usp;
   DAPI_PORT_t      *dapiPortPtr;
-  bcmx_uport_t         uport;
   portLinkStatus_t  link_msg;
 
   do
@@ -381,9 +411,8 @@ void hapiBroadPortLinkStatusTask(void)
       L7_LOG_ERROR(0);
     }
 
-    uport = BCMX_UPORT_GET(link_msg.lport);
-
-    HAPI_BROAD_UPORT_TO_USP(uport,&usp);
+    /* Extract usp */
+    usp = link_msg.usp;
 
     /* Make sure that card is not unplugged while we are using the
     ** pointers.
