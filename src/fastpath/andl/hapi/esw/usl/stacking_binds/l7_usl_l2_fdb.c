@@ -24,9 +24,7 @@
 #include "soc/drv.h"
 #include "soc/l2x.h"
 #include "bcm/types.h"
-#include "bcmx/trunk.h"
 #include "bcmx/mcast.h"
-#include "bcmx/stg.h"
 #include "bcm_int/esw/mbcm.h"
 /* PTin modified: SDK 6.3.0 */
 #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))

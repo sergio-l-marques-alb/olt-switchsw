@@ -34,7 +34,6 @@
 #include "broad_policy.h"
 #include "sysbrds.h"
 #include "bcmx/port.h"
-#include "bcmx/auth.h"
 
 #include "l7_usl_bcmx_l2.h"
 #include "l7_usl_api.h"

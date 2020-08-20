@@ -80,9 +80,7 @@ extern void init_symtab();
 
 #include "bcmx/port.h"
 #include "bcmx/lport.h"
-#include "bcmx/stg.h"
 #include "bcmx/tx.h"
-#include "bcmx/rate.h"
 #include "ibde.h"
 
 #define  __C_CODE__
@@ -1371,6 +1369,7 @@ L7_RC_t hapiBroadDebugStpVlanList(L7_uint32 instNumber)
   L7_uint32             stg_index;
   L7_int32              numVlans, vlanIndex;
   L7_int32              rc;
+  int                   bcm_unit;
 
   if (hapiBroadDot1sBcmStgMapGet(instNumber,&stg,&stg_index) == L7_FAILURE)
   {
@@ -1380,21 +1379,25 @@ L7_RC_t hapiBroadDebugStpVlanList(L7_uint32 instNumber)
     return(L7_FAILURE);
   }
 
-  /* Get a list of vlans for the given spanning tree instance */
-  rc = bcmx_stg_vlan_list (stg, &vlanList, &numVlans);
-  if (BCM_E_NOT_FOUND == rc)
+  /* Run all units */
+  for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
   {
-    SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                   "\n%s %d: In %s call to 'bcmx_stg_vlan_list' - FAILED : %d (Spanning Tree Instance not found)\n",
-                   __FILE__, __LINE__, __FUNCTION__, rc);
-    return(L7_FAILURE);
-  }
-  else if (BCM_E_NONE != rc)
-  {
-    SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                   "\n%s %d: In %s call to 'bcmx_stg_vlan_list' - FAILED : %d\n",
-                   __FILE__, __LINE__, __FUNCTION__, rc);
-    return(L7_FAILURE);
+    /* Get a list of vlans for the given spanning tree instance */
+    rc = bcm_stg_vlan_list (bcm_unit, stg, &vlanList, &numVlans);
+    if (BCM_E_NOT_FOUND == rc)
+    {
+      SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
+                     "\n%s %d: In %s call to 'bcm_stg_vlan_list' - FAILED : %d (Spanning Tree Instance not found)\n",
+                     __FILE__, __LINE__, __FUNCTION__, rc);
+      return(L7_FAILURE);
+    }
+    else if (BCM_E_NONE != rc)
+    {
+      SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
+                     "\n%s %d: In %s call to 'bcm_stg_vlan_list' - FAILED : %d\n",
+                     __FILE__, __LINE__, __FUNCTION__, rc);
+      return(L7_FAILURE);
+    }
   }
 
 
@@ -1427,8 +1430,6 @@ L7_RC_t hapiBroadDebugStpPortList(L7_uint32 instNumber)
   L7_uint32             stg_index;
   L7_int32              rc;
   bcm_stg_stp_t         stgState;
-  bcmx_lport_t          lport;
-
 
   if (hapiBroadDot1sBcmStgMapGet(instNumber,&stg,&stg_index) == L7_FAILURE)
   {
@@ -1448,26 +1449,23 @@ L7_RC_t hapiBroadDebugStpPortList(L7_uint32 instNumber)
         {
           /* Get the logical BCMX port */
           hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
-          lport = hapiPortPtr->bcmx_lport;
 
           /* Call BCMX to get the state for a port in a STG instance */
-          rc = bcmx_stg_stp_get (lport, stg, (int*)&stgState);
+          rc = bcm_stg_stp_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, stg, (int *)&stgState);
           if (BCM_E_NOT_FOUND == rc)
           {
             SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                           "\n%s %d: In %s call to 'bcmx_stg_stp_get' - FAILED : %d (Spanning Tree Instance not found)\n",
+                           "\n%s %d: In %s call to 'bcm_stg_stp_get' - FAILED : %d (Spanning Tree Instance not found)\n",
                            __FILE__, __LINE__, __FUNCTION__, rc);
             return(L7_FAILURE);
           }
           else if (BCM_E_NONE != rc)
           {
             SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                           "\n%s %d: In %s call to 'bcmx_stg_stp_get' - FAILED : %d\n",
+                           "\n%s %d: In %s call to 'bcm_stg_stp_get' - FAILED : %d\n",
                            __FILE__, __LINE__, __FUNCTION__, rc);
             return(L7_FAILURE);
           }
-
-
 
           /* Print the state informatino for the port */
           printf ("Unit : %d Port : %d \t\t State :", usp.unit, (usp.port + 1));
@@ -1495,7 +1493,6 @@ L7_RC_t hapiBroadDebugStpPortList(L7_uint32 instNumber)
             printf ("Unknown ??\n");
             break;
           }
-
         }
       }
     }

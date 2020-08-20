@@ -49,8 +49,6 @@
 
 #include "bcmx/port.h"
 #include "bcmx/lport.h"
-#include "bcmx/stg.h"
-#include "bcmx/auth.h"
 /* PTin removed: SDK 6.3.0 */
 #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
 /* No include */
@@ -494,7 +492,7 @@ L7_RC_t hapiBroadSystemDot1sInstanceCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
   {
     result = L7_FAILURE;
     SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                   "\n%s %d: In %s call to 'bcmx_stg_create' - FAILED : %d\n",
+                   "\n%s %d: In %s call to 'bcm_stg_create' - FAILED : %d\n",
                    __FILE__, __LINE__, __FUNCTION__, rc);
   } else
   {
@@ -555,13 +553,13 @@ L7_RC_t hapiBroadSystemDot1sInstanceDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
   if (BCM_E_NOT_FOUND == rc)
   {
     SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI,
-                   "\n%s %d: In %s call to 'bcmx_stg_destroy' - FAILED : %s\n",
+                   "\n%s %d: In %s call to 'bcm_stg_destroy' - FAILED : %s\n",
                    __FILE__, __LINE__, __FUNCTION__, bcm_errmsg(rc));
   } else if (L7_BCMX_OK(rc) != L7_TRUE)
   {
     result = L7_FAILURE;
     SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                   "\n%s %d: In %s call to 'bcmx_stg_destroy' - FAILED : %s\n",
+                   "\n%s %d: In %s call to 'bcm_stg_destroy' - FAILED : %s\n",
                    __FILE__, __LINE__, __FUNCTION__, bcm_errmsg(rc));
   } else
   {
@@ -643,7 +641,7 @@ L7_RC_t hapiBroadSystemDot1sInstanceVlanAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, voi
   if (L7_BCMX_OK(rc) != L7_TRUE)
   {
     SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                   "\n%s %d: In %s call to 'bcmx_stg_vlan_add' - FAILED : %d\n",
+                   "\n%s %d: In %s call to 'bcm_stg_vlan_add' - FAILED : %d\n",
                    __FILE__, __LINE__, __FUNCTION__, rc);
   }
 
@@ -728,7 +726,7 @@ L7_RC_t hapiBroadSystemDot1sInstanceVlanRemove(DAPI_USP_t *usp, DAPI_CMD_t cmd, 
       (rc != BCM_E_NOT_FOUND))
   {
     SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                   "\n%s %d: In %s call to 'bcmx_stg_vlan_remove' - FAILED : %d\n",
+                   "\n%s %d: In %s call to 'bcm_stg_vlan_remove' - FAILED : %d\n",
                    __FILE__, __LINE__, __FUNCTION__, rc);
     return(L7_FAILURE);
   }
@@ -874,7 +872,7 @@ L7_RC_t hapiBroadDot1sStateAsyncSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
           {
 
             SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                           "\n%s %d: In %s call to 'bcmx_stg_stp_set' - FAILED : %d (Spanning Tree Instance not found)\n",
+                           "\n%s %d: In %s call to 'bcm_stg_stp_set' - FAILED : %d (Spanning Tree Instance not found)\n",
                            __FILE__, __LINE__, __FUNCTION__, rc);
           }
           #endif
@@ -882,7 +880,7 @@ L7_RC_t hapiBroadDot1sStateAsyncSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
         {
           result = L7_FAILURE;
           SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                         "\n%s %d: In %s call to 'bcmx_stg_stp_set' - FAILED : %d\n",
+                         "\n%s %d: In %s call to 'bcm_stg_stp_set' - FAILED : %d\n",
                          __FILE__, __LINE__, __FUNCTION__, rc);
         }
       }
@@ -925,7 +923,7 @@ L7_RC_t hapiBroadDot1sStateAsyncSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
       {
         result = L7_FAILURE;
         SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                       "\n%s %d: In %s call to 'bcmx_stg_stp_set' - FAILED : %d\n",
+                       "\n%s %d: In %s call to 'bcm_stg_stp_set' - FAILED : %d\n",
                        __FILE__, __LINE__, __FUNCTION__, rc);
       }
     }

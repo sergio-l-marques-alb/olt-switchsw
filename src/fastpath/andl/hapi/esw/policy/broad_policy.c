@@ -18,6 +18,7 @@
 *
 **********************************************************************/
 
+#include "ibde.h"
 #include "osapi_support.h"
 #include "dtl_exports.h"
 #include "broad_policy.h"
@@ -30,10 +31,8 @@
 #include "bcmx/bcmx_int.h"
 #include "sysbrds.h"
 #include "appl/stktask/topo_brd.h"
-#include "bcmx/mirror.h"
 #include "bcmx/port.h"
 #include "feature.h"
-#include "bcmx/field.h"
 
 
 extern DAPI_t *dapi_g;
@@ -583,6 +582,8 @@ BROAD_POLICY_RULE_ENTRY_t *hapiBroadPolicyRulePtrGet(BROAD_POLICY_ENTRY_t *polic
 *********************************************************************/
 L7_RC_t hapiBroadPolicyInit()
 {
+    int bcm_unit;
+
     policyTableSema = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
     if (L7_NULLPTR == policyTableSema)
     {
@@ -597,19 +598,20 @@ L7_RC_t hapiBroadPolicyInit()
       return L7_FAILURE;
     }
 
-    /* PTin added: Field processor */
-    #if 1
-    if (bcmx_field_init() != BCM_E_NONE)
+    /* Run all units */
+    for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
     {
-      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
-        sysapiPrintf("Error initializing FFP!\n");
+      if (bcm_field_init(bcm_unit) != BCM_E_NONE)
+      {
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+          sysapiPrintf("unit %d: Error initializing FFP!\n", bcm_unit);
+      }
+      else
+      {
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+          sysapiPrintf("unit %d: FFP initialized!\n", bcm_unit);
+      }
     }
-    else
-    {
-      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
-        sysapiPrintf("FFP initialized!\n");
-    }
-    #endif
 
     return L7_SUCCESS;
 }

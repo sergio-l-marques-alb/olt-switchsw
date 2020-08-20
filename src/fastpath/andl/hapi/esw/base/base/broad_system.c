@@ -57,8 +57,6 @@
 
 #include "bcmx/port.h"
 #include "bcmx/lport.h"
-#include "bcmx/mirror.h"
-#include "bcmx/rate.h"
 /* PTin removed: SDK 6.3.0 */
 #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
 /* No include */

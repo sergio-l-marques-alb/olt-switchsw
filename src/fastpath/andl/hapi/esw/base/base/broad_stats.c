@@ -44,7 +44,6 @@
 #include "bcm/stat.h"
 
 #include "bcmx/lport.h"
-#include "bcmx/stat.h"
 
 #include "bcm/custom.h"
 #include "bcm/stat.h"

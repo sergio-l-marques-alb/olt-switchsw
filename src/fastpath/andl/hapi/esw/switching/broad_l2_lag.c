@@ -54,7 +54,6 @@
 #include "bcm/port.h"
 
 #include "bcmx/lport.h"
-#include "bcmx/trunk.h"
 #include "bcmx/port.h"
 
 #include "l7_usl_bcmx_l2.h"
@@ -2679,11 +2678,12 @@ L7_RC_t hapiBroadProtocolVlanLagPortDeleteNotify(DAPI_USP_t *memberUsp, DAPI_USP
   return L7_SUCCESS;
 }
 
-
+/* PTin removed: BCMX */
 /**********************************
 **  Swap two LAG members. 
 **  This function is used for testing traffic distribution.
 **********************************/
+#if 0
 L7_uint32 hapiBroadDebugLagSwap (L7_uint32 lag_id)
 {
   int rv;
@@ -2745,3 +2745,5 @@ L7_uint32 hapiBroadDebugLagSwap (L7_uint32 lag_id)
 
   return 0;
 }
+#endif
+
