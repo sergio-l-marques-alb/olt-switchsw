@@ -28,7 +28,6 @@
 #include "bcmx/lplist.h"
 #include "bcmx/bcmx.h"
 #include "bcmx/lport.h"
-#include "bcmx/rx.h"
 
 
 /*********************************************************************

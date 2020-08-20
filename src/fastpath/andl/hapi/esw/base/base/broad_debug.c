@@ -80,7 +80,6 @@ extern void init_symtab();
 
 #include "bcmx/port.h"
 #include "bcmx/lport.h"
-#include "bcmx/tx.h"
 #include "ibde.h"
 
 #define  __C_CODE__
@@ -1992,6 +1991,35 @@ L7_RC_t hapiBroadDebugMmuSet(int unit,
 }
 
 
+/*
+ * Function:
+ *      albcm_tx_pkt_untagged_set
+ * Purpose:
+ *      Set untagged characteristic for a bcm pkt sent thru bcmx
+ * Parameters:
+ *      pkt         - the pkt to affect
+ *      untagged    - boolean; should pkt be tagged
+ * Returns:
+ *      BCM_E_XXX
+ */
+static int 
+_bcmy_tx_pkt_untagged_set(bcm_pkt_t *pkt, int untagged)
+{
+    bcm_pbmp_t tmp_pbm;
+
+    if (pkt) {
+        if (untagged) {
+            BCM_PBMP_CLEAR(tmp_pbm);
+            BCM_PBMP_NEGATE(pkt->tx_upbmp, tmp_pbm);
+        } else {
+            BCM_PBMP_CLEAR(pkt->tx_upbmp);
+        }
+    }
+
+    return BCM_E_NONE;
+}
+
+
 int hapiBroadDebugPktSendEnabled = 0;
 int hapiBroadDebugPktSendVlanId = 1;
 int hapiBroadDebugPktSendPktCount = 0;
@@ -2056,9 +2084,15 @@ void hapiBroadDebugPktSendTask(DAPI_t *dapi_g, L7_uint32 numArgs)
       for (i = 0; i < pkt_count; i++)
       {
         osapiTaskYield();
-        bcmx_tx_pkt_untagged_set(&pkt,L7_FALSE);
+        _bcmy_tx_pkt_untagged_set(&pkt,L7_FALSE);
         t1 = osapiTimeMillisecondsGet64();
-        bcmx_tx_uc(&pkt, hapiPortPtr->bcmx_lport,BCMX_TX_F_CPU_TUNNEL);
+
+        /* Transmit */
+        pkt.unit = hapiPortPtr->bcm_unit;
+        BCM_PBMP_PORT_SET(pkt.tx_pbmp, hapiPortPtr->bcm_port);
+        BCM_PBMP_CLEAR(pkt.tx_upbmp);
+        bcm_tx(hapiPortPtr->bcm_unit, &pkt, L7_NULL);
+
         hapiBroadDebugSendCounter++;
 
         t2 = osapiTimeMillisecondsGet64();
@@ -2156,8 +2190,14 @@ void hapiBroadDebugPktSend(int unit,
   {
     osapiTaskYield();
     printf("\nSending packet[%d] to %d.%d.%d (lport %d)of size %d \n",pkt_count,unit,slot,port,hapiPortPtr->bcmx_lport,pkt_size);
-    bcmx_tx_pkt_untagged_set(&pkt,L7_FALSE);
-    bcmx_tx_uc(&pkt, hapiPortPtr->bcmx_lport,BCMX_TX_F_CPU_TUNNEL);
+    _bcmy_tx_pkt_untagged_set(&pkt,L7_FALSE);
+
+    /* Transmit */
+    pkt.unit = hapiPortPtr->bcm_unit;
+    BCM_PBMP_PORT_SET(pkt.tx_pbmp, hapiPortPtr->bcm_port);
+    BCM_PBMP_CLEAR(pkt.tx_upbmp);
+    bcm_tx(hapiPortPtr->bcm_unit, &pkt, L7_NULL);
+
     pkt_count--;
     osapiSleep(2);
   }

@@ -2256,6 +2256,7 @@ L7_RC_t hapiBroadCpuPortMapGet(L7_ushort16 unitNum, L7_ushort16 slotNum, DAPI_t 
 *********************************************************************/
 L7_RC_t hapiBroadBcmxRegisterUnit(L7_ushort16 unitNum,L7_ushort16 slotNum, DAPI_t *dapi_g)
 {
+  bcm_rx_cfg_t rx_cfg;
   L7_RC_t               result      = L7_SUCCESS;
   int                   rv;
   int                   bcm_unit;
@@ -2317,30 +2318,37 @@ L7_RC_t hapiBroadBcmxRegisterUnit(L7_ushort16 unitNum,L7_ushort16 slotNum, DAPI_
       result = L7_FAILURE;
       return result;
     }
-  }
 
-  rv = bcmx_rx_register("hapiBroadReceive",
-                        hapiBroadReceive,
-                        10,
-                        dapi_g,
-                        BCM_RCO_F_ALL_COS);
-  if (L7_BCMX_OK(rv) != L7_TRUE)
-  {
-    L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DRIVER_COMPONENT_ID,
-            "Driver: Failed to register callback with rx, error code %d\n", 
-            rv);
-    result = L7_FAILURE;
-    return result;
-  }
+    rv = bcm_rx_register(bcm_unit,
+                         "hapiBroadReceive",
+                         hapiBroadReceive,
+                         10,
+                         dapi_g,
+                         BCM_RCO_F_ALL_COS);
+    if (L7_BCMX_OK(rv) != L7_TRUE)
+    {
+      L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DRIVER_COMPONENT_ID,
+              "Driver: Failed to register callback with rx, error code %d\n", 
+              rv);
+      result = L7_FAILURE;
+      return result;
+    }
 
-  rv = bcmx_rx_start();
-  if (L7_BCMX_OK(rv) != L7_TRUE)
-  {
-    L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DRIVER_COMPONENT_ID,
-            "Driver: Failed to start rx subsystem, error code %d\n", 
-            rv);
-    result = L7_FAILURE;
-    return result;
+    /* FIXME: BCMX - Check me */
+    /* Start packet reception with default values */
+    bcm_rx_cfg_t_init(&rx_cfg);
+    rx_cfg.rx_alloc = (void *) NULL;
+    rx_cfg.rx_free  = (void *) NULL;
+
+    rv = bcm_rx_start(bcm_unit, &rx_cfg);
+    if (L7_BCMX_OK(rv) != L7_TRUE)
+    {
+      L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DRIVER_COMPONENT_ID,
+              "Driver: Failed to start rx subsystem, error code %d\n", 
+              rv);
+      result = L7_FAILURE;
+      return result;
+    }
   }
 
   return result;
