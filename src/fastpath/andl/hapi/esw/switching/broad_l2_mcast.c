@@ -34,7 +34,6 @@
 #include "bcm/vlan.h"
 
 #include "bcmx/mcast.h"
-#include "bcmx/vlan.h"
 #include "bcmx/lplist.h"
 #include "l7_usl_bcmx_l2.h"
 #include "broad_l2_vlan.h"
@@ -698,7 +697,7 @@ L7_RC_t hapiBroadGarpGroupRegModify(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
   hapiBroadL2McastCritSecEnter();
 
   /* 
-   * Make sure that the vlan is created (using this in lieu of bcmx_vlan_port_get
+   * Make sure that the vlan is created (using this in lieu of bcm_vlan_port_get
    * because the bcmx routine is costly with a stack)
    * A slight cheat here is that the cpu is a member of all vlans.  If this changes
    * in the future, we will need to change this code

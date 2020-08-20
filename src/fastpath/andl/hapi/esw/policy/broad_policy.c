@@ -33,7 +33,6 @@
 #include "bcmx/mirror.h"
 #include "bcmx/port.h"
 #include "feature.h"
-#include "bcmx/switch.h"
 #include "bcmx/field.h"
 
 
@@ -1717,11 +1716,11 @@ L7_RC_t hapiBroadPolicySetMirroringPath(BROAD_POLICY_t policy, bcmx_lport_t lpor
   usl_bcm_port_filter_mode_t     mode;
   usl_bcm_port_mirror_config_t   mirrorConfig;
 
-
   memset(&mode, 0, sizeof(mode));
   memset(&mirrorConfig, 0, sizeof(mirrorConfig));
 
-  bcmx_switch_control_get(bcmSwitchDirectedMirroring, &directed);
+  /* FIXME: Only applied to unit 0 */
+  bcm_switch_control_get(0 /*unit*/, bcmSwitchDirectedMirroring, &directed);
 
   if (directed != 0)
   {

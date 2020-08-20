@@ -26,7 +26,6 @@
 #include "bcm/types.h"
 #include "bcmx/trunk.h"
 #include "bcmx/mcast.h"
-#include "bcmx/vlan.h"
 #include "bcmx/stg.h"
 #include "bcm_int/esw/mbcm.h"
 /* PTin modified: SDK 6.3.0 */

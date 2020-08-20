@@ -25,8 +25,6 @@
 
 #include "bcm/l2.h"
 #include "bcmx/port.h"
-#include "bcmx/vlan.h"
-#include "bcmx/switch.h"
 
 #include "l7_common.h"
 #include "l7_packet.h"
@@ -5762,6 +5760,7 @@ L7_RC_t hapiBroadL3IcmpRedirConfig(DAPI_USP_t *usp,
   DAPI_SYSTEM_t *dapiSystemPtr = dapi_g->system;
   DAPI_PORT_t *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr;
+  int bcm_unit;
 
   HAPI_BROAD_L3_DEBUG(broadL3Debug, "hapiBroadL3IcmpRedirConfig: %d\n",
                       dapiCmd->cmdData.icmpRedirectsConfig.enable);
@@ -5784,72 +5783,76 @@ L7_RC_t hapiBroadL3IcmpRedirConfig(DAPI_USP_t *usp,
     dapiSystemPtr->icmpRedirEnable = L7_FALSE;
   }
 
-  /* Always set the switch control. Do not get the current value
-   * and skip the set. That causes issues when new unit gets attached
-   */
-  rv = bcmx_switch_control_get(bcmSwitchIcmpRedirectToCpu, &i);
-  if (rv == BCM_E_NONE)
+  /* Run all units */
+  for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
   {
-  rv = bcmx_switch_control_set(bcmSwitchIcmpRedirectToCpu, enable);
-
-    HAPI_BROAD_L3_BCMX_DBG(rv, "bcmx_switch_control_set: ICMP redirect");
+    /* Always set the switch control. Do not get the current value
+     * and skip the set. That causes issues when new unit gets attached
+     */
+    rv = bcm_switch_control_get(bcm_unit, bcmSwitchIcmpRedirectToCpu, &i);
     if (rv != BCM_E_NONE)
     {
-      result = L7_FAILURE;
+      return L7_SUCCESS;
+    }
+    
+    rv = bcm_switch_control_set(bcm_unit, bcmSwitchIcmpRedirectToCpu, enable);
+
+    HAPI_BROAD_L3_BCMX_DBG(rv, "bcm_switch_control_set: ICMP redirect");
+    if (rv != BCM_E_NONE)
+    {
+      return L7_FAILURE;
     }
   }
-  else
+
+  /* Some devices, like Triumph, support per VLAN control for ICMP redirect,
+   * instead of global control knob in CPU_CONTROL register. Currently,
+   * FastPath support global knob for ICMP redirect, and not per VLAN/intf.
+   * In future, this may change, in which case consider the input USP
+   * and apply the ICMP redirect config only on that routed VLAN.
+   */
+
+  /* Check the VLAN routing interfaces */
+  vlanUsp.unit = L7_LOGICAL_UNIT;
+  vlanUsp.slot = L7_VLAN_SLOT_NUM;
+
+  for (vlanUsp.port = 0; vlanUsp.port < L7_MAX_NUM_ROUTER_INTF; vlanUsp.port++)
   {
-    /* Some devices, like Triumph, support per VLAN control for ICMP redirect,
-     * instead of global control knob in CPU_CONTROL register. Currently,
-     * FastPath support global knob for ICMP redirect, and not per VLAN/intf.
-     * In future, this may change, in which case consider the input USP
-     * and apply the ICMP redirect config only on that routed VLAN.
-     */
-
-    /* Check the VLAN routing interfaces */
-    vlanUsp.unit = L7_LOGICAL_UNIT;
-    vlanUsp.slot = L7_VLAN_SLOT_NUM;
-
-    for (vlanUsp.port = 0; vlanUsp.port < L7_MAX_NUM_ROUTER_INTF; vlanUsp.port++)
+    if (isValidUsp(&vlanUsp,dapi_g) == L7_FALSE)
     {
-      if (isValidUsp(&vlanUsp,dapi_g) == L7_FALSE)
-      {
-        continue;
-      }
-
-      dapiPortPtr = GET_DAPI_PORT(dapi_g, &vlanUsp);
-
-      /* Check if VLAN is enabled for routing */
-      if ((dapiPortPtr->modeparm.router.vlanID != 0) &&
-          (dapiPortPtr->modeparm.router.routerIntfEnabled == L7_TRUE))
-      {
-        result = hapiBroadL3IcmpRedirVlanConfig(
-                     dapiPortPtr->modeparm.router.vlanID, enable);
-      }
+      continue;
     }
 
-    /* Check port based routing VLANs */
-    for (portUsp.unit = 0; portUsp.unit < dapi_g->system->totalNumOfUnits; portUsp.unit++)
-    {
-      for (portUsp.slot = 0; portUsp.slot < dapi_g->unit[portUsp.unit]->numOfSlots; portUsp.slot++)
-      {
-        if (dapi_g->unit[portUsp.unit]->slot[portUsp.slot]->cardPresent == L7_TRUE)
-        {
-          for (portUsp.port = 0; portUsp.port < dapi_g->unit[portUsp.unit]->slot[portUsp.slot]->numOfPortsInSlot; portUsp.port++)
-          {
-            if (isValidUsp(&portUsp, dapi_g) == L7_FALSE)
-            {
-              continue;
-            }
-            dapiPortPtr = DAPI_PORT_GET(&portUsp, dapi_g);
-            hapiPortPtr = HAPI_PORT_GET(&portUsp, dapi_g);
+    dapiPortPtr = GET_DAPI_PORT(dapi_g, &vlanUsp);
 
-            if ((IS_PORT_TYPE_PHYSICAL(dapiPortPtr) == L7_TRUE) &&
-                (dapiPortPtr->modeparm.physical.routerIntfEnabled == L7_TRUE))
-            {
-              result = hapiBroadL3IcmpRedirVlanConfig(hapiPortPtr->port_based_routing_vlanid, enable);
-            }
+    /* Check if VLAN is enabled for routing */
+    if ((dapiPortPtr->modeparm.router.vlanID != 0) &&
+        (dapiPortPtr->modeparm.router.routerIntfEnabled == L7_TRUE))
+    {
+      result = hapiBroadL3IcmpRedirVlanConfig(
+                   dapiPortPtr->modeparm.router.vlanID, enable);
+    }
+  }
+
+  /* Check port based routing VLANs */
+  for (portUsp.unit = 0; portUsp.unit < dapi_g->system->totalNumOfUnits; portUsp.unit++)
+  {
+    for (portUsp.slot = 0; portUsp.slot < dapi_g->unit[portUsp.unit]->numOfSlots; portUsp.slot++)
+    {
+      if (dapi_g->unit[portUsp.unit]->slot[portUsp.slot]->cardPresent == L7_TRUE)
+      {
+        for (portUsp.port = 0; portUsp.port < dapi_g->unit[portUsp.unit]->slot[portUsp.slot]->numOfPortsInSlot; portUsp.port++)
+        {
+          if (isValidUsp(&portUsp, dapi_g) == L7_FALSE)
+          {
+            continue;
+          }
+          dapiPortPtr = DAPI_PORT_GET(&portUsp, dapi_g);
+          hapiPortPtr = HAPI_PORT_GET(&portUsp, dapi_g);
+
+          if ((IS_PORT_TYPE_PHYSICAL(dapiPortPtr) == L7_TRUE) &&
+              (dapiPortPtr->modeparm.physical.routerIntfEnabled == L7_TRUE))
+          {
+            result = hapiBroadL3IcmpRedirVlanConfig(hapiPortPtr->port_based_routing_vlanid, enable);
           }
         }
       }
@@ -5894,7 +5897,7 @@ L7_RC_t hapiBroadL3IcmpRedirVlanConfig(L7_ushort16 vlanId, L7_int32 enable)
   /* Update the vlan control flag */
   rv = usl_bcmx_vlan_control_flag_update(vlanId, flags, cmd);
 
-  HAPI_BROAD_L3_BCMX_DBG(rv, "bcmx_vlan_control_vlan_set: returned %s",
+  HAPI_BROAD_L3_BCMX_DBG(rv, "bcm_vlan_control_vlan_set: returned %s",
                          bcm_errmsg(rv));
 
   if (rv != BCM_E_NONE)

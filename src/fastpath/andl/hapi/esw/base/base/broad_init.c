@@ -90,7 +90,6 @@
 #else
 #include "bcmx/filter.h"
 #endif
-#include "bcmx/switch.h"
 #include "ibde.h"
 #include "l7_usl_api.h"
 #include "l7_usl_sm.h"

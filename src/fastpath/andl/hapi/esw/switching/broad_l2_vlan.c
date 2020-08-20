@@ -49,7 +49,6 @@
 
 #include "bcmx/lport.h"
 #include "bcmx/lplist.h"
-#include "bcmx/vlan.h"
 #include "bcmx/port.h"
 #include "bcmx/cosq.h"
 /* PTin removed: SDK 6.3.0 */

@@ -15,7 +15,6 @@
 #include "ptin_fpga_api.h"
 #include "hpc_db.h"
 #include "dapi_db.h"
-#include "bcmx/vlan.h"
 #include "logger.h"
 
 
@@ -1886,7 +1885,7 @@ int ptin_vp_group_create(L7_uint32 port_nni, L7_uint32 port_uni, L7_uint16 vid_n
 
   /* Get current control definitions for this vlan */
   bcm_vlan_control_vlan_t_init(&control);
-  if ((error = bcmx_vlan_control_vlan_get(vid_nni, &control))!=BCM_E_NONE)
+  if ((error = bcm_vlan_control_vlan_get(0 /*unit*/, vid_nni, &control))!=BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error getting vlan control structure! error=%d (%s)\r\n", error, bcm_errmsg(error));
     return L7_FAILURE;
@@ -1896,7 +1895,7 @@ int ptin_vp_group_create(L7_uint32 port_nni, L7_uint32 port_uni, L7_uint16 vid_n
   control.forwarding_mode = bcmVlanForwardBridging;
 
   /* Apply new control definitions to this vlan */
-  if ( (error = bcmx_vlan_control_vlan_set(vid_nni, control)) != BCM_E_NONE )
+  if ( (error = bcm_vlan_control_vlan_set(0 /*unit*/, vid_nni, control)) != BCM_E_NONE )
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_vlan_control_vlan_set: error=%d (%s)", error, bcm_errmsg(error));
     return L7_FAILURE;

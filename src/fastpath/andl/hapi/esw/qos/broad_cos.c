@@ -33,7 +33,6 @@
 
 #include "bcmx/cosq.h"
 #include "bcmx/port.h"
-#include "bcmx/switch.h"
 #include "soc/drv.h"
 #include "bcmx/bcmx_int.h"
 /* Default weights used in non-QoS packages. */

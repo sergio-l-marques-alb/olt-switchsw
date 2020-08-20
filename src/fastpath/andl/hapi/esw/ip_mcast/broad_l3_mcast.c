@@ -27,11 +27,11 @@
 #include "broad_l2_lag.h"
 #include "broad_policy.h"
 
+#include "ibde.h"
 #include "bcm/ipmc.h"
 #include "soc/macipadr.h"
 #include "bcmx/ipmc.h"
 #include "bcmx/bcmx_int.h"
-#include "bcmx/switch.h"
 #include "l7_usl_bcmx_l3.h"
 #include "l7_usl_bcmx_port.h"
 #include "l7_usl_bcmx_l2.h"
@@ -2964,6 +2964,7 @@ L7_RC_t hapiBroadRoutingMcastIgmpConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
   DAPI_ROUTING_MGMT_CMD_t   *dapiCmd   = (DAPI_ROUTING_MGMT_CMD_t*)data;
   L7_int32                  rv;
   L7_BOOL                   switchFrame = L7_FALSE;
+  int                       bcm_unit;
 
   if (dapiCmd->cmdData.mcastIgmpConfig.getOrSet != DAPI_CMD_SET)
   {
@@ -3020,28 +3021,32 @@ L7_RC_t hapiBroadRoutingMcastIgmpConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
          * */
         hapiBroadConfigL3V6McastFilter(L7_TRUE);
 
-        rv = bcmx_switch_control_set(bcmSwitchMldPktDrop, 0);
-        if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+        /* Run all units */
+        for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
         {
-          L7_LOG_ERROR(rv);
-        }
-        rv = bcmx_switch_control_set(bcmSwitchMldPktToCpu, 1);
-        if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-        {
-          L7_LOG_ERROR(rv);
-        }
+          rv = bcm_switch_control_set(bcm_unit, bcmSwitchMldPktDrop, 0);
+          if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+          {
+            L7_LOG_ERROR(rv);
+          }
+          rv = bcm_switch_control_set(bcm_unit, bcmSwitchMldPktToCpu, 1);
+          if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+          {
+            L7_LOG_ERROR(rv);
+          }
 
-       /* Set the MLD packet priority. This is required for FB2 devices or later.
-        * For other platforms, MLD packets will follow protocol priority.
-        * The return code of E_UNAVAIL is masked by the API.
-        */
-        rv = bcmx_switch_control_set(bcmSwitchCpuProtoIgmpPriority,
-                                    HAPI_BROAD_INGRESS_MED_PRIORITY_COS);
-        if (L7_BCMX_OK(rv) != L7_TRUE)
-        {
-          SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                "\n%s %d: In %s Failed to set hapiBroadRoutingMcastIgmpConfig - %d\n",
-                __FILE__, __LINE__, __FUNCTION__, rv);
+         /* Set the MLD packet priority. This is required for FB2 devices or later.
+          * For other platforms, MLD packets will follow protocol priority.
+          * The return code of E_UNAVAIL is masked by the API.
+          */
+          rv = bcm_switch_control_set(bcm_unit, bcmSwitchCpuProtoIgmpPriority,
+                                      HAPI_BROAD_INGRESS_MED_PRIORITY_COS);
+          if (L7_BCMX_OK(rv) != L7_TRUE)
+          {
+            SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
+                  "\n%s %d: In %s Failed to set hapiBroadRoutingMcastIgmpConfig - %d\n",
+                  __FILE__, __LINE__, __FUNCTION__, rv);
+          }
         }
 
         dapi_g->system->mldEnable = L7_TRUE;
@@ -3053,15 +3058,19 @@ L7_RC_t hapiBroadRoutingMcastIgmpConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
       {
         hapiBroadConfigL3V6McastFilter(L7_FALSE);
 
-        rv = bcmx_switch_control_set(bcmSwitchMldPktDrop, 0);
-        if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+        /* Run all units */
+        for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
         {
-          L7_LOG_ERROR(rv);
-        }
-        rv = bcmx_switch_control_set(bcmSwitchMldPktToCpu, 0);
-        if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-        {
-          L7_LOG_ERROR(rv);
+          rv = bcm_switch_control_set(bcm_unit, bcmSwitchMldPktDrop, 0);
+          if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+          {
+            L7_LOG_ERROR(rv);
+          }
+          rv = bcm_switch_control_set(bcm_unit, bcmSwitchMldPktToCpu, 0);
+          if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+          {
+            L7_LOG_ERROR(rv);
+          }
         }
         dapi_g->system->mldEnable = L7_FALSE;
       }

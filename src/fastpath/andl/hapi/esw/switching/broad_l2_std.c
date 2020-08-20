@@ -51,7 +51,6 @@
 #include "bcmx/lport.h"
 #include "bcmx/stg.h"
 #include "bcmx/auth.h"
-#include "bcmx/vlan.h"
 /* PTin removed: SDK 6.3.0 */
 #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
 /* No include */

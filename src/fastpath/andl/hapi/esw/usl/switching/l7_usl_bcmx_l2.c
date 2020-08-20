@@ -38,7 +38,6 @@
 
 #include "bcm/types.h"
 #include "bcmx/bcmx_int.h"
-#include "bcmx/vlan.h"
 
 extern L7_BOOL uslDatabaseActive;
 
@@ -1820,7 +1819,15 @@ int usl_bcmx_mcast_port_leave_groups(bcm_gport_t port, int *l2mc_index, int l2mc
 int usl_ip_bcmx_vlan_control_port_set(bcmx_lport_t port,
                                       bcm_vlan_control_port_t type, int arg)
 {
-   return(bcmx_vlan_control_port_set(port,type,arg));
+  int bcm_unit, bcm_port;
+
+  /* Convert to bcm_unit/port */
+  if (bcmx_lport_to_unit_port(port, &bcm_unit, &bcm_port) != BCM_E_NONE)
+  {
+    return BCM_E_PARAM;
+  }
+   
+  return (bcm_vlan_control_port_set(bcm_unit, bcm_port, type, arg));
 }
 
 /*********************************************************************
@@ -1953,7 +1960,15 @@ int usl_bcmx_vlan_ip4_delete(bcm_ip_t ipaddr, bcm_ip_t netmask)
 int usl_mac_bcmx_vlan_control_port_set(bcmx_lport_t port,
                                        bcm_vlan_control_port_t type, int arg)
 {
-   return(bcmx_vlan_control_port_set(port, type, arg));
+  int bcm_unit, bcm_port;
+
+  /* Convert to bcm_unit/port */
+  if (bcmx_lport_to_unit_port(port, &bcm_unit, &bcm_port) != BCM_E_NONE)
+  {
+    return BCM_E_PARAM;
+  }
+
+  return (bcm_vlan_control_port_set(bcm_unit, bcm_port, type, arg));
 }
 
 /*********************************************************************

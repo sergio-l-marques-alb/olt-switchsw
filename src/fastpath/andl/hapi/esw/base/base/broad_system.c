@@ -37,6 +37,7 @@
 #include "broad_llpf.h"
 #include "broad_ptin.h"     /* PTin added: DAPI */
 
+#include "ibde.h"
 #include "bcm/port.h"
 #include "bcm/l2.h"
 #include "bcm/rate.h"
@@ -64,7 +65,6 @@
 #else
   #include "bcmx/filter.h"
 #endif
-#include "bcmx/switch.h"
 #include "bcmx/bcmx_int.h"
 /* TODO: SDK 6.3.0 */
 #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
@@ -2357,7 +2357,7 @@ static L7_RC_t hapiBroadHelixConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g
 {
   L7_int32         rv;
   L7_RC_t          rc = L7_SUCCESS;
-
+  int              bcm_unit;
   L7_ushort16             ipV6_ethtype     = L7_ETYPE_IPV6;
   BROAD_POLICY_RULE_t     ruleIdReport     = BROAD_POLICY_RULE_INVALID;
   static BROAD_POLICY_t   mldSnoopId       = BROAD_POLICY_INVALID;
@@ -2468,35 +2468,38 @@ static L7_RC_t hapiBroadHelixConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g
           return L7_FAILURE;
         }
     
-        rv = bcmx_switch_control_set(bcmSwitchMldPktDrop, 1);
-        if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+        /* Run all units */
+        for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
         {
-          rc = L7_FAILURE;
-          L7_LOG_ERROR(rv);
-        }
-    
-        rv = bcmx_switch_control_set(bcmSwitchMldPktToCpu, 1);
-        if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-        {
-          rc = L7_FAILURE;
-          L7_LOG_ERROR(rv);
-        }
-    
-        /* Set the MLD packet priority. This is required only for FB2 platforms.
-         * For other platforms, MLD packets will follow protocol priority.
-         * The return code of E_UNAVAIL is masked by the API.
-         *
-         * NOTE: IGMP packets do not require this setting as we use policy for 
-         * IGMP. MLD packets are copied to CPU using CPU_CONTROL register.
-         */
-        rv = bcmx_switch_control_set(bcmSwitchCpuProtoIgmpPriority,
-                                        HAPI_BROAD_INGRESS_MED_PRIORITY_COS);
-    
-        if (L7_BCMX_OK(rv) != L7_TRUE)
-        {
-          SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                          "\n%s %d: In %s Failed to set bcmSwitchCpuProtoIgmpPriority - %d\n",
-                          __FILE__, __LINE__, __FUNCTION__, rv);
+          rv = bcm_switch_control_set(bcm_unit, bcmSwitchMldPktDrop, 1);
+          if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+          {
+            rc = L7_FAILURE;
+            L7_LOG_ERROR(rv);
+          }
+      
+          rv = bcm_switch_control_set(bcm_unit, bcmSwitchMldPktToCpu, 1);
+          if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+          {
+            rc = L7_FAILURE;
+            L7_LOG_ERROR(rv);
+          }
+      
+          /* Set the MLD packet priority. This is required only for FB2 platforms.
+           * For other platforms, MLD packets will follow protocol priority.
+           * The return code of E_UNAVAIL is masked by the API.
+           *
+           * NOTE: IGMP packets do not require this setting as we use policy for 
+           * IGMP. MLD packets are copied to CPU using CPU_CONTROL register.
+           */
+          rv = bcm_switch_control_set(bcm_unit, bcmSwitchCpuProtoIgmpPriority,
+                                      HAPI_BROAD_INGRESS_MED_PRIORITY_COS);
+          if (L7_BCMX_OK(rv) != L7_TRUE)
+          {
+            SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
+                            "\n%s %d: In %s Failed to set bcmSwitchCpuProtoIgmpPriority - %d\n",
+                            __FILE__, __LINE__, __FUNCTION__, rv);
+          }
         }
     }
   }
@@ -2508,27 +2511,31 @@ static L7_RC_t hapiBroadHelixConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g
       mldSnoopId = BROAD_POLICY_INVALID;
     }
 
-    rv = bcmx_switch_control_set(bcmSwitchMldPktDrop, 0);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+    /* Run all units */
+    for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
     {
-      rc = L7_FAILURE;
-      L7_LOG_ERROR(rv);
-    }
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchMldPktDrop, 0);
+      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+      {
+        rc = L7_FAILURE;
+        L7_LOG_ERROR(rv);
+      }
 
-    rv = bcmx_switch_control_set(bcmSwitchMldPktToCpu, 0);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-    {
-      rc = L7_FAILURE;
-      L7_LOG_ERROR(rv);
-    }
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchMldPktToCpu, 0);
+      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+      {
+        rc = L7_FAILURE;
+        L7_LOG_ERROR(rv);
+      }
 
-    /* Reset the MLD packet priority to default */
-    rv = bcmx_switch_control_set(bcmSwitchCpuProtoIgmpPriority, 0);
-    if (L7_BCMX_OK(rv) != L7_TRUE)
-    {
-      SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                     "\n%s %d: In %s Failed to set bcmSwitchCpuProtoIgmpPriority - %d\n",
-                     __FILE__, __LINE__, __FUNCTION__, rv);
+      /* Reset the MLD packet priority to default */
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchCpuProtoIgmpPriority, 0);
+      if (L7_BCMX_OK(rv) != L7_TRUE)
+      {
+        SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
+                       "\n%s %d: In %s Failed to set bcmSwitchCpuProtoIgmpPriority - %d\n",
+                       __FILE__, __LINE__, __FUNCTION__, rv);
+      }
     }
   }
 
@@ -2553,7 +2560,7 @@ L7_RC_t hapiBroadConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g)
 {
   L7_int32         rv;
   L7_RC_t          rc = L7_SUCCESS;
-
+  int              bcm_unit;
 #if defined(L7_METRO_PACKAGE) && defined(L7_DOT1AD_PACKAGE)
   static BROAD_POLICY_t   mldSnoopId   = BROAD_POLICY_INVALID;
   BROAD_POLICY_RULE_t     ruleId       = BROAD_POLICY_RULE_INVALID;
@@ -2815,33 +2822,37 @@ L7_RC_t hapiBroadConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g)
    else
 #endif
    {
-     rv = bcmx_switch_control_set(bcmSwitchMldPktDrop, 1);
-     if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+     /* Run all units */
+     for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
      {
-       rc = L7_FAILURE;
-       L7_LOG_ERROR(rv);
-     }
-     rv = bcmx_switch_control_set(bcmSwitchMldPktToCpu, 1);
-     if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-     {
-       rc = L7_FAILURE;
-       L7_LOG_ERROR(rv);
-     }
+       rv = bcm_switch_control_set(bcm_unit, bcmSwitchMldPktDrop, 1);
+       if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+       {
+         rc = L7_FAILURE;
+         L7_LOG_ERROR(rv);
+       }
+       rv = bcm_switch_control_set(bcm_unit, bcmSwitchMldPktToCpu, 1);
+       if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+       {
+         rc = L7_FAILURE;
+         L7_LOG_ERROR(rv);
+       }
 
-     /* Set the MLD packet priority. This is required only for FB2 platforms.
-      * For other platforms, MLD packets will follow protocol priority.
-      * The return code of E_UNAVAIL is masked by the API.
-      *
-      * NOTE: IGMP packets do not require this setting as we use policy for 
-      * IGMP. MLD packets are copied to CPU using CPU_CONTROL register.
-      */
-     rv = bcmx_switch_control_set(bcmSwitchCpuProtoIgmpPriority,
-                                    HAPI_BROAD_INGRESS_MED_PRIORITY_COS);
-     if (L7_BCMX_OK(rv) != L7_TRUE)
-     {
-       SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                       "\n%s %d: In %s Failed to set bcmSwitchCpuProtoIgmpPriority - %d\n",
-                       __FILE__, __LINE__, __FUNCTION__, rv);
+       /* Set the MLD packet priority. This is required only for FB2 platforms.
+        * For other platforms, MLD packets will follow protocol priority.
+        * The return code of E_UNAVAIL is masked by the API.
+        *
+        * NOTE: IGMP packets do not require this setting as we use policy for 
+        * IGMP. MLD packets are copied to CPU using CPU_CONTROL register.
+        */
+       rv = bcm_switch_control_set(bcm_unit, bcmSwitchCpuProtoIgmpPriority,
+                                   HAPI_BROAD_INGRESS_MED_PRIORITY_COS);
+       if (L7_BCMX_OK(rv) != L7_TRUE)
+       {
+         SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
+                         "\n%s %d: In %s Failed to set bcmSwitchCpuProtoIgmpPriority - %d\n",
+                         __FILE__, __LINE__, __FUNCTION__, rv);
+       }
      }
    }
   }
@@ -2856,32 +2867,36 @@ L7_RC_t hapiBroadConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g)
         mldSnoopId = BROAD_POLICY_INVALID;
       }
     }
-   else
+    else
 #endif
-  {
-    rv = bcmx_switch_control_set(bcmSwitchMldPktDrop, 0);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
     {
-      rc = L7_FAILURE;
-      L7_LOG_ERROR(rv);
-    }
+      /* Run all units */
+      for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
+      {
+        rv = bcm_switch_control_set(bcm_unit, bcmSwitchMldPktDrop, 0);
+        if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+        {
+          rc = L7_FAILURE;
+          L7_LOG_ERROR(rv);
+        }
 
-    rv = bcmx_switch_control_set(bcmSwitchMldPktToCpu, 0);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-    {
-      rc = L7_FAILURE;
-      L7_LOG_ERROR(rv);
-    }
+        rv = bcm_switch_control_set(bcm_unit, bcmSwitchMldPktToCpu, 0);
+        if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+        {
+          rc = L7_FAILURE;
+          L7_LOG_ERROR(rv);
+        }
 
-    /* Reset the MLD packet priority to default */
-    rv = bcmx_switch_control_set(bcmSwitchCpuProtoIgmpPriority, 0);
-    if (L7_BCMX_OK(rv) != L7_TRUE)
-    {
-      SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                     "\n%s %d: In %s Failed to set bcmSwitchCpuProtoIgmpPriority - %d\n",
-                     __FILE__, __LINE__, __FUNCTION__, rv);
+        /* Reset the MLD packet priority to default */
+        rv = bcm_switch_control_set(bcm_unit, bcmSwitchCpuProtoIgmpPriority, 0);
+        if (L7_BCMX_OK(rv) != L7_TRUE)
+        {
+          SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
+                         "\n%s %d: In %s Failed to set bcmSwitchCpuProtoIgmpPriority - %d\n",
+                         __FILE__, __LINE__, __FUNCTION__, rv);
+        }
+      }
     }
-  }
   }
   return rc;
 }
@@ -2892,103 +2907,107 @@ L7_RC_t hapiBroadConfigIgmpFilterRaptor(enableFilter)
   L7_RC_t          rc = L7_SUCCESS;
 #ifdef BCM_RAPTOR_SUPPORT
   L7_int32         rv;
+  int              bcm_unit;
 
-  if (enableFilter == L7_TRUE)
+  /* Run all units */
+  for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
   {
+    if (enableFilter == L7_TRUE)
+    {
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchIgmpReportLeaveDrop, 1);
+      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+      {
+        rc = L7_FAILURE;
+        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
+                "%s:%d bcm_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
+      }
+
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchIgmpReportLeaveToCpu, 1);
+      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+      {
+        rc = L7_FAILURE;
+        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
+                "%s:%d bcm_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
+      }
+
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchIgmpQueryDrop, 1);
+      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+      {
+        rc = L7_FAILURE;
+        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
+                "%s:%d bcm_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
+      }
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchIgmpQueryToCpu, 1);
+      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+      {
+        rc = L7_FAILURE;
+        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
+                "%s:%d bcm_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
+      }
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchIgmpUnknownDrop, 1);
+      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+      {
+        rc = L7_FAILURE;
+        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
+                "%s:%d bcm_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
+      }
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchIgmpUnknownToCpu, 1);
+      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+      {
+        rc = L7_FAILURE;
+        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
+                "%s:%d bcm_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
+      }
     
-    rv = bcmx_switch_control_set(bcmSwitchIgmpReportLeaveDrop, 1);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-    {
-      rc = L7_FAILURE;
-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-              "%s:%d bcmx_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
     }
+    else
+    {
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchIgmpReportLeaveDrop, 0);
+      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+      {
+        rc = L7_FAILURE;
+        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
+                "%s:%d bcm_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
+      }
 
-    rv = bcmx_switch_control_set(bcmSwitchIgmpReportLeaveToCpu, 1);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-    {
-      rc = L7_FAILURE;
-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-              "%s:%d bcmx_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
-    }
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchIgmpReportLeaveToCpu, 0);
+      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+      {
+        rc = L7_FAILURE;
+        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
+                "%s:%d bcm_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
+      }
 
-    rv = bcmx_switch_control_set(bcmSwitchIgmpQueryDrop, 1);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-    {
-      rc = L7_FAILURE;
-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-              "%s:%d bcmx_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
-    }
-    rv = bcmx_switch_control_set(bcmSwitchIgmpQueryToCpu, 1);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-    {
-      rc = L7_FAILURE;
-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-              "%s:%d bcmx_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
-    }
-    rv = bcmx_switch_control_set(bcmSwitchIgmpUnknownDrop, 1);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-    {
-      rc = L7_FAILURE;
-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-              "%s:%d bcmx_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
-    }
-    rv = bcmx_switch_control_set(bcmSwitchIgmpUnknownToCpu, 1);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-    {
-      rc = L7_FAILURE;
-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-              "%s:%d bcmx_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
-    }
-  
-  }
-  else
-  {
-    rv = bcmx_switch_control_set(bcmSwitchIgmpReportLeaveDrop, 0);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-    {
-      rc = L7_FAILURE;
-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-              "%s:%d bcmx_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
-    }
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchIgmpQueryDrop, 0);
+      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+      {
+        rc = L7_FAILURE;
+        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
+                "%s:%d bcm_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
+      }
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchIgmpQueryToCpu, 0);
+      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+      {
+        rc = L7_FAILURE;
+        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
+                "%s:%d bcm_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
+      }
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchIgmpUnknownDrop, 0);
+      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+      {
+        rc = L7_FAILURE;
+        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
+                "%s:%d bcm_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
+      }
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchIgmpUnknownToCpu, 0);
+      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+      {
+        rc = L7_FAILURE;
+        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
+                "%s:%d bcm_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
+      }
 
-    rv = bcmx_switch_control_set(bcmSwitchIgmpReportLeaveToCpu, 0);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-    {
-      rc = L7_FAILURE;
-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-              "%s:%d bcmx_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
     }
-
-    rv = bcmx_switch_control_set(bcmSwitchIgmpQueryDrop, 0);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-    {
-      rc = L7_FAILURE;
-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-              "%s:%d bcmx_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
-    }
-    rv = bcmx_switch_control_set(bcmSwitchIgmpQueryToCpu, 0);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-    {
-      rc = L7_FAILURE;
-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-              "%s:%d bcmx_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
-    }
-    rv = bcmx_switch_control_set(bcmSwitchIgmpUnknownDrop, 0);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-    {
-      rc = L7_FAILURE;
-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-              "%s:%d bcmx_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
-    }
-    rv = bcmx_switch_control_set(bcmSwitchIgmpUnknownToCpu, 0);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-    {
-      rc = L7_FAILURE;
-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-              "%s:%d bcmx_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
-    }
-
   }
 #endif
   return rc;
@@ -6651,6 +6670,7 @@ L7_RC_t hapiBroadSystemCpuSamplePriority(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *
   L7_RC_t              result  = L7_SUCCESS;
   DAPI_SYSTEM_CMD_t    *dapiCmd = (DAPI_SYSTEM_CMD_t*)data;
   int                  rv;
+  int                  bcm_unit;
 
   if (dapiCmd->cmdData.sFlowConfig.getOrSet != DAPI_CMD_SET)
   {
@@ -6661,10 +6681,14 @@ L7_RC_t hapiBroadSystemCpuSamplePriority(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *
     return result;
   }
 
-  rv = bcmx_switch_control_set(bcmSwitchCpuSamplePrio, dapiCmd->cmdData.sFlowConfig.sampleCpuPrio);
-  if (L7_BCMX_OK(rv) != L7_TRUE)
+  /* Run all units */
+  for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
   {
-    L7_LOG_ERROR(bcmSwitchCpuSamplePrio);
+    rv = bcm_switch_control_set(bcm_unit, bcmSwitchCpuSamplePrio, dapiCmd->cmdData.sFlowConfig.sampleCpuPrio);
+    if (L7_BCMX_OK(rv) != L7_TRUE)
+    {
+      L7_LOG_ERROR(bcmSwitchCpuSamplePrio);
+    }
   }
 
   /* Upon failure, the error is logged.
@@ -6696,6 +6720,7 @@ L7_RC_t hapiBroadSystemSampleRandomSeed(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
   L7_RC_t              result  = L7_SUCCESS;
   DAPI_SYSTEM_CMD_t    *dapiCmd = (DAPI_SYSTEM_CMD_t*)data;
   int                  rv;
+  int                  bcm_unit;
 
   if (dapiCmd->cmdData.sFlowConfig.getOrSet != DAPI_CMD_SET)
   {
@@ -6706,24 +6731,27 @@ L7_RC_t hapiBroadSystemSampleRandomSeed(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
     return result;
   }
 
-  if (dapiCmd->cmdData.sFlowConfig.direction == 0)
+  /* Run all units */
+  for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
   {
-    rv = bcmx_switch_control_set(bcmSwitchSampleIngressRandomSeed, dapiCmd->cmdData.sFlowConfig.RandomSeed);
-    if (L7_BCMX_OK(rv) != L7_TRUE)
+    if (dapiCmd->cmdData.sFlowConfig.direction == 0)
     {
-      L7_LOG_ERROR(bcmSwitchSampleIngressRandomSeed);
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchSampleIngressRandomSeed, dapiCmd->cmdData.sFlowConfig.RandomSeed);
+      if (L7_BCMX_OK(rv) != L7_TRUE)
+      {
+        L7_LOG_ERROR(bcmSwitchSampleIngressRandomSeed);
+      }
+    }
+
+    if (dapiCmd->cmdData.sFlowConfig.direction == 1)
+    {
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchSampleEgressRandomSeed, dapiCmd->cmdData.sFlowConfig.RandomSeed);
+      if (L7_BCMX_OK(rv) != L7_TRUE)
+      {
+        L7_LOG_ERROR(bcmSwitchSampleEgressRandomSeed);
+      }
     }
   }
-
-  if (dapiCmd->cmdData.sFlowConfig.direction == 1)
-  {
-    rv = bcmx_switch_control_set(bcmSwitchSampleEgressRandomSeed, dapiCmd->cmdData.sFlowConfig.RandomSeed);
-    if (L7_BCMX_OK(rv) != L7_TRUE)
-    {
-      L7_LOG_ERROR(bcmSwitchSampleEgressRandomSeed);
-    }
-  }
-
 
   /* Upon failure, the error is logged.
    * Return quietly so that we don't cause the device
