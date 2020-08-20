@@ -1118,7 +1118,8 @@ L7_RC_t hapiBroadPtinVlanTranslate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
     }
     else if ( xlate->oper == DAPI_CMD_CLEAR_ALL )
     {
-      rc = ptin_hapi_xlate_ingress_delete_all();
+      /* FIXME: Only applied to unit 0 */
+      rc = ptin_hapi_xlate_ingress_delete_all(0 /*unit*/);
       //rc = ptin_hapi_xlate_ingress_action_delete_all();
     }
     break;
@@ -1126,22 +1127,26 @@ L7_RC_t hapiBroadPtinVlanTranslate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
   case PTIN_XLATE_STAGE_EGRESS:
     if ( xlate->oper == DAPI_CMD_GET )
     {
-      rc = ptin_hapi_xlate_egress_get(xlate->portgroup, &hapi_xlate);
+      /* FIXME: Only applied to unit 0 */
+      rc = ptin_hapi_xlate_egress_get(0 /*unit*/, xlate->portgroup, &hapi_xlate);
       //rc = ptin_hapi_xlate_egress_action_get(xlate->portgroup, xlate->outerVlan, xlate->innerVlan, &(xlate->outerVlan_new));
     }
     else if ( xlate->oper == DAPI_CMD_SET )
     {
-      rc = ptin_hapi_xlate_egress_add(xlate->portgroup, &hapi_xlate);
+      /* FIXME: Only applied to unit 0 */
+      rc = ptin_hapi_xlate_egress_add(0 /*unit*/, xlate->portgroup, &hapi_xlate);
       //rc = ptin_hapi_xlate_egress_action_add(xlate->portgroup, xlate->outerVlan, xlate->innerVlan, xlate->outerVlan_new);
     }
     else if ( xlate->oper == DAPI_CMD_CLEAR )
     {
-      rc = ptin_hapi_xlate_egress_delete(xlate->portgroup, &hapi_xlate);
+      /* FIXME: Only applied to unit 0 */
+      rc = ptin_hapi_xlate_egress_delete(0 /*unit*/, xlate->portgroup, &hapi_xlate);
       //rc = ptin_hapi_xlate_egress_action_delete(xlate->portgroup, xlate->outerVlan, xlate->innerVlan);
     }
     else if ( xlate->oper == DAPI_CMD_CLEAR_ALL )
     {
-      rc = ptin_hapi_xlate_egress_delete_all();
+      /* FIXME: Only applied to unit 0 */
+      rc = ptin_hapi_xlate_egress_delete_all(0 /*unit*/);
       //rc = ptin_hapi_xlate_egress_action_delete_all();
     }
     break;
@@ -1151,8 +1156,9 @@ L7_RC_t hapiBroadPtinVlanTranslate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
     {
       PT_LOG_TRACE(LOG_CTX_HAPI, "All translations will be removed");
 
-      if ( (ptin_hapi_xlate_ingress_delete_all() != L7_SUCCESS) ||
-           (ptin_hapi_xlate_egress_delete_all() != L7_SUCCESS) )
+      /* FIXME: Only applied to unit 0 */
+      if ( (ptin_hapi_xlate_ingress_delete_all(0 /*unit*/) != L7_SUCCESS) ||
+           (ptin_hapi_xlate_egress_delete_all(0 /*unit*/) != L7_SUCCESS) )
         rc = L7_FAILURE;
 //    if ( (ptin_hapi_xlate_ingress_action_delete_all() != L7_SUCCESS) ||
 //         (ptin_hapi_xlate_egress_action_delete_all() != L7_SUCCESS) )

@@ -33,6 +33,11 @@ typedef struct {
 /********************************************************************
  * MACROS AND INLINE FUNCTIONS
  ********************************************************************/
+/* Run all units */
+#include "ibde.h"
+#define BCM_UNIT_ITER(unit) \
+  for (unit = 0; unit < bde->num_devices(BDE_SWITCH_DEVICES); unit++)
+
 
 #define DAPIPORT_SET(dapiPort,usp_ref,dapi_g_ref) \
 {                                         \

@@ -75,6 +75,7 @@ L7_RC_t hapi_ptin_bwPolicer_create(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer,
   bcm_policer_t        policer_id;
   bcm_policer_config_t policer_cfg;
   int                  rv = BCM_E_NONE;
+  int unit;
 
   /* Validate arguments */
   if (bwPolicer == L7_NULLPTR)
@@ -102,24 +103,36 @@ L7_RC_t hapi_ptin_bwPolicer_create(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer,
 
   PT_LOG_TRACE(LOG_CTX_HAPI,"Gived policer id %d", policer_id);
 
-  /* Modify already existent policer? */
-  if (policer_id > 0)
+  /* Run all units */
+  BCM_UNIT_ITER(unit)
   {
-    PT_LOG_TRACE(LOG_CTX_HAPI,"Reconfiguring policer id %d", policer_id);
+    /* Modify already existent policer? */
+    if (policer_id > 0)
+    {
+      PT_LOG_TRACE(LOG_CTX_HAPI,"Reconfiguring policer id %d", policer_id);
 
-    /* Create bwPolicer */
-    rv = bcm_policer_set(0, policer_id, &policer_cfg);
+      /* Create bwPolicer */
+      rv = bcm_policer_set(unit, policer_id, &policer_cfg);
+      if (rv != BCM_E_NONE)
+      {
+        break;
+      }
+      
+      PT_LOG_TRACE(LOG_CTX_HAPI,"Policer id %d reconfigured: rv=%d", policer_id, rv);
+    }
+    else
+    {
+      PT_LOG_TRACE(LOG_CTX_HAPI,"Creating new policer id");
 
-    PT_LOG_TRACE(LOG_CTX_HAPI,"Policer id %d reconfigured: rv=%d", policer_id, rv);
-  }
-  else
-  {
-    PT_LOG_TRACE(LOG_CTX_HAPI,"Creating new policer id");
+      /* Create bwPolicer */
+      rv = bcm_policer_create(unit, &policer_cfg, &policer_id);
+      if (rv != BCM_E_NONE)
+      {
+        break;
+      }
 
-    /* Create bwPolicer */
-    rv = bcm_policer_create(0, &policer_cfg, &policer_id);
-
-    PT_LOG_TRACE(LOG_CTX_HAPI,"New Policer id %d created: rv=%d", policer_id, rv);
+      PT_LOG_TRACE(LOG_CTX_HAPI,"New Policer id %d created: rv=%d", policer_id, rv);
+    }
   }
 
   if (BCM_E_NONE != rv)
@@ -148,7 +161,7 @@ L7_RC_t hapi_ptin_bwPolicer_create(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer,
  */
 L7_RC_t hapi_ptin_bwPolicer_destroy(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DAPI_t *dapi_g)
 {
-  int rv = BCM_E_NONE;
+  int unit, rv, rv_ret = BCM_E_NONE;
 
   /* Validate arguments */
   if (bwPolicer == L7_NULLPTR)
@@ -163,15 +176,20 @@ L7_RC_t hapi_ptin_bwPolicer_destroy(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer
     return L7_SUCCESS;
   }
 
-  /* Create bwPolicer */
-  rv = bcm_policer_destroy(0, bwPolicer->policer_id);
-
-  if (BCM_E_NONE != rv)
+  /* Run all units */
+  BCM_UNIT_ITER(unit)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI,"We have an error! rv=%d", rv);
+    /* Create bwPolicer */
+    rv = bcm_policer_destroy(unit, bwPolicer->policer_id);
+
+    if (BCM_E_NONE != rv)
+    {
+      rv_ret = rv;
+      PT_LOG_ERR(LOG_CTX_HAPI,"We have an error! rv=%d", rv);
+    }
   }
 
-  return rv;
+  return rv_ret;
 }
 
 
@@ -1211,7 +1229,8 @@ void ptin_bwpolicer_dump_debug(L7_uint32 vid_internal)
     printf("  policy_id = %u\r\n",ptr->policy_id);
     /* Also print hw group id and entry id*/
     /* PTin modified: SDK 6.3.0 */
-    if (l7_bcm_policy_hwInfo_get(0,ptr->policy_id,0,&group_id,&entry_id,&policer_id,&counter_id)==L7_SUCCESS)
+    /* FIXME: Only applied to unit 0 */
+    if (l7_bcm_policy_hwInfo_get(0 /*unit*/,ptr->policy_id,0,&group_id,&entry_id,&policer_id,&counter_id)==L7_SUCCESS)
     {
       printf("  group=%d, entry=%d, policer_id=%d, counter_id=%d\r\n",group_id,entry_id,policer_id,counter_id);
     }

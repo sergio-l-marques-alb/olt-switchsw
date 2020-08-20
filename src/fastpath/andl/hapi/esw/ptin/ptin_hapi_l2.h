@@ -1,11 +1,6 @@
 #ifndef _PTIN_HAPI_L2__H
 #define _PTIN_HAPI_L2__H
 
-//#include "l7_common.h"
-//#include "ptin_structs.h"
-//#include "ptin_globaldefs.h"
-//#include "dapi_struct.h"
-//#include "broad_common.h"
 #include "ptin_hapi.h"
 #include "bcmx/l2.h"
 

@@ -1099,7 +1099,8 @@ void ptin_fpcounters_dump_debug(void)
       for (rule=0; rule<PTIN_PACKETS_TYPE_MAX; rule++)
       {
         /* Also print hw group id and entry id*/
-        if (l7_bcm_policy_hwInfo_get(0,ptr->policy_id[stage],ptr->rule_id[stage][rule],&group_id,&entry_id,L7_NULLPTR,L7_NULLPTR)==L7_SUCCESS)
+        /* FIXME: Only applied to unit 0 */
+        if (l7_bcm_policy_hwInfo_get(0 /*unit*/,ptr->policy_id[stage],ptr->rule_id[stage][rule],&group_id,&entry_id,L7_NULLPTR,L7_NULLPTR)==L7_SUCCESS)
         {
           printf("    Rule %d: group=%d, entry=%d\r\n",ptr->rule_id[stage][rule],group_id,entry_id);
         }
