@@ -24,7 +24,6 @@
 #include "l7_common.h"
 #include "comm_mask.h"
 
-
 #include "log.h"
 
 #include "broad_common.h"
@@ -33,7 +32,6 @@
 #include "bcm/mcast.h"
 #include "bcm/vlan.h"
 
-#include "bcmx/mcast.h"
 #include "bcmx/lplist.h"
 #include "l7_usl_bcmx_l2.h"
 #include "broad_l2_vlan.h"
@@ -71,7 +69,7 @@ typedef struct
    * in the Hw.
    */
   L7_int32              hwStatus; 
-  bcmx_mcast_addr_t     mcMacAddr;
+  bcm_mcast_addr_t      mcMacAddr;
   L7_uchar8             *if_member;
   L7_uint32             ipmc_index;
 }MCAST_GROUP_LIST_t;
@@ -222,7 +220,7 @@ void hapiBroadL2McastReInit(void)
   for (i = 0; i < maxEntries; i++)
   {
     mcastGroupList[i].inUse = L7_FALSE;
-    memset(&mcastGroupList[i].mcMacAddr,0,sizeof(bcmx_mcast_addr_t));     
+    memset(&mcastGroupList[i].mcMacAddr,0,sizeof(bcm_mcast_addr_t));     
     memset(mcastGroupList[i].if_member,0,bitmapSize);
   }
 }
@@ -746,9 +744,9 @@ L7_RC_t hapiBroadGarpGroupRegModify(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
     }
 
     /* allocate a new mcast entry */
-    bcmx_mcast_addr_init(&mcastGroupList[index].mcMacAddr, 
-                         garpMgmt->cmdData.groupRegModify.grpMacAddr, 
-                         garpMgmt->cmdData.groupRegModify.vlanId);
+    bcm_mcast_addr_init(&mcastGroupList[index].mcMacAddr, 
+                        garpMgmt->cmdData.groupRegModify.grpMacAddr, 
+                        garpMgmt->cmdData.groupRegModify.vlanId);
 
     memset(mcastGroupList[index].if_member,0,bitmapSize);      /* WPJ */
 
@@ -976,8 +974,8 @@ L7_RC_t hapiBroadGarpGroupRegDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
       }
 
       mcastGroupList[index].hwStatus = BCM_E_NONE;
-      bcmx_lplist_free(&(mcastGroupList[index].mcMacAddr.ports));
-      bcmx_lplist_free(&(mcastGroupList[index].mcMacAddr.untag_ports));
+      BCM_PBMP_CLEAR(mcastGroupList[index].mcMacAddr.pbmp);
+      BCM_PBMP_CLEAR(mcastGroupList[index].mcMacAddr.ubmp);
 
       memset(&mcastGroupList[index].mcMacAddr, 0, sizeof(mcastGroupList[index].mcMacAddr));
       memset(mcastGroupList[index].if_member,0,bitmapSize);        /* WPJ */

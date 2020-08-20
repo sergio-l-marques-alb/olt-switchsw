@@ -27,7 +27,6 @@
 #include "osapi.h"
 #include "log.h"
 #include "soc/drv.h"
-#include "bcmx/ipmc.h"
 #include "bcmx/custom.h"
 #include "bcmx/bcmx_int.h"
 #include "bcm_int/common/multicast.h" /* PTin modified: new SDK  (esw->common) */

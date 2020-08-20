@@ -833,7 +833,7 @@ int usl_bcmx_ipmc_wlan_l3_port_add(L7_int32 index, L7_int32 l3a_intf_id,
 
     if (rv != BCM_E_NONE)
     {
-      sysapiPrintf(" bcmx_multicast_egress_add with port %d; rv = %d  mcindex %d \n", 
+      sysapiPrintf(" bcm_multicast_egress_add with port %d; rv = %d  mcindex %d \n", 
              port, rv, index);
     }
   }

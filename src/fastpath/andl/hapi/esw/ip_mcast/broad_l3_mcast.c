@@ -30,7 +30,6 @@
 #include "ibde.h"
 #include "bcm/ipmc.h"
 #include "soc/macipadr.h"
-#include "bcmx/ipmc.h"
 #include "bcmx/bcmx_int.h"
 #include "l7_usl_bcmx_l3.h"
 #include "l7_usl_bcmx_port.h"
@@ -2769,11 +2768,11 @@ L7_RC_t hapiBroadRoutingIntfMcastTtlSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
     /* Setup the ipmc egress port config */
 
     ipmc_untag_flag = TRUE; /* untagged */
-    rv = bcmx_ipmc_egress_port_set(hapiPortPtr->bcmx_lport,
-                                   dapiPortPtr->modeparm.physical.macAddr, /* mac */
-                                   ipmc_untag_flag, /* untag / tag */
-                                   hapiPortPtr->port_based_routing_vlanid, /* vid */
-                                   hapiPortPtr->multicast_ttl_limit); /* ttl threshold */
+    rv = bcm_ipmc_egress_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, /* phy port */
+                                  dapiPortPtr->modeparm.physical.macAddr, /* mac */
+                                  ipmc_untag_flag, /* untag / tag */
+                                  hapiPortPtr->port_based_routing_vlanid, /* vid */
+                                  hapiPortPtr->multicast_ttl_limit); /* ttl threshold */
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set the egress port info for port 0x%x, rv = %d", hapiPortPtr->bcmx_lport, rv);
@@ -2815,22 +2814,22 @@ L7_RC_t hapiBroadRoutingIntfMcastTtlSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
               if (BROAD_IS_VLAN_MEMBER(&searchUsp, vlan_id, dapi_g) )
               {
                 /* Get the tagging so we can preserve */
-                rv = bcmx_ipmc_egress_port_get(hapiPortPtr->bcmx_lport, /* logical port */
-                                               mac_old, /* mac */
-                                               &ipmc_untag_flag, /* untag / tag */
-                                               &vlan_old, /* vid */
-                                               &ttl_old); /* ttl threshold */
+                rv = bcm_ipmc_egress_port_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, /* phy port */
+                                              mac_old, /* mac */
+                                              &ipmc_untag_flag, /* untag / tag */
+                                              &vlan_old, /* vid */
+                                              &ttl_old); /* ttl threshold */
                 if (L7_BCMX_OK(rv) != L7_TRUE)
                 {
                   L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't get the egress port info for port 0x%x, rv = %d", hapiPortPtr->bcmx_lport, rv);
                 }
 
                 /* Setup the ipmc egress port config */
-                rv = bcmx_ipmc_egress_port_set(hapiPortPtr->bcmx_lport, /* logical port */
-                                               dapiPortPtr->modeparm.router.macAddr, /* mac */
-                                               ipmc_untag_flag, /* untag / tag */
-                                               vlan_id, /* vid */
-                                               dapiCmd->cmdData.ttlMcastVal.ttlVal); /* ttl threshold */
+                rv = bcm_ipmc_egress_port_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, /* phy port */
+                                              dapiPortPtr->modeparm.router.macAddr, /* mac */
+                                              ipmc_untag_flag, /* untag / tag */
+                                              vlan_id, /* vid */
+                                              dapiCmd->cmdData.ttlMcastVal.ttlVal); /* ttl threshold */
                 if (L7_BCMX_OK(rv) != L7_TRUE)
                 {
                   L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set the egress port info for port 0x%x, rv = %d", hapiPortPtr->bcmx_lport, rv);
@@ -2858,22 +2857,22 @@ L7_RC_t hapiBroadRoutingIntfMcastTtlSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
             hapiLagMemberPortPtr = HAPI_PORT_GET(&lagMemberSet[0].usp, dapi_g);
 
             /* Get the tagging so we can preserve */
-            rv = bcmx_ipmc_egress_port_get(hapiLagMemberPortPtr->bcmx_lport, /* logical port */
-                                           mac_old, /* mac */
-                                           &ipmc_untag_flag, /* untag / tag */
-                                           &vlan_old, /* vid */
-                                           &ttl_old); /* ttl threshold */
+            rv = bcm_ipmc_egress_port_get(hapiLagMemberPortPtr->bcm_unit, hapiLagMemberPortPtr->bcm_port, /* phy port */
+                                          mac_old, /* mac */
+                                          &ipmc_untag_flag, /* untag / tag */
+                                          &vlan_old, /* vid */
+                                          &ttl_old); /* ttl threshold */
             if (L7_BCMX_OK(rv) != L7_TRUE)
             {
               L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't get the egress port info for port 0x%x, rv = %d", hapiPortPtr->bcmx_lport, rv);
             }
 
             /* Setup the ipmc egress port config */
-            rv = bcmx_ipmc_egress_port_set(hapiLagMemberPortPtr->bcmx_lport, /* logical port */
-                                           dapiPortPtr->modeparm.router.macAddr, /* mac */
-                                           ipmc_untag_flag, /* untag / tag */
-                                           vlan_id, /* vid */
-                                           dapiCmd->cmdData.ttlMcastVal.ttlVal); /* ttl threshold */
+            rv = bcm_ipmc_egress_port_set(hapiLagMemberPortPtr->bcm_unit, hapiLagMemberPortPtr->bcm_port, /* phy port */
+                                          dapiPortPtr->modeparm.router.macAddr, /* mac */
+                                          ipmc_untag_flag, /* untag / tag */
+                                          vlan_id, /* vid */
+                                          dapiCmd->cmdData.ttlMcastVal.ttlVal); /* ttl threshold */
             if (L7_BCMX_OK(rv) != L7_TRUE)
             {
               L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set the egress port info for port 0x%x, rv = %d", hapiPortPtr->bcmx_lport, rv);
