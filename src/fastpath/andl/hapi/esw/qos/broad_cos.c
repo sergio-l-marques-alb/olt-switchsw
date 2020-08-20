@@ -31,7 +31,6 @@
 #include "l7_usl_bcmx_port.h"
 #include "sysbrds.h"
 
-#include "bcmx/cosq.h"
 #include "bcmx/port.h"
 #include "soc/drv.h"
 #include "bcmx/bcmx_int.h"

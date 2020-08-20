@@ -103,7 +103,6 @@
 #include <bcmx/bcmx_int.h>
 /*#include <bcmx/boards.h>*/
 #include <bcmx/port.h>
-#include <bcmx/cosq.h>
 #include "sysbrds.h"
 #include <soc/debug.h>
 #include <soc/drv.h>

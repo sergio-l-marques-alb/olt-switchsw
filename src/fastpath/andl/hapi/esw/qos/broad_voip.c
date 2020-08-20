@@ -18,7 +18,6 @@
 * Application will 
 *********************************************************************/
 
-#include "bcmx/cosq.h"
 #include "bcmx/port.h"
 
 #include "dapi.h"
@@ -219,23 +218,24 @@ static L7_RC_t cosq_port_bandwidth_set_all(DAPI_t *dapi_g, bcmx_lport_t port,
    for (dapiUsp.slot=0;dapiUsp.slot<dapi_g->unit[dapiUsp.unit]->numOfSlots;dapiUsp.slot++)
    {
      if ((dapi_g->unit[dapiUsp.unit]->slot[dapiUsp.slot]->cardPresent == L7_TRUE) &&
-         (IS_SLOT_TYPE_PHYSICAL(&dapiUsp, dapi_g)                       == L7_TRUE))
+         (IS_SLOT_TYPE_PHYSICAL(&dapiUsp, dapi_g) == L7_TRUE))
      {
        /* loop through physical ports */
        for (dapiUsp.port=0;dapiUsp.port<dapi_g->unit[dapiUsp.unit]->slot[dapiUsp.slot]->numOfPortsInSlot;dapiUsp.port++)
        {
-        
          if (isValidUsp (&dapiUsp, dapi_g) != L7_TRUE)
          {
            continue;
          }  
-        hapiPortPtr = HAPI_PORT_GET(&dapiUsp, dapi_g);
-        result = bcmx_cosq_port_bandwidth_set(port,queueId,minBw,maxBw,0);
-        if (result !=BCM_E_NONE)
-        {
-           return L7_FAILURE;
-        }
-      }
+         hapiPortPtr = HAPI_PORT_GET(&dapiUsp, dapi_g);
+
+         /* Bug fixed... use hapiPortPtr->bcm_port instead of port */
+         result = bcm_cosq_port_bandwidth_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, queueId, minBw, maxBw, 0);
+         if (result !=BCM_E_NONE)
+         {
+            return L7_FAILURE;
+         }
+       }
      }
     }  
   }
