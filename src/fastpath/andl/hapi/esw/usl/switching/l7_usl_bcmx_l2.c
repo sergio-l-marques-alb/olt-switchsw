@@ -2340,7 +2340,7 @@ int usl_bcmx_l2_addr_remove_by_vlan (bcm_vlan_t vid)
 *
 * @end
 *********************************************************************/
-int usl_bcmx_l2_addr_add(bcmx_l2_addr_t *l2addr ,bcmx_lplist_t *port_block)
+int usl_bcmx_l2_addr_add(bcm_l2_addr_t *l2addr, bcmx_lplist_t *port_block)
 {
   int rc = BCM_E_NONE;
 

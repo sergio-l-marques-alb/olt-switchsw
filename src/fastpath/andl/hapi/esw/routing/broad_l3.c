@@ -3695,7 +3695,6 @@ static L7_RC_t hapiBroadL3MacEntryResolve (BROAD_L3_MAC_ENTRY_t *pMac,
   L7_uint32 local_bcm_unit;
   bcmx_uport_t uport;
   bcm_l2_addr_t bcm_l2;
-  bcmx_l2_addr_t bcmx_l2;
 
   /* Note: The BCMX call returns as soon as the L2 entry is found on one of the
    * units (local units first)
@@ -3712,7 +3711,7 @@ static L7_RC_t hapiBroadL3MacEntryResolve (BROAD_L3_MAC_ENTRY_t *pMac,
                            pMac->key.vlanId, &bcm_l2);
       if (BCM_SUCCESS(rv))
       {
-        rv = bcmx_l2_addr_from_bcm(&bcmx_l2, L7_NULLPTR, &bcm_l2);
+        /* Entry found! */
         break;
       }
     }
@@ -3721,21 +3720,21 @@ static L7_RC_t hapiBroadL3MacEntryResolve (BROAD_L3_MAC_ENTRY_t *pMac,
   /* If address found, update mac entry/Nhop. Else, MAC/Nhop is unresolved */
   if (rv == BCM_E_NONE)
   {
-    if (bcmx_l2.flags & BCM_L2_TRUNK_MEMBER)
+    if (bcm_l2.flags & BCM_L2_TRUNK_MEMBER)
     {
-      if (hapiBroadTgidToUspConvert(bcmx_l2.tgid, &usp, dapi_g) == L7_SUCCESS)
+      if (hapiBroadTgidToUspConvert(bcm_l2.tgid, &usp, dapi_g) == L7_SUCCESS)
       {
         pMac->usp = usp;
         pMac->resolved = L7_TRUE;
         pMac->target_is_trunk = L7_TRUE;
-        pMac->trunkId = bcmx_l2.tgid;
+        pMac->trunkId = bcm_l2.tgid;
       }
     }
 
-    else if (BCM_GPORT_IS_WLAN_PORT(bcmx_l2.lport))
+    else if (BCM_GPORT_IS_WLAN_PORT(bcm_l2.port))
     {
 #ifdef L7_WIRELESS_PACKAGE
-      if (hapiBroadWlanUspGet(dapi_g, bcmx_l2.lport, &usp) != L7_SUCCESS)
+      if (hapiBroadWlanUspGet(dapi_g, bcm_l2.port, &usp) != L7_SUCCESS)
       {
         return L7_FAILURE;
       }
@@ -3749,7 +3748,7 @@ static L7_RC_t hapiBroadL3MacEntryResolve (BROAD_L3_MAC_ENTRY_t *pMac,
     else
     {
       /* not a trunk, calculate based off of the present info */
-      uport = BCMX_UPORT_GET(bcmx_l2.lport);
+      uport = BCMX_UPORT_GET(bcm_l2.port);
 
       if (uport != BCMX_UPORT_INVALID_DEFAULT)
       {

@@ -2,7 +2,6 @@
 #define _PTIN_HAPI_L2__H
 
 #include "ptin_hapi.h"
-#include "bcmx/l2.h"
 
 /************************************
  * MAC Learning Control
@@ -18,20 +17,20 @@ extern L7_RC_t ptin_hapi_maclimit_init(void);
 /**
  * Increment number of learned MAC addresses
  * 
- * @param bcmx_l2_addr : MAC info
+ * @param bcm_l2_addr : MAC info
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr);
+extern L7_RC_t ptin_hapi_maclimit_inc(bcm_l2_addr_t *bcm_l2_addr);
 
 /**
  * Decrement number of learned MAC addresses
  * 
- * @param bcmx_l2_addr : MAC info
+ * @param bcm_l2_addr : MAC info
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_maclimit_dec(bcmx_l2_addr_t *bcmx_l2_addr);
+extern L7_RC_t ptin_hapi_maclimit_dec(bcm_l2_addr_t *bcm_l2_addr);
 
 /**
  * Reset number of learned MAC addresses (Vport level)

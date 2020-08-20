@@ -747,7 +747,8 @@ L7_BOOL hapiBroadRxMacSaIsL3Intf(L7_uchar8 *macSa, DAPI_t *dapi_g);
 
 L7_RC_t hapiBroadDrvInit(L7_ulong32 cardId, DAPI_t *dapi_g);
 
-void hapiBroadAddrMacUpdate(void *bcmx_l2addr, int insert, DAPI_t *dapi_g);
+/** MAC address learn/age callback to DAPI */
+void hapiBroadAddrMacUpdate(int unit, bcm_l2_addr_t *l2addr, int operation, DAPI_t *dapi_g);
 
 void hapiBroadAddrMacFrameLearn(bcm_pkt_t *bcm_pkt, DAPI_t *dapi_g);
 

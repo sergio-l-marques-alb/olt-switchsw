@@ -25,7 +25,6 @@
 #include "soc/l2x.h"
 #include "bcm/types.h"
 #include "bcmx/trunk.h"
-#include "bcmx/l2.h"
 #include "bcmx/mcast.h"
 #include "bcmx/vlan.h"
 #include "bcmx/stg.h"
@@ -502,7 +501,20 @@ int usl_bcmx_l2_addr_remove_by_vlan (bcm_vlan_t vid, L7_uint32 flags)
 *********************************************************************/
 int usl_bcmx_l2_addr_remove_by_mac (bcm_mac_t mac, L7_uint32 flags)
 {
-  return bcmx_l2_addr_delete_by_mac(mac, flags);
+	int bcm_unit;
+	int rc, rc_ret = BCM_E_NONE;
+
+	/* Run all units */
+	for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
+	{
+		rc = bcm_l2_addr_delete_by_mac(bcm_unit, mac, 0);
+		if (rc != BCM_E_NONE)
+		{
+			rc_ret = rc;
+		}
+	}
+
+	return rc_ret;
 }
 
 /*********************************************************************
@@ -515,9 +527,22 @@ int usl_bcmx_l2_addr_remove_by_mac (bcm_mac_t mac, L7_uint32 flags)
 *
 * @end
 *********************************************************************/
-int usl_bcmx_l2_addr_add(bcmx_l2_addr_t * l2addr,bcmx_lplist_t *port_block)
+int usl_bcmx_l2_addr_add(bcm_l2_addr_t *l2addr, bcmx_lplist_t *port_block)
 {
-  return bcmx_l2_addr_add(l2addr,port_block);
+	int bcm_unit;
+	int rc, rc_ret = BCM_E_NONE;
+
+	/* Run all units */
+	for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
+	{
+		rc = bcm_l2_addr_add(bcm_unit, l2addr);
+		if (rc != BCM_E_NONE)
+		{
+			rc_ret = rc;
+		}
+	}
+
+	return rc_ret;
 }
 
 /*********************************************************************
@@ -532,7 +557,20 @@ int usl_bcmx_l2_addr_add(bcmx_l2_addr_t * l2addr,bcmx_lplist_t *port_block)
 *********************************************************************/
 int usl_bcmx_l2_addr_delete(bcm_mac_t mac_addr, bcm_vlan_t vid)
 {
-  return bcmx_l2_addr_delete(mac_addr, vid);
+	int bcm_unit;
+	int rc, rc_ret = BCM_E_NONE;
+
+	/* Run all units */
+	for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
+	{
+		rc = bcm_l2_addr_delete(bcm_unit, mac_addr, vid);
+		if (rc != BCM_E_NONE)
+		{
+			rc_ret = rc;
+		}
+	}
+
+	return rc_ret;
 }
 
 /*********************************************************************
@@ -546,7 +584,20 @@ int usl_bcmx_l2_addr_delete(bcm_mac_t mac_addr, bcm_vlan_t vid)
 *********************************************************************/
 int usl_bcmx_l2_age_timer_set(L7_int32 ageTime)
 {
-  return bcmx_l2_age_timer_set(ageTime);
+	int bcm_unit;
+	int rc, rc_ret = BCM_E_NONE;
+
+	/* Run all units */
+	for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
+	{
+		rc = bcm_l2_age_timer_set(bcm_unit, ageTime);
+		if (rc != BCM_E_NONE)
+		{
+			rc_ret = rc;
+		}
+	}
+
+	return rc_ret;
 }
 
 /*********************************************************************

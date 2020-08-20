@@ -2269,7 +2269,7 @@ L7_RC_t hapiBroadBcmxRegisterUnit(L7_ushort16 unitNum,L7_ushort16 slotNum, DAPI_
 {
   L7_RC_t               result      = L7_SUCCESS;
   int                   rv;
-  int                   bcm_unit, i;
+  int                   bcm_unit;
 
 #ifdef L7_STACKING_PACKAGE
   /* clear the remote event reporting infrastructure 
@@ -2279,7 +2279,7 @@ L7_RC_t hapiBroadBcmxRegisterUnit(L7_ushort16 unitNum,L7_ushort16 slotNum, DAPI_
 
   /* refresh any linkscan registrations in the system to assure remote events are sent here */
   rv = bcmx_linkscan_enable_set(-1);
-  BCMX_UNIT_ITER(bcm_unit, i)
+  BCM_UNIT_ITER(bcm_unit)
   {
     rv = bcmx_linkscan_device_add(bcm_unit);
     if (L7_BCMX_OK(rv) != L7_TRUE)
@@ -2300,12 +2300,10 @@ L7_RC_t hapiBroadBcmxRegisterUnit(L7_ushort16 unitNum,L7_ushort16 slotNum, DAPI_
       result = L7_FAILURE;
       return result;
     }
-  }
 
-  /* Register for L2 notifications on standalone package */
+    /* Register for L2 notifications on standalone package */
 #ifndef L7_STACKING_PACKAGE
-  {
-    rv = bcmx_l2_notify_register((bcmx_l2_notify_f) hapiBroadAddrMacUpdate,dapi_g);
+    rv = bcm_l2_addr_register(bcm_unit, (bcm_l2_addr_callback_t) hapiBroadAddrMacUpdate, dapi_g);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DRIVER_COMPONENT_ID,
@@ -2314,18 +2312,8 @@ L7_RC_t hapiBroadBcmxRegisterUnit(L7_ushort16 unitNum,L7_ushort16 slotNum, DAPI_
       result = L7_FAILURE;
       return result;
     }
-
-    rv = bcmx_l2_notify_start();
-    if (L7_BCMX_OK(rv) != L7_TRUE)
-    {
-      L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DRIVER_COMPONENT_ID,
-              "Driver: Failed to start L2 notifications, error code %d\n", 
-              rv);
-      result = L7_FAILURE;
-      return result;
-    }
-  }
 #endif
+  }
 
   rv = bcmx_linkscan_register(hapiBroadPortLinkStatusChange);
   if (L7_BCMX_OK(rv) != L7_TRUE)

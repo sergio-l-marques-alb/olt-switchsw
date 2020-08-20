@@ -54,7 +54,6 @@
 #include "soc/mem.h"
 #include "soc/cm.h"
 
-#include "bcmx/l2.h"
 #include "bcmx/port.h"
 #include "bcmx/lport.h"
 #include "bcmx/mirror.h"
@@ -805,7 +804,7 @@ L7_RC_t hapiBroadSystemMacAddress(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
   BROAD_SYSTEM_t               *hapiSystemPtr;
   BROAD_PORT_t                 *hapiPortPtr;
   DAPI_USP_t                    cpuUsp;
-  bcmx_l2_addr_t                l2Addr;
+  bcm_l2_addr_t                 l2Addr;
   L7_int32                      rc=0;
   bcm_mac_t                     mgmtMac;
 
@@ -862,7 +861,7 @@ L7_RC_t hapiBroadSystemMacAddress(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
 
   /* Add the system MAC address w/ mgmt vlan id to the ARL 
   */
-  memset(&l2Addr, 0, sizeof (bcmx_l2_addr_t));
+  memset(&l2Addr, 0, sizeof (bcm_l2_addr_t));
   memcpy(l2Addr.mac, dapiCmd->cmdData.systemMacAddress.macAddr.addr, sizeof (mac_addr_t));
   l2Addr.vid = dapiCmd->cmdData.systemMacAddress.vlanId;
 
@@ -877,7 +876,8 @@ L7_RC_t hapiBroadSystemMacAddress(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
   
   hapiPortPtr = HAPI_PORT_GET(&cpuUsp, dapi_g);
   l2Addr.flags = (BCM_L2_STATIC | BCM_L2_REPLACE_DYNAMIC);
-  l2Addr.lport = hapiPortPtr->bcmx_lport;
+  l2Addr.port  = hapiPortPtr->bcmx_lport;
+  l2Addr.modid = hapiPortPtr->bcm_modid;
 
   /* Add MAC addr to hw ARL table 
   */

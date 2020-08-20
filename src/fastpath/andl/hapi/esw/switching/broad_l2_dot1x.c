@@ -225,18 +225,19 @@ L7_RC_t hapiBroadDot1xMacAddrAdd(DAPI_USP_t *usp, L7_enetMacAddr_t macAddr, L7_u
 {
   L7_RC_t                       result = L7_SUCCESS;
   BROAD_PORT_t                 *hapiPortPtr;
-  bcmx_l2_addr_t                l2Addr;
+  bcm_l2_addr_t                 l2Addr;
   L7_int32                      rc=0;
 
   hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
 
   /* Add this MAC Address to the L2 Forwarding Table stored in the NP. */
-  memset(&l2Addr, 0, sizeof (bcmx_l2_addr_t));
+  memset(&l2Addr, 0, sizeof (bcm_l2_addr_t));
   memcpy(l2Addr.mac, macAddr.addr, sizeof (mac_addr_t));
   l2Addr.vid = vid;
   /* add the individual mac addr */
   l2Addr.flags |= (BCM_L2_STATIC | BCM_L2_REPLACE_DYNAMIC);
-  l2Addr.lport  = hapiPortPtr->bcmx_lport;
+  l2Addr.port  = hapiPortPtr->bcmx_lport;
+  l2Addr.modid = hapiPortPtr->bcm_modid;
   l2Addr.group = groupId;
 
   /* Add MAC addr to hw ARL table */
@@ -251,7 +252,7 @@ L7_RC_t hapiBroadDot1xMacAddrAdd(DAPI_USP_t *usp, L7_enetMacAddr_t macAddr, L7_u
     if ((l2Addr.flags & BCM_L2_STATIC) != 0)
     {
       SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                     "\n%s %d: In %s call to 'bcmx_l2_addr_add' - FAILED : %d\n",
+                     "\n%s %d: In %s call to 'bcm_l2_addr_add' - FAILED : %d\n",
                      __FILE__, __LINE__, __FUNCTION__, rc);
     }
     return result;
@@ -281,27 +282,16 @@ L7_RC_t hapiBroadDot1xMacAddrDelete(L7_enetMacAddr_t macAddr, L7_ushort16 vid, D
 {
   L7_RC_t         result  = L7_SUCCESS;
   L7_int32        rc      = 0;
-  bcmx_l2_addr_t  l2Addr;
 
-  memset(&l2Addr,0,sizeof(l2Addr));
-  rc = bcmx_l2_addr_get(macAddr.addr, vid, &l2Addr, L7_NULL);
-
-  if (rc == BCM_E_NOT_FOUND)
+  /* Delete this MAC Address from the L2 Forwarding Table of BCOM ARL. */
+  rc = usl_bcmx_l2_addr_delete(macAddr.addr, vid);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
   {
-    /* Entry is not present in hw table, so just return success */
+    result = L7_FAILURE;
+    SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
+                   "\n%s %d: In %s call to 'usl_bcmx_l2_addr_remove' - FAILED : %d\n",
+                   __FILE__, __LINE__, __FUNCTION__, rc);
     return result;
-  } else if (rc == BCM_E_NONE)
-  {
-    /* Delete this MAC Address from the L2 Forwarding Table of BCOM ARL. */
-    rc = usl_bcmx_l2_addr_delete(macAddr.addr, vid);
-    if (L7_BCMX_OK(rc) != L7_TRUE)
-    {
-      result = L7_FAILURE;
-      SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                     "\n%s %d: In %s call to 'usl_bcmx_l2_addr_remove' - FAILED : %d\n",
-                     __FILE__, __LINE__, __FUNCTION__, rc);
-      return result;
-    }
   }
 
   return result;

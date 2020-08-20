@@ -75,7 +75,7 @@ typedef enum
 *
 * @end
 *********************************************************************/
-extern int l7_bcmx_l2_addr_add(bcmx_l2_addr_t * l2addr, bcmx_lplist_t *port_block,
+extern int l7_bcmx_l2_addr_add(bcm_l2_addr_t *l2addr, bcmx_lplist_t *port_block,
                                L7_uint32 numChips, L7_uint32 *chips);
 
 /*********************************************************************

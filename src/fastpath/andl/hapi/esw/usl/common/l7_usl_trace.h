@@ -27,7 +27,6 @@
 #include "log.h"
 #include "osapi.h"
 #include "sysapi.h"
-#include "bcmx/l2.h"
 
 #define USL_TRACE_ENTRY_MAX         1024
 #define USL_TRACE_ENTRY_SIZE_MAX    128

@@ -1167,7 +1167,7 @@ L7_RC_t hapiBroadL3MacAddressAdd(DAPI_USP_t *usp,
 {
   DAPI_PORT_t *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr;
-  bcmx_l2_addr_t l2addr;
+  bcm_l2_addr_t l2addr;
   bcm_vlan_t vid = 0;
   int rv;
 
@@ -1189,12 +1189,13 @@ L7_RC_t hapiBroadL3MacAddressAdd(DAPI_USP_t *usp,
     return L7_FAILURE;
   }
 
-  bcmx_l2_addr_t_init(&l2addr, pMacAddr->addr, vid);
+  bcm_l2_addr_t_init(&l2addr, pMacAddr->addr, vid);
   l2addr.flags = (BCM_L2_L3LOOKUP | BCM_L2_STATIC | BCM_L2_REPLACE_DYNAMIC);
 
   /* Set the port for the L2 entry to CPU port */
-  hapiPortPtr =  hapiBroadL3CpuHapiPortGet(dapi_g);
-  l2addr.lport = hapiPortPtr->bcmx_lport;
+  hapiPortPtr  =  hapiBroadL3CpuHapiPortGet(dapi_g);
+  l2addr.port  = hapiPortPtr->bcmx_lport;
+  l2addr.modid = hapiPortPtr->bcm_modid;
 
   rv = usl_bcmx_l2_addr_add(&l2addr, L7_NULL);
   if (rv != BCM_E_NONE)

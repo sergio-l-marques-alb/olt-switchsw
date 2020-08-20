@@ -87,14 +87,23 @@ static hpcHwRpcData_t  rpcVlanBulkResponse[L7_MAX_UNITS_PER_STACK + 1];
 *
 * @end
 *********************************************************************/
-int l7_bcmx_l2_addr_add(bcmx_l2_addr_t * l2addr, bcmx_lplist_t *port_block,
+int l7_bcmx_l2_addr_add(bcm_l2_addr_t *l2addr, bcmx_lplist_t *port_block,
                         L7_uint32 numChips, L7_uint32 *chips)
 {
-  int rc = BCM_E_NONE;
+  int bcm_unit;
+  int rc, rc_ret = BCM_E_NONE;
 
-  rc = bcmx_l2_addr_add(l2addr,port_block);
+  /* Run all units */
+  for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
+  {
+      rc = bcm_l2_addr_add(bcm_unit, l2addr);
+      if (rc != BCM_E_NONE)
+      {
+          rc_ret = rc;
+      }
+  }
 
-  return rc;
+  return rc_ret;
 }
 
 /*********************************************************************
@@ -112,11 +121,20 @@ int l7_bcmx_l2_addr_add(bcmx_l2_addr_t * l2addr, bcmx_lplist_t *port_block,
 int l7_bcmx_l2_addr_delete(bcm_mac_t mac_addr, bcm_vlan_t vid,
                            L7_uint32 numChips, L7_uint32 *chips)
 {
-  int rc = BCM_E_NONE;
+  int bcm_unit;
+  int rc, rc_ret = BCM_E_NONE;
 
-  rc = bcmx_l2_addr_delete(mac_addr, vid);
+  /* Run all units */
+  for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
+  {
+      rc = bcm_l2_addr_delete(bcm_unit, mac_addr, vid);
+      if (rc != BCM_E_NONE)
+      {
+          rc_ret = rc;
+      }
+  }
 
-  return rc;
+  return rc_ret;
 }
 
 /*********************************************************************
@@ -130,7 +148,20 @@ int l7_bcmx_l2_addr_delete(bcm_mac_t mac_addr, bcm_vlan_t vid,
 *********************************************************************/
 int l7_bcmx_l2_age_timer_set(L7_int32 ageTime)
 {
-  return bcmx_l2_age_timer_set(ageTime);
+  int bcm_unit;
+  int rc, rc_ret = BCM_E_NONE;
+
+  /* Run all units */
+  for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
+  {
+    rc = bcm_l2_age_timer_set(bcm_unit, ageTime);
+    if (rc != BCM_E_NONE)
+    {
+        rc_ret = rc;
+    }
+  }
+
+  return rc_ret;
 }
 
 

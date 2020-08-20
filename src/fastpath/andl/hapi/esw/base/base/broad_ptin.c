@@ -1357,17 +1357,19 @@ L7_RC_t hapiBroadPtinBridgeVlanModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *da
  */
 L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
 {
+  int               unit;
   ptin_vlan_mode_t  *vlan_mode = (ptin_vlan_mode_t *) data;
   DAPI_PORT_t       *dapiPortPtr, *dapiPortPtr_prev;
   BROAD_PORT_t      *hapiPortPtr, *hapiPortPtr_prev;
   bcm_trunk_t       tgid_prev = -1, tgid  = -1;
-  bcmx_lport_t      lport_prev= -1, lport = -1;
+  bcm_gport_t       gport_prev= -1, gport = -1;
+  int               modid_prev= -1, modid = -1;
   L7_BOOL           port_prev_is_lag = L7_FALSE, port_is_lag = L7_FALSE;
-  bcmx_l2_addr_t    bcmx_l2_addr;
+  bcm_l2_addr_t     bcm_l2_addr;
   bcm_error_t rv;
 
   /* Prepare switch-over */
-  memset(&bcmx_l2_addr, 0x00, sizeof(bcmx_l2_addr));
+  memset(&bcm_l2_addr, 0x00, sizeof(bcm_l2_addr));
 
   /* Get the port info */
   dapiPortPtr = DAPI_PORT_GET(usp, dapi_g);
@@ -1392,11 +1394,13 @@ L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
     /* Physical port to be removed */
     if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr_prev) == L7_TRUE)
     {
-      bcmx_l2_addr.flags = 0; 
-      bcmx_l2_addr.lport = hapiPortPtr_prev->bcmx_lport;
-      bcmx_l2_addr.tgid  = -1;
+      bcm_l2_addr.flags = 0; 
+      bcm_l2_addr.modid = hapiPortPtr_prev->bcm_modid;
+      bcm_l2_addr.port  = hapiPortPtr_prev->bcmx_lport;
+      bcm_l2_addr.tgid  = -1;
 
-      lport_prev = hapiPortPtr_prev->bcmx_lport;
+      gport_prev = hapiPortPtr_prev->bcmx_lport;
+      modid_prev = hapiPortPtr_prev->bcm_modid;
     }
     /* Logical port to be removed */
     else if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr_prev) == L7_TRUE)
@@ -1416,9 +1420,10 @@ L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
       /* Validate tgid value */
       if (tgid_prev >= 0)
       {
-        bcmx_l2_addr.flags = BCM_L2_TRUNK_MEMBER;
-        bcmx_l2_addr.lport = hapiPortPtr_prev->bcmx_lport;
-        bcmx_l2_addr.tgid  = tgid_prev;
+        bcm_l2_addr.flags = BCM_L2_TRUNK_MEMBER;
+        bcm_l2_addr.modid = hapiPortPtr_prev->bcm_modid;
+        bcm_l2_addr.port  = hapiPortPtr_prev->bcmx_lport;
+        bcm_l2_addr.tgid  = tgid_prev;
 
         /* We have a valid lag */
         port_prev_is_lag = L7_TRUE;
@@ -1442,7 +1447,8 @@ L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
   /* Physical port to be added */
   if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr) == L7_TRUE)
   {
-    lport = hapiPortPtr->bcmx_lport;
+    gport = hapiPortPtr->bcmx_lport;
+    modid = hapiPortPtr->bcm_modid;
   }
   /* Logical port to be added */
   else if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) == L7_TRUE)
@@ -1487,19 +1493,23 @@ L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
         hapiBroadAddRemovePortFromVlans(&vlan_mode->ddUsp, 0, dapi_g);
 
         #if (PTIN_UPLINK_PROTECTION_MACMOVE)
-        /* Move MACs to newer port */
-        if (port_is_lag)
+        /* Run all units */
+        BCM_UNIT_ITER(unit)
         {
-          rv = bcmx_l2_replace(BCM_L2_REPLACE_MATCH_DEST | BCM_L2_REPLACE_NEW_TRUNK | BCM_L2_REPLACE_NO_CALLBACKS, &bcmx_l2_addr, -1, tgid);
-        }
-        else
-        {
-          rv = bcmx_l2_replace(BCM_L2_REPLACE_MATCH_DEST | BCM_L2_REPLACE_NO_CALLBACKS, &bcmx_l2_addr, hapiPortPtr->bcmx_lport, -1);
-        }
+          /* Move MACs to newer port */
+          if (port_is_lag)
+          {
+            rv = bcm_l2_replace(unit, BCM_L2_REPLACE_MATCH_DEST | BCM_L2_REPLACE_NEW_TRUNK | BCM_L2_REPLACE_NO_CALLBACKS, &bcm_l2_addr, -1, tgid);
+          }
+          else
+          {
+            rv = bcm_l2_replace(unit, BCM_L2_REPLACE_MATCH_DEST | BCM_L2_REPLACE_NO_CALLBACKS, &bcm_l2_addr, hapiPortPtr->bcmx_lport, -1);
+          }
 
-        if (rv != BCM_E_NONE) 
-        {
-          PT_LOG_ERR(LOG_CTX_HAPI,"Error applying bcm_l2_replace (rv = %d)\r\n", rv);
+          if (rv != BCM_E_NONE) 
+          {
+            PT_LOG_ERR(LOG_CTX_HAPI,"unit %d: Error applying bcm_l2_replace (rv = %d)\r\n", unit, rv);
+          }
         }
         #endif
       }
@@ -1511,19 +1521,23 @@ L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
       if (hapiPortPtr_prev != L7_NULLPTR)
       {
         #if (!PTIN_UPLINK_PROTECTION_MACMOVE)
-        /* Flush MAC entries related to old port */
-        if (port_prev_is_lag)
+        /* Run all units */
+        BCM_UNIT_ITER(unit)
         {
-          rv = bcmx_l2_addr_delete_by_trunk(tgid_prev, BCM_L2_DELETE_NO_CALLBACKS);
-        }
-        else
-        {
-          rv = bcmx_l2_addr_delete_by_port(lport_prev, BCM_L2_DELETE_NO_CALLBACKS);
-        }
-        if (rv != BCM_E_NONE)
-        {
-          PT_LOG_ERR(LOG_CTX_HAPI,"Error flushing MAC entries from port {%d,%d,%d} (rv=%d)\r\n",
-                  vlan_mode->ddUsp.unit, vlan_mode->ddUsp.slot, vlan_mode->ddUsp.port, rv);
+          /* Flush MAC entries related to old port */
+          if (port_prev_is_lag)
+          {
+            rv = bcm_l2_addr_delete_by_trunk(unit, tgid_prev, BCM_L2_DELETE_NO_CALLBACKS);
+          }
+          else
+          {
+            rv = bcm_l2_addr_delete_by_port(unit, modid_prev, gport_prev, BCM_L2_DELETE_NO_CALLBACKS);
+          }
+          if (rv != BCM_E_NONE)
+          {
+            PT_LOG_ERR(LOG_CTX_HAPI,"unit %d: Error flushing MAC entries from port {%d,%d,%d} (rv=%d)\r\n",
+                       unit, vlan_mode->ddUsp.unit, vlan_mode->ddUsp.slot, vlan_mode->ddUsp.port, rv);
+          }
         }
         #endif
 
@@ -1561,14 +1575,18 @@ L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
       /* Remove the port to all vlans */
       hapiBroadAddRemovePortFromVlans(usp, 0, dapi_g);
 
-      /* Flush MAc entries */
-      if (port_is_lag)
+      /* Run all units */
+      BCM_UNIT_ITER(unit)
       {
-        (void) bcmx_l2_addr_delete_by_trunk(tgid, BCM_L2_DELETE_NO_CALLBACKS);
-      }
-      else
-      {
-        (void) bcmx_l2_addr_delete_by_port(lport, BCM_L2_DELETE_NO_CALLBACKS);
+        /* Flush MAc entries */
+        if (port_is_lag)
+        {
+          (void) bcm_l2_addr_delete_by_trunk(unit, tgid, BCM_L2_DELETE_NO_CALLBACKS);
+        }
+        else
+        {
+          (void) bcm_l2_addr_delete_by_port(unit, modid, gport, BCM_L2_DELETE_NO_CALLBACKS);
+        }
       }
       PT_LOG_TRACE(LOG_CTX_HAPI, "Port {%d,%d,%d} removed from all VLANS (MACs flushed)", usp->unit, usp->slot, usp->port);
     }
@@ -1576,14 +1594,18 @@ L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
     {
       hapiBroadL2VlanRemovePortFromVlanHw(usp, vlan_mode->vlanId, dapi_g);
 
-      /* Flush MAc entries */
-      if (port_is_lag)
+      /* Run all units */
+      BCM_UNIT_ITER(unit)
       {
-        (void) bcmx_l2_addr_delete_by_vlan_trunk(vlan_mode->vlanId, tgid, BCM_L2_DELETE_NO_CALLBACKS);
-      }
-      else
-      {
-        (void) bcmx_l2_addr_delete_by_vlan_port(vlan_mode->vlanId, lport, BCM_L2_DELETE_NO_CALLBACKS);
+        /* Flush MAc entries */
+        if (port_is_lag)
+        {
+          (void) bcm_l2_addr_delete_by_vlan_trunk(unit, vlan_mode->vlanId, tgid, BCM_L2_DELETE_NO_CALLBACKS);
+        }
+        else
+        {
+          (void) bcm_l2_addr_delete_by_vlan_port(unit, vlan_mode->vlanId, modid, gport, BCM_L2_DELETE_NO_CALLBACKS);
+        }
       }
       PT_LOG_TRACE(LOG_CTX_HAPI, "Port {%d,%d,%d} removed from VLAN %u (MACs flushed)", usp->unit, usp->slot, usp->port, vlan_mode->vlanId);
     }
