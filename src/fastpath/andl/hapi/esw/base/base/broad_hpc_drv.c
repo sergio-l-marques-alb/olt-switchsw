@@ -63,15 +63,10 @@
 #include "soc/arl.h"
 #include "soc/l2x.h"
 
+#include "bcm/init.h"
+#include "bcm/custom.h"
 #include "bcmx/bcmx.h"
-#include "bcmx/bcmx_int.h"
 #include "bcm_int/rpc/rlink.h"
-/* PTin modified: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-/* No included */
-#else
-#include "bcmx/filter.h"
-#endif
 #include "bcm/vlan.h"
 
 //#include "soc/debug.h"
@@ -2239,102 +2234,6 @@ L7_RC_t hpcHardwareDriverAsfEnable(void)
   return rc;
 }
 
-/* PTin TODO: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-/* None */
-#else
-/*********************************************************************
-* @purpose  Qualifies BCMX filter with non-stack ports.
-*
-* @param    void
-*                                       
-* @returns  none
-*
-* @comments This function is called for BCMX filters that are installed   
-* @comments on all ports in the box. For stand-alone boxes and HiGig
-* @comments stackable systems the filter is not changed. 
-* @comments For the front-panel stacked systems the filter is qualified
-* @comments with front panel ports which are not configured for stacking.
-*       
-* @end
-*********************************************************************/
-void hpcBcmxFilterStackPortRemove(bcm_filterid_t *bcmx_filter)
-{
- bcmx_lplist_t         portList;
- int                   rv;
- DAPI_USP_t                 searchUsp;
- BROAD_PORT_t              *tempHapiPort;
-
- if (cnfgrIsFeaturePresent (L7_FLEX_STACKING_COMPONENT_ID, 
-                           L7_FPS_FEATURE_ID) == L7_FALSE)  
- {
-   return;  /* Don't need to qualify the filter with a port list */
- }
-
- rv = bcmx_lplist_init(&portList,L7_MAX_INTERFACE_COUNT,0);
- if (L7_BCMX_OK(rv) != L7_TRUE)
- {
-   L7_LOG_ERROR(rv);
- }
-
- /* Add all physical ports to the list. Stack ports are excluded by the isValidUsp() test.
- */
- for (searchUsp.unit=0; searchUsp.unit < dapi_g->system->totalNumOfUnits; searchUsp.unit++)
- {
-   if (dapi_g->unit[searchUsp.unit] == L7_NULLPTR)
-     {
-       continue;
-     }
-
-    for (searchUsp.slot=0; searchUsp.slot < dapi_g->unit[searchUsp.unit]->numOfSlots; searchUsp.slot++)
-    {     
-      if (dapi_g->unit[searchUsp.unit]->slot[searchUsp.slot] == L7_NULLPTR)
-       {
-         continue;
-       }
-
-      if (dapi_g->unit[searchUsp.unit]->slot[searchUsp.slot]->cardType == SYSAPI_CARD_TYPE_LINE)
-      {
-        for (searchUsp.port=0;
-            searchUsp.port < dapi_g->unit[searchUsp.unit]->slot[searchUsp.slot]->numOfPortsInSlot;
-            searchUsp.port++)
-        {          
-          if (dapi_g->unit[searchUsp.unit]->slot[searchUsp.slot]->port == L7_NULLPTR)
-          {
-            continue;
-          }
-
-          /* Note that we don't use the isValidUsp() test in this code because 
-          ** the function may be invoked during card insertion, so the 
-          ** "cardPresent" test will fail.
-          */
-          if (spmFpsPortStackingModeCheck (searchUsp.unit, searchUsp.slot, (searchUsp.port + 1)) == L7_TRUE)
-          {
-            continue;
-          }
-
-          tempHapiPort = HAPI_PORT_GET(&searchUsp, dapi_g);
-
-          if (tempHapiPort == L7_NULLPTR)
-          {
-            continue;
-          }
-
-          BCMX_LPLIST_ADD(&portList, tempHapiPort->bcmx_lport);
-        }
-      }
-    }
-  }
-
- rv = bcmx_filter_qualify_ingress (*bcmx_filter, portList);
- if (L7_BCMX_OK(rv) != L7_TRUE)
- {
-   L7_LOG_ERROR(rv);
- }
-
- bcmx_lplist_free(&portList);
-}
-#endif
 
 /* The following code is a patch to support Ax-B0 XGS3 parts 
  *  It addresses the Higig Problem Opcode 0 issue

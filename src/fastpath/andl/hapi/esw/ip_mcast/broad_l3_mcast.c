@@ -30,7 +30,6 @@
 #include "ibde.h"
 #include "bcm/ipmc.h"
 #include "soc/macipadr.h"
-#include "bcmx/bcmx_int.h"
 #include "l7_usl_bcmx_l3.h"
 #include "l7_usl_bcmx_port.h"
 #include "l7_usl_bcmx_l2.h"

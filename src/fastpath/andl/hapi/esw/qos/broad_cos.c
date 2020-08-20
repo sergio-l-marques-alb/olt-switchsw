@@ -33,7 +33,7 @@
 
 #include "bcmx/port.h"
 #include "soc/drv.h"
-#include "bcmx/bcmx_int.h"
+
 /* Default weights used in non-QoS packages. */
 extern L7_uint32 wrr_default_weights[];
 

@@ -28,8 +28,10 @@
 #include "log.h"
 #include "soc/drv.h"
 #include "bcmx/custom.h"
-#include "bcmx/bcmx_int.h"
 #include "bcm_int/common/multicast.h" /* PTin modified: new SDK  (esw->common) */
+
+#include "bcm/stack.h"
+#include "bcm_int/control.h"
 
 #include "l7_usl_bcm_ipmcast.h"
 #include "l7_usl_ipmcast_db.h"

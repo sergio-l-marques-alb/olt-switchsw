@@ -57,19 +57,6 @@
 
 #include "bcmx/port.h"
 #include "bcmx/lport.h"
-/* PTin removed: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-/* No include */
-#else
-  #include "bcmx/filter.h"
-#endif
-#include "bcmx/bcmx_int.h"
-/* TODO: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-//#include "soc/ea/tk371x/igmp.h"
-#else
-  #include "bcmx/igmp.h"
-#endif
 #include "bcmx/custom.h"
 #include "bcm_int/esw/mbcm.h"
 #include "l7_usl_bcmx_l2.h"
@@ -89,10 +76,6 @@
 #include "logger.h"
 #endif
 
-#ifdef PC_LINUX_HOST
-#include "bcmx/bcmx_int.h"
-  extern int _bcm_esw_link_force(int unit, bcm_port_t port, int force, int link);
-#endif
 L7_BOOL hapiBroadRavenCheck ( );
 
 
@@ -1722,10 +1705,6 @@ L7_RC_t hapiBroadIntfIsolatePhyConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *dat
   DAPI_PORT_t          *dapiPortPtr;
   L7_BOOL               enable;
   int                   rv;
-#ifdef PC_LINUX_HOST
-  int unit;
-  bcm_port_t port;
-#endif
 
   dapiPortPtr = DAPI_PORT_GET(usp, dapi_g);
   hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
@@ -1781,17 +1760,6 @@ L7_RC_t hapiBroadIntfIsolatePhyConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *dat
     }
   }
 #endif
-
-#ifdef PC_LINUX_HOST
-/* needed in order to set the linke state for simulation,sometimes requires two tries */
-  bcmx_lport_to_unit_port(hapiPortPtr->bcmx_lport, &unit, &port); 
-  (void)_bcm_esw_link_force(unit, port,
-                            1, (dapiCmd->cmdData.portIsolatePhyConfig.enable == L7_FALSE)?1:0);
-
-  (void)_bcm_esw_link_force(unit, port,
-                            1, (dapiCmd->cmdData.portIsolatePhyConfig.enable == L7_FALSE)?1:0);
-#endif
-
 
   return result;
 }

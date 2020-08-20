@@ -28,7 +28,6 @@
 #include "l7_usl_bcmx_policy.h"
 #include "l7_usl_bcmx_port.h"
 #include "l7_usl_policy_db.h"
-#include "bcmx/bcmx_int.h"
 #include "sysbrds.h"
 #include "appl/stktask/topo_brd.h"
 #include "bcmx/port.h"

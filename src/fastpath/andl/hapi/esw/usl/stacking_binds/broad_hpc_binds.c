@@ -34,7 +34,10 @@
 
 #include "broad_common.h"
 
+#include "bcmx/port.h"
+
 #include "ibde.h"
+#include "bcm/init.h"
 #include "bcm/vlan.h"
 #include "bcm/cosq.h"
 #include "soc/cmext.h"
@@ -42,7 +45,6 @@
 #include "appl/diag/sysconf.h"
 #include "appl/stktask/topo_brd.h"
 #include "appl/stktask/topo_pkt.h"
-#include "bcmx/bcmx_int.h"
 
 #if (SDK_VERSION_IS >= SDK_VERSION(6,4,0,0))
 #include <shared/bslext.h>
@@ -639,38 +641,17 @@ void hpcHardwareRemoveStackManager(L7_enetMacAddr_t managerKey)
 *********************************************************************/
 L7_int32 hpcBroadMasterCpuModPortGet(L7_int32 *modid, L7_int32 *cpuport)
 {
-  L7_int32       rv = BCM_E_FAIL;
+  bcmx_lport_t lport_cpu;
+  L7_int32     rv = BCM_E_FAIL;
 
-#if 0
-  cpudb_key_t    cpu_key;
-  cpudb_entry_t *master_entry = L7_NULLPTR;
-  
-
-  do
+  /* Get lport belonging to CPU of unit 0 */
+  rv = bcmx_lport_local_cpu_get(0, &lport_cpu);
+  if (rv != BCM_E_NONE)
   {
-    if (hpcLocalUnitIdentifierMacGet((L7_enetMacAddr_t *)&(cpu_key.key)) != L7_SUCCESS)
-    {
-      break;
-    }
-
-    CPUDB_KEY_SEARCH(system_cpudb, cpu_key, master_entry);
-    if (master_entry == L7_NULLPTR)
-    {
-      break;    
-    }
-
-    *modid = master_entry->dest_mod;
-    *cpuport = master_entry->dest_port;
-
-    rv = BCM_E_NONE;
-
-  } while (0);
-#else
-
-  rv = bcmx_lport_to_modid_port(BCMX_LPORT_LOCAL_CPU_GET(0),
-                                modid,
-                                cpuport);
-#endif
+    return rv;
+  }
+  
+  rv = bcmx_lport_to_modid_port(lport_cpu, modid, cpuport);
 
   return rv;
 }

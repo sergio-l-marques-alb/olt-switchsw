@@ -24,7 +24,6 @@
 #include "soc/drv.h"
 #include "soc/l2x.h"
 #include "bcm/types.h"
-#include "bcmx/mcast.h"
 #include "bcm_int/esw/mbcm.h"
 /* PTin modified: SDK 6.3.0 */
 #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
@@ -33,7 +32,6 @@
 #include "bcm_int/esw/draco.h"
 #endif
 #include "ibde.h"
-#include <bcmx/bcmx_int.h>
 #include "broad_common.h"
 
 /* Local Structure used for VLAN based L2 addr flush */
@@ -262,17 +260,19 @@ int usl_l7_remove_l2_addr_by_vlan (void *user_data, shr_avl_datum_t *datum , voi
 int usl_bcmx_l2_addr_remove_by_trunk (bcm_trunk_t tgid, L7_uint32 flags)
 {
   int                  rc = BCM_E_NONE;
-  int                  i, bcm_unit;
-  soc_control_t               *soc;
+  int                  bcm_unit;
+  soc_control_t        *soc;
   usl_unit_tgid_info_t tgid_unit_info;
   
   BROAD_L2ADDR_FLUSH_t l2addr_msg;
   
-  BCMX_UNIT_ITER(bcm_unit, i) {
-	if (SOC_IS_HERCULES(bcm_unit))
+  /* Run all units */
+  for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
 	{
-	  continue;
-	}
+		if (SOC_IS_HERCULES(bcm_unit))
+		{
+			continue;
+		}
     /* If 5690 then do the manual removal of all the learnt addresses
      * on the given port */
     if (SOC_IS_DRACO1(bcm_unit))
@@ -282,7 +282,7 @@ int usl_bcmx_l2_addr_remove_by_trunk (bcm_trunk_t tgid, L7_uint32 flags)
 
       soc = SOC_CONTROL (bcm_unit);
       sal_mutex_take(soc->arlShadowMutex, -1);
-	  shr_avl_traverse (soc->arlShadow, usl_l7_remove_l2_addr_by_trunk, &tgid_unit_info);
+	    shr_avl_traverse (soc->arlShadow, usl_l7_remove_l2_addr_by_trunk, &tgid_unit_info);
       sal_mutex_give(soc->arlShadowMutex);
     }
     else
@@ -290,7 +290,6 @@ int usl_bcmx_l2_addr_remove_by_trunk (bcm_trunk_t tgid, L7_uint32 flags)
       rc =  bcm_l2_addr_delete_by_trunk (bcm_unit, tgid, flags);
     }
   }
-
 
   memset((void *)&l2addr_msg, 0, sizeof(l2addr_msg));
   l2addr_msg.tgid = tgid;
@@ -453,15 +452,17 @@ int usl_bcmx_l2_addr_sync()
 int usl_bcmx_l2_addr_remove_by_vlan (bcm_vlan_t vid, L7_uint32 flags)
 {
   int                  rc = BCM_E_NONE;
-  int                  i, bcm_unit;
-  soc_control_t               *soc;
+  int                  bcm_unit;
+  soc_control_t        *soc;
   usl_unit_vlan_info_t vlan_unit_info;
 
-  BCMX_UNIT_ITER(bcm_unit, i) {
-    if (SOC_IS_HERCULES(bcm_unit))
+  /* Run all units */
+  for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
 	{
-	  continue;
-	}
+    if (SOC_IS_HERCULES(bcm_unit))
+	  {
+	    continue;
+	  }
     /* If 5690 then do the manual removal of all the learnt addresses
      * on the given port */
     if (SOC_IS_DRACO1(bcm_unit))

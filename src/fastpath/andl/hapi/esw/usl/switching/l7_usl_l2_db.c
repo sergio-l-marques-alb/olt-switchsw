@@ -38,7 +38,6 @@
 #include "l7_usl_macsync.h"
 #endif
 
-#include "bcmx/bcmx_int.h"
 #include "ibde.h"
 
 /* IP Subnet Vlan table resources */

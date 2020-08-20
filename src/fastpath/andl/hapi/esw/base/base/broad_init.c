@@ -84,11 +84,6 @@
 #include "bcmx/lport.h"
 /* PTin modified: SDK 6.3.0 */
 #include "ptin_globaldefs.h"
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-/* No include */
-#else
-#include "bcmx/filter.h"
-#endif
 #include "ibde.h"
 #include "l7_usl_api.h"
 #include "l7_usl_sm.h"
@@ -99,8 +94,6 @@
 #include "cardmgr_api.h"
 
 #include <bcmx/bcmx.h>
-#include <bcmx/bcmx_int.h>
-/*#include <bcmx/boards.h>*/
 #include <bcmx/port.h>
 #include "sysbrds.h"
 #include <soc/debug.h>

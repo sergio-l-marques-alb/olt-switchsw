@@ -37,7 +37,6 @@
 #endif
 
 #include "bcm/types.h"
-#include "bcmx/bcmx_int.h"
 
 extern L7_BOOL uslDatabaseActive;
 

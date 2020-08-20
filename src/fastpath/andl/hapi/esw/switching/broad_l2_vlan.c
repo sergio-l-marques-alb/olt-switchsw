@@ -50,13 +50,6 @@
 #include "bcmx/lport.h"
 #include "bcmx/lplist.h"
 #include "bcmx/port.h"
-/* PTin removed: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-/* No include */
-#else
-#include "bcmx/filter.h"
-#endif
-#include "bcmx/bcmx_int.h"
 
 #ifdef L7_MCAST_PACKAGE
 #include "broad_l3_mcast.h"

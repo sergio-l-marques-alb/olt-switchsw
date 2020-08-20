@@ -28,7 +28,6 @@
 #include "log.h"
 #include "soc/drv.h"
 #include "bcmx/custom.h"
-#include "bcmx/bcmx_int.h"
 
 #include "l7_rpc_ipmcast.h"
 

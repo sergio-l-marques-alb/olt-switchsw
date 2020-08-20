@@ -34,9 +34,9 @@
 #include "l7_usl_ipmcast_db_int.h"
 #include "sysapi.h"
 #include "l7_usl_trace.h"
-#include "bcmx/bcmx_int.h"
 #include "unitmgr_api.h"
 #include "zlib.h"
+#include "bcm/stack.h"
 
 #ifdef L7_WIRELESS_PACKAGE
 #include "wireless_exports.h"

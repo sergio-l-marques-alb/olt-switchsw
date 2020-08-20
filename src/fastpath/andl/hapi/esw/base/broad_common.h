@@ -1087,28 +1087,6 @@ L7_BOOL hpcIsBcmPortStacking (L7_uint32 bcm_unit, L7_uint32 bcm_port);
 *********************************************************************/
 void hpcStackPortEnable (L7_BOOL enable);
 
-/* PTin removed: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-/* No filter functions */
-#else
-/*********************************************************************
-* @purpose  Qualifies BCMX filter with non-stack ports.
-*
-* @param    void
-*                                       
-* @returns  none
-*
-* @comments This function is called for BCMX filters that are installed   
-* @comments on all ports in the box. For stand-alone boxes and HiGig
-* @comments stackable systems the filter is not changed. 
-* @comments For the front-panel stacked systems the filter is qualified
-* @comments with front panel ports which are not configured for stacking.
-*       
-* @end
-*********************************************************************/
-void hpcBcmxFilterStackPortRemove(bcm_filterid_t *bcmx_filter);
-#endif
-
 /*********************************************************************
 *
 * @purpose Re-initialize multicast global data.
