@@ -1412,7 +1412,7 @@ L7_RC_t hapiBroadPhysicalCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *d
   L7_RC_t                 result       = L7_SUCCESS;
   DAPI_USP_t              usp;
   DAPI_t                 *dapi_g = (DAPI_t*)handle;
-  bcmx_lplist_t           tmpLpList, portLpList;
+  bcmy_gplist_t           tmpGplist, portGplist;
   BROAD_PORT_t           *hapiPortPtr;
   L7_BOOL                 newBcmUnitInserted = L7_TRUE;
   L7_uint32               idx;
@@ -1514,20 +1514,20 @@ L7_RC_t hapiBroadPhysicalCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *d
     }
 
     /* obtain a list of lport for the usl call */
-    bcmx_lplist_init(&tmpLpList,0,0);
+    bcmy_gplist_init(&tmpGplist, 0, 0);
 
     for (usp.port = 0; usp.port < dapi_g->unit[usp.unit]->slot[usp.slot]->numOfPortsInSlot;usp.port++)
     {
       hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
-      bcmx_lplist_add(&tmpLpList,hapiPortPtr->bcmx_lport);
+      bcmy_gplist_add(&tmpGplist, hapiPortPtr->bcmx_lport);
     }
 
     /* Synchronize the new units */
-    if ((result = usl_db_bcm_unit_populate(usp.unit,usp.slot,&tmpLpList)) != L7_SUCCESS)
+    if ((result = usl_db_bcm_unit_populate(usp.unit, usp.slot, &tmpGplist)) != L7_SUCCESS)
     {
       result = L7_FAILURE;
       /* we must free the list now */
-      bcmx_lplist_free(&tmpLpList);
+      bcmy_gplist_free(&tmpGplist);
 
       usl_bcmx_resume(dbGroups);
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DRIVER_COMPONENT_ID,
@@ -1538,7 +1538,7 @@ L7_RC_t hapiBroadPhysicalCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *d
     }
 
     /* we must free the list now */
-    bcmx_lplist_free(&tmpLpList);
+    bcmy_gplist_free(&tmpGplist);
 
     /* Create entry for the card ports in the USL port-database */
     result = L7_SUCCESS;
@@ -1547,7 +1547,7 @@ L7_RC_t hapiBroadPhysicalCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *d
                               L7_PFC_PORT_PRIORITY_FLOW_CONTROL_FEATURE_ID) == L7_TRUE))
    {
 
-     bcmx_lplist_init(&portLpList,0,0); 
+     bcmy_gplist_init(&portGplist, 0, 0); 
 
      for (usp.port = 0; usp.port < dapi_g->unit[usp.unit]->slot[usp.slot]->numOfPortsInSlot;usp.port++)
      {
@@ -1556,13 +1556,13 @@ L7_RC_t hapiBroadPhysicalCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *d
                                         (usp.port + 1)) == L7_FALSE)
        {
          hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
-         bcmx_lplist_add(&portLpList,hapiPortPtr->bcmx_lport);
+         bcmy_gplist_add(&portGplist, hapiPortPtr->bcmx_lport);
        }
      }
 
-      result = usl_portdb_update(L7_TRUE, usp.unit, &portLpList);
+      result = usl_portdb_update(L7_TRUE, usp.unit, &portGplist);
 
-      bcmx_lplist_free(&portLpList);
+      bcmy_gplist_free(&portGplist);
 
     }
  
@@ -3035,14 +3035,14 @@ L7_RC_t hapiBroadCardRemove(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *data, voi
   DAPI_t       *dapi_g = (DAPI_t*)handle;
   L7_RC_t       rc;
   L7_uint32     i;
-  bcmx_lplist_t tmpLpList, portLpList;
+  bcmy_gplist_t tmpGplist, portGplist;
 
   usp.unit = dapiUsp->unit;
   usp.slot = dapiUsp->slot;
 
-  /* tmpLpList freed at the end of the function */
-  bcmx_lplist_init(&tmpLpList,0,0);
-  bcmx_lplist_init(&portLpList,0,0);
+  /* tmpGplist freed at the end of the function */
+  bcmy_gplist_init(&tmpGplist, 0, 0);
+  bcmy_gplist_init(&portGplist, 0, 0);
 
   switch (dapi_g->unit[usp.unit]->slot[usp.slot]->cardType)
   {
@@ -3070,22 +3070,22 @@ L7_RC_t hapiBroadCardRemove(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *data, voi
 
     if (hapiPortPtr == L7_NULLPTR)
     {
-      /* Free the lplist */
-      bcmx_lplist_free(&tmpLpList);
-      bcmx_lplist_free(&portLpList);
+      /* Free the gplist */
+      bcmy_gplist_free(&tmpGplist);
+      bcmy_gplist_free(&portGplist);
       return result;
     }
 
     if (IS_PORT_TYPE_PHYSICAL(DAPI_PORT_GET(&usp, dapi_g)) == L7_TRUE)
     {
-      bcmx_lplist_add(&tmpLpList, hapiPortPtr->bcmx_lport);
+      bcmy_gplist_add(&tmpGplist, hapiPortPtr->bcmx_lport);
     }
 
     /* Skip Stacking ports for portdb list */
     if (spmFpsPortStackingModeCheck (usp.unit, usp.slot, 
                                      (usp.port + 1)) == L7_FALSE)
     {
-      bcmx_lplist_add(&portLpList,hapiPortPtr->bcmx_lport);
+      bcmy_gplist_add(&portGplist, hapiPortPtr->bcmx_lport);
     }
 
     if (BCMX_LPORT_TO_UPORT(hapiPortPtr->bcmx_lport) != _bcmx_uport_invalid)
@@ -3163,7 +3163,7 @@ L7_RC_t hapiBroadCardRemove(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *data, voi
       { 
 
         /* Delete entry for the card ports from the USL port-database */
-        (void) usl_portdb_update(L7_FALSE, usp.unit, &portLpList);
+        (void) usl_portdb_update(L7_FALSE, usp.unit, &portGplist);
       }
 
 #ifdef L7_STACKING_PACKAGE
@@ -3220,9 +3220,9 @@ L7_RC_t hapiBroadCardRemove(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *data, voi
       break;
   }
 
-  /* Free the lplist */
-  bcmx_lplist_free(&tmpLpList);
-  bcmx_lplist_free(&portLpList);
+  /* Free the gplist */
+  bcmy_gplist_free(&tmpGplist);
+  bcmy_gplist_free(&portGplist);
 
   return result;
 }

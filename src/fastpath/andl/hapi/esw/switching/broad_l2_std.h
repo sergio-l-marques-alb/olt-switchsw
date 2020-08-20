@@ -25,6 +25,7 @@
 
 #include "l7_common.h"
 #include "l7_resources.h"
+#include "bcmy_gport_api.h"
 #include "dapi.h"
 
 /* Number of messages on the dot1s async command queue. 
@@ -423,7 +424,7 @@ L7_RC_t hapiBroadDot1sBcmStgMapClear(L7_int32 instNumber);
 * @end
 *
 *********************************************************************/
-void hapiBroadGetStpNotParticipatingPbmp(DAPI_USP_t *usp, bcmx_lplist_t *taggedLplist, DAPI_t *dapi_g);
+void hapiBroadGetStpNotParticipatingPbmp(DAPI_USP_t *usp, bcmy_gplist_t *taggedGplist, DAPI_t *dapi_g);
 
 /*********************************************************************
 *

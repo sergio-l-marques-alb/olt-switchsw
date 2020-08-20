@@ -525,7 +525,7 @@ int usl_bcmx_l2_addr_remove_by_mac (bcm_mac_t mac, L7_uint32 flags)
 *
 * @end
 *********************************************************************/
-int usl_bcmx_l2_addr_add(bcm_l2_addr_t *l2addr, bcmx_lplist_t *port_block)
+int usl_bcmx_l2_addr_add(bcm_l2_addr_t *l2addr, bcmy_gplist_t *port_block)
 {
 	int bcm_unit;
 	int rc, rc_ret = BCM_E_NONE;

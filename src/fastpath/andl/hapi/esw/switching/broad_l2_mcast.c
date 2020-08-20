@@ -32,7 +32,6 @@
 #include "bcm/mcast.h"
 #include "bcm/vlan.h"
 
-#include "bcmx/lplist.h"
 #include "l7_usl_bcmx_l2.h"
 #include "broad_l2_vlan.h"
 #include "broad_l2_std.h"

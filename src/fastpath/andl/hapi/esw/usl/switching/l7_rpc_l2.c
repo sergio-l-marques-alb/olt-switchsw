@@ -87,7 +87,7 @@ static hpcHwRpcData_t  rpcVlanBulkResponse[L7_MAX_UNITS_PER_STACK + 1];
 *
 * @end
 *********************************************************************/
-int l7_bcmx_l2_addr_add(bcm_l2_addr_t *l2addr, bcmx_lplist_t *port_block,
+int l7_bcmx_l2_addr_add(bcm_l2_addr_t *l2addr, bcmy_gplist_t *port_block,
                         L7_uint32 numChips, L7_uint32 *chips)
 {
   int bcm_unit;

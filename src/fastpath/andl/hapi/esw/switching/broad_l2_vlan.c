@@ -48,7 +48,6 @@
 #include "bcm/types.h"
 
 #include "bcmx/lport.h"
-#include "bcmx/lplist.h"
 #include "bcmx/port.h"
 
 #ifdef L7_MCAST_PACKAGE
@@ -708,7 +707,7 @@ L7_RC_t hapiBroadQvlanVlanListCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data
     /* Ignoring the failures on deletion */
   }
 
-  /* Create an lplist of the cpu USPs. */
+  /* Create an gplist of the cpu USPs. */
   if (CPU_USP_GET(&cpuUsp) == L7_FAILURE)
   {
     L7_LOG_ERROR(vlanID);

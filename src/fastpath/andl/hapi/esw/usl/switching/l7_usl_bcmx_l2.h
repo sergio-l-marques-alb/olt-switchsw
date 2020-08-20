@@ -140,7 +140,7 @@ int usl_bcmx_l2_addr_remove_by_vlan (bcm_vlan_t vid, L7_uint32 flags);
 *
 * @end
 *********************************************************************/
-extern int usl_bcmx_l2_addr_add(bcm_l2_addr_t *l2addr, bcmx_lplist_t *port_block);
+extern int usl_bcmx_l2_addr_add(bcm_l2_addr_t *l2addr, bcmy_gplist_t *port_block);
 
 /*********************************************************************
 * @purpose  Add a L2 MAC address to the USL forwarding database
@@ -152,7 +152,7 @@ extern int usl_bcmx_l2_addr_add(bcm_l2_addr_t *l2addr, bcmx_lplist_t *port_block
 *
 * @end
 *********************************************************************/
-extern int usl_l2_learned_addr_add(bcm_l2_addr_t *l2addr, bcmx_lplist_t *port_block);
+extern int usl_l2_learned_addr_add(bcm_l2_addr_t *l2addr, bcmy_gplist_t *port_block);
 
 /*********************************************************************
 * @purpose  Remove a L2 MAC address from the HW's forwarding database

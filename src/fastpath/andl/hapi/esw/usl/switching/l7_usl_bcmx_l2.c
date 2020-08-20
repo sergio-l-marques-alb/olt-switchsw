@@ -2354,12 +2354,12 @@ int usl_bcmx_l2_addr_remove_by_vlan (bcm_vlan_t vid)
 *
 * @end
 *********************************************************************/
-int usl_bcmx_l2_addr_add(bcm_l2_addr_t *l2addr, bcmx_lplist_t *port_block)
+int usl_bcmx_l2_addr_add(bcm_l2_addr_t *l2addr, bcmy_gplist_t *port_block)
 {
   int rc = BCM_E_NONE;
 
   if (!uslDatabaseActive)
-    return l7_bcmx_l2_addr_add(l2addr,port_block,0,L7_NULLPTR);
+    return l7_bcmx_l2_addr_add(l2addr, port_block, 0, L7_NULLPTR);
 
   rc = usl_mac_mgmt_add(l2addr, port_block);
 

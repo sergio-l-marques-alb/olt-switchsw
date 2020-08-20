@@ -584,7 +584,7 @@ L7_RC_t usl_ipmc_port_db_handle_set(USL_DB_TYPE_t dbType)
 *
 * @notes    If the system has been operational for a while, the caller should
 *           have called the usl_invalidate_ipmc_db before calling this
-*           in order to insure that the lplists have been properly freed
+*           in order to insure that the gplists have been properly freed
 *
 * @end
 *********************************************************************/

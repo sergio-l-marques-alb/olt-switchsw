@@ -110,13 +110,13 @@ typedef struct
 static void *hapiL2AddrFlushQueue;
 static void *hapiFrameLearnAsyncQueue;
 
-/* Flush requests for physical ports are enqued by the application in this lplist */
-static bcmx_lplist_t  hapiBroadFlushApplpList;
+/* Flush requests for physical ports are enqued by the application in this gplist */
+static bcmy_gplist_t hapiBroadFlushAppGpList;
 
-/* Hapi Flush task works on this lplist */
-static bcmx_lplist_t  hapiBroadFlushTasklpList;
+/* Hapi Flush task works on this gplist */
+static bcmy_gplist_t hapiBroadFlushTaskGpList;
 
-/* Semaphore to protect hapiBroadFlushApplpList */
+/* Semaphore to protect hapiBroadFlushAppGpList */
 static void *hapiBroadFlushSema = L7_NULLPTR;
 
 static L7_uint32 *hapiBroadFlushTgidList  = L7_NULLPTR;
@@ -1362,7 +1362,7 @@ void hapiBroadDot1sPortAllGroupsStateSet(DAPI_USP_t *usp,
 * @end
 *
 *********************************************************************/
-void hapiBroadGetStpNotParticipatingPbmp(DAPI_USP_t *usp, bcmx_lplist_t *lplist, DAPI_t *dapi_g)
+void hapiBroadGetStpNotParticipatingPbmp(DAPI_USP_t *usp, bcmy_gplist_t *gplist, DAPI_t *dapi_g)
 {
   L7_uint32     i;
   DAPI_USP_t    searchUsp;
@@ -1370,7 +1370,7 @@ void hapiBroadGetStpNotParticipatingPbmp(DAPI_USP_t *usp, bcmx_lplist_t *lplist,
   DAPI_PORT_t  *dapiPortPtr;
   DAPI_USP_t    lag_member_usp;
 
-  bcmx_lplist_clear(lplist);
+  bcmy_gplist_clear(gplist);
 
   for (searchUsp.unit=0;searchUsp.unit < dapi_g->system->totalNumOfUnits; searchUsp.unit++)
   {
@@ -1427,14 +1427,14 @@ void hapiBroadGetStpNotParticipatingPbmp(DAPI_USP_t *usp, bcmx_lplist_t *lplist,
             }
           }
 
-          bcmx_lplist_add(lplist, hapiPortPtr->bcmx_lport);
+          bcmy_gplist_add(gplist, hapiPortPtr->bcmx_lport);
         }
       }
     }
   }
 
-  hapiBroadPruneRxPort(usp, lplist, dapi_g);
-  hapiBroadPruneTxPorts(lplist, dapi_g);
+  hapiBroadPruneRxPort(usp, gplist, dapi_g);
+  hapiBroadPruneTxPorts(gplist, dapi_g);
 
   return;
 }
@@ -4252,17 +4252,17 @@ L7_RC_t hapiBroadL2AddrFlushInit (DAPI_t *dapi_g)
 
   memset((void *) &hapiBroadFlushStats_g,0,sizeof(hapiBroadFlushStats_g));
 
-  /* an lplist to indicate which lport should be flushed */
+  /* an gplist to indicate which lport should be flushed */
   size  = platIntfPhysicalIntfMaxCountGet();
 
-  if (BCMX_LPLIST_IS_NULL(&hapiBroadFlushApplpList))
+  if (BCMY_GPLIST_IS_NULL(&hapiBroadFlushAppGpList))
   {
-    bcmx_lplist_init(&hapiBroadFlushApplpList, size, 0);
+    bcmy_gplist_init(&hapiBroadFlushAppGpList, size, 0);
   }
 
-  if (BCMX_LPLIST_IS_NULL(&hapiBroadFlushTasklpList))
+  if (BCMY_GPLIST_IS_NULL(&hapiBroadFlushTaskGpList))
   {
-    bcmx_lplist_init(&hapiBroadFlushTasklpList, size, 0);
+    bcmy_gplist_init(&hapiBroadFlushTaskGpList, size, 0);
   }
 
   hapiBroadFlushSema = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
@@ -4366,15 +4366,15 @@ void hapiBroadL2AddrFlushTask(DAPI_t *dapi_g, L7_uint32 numArgs)
 
     memset((void *)&l2addr_flush, 0, sizeof(l2addr_flush));
 
-    bcmx_lplist_clear(&hapiBroadFlushTasklpList);
+    bcmy_gplist_clear(&hapiBroadFlushTaskGpList);
 
-    /* Make a copy of the hapiBroadFlushApplpList and clear it */
+    /* Make a copy of the hapiBroadFlushAppGpList and clear it */
     osapiSemaTake(hapiBroadFlushSema, L7_WAIT_FOREVER);
-    (void)bcmx_lplist_copy(&hapiBroadFlushTasklpList,  &hapiBroadFlushApplpList);
-    (void)bcmx_lplist_clear(&hapiBroadFlushApplpList);
+    (void)bcmy_gplist_copy(&hapiBroadFlushTaskGpList,  &hapiBroadFlushAppGpList);
+    (void)bcmy_gplist_clear(&hapiBroadFlushAppGpList);
     osapiSemaGive(hapiBroadFlushSema);
 
-    (void)bcmx_lplist_uniq(&hapiBroadFlushTasklpList);
+    (void)bcmy_gplist_uniq(&hapiBroadFlushTaskGpList);
 
     /* Prevent the case where we process a FLUSH during a bcm_clear */
     usl_mac_table_sync_suspend();
@@ -4383,7 +4383,7 @@ void hapiBroadL2AddrFlushTask(DAPI_t *dapi_g, L7_uint32 numArgs)
 
     /* iterate over the ports */
 
-    BCMX_LPLIST_ITER(hapiBroadFlushTasklpList, lport, count)
+    BCMY_GPLIST_ITER(hapiBroadFlushTaskGpList, lport, count)
     {
       if (hapiDot1sDebug & HAPI_BROAD_DOT1S_DEBUG_ENQUEUE)
          printf ("%s : Flushing physical port 0x%x\n", __FUNCTION__, lport);
@@ -4946,7 +4946,7 @@ void hapiBroadL2FlushRequest(BROAD_L2ADDR_FLUSH_t flushReq)
       else
       {
         osapiSemaTake(hapiBroadFlushSema, L7_WAIT_FOREVER);
-        BCMX_LPLIST_ADD(&hapiBroadFlushApplpList, flushReq.bcmx_lport);
+        BCMY_GPLIST_ADD(&hapiBroadFlushAppGpList, flushReq.bcmx_lport);
         osapiSemaGive(hapiBroadFlushSema);
         hapiBroadFlushStats_g.hapiBroadPortFlushesIssued++;
       }

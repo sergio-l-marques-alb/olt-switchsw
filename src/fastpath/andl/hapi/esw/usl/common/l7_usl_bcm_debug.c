@@ -66,23 +66,23 @@ void usl_print_log(L7_BOOL set)
 }
 
 
-void usl_lplist_print(bcmx_lplist_t *list)
+void usl_gplist_print(bcmy_gplist_t *list)
 {
   int i; 
-  bcmx_lport_t port;
+  bcm_gport_t gport;
 
   if (list == L7_NULLPTR)
     return;
 
   /* get the first port in the list */
 
-  for (i=0; i <= list->lp_last; i++)
+  for (i=0; i <= list->gp_last; i++)
   {
-    port = bcmx_lplist_index(list, i);
-    if (port == BCMX_NO_SUCH_LPORT)
+    gport = bcmy_gplist_index(list, i);
+    if (gport == BCM_GPORT_INVALID)
        break;
 
-    sysapiPrintf("%d , ",port);
+    sysapiPrintf("0x%x , ",gport);
   }
 }
 
