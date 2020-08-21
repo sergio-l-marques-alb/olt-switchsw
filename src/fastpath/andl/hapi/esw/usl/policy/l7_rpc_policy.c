@@ -30,7 +30,6 @@
 
 #include "bcm/error.h"
 #include "bcm/custom.h"
-#include "bcmx/types.h"
 #include "ibde.h"
 #include "zlib.h"
 

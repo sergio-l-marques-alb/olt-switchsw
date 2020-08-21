@@ -65,7 +65,6 @@
 
 #include "bcm/init.h"
 #include "bcm/custom.h"
-#include "bcmx/bcmx.h"
 #include "bcm_int/rpc/rlink.h"
 #include "bcm/vlan.h"
 

@@ -22,8 +22,6 @@
 #include "datatypes.h"
 #include "broad_policy_types.h"
 
-#include "bcmx/types.h"
-
 L7_RC_t hapiBroadCosPolicyUtilInit();
 
 L7_BOOL hapiBroadCosPolicyUtilLookup(L7_uchar8 *data, L7_uint32 size, BROAD_POLICY_t *policy);

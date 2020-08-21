@@ -92,7 +92,6 @@
 #include "unitmgr_api.h"
 #include "cardmgr_api.h"
 
-#include <bcmx/bcmx.h>
 #include "sysbrds.h"
 #include <soc/debug.h>
 #include <soc/drv.h>

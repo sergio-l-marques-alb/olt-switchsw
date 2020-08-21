@@ -26,7 +26,6 @@
 #include "dapi.h"
 
 #include "bcmy_gport_api.h"
-#include "bcmx/bcmx.h"
 
 
 /*********************************************************************

@@ -20,7 +20,6 @@
 #ifndef BROAD_L7_RPC_POLICY_H
 #define BROAD_L7_RPC_POLICY_H
 
-#include "bcmx/types.h"
 #include "broad_policy_types.h"
 #include "hpc_hw_api.h"
 
