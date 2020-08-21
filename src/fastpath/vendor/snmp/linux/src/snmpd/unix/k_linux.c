@@ -2050,7 +2050,7 @@ k_udpEntry_get(
     int             nominator,
     int             searchType,
     SR_UINT32       laddr,
-    SR_INT32        lport)
+    SR_INT32        gport)
 {
     static udpEntry_t best;
     udpEntry_t start, cur;
@@ -2064,7 +2064,7 @@ k_udpEntry_get(
     }
 
     start.udpLocalAddress = laddr;
-    start.udpLocalPort = lport;
+    start.udpLocalPort = gport;
 
     best.udpLocalAddress = (SR_UINT32) 0xffffffff;
     best.udpLocalPort = (SR_INT32) 0x7fffffff;
@@ -2094,7 +2094,7 @@ k_udpEntry_get(
         if (best.udpLocalAddress != laddr) {
             return NULL;
         }
-        if (best.udpLocalPort != lport) {
+        if (best.udpLocalPort != gport) {
             return NULL;
         }
     }

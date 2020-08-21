@@ -532,15 +532,15 @@ L7_RC_t
 snmpagentDot1xClientMacAddressGet(L7_uint32 unitIndex,L7_uchar8 *macAddr,
                                       L7_uint32 *lIntIfNum )
 {
-    L7_uint32 lportno;
+    L7_uint32 gportno;
     L7_DOT1X_APM_STATES_t paestate;
 
-    if (usmDbDot1xClientMacAddressGet(unitIndex,macAddr,&lportno)==L7_SUCCESS) 
+    if (usmDbDot1xClientMacAddressGet(unitIndex,macAddr,&gportno)==L7_SUCCESS) 
     {
-        if ((usmDbDot1xLogicalPortPaeStateGet(lportno,&paestate)== L7_SUCCESS)&&
+        if ((usmDbDot1xLogicalPortPaeStateGet(gportno,&paestate)== L7_SUCCESS)&&
             (paestate == L7_DOT1X_APM_AUTHENTICATED))
         {
-            *lIntIfNum = lportno;
+            *lIntIfNum = gportno;
             return L7_SUCCESS;
         }
         else
@@ -572,22 +572,22 @@ L7_RC_t
 snmpagentDot1xClientMacAddressGetNext(L7_uint32 unitIndex,L7_uchar8 *macAddr,
                                       L7_uint32 *lIntIfNum )
 {
-    L7_uint32 lportno;
+    L7_uint32 gportno;
     L7_DOT1X_APM_STATES_t paestate;
     L7_RC_t rc;
 
-    rc = usmDbDot1xClientMacAddressNextGet(unitIndex,macAddr,&lportno);
+    rc = usmDbDot1xClientMacAddressNextGet(unitIndex,macAddr,&gportno);
     while (rc==L7_SUCCESS) 
     {
-        if ((usmDbDot1xLogicalPortPaeStateGet(lportno,&paestate)== L7_SUCCESS)&&
+        if ((usmDbDot1xLogicalPortPaeStateGet(gportno,&paestate)== L7_SUCCESS)&&
             (paestate == L7_DOT1X_APM_AUTHENTICATED))
         {
-            *lIntIfNum = lportno;
+            *lIntIfNum = gportno;
             return L7_SUCCESS;
         }
         else
-            lportno =0;
-       rc = usmDbDot1xClientMacAddressNextGet(unitIndex,macAddr,&lportno);
+            gportno =0;
+       rc = usmDbDot1xClientMacAddressNextGet(unitIndex,macAddr,&gportno);
     }
     return rc;
 }
