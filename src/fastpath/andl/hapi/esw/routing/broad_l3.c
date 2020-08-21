@@ -3691,7 +3691,6 @@ static L7_RC_t hapiBroadL3MacEntryResolve (BROAD_L3_MAC_ENTRY_t *pMac,
   DAPI_USP_t   usp;
   L7_int32 rv = BCM_E_NOT_FOUND;
   L7_uint32 local_bcm_unit;
-  bcmx_uport_t uport;
   bcm_l2_addr_t bcm_l2;
 
   /* Note: The BCMX call returns as soon as the L2 entry is found on one of the
@@ -3745,13 +3744,10 @@ static L7_RC_t hapiBroadL3MacEntryResolve (BROAD_L3_MAC_ENTRY_t *pMac,
     }
     else
     {
-      /* not a trunk, calculate based off of the present info */
-      uport = BCMX_UPORT_GET(bcm_l2.port);
-
-      if (uport != BCMX_UPORT_INVALID_DEFAULT)
+      /* Get USP from local unit and physical port */
+      if (bcmy_lut_gport_to_usp_get(bcm_l2.port, &usp) == BCMY_E_NONE)
       {
-        HAPI_BROAD_UPORT_TO_USP(uport,&usp);
-        if (isValidUsp(&usp,dapi_g) == L7_TRUE)
+        if (isValidUsp(&usp, dapi_g) == L7_TRUE)
         {
           pMac->resolved = L7_TRUE;
           pMac->usp = usp;

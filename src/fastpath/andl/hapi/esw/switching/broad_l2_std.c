@@ -3247,30 +3247,6 @@ L7_RC_t hapiBroadTgidToUspConvert(L7_uint32 tgid, DAPI_USP_t *usp, DAPI_t *dapi_
 
   return L7_FAILURE;
 }
-/*************************************************************************
-*
-*
-* @purpose Convert Physical port to Lag USP it is part of
-*
-*
-*************************************************************************/
-void hapiBroadLportToTgidUspConvert(L7_uint32 lport, DAPI_USP_t *usp, DAPI_t *dapi_g)
-{
-
-  DAPI_USP_t lagUsp;
-  BROAD_PORT_t          *hapiLagMemberPortPtr;
-  bcmx_uport_t           uport;
-  uport = BCMX_UPORT_GET(lport);
-
-  HAPI_BROAD_UPORT_TO_USP(uport,usp);
-  hapiLagMemberPortPtr = HAPI_PORT_GET(usp,dapi_g);
-  if (hapiLagMemberPortPtr->hapiModeparm.physical.isMemberOfLag == L7_TRUE)
-  {
-    lagUsp= hapiLagMemberPortPtr->hapiModeparm.physical.lagUsp;
-     memcpy (usp, &lagUsp, sizeof (DAPI_USP_t));
-  }
-   return;
-}
 
 /*********************************************************************
 *
@@ -3441,7 +3417,6 @@ void hapiBroadAddrMacUpdateLearn(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *d
 {
   DAPI_ADDR_MGMT_CMD_t   macAddressInfo;
   DAPI_USP_t             usp;
-  bcmx_uport_t           uport;
   DAPI_USP_t     cpuUsp;
   L7_RC_t rc1;
   L7_uint32     retry_count;
@@ -3502,19 +3477,28 @@ void hapiBroadAddrMacUpdateLearn(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *d
       L7_LOGF(L7_LOG_SEVERITY_DEBUG, L7_DRIVER_COMPONENT_ID, "BCM_GPORT_IS_VLAN_PORT usp=(%d,%d,%d)", usp.unit, usp.slot, usp.port);
     }
     #endif
-    else
+    /* Modport or local gport? */
+    else if (BCM_GPORT_IS_LOCAL(bcm_l2_addr->port) || BCM_GPORT_IS_MODPORT(bcm_l2_addr->port))
     {
-      uport = BCMX_UPORT_GET(bcm_l2_addr->port);
-
-      if (uport == BCMX_UPORT_INVALID_DEFAULT)
+      if (bcmy_lut_gport_to_usp_get(bcm_l2_addr->port, &usp) != BCMY_E_NONE)
       {
-        L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_DRIVER_COMPONENT_ID,
-              "Invalid uport calculated from the BCM uport\nbcm_l2_addr->port = 0x%x."
-              " Uport not valid from BCM driver.", bcm_l2_addr->port);
+        PT_LOG_ERR(LOG_CTX_INTF,"Error converting gport 0x%x to USP", bcm_l2_addr->port);
         return;
       }
-
-      HAPI_BROAD_UPORT_TO_USP(uport,&usp);
+    }
+    /* Physical port reference */
+    else if (!BCM_GPORT_IS_SET(bcm_l2_addr->port))
+    {
+      if (bcmy_lut_unit_port_to_usp_get(unit, (bcm_l2_addr->port & 0xffff), &usp) != BCMY_E_NONE)
+      {
+        PT_LOG_ERR(LOG_CTX_INTF,"Error converting unit %d, port %d to USP", unit, bcm_l2_addr->port);
+        return;
+      }
+    }
+    /* Unknown gport */
+    else
+    {
+      usp = cpuUsp;
     }
   }
 
@@ -4072,7 +4056,6 @@ L7_RC_t hapiBroadFlushL2LearnModeSet (BROAD_L2ADDR_FLUSH_t portInfo, L7_uint32 l
   DAPI_USP_t    usp;
   BROAD_PORT_t  *hapiPortPtr = L7_NULLPTR, *hapiLagPortPtr;
   DAPI_PORT_t   *dapiPortPtr;
-  bcmx_uport_t  uport;
   L7_BOOL       locked;
 
   /* When software learning is enabled the synchronization issues don't happen,
@@ -4086,21 +4069,22 @@ L7_RC_t hapiBroadFlushL2LearnModeSet (BROAD_L2ADDR_FLUSH_t portInfo, L7_uint32 l
   /* Physical port */
   if (portInfo.port_is_lag == L7_FALSE)
   {
-    uport = BCMX_UPORT_GET(portInfo.bcmx_lport);
-
-    if (uport == BCMX_UPORT_INVALID_DEFAULT)
+    if (bcmy_lut_gport_to_usp_get(portInfo.bcmx_lport, &usp) != BCMY_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Error converting gport 0x%x to USP", portInfo.bcmx_lport);
       return L7_FAILURE;
-
-    HAPI_BROAD_UPORT_TO_USP(uport,&usp);
+    }
 
     if (isValidUsp(&usp,dapi_g) == L7_FALSE)
+    {
       return L7_FAILURE;
+    }
 
-     hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
-     if (hapiPortPtr == L7_NULLPTR)
-     {
-       return L7_FAILURE;
-     }
+    hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+    if (hapiPortPtr == L7_NULLPTR)
+    {
+      return L7_FAILURE;
+    }
   }
   else /* trunk */
   {

@@ -803,7 +803,7 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enable, L7_uint16 vlanId, L7_BOOL swit
 L7_RC_t hapiBroadConfigMldFilter(L7_BOOL enableFilter, DAPI_t *dapi_g);
 
 L7_RC_t hapiBroadTgidToUspConvert(L7_uint32 tgid, DAPI_USP_t *usp, DAPI_t *dapi_g);
-void hapiBroadLportToTgidUspConvert(L7_uint32 lport, DAPI_USP_t *usp, DAPI_t *dapi_g);
+
 L7_RC_t hapiBroadCosCommitDot1pParams(BROAD_PORT_t *hapiPortPtr, L7_uchar8 *dot1pMap);
 
 L7_RC_t hapiBroadCosSetDot1pParams(DAPI_USP_t *usp, L7_uchar8 dot1p, L7_uchar8 cosq, DAPI_t *dapi_g);
@@ -1035,9 +1035,6 @@ L7_RC_t hapiBroadMapDbPortEntryAdd(int unit, bcm_port_t port, bcmx_lport_t lport
 L7_RC_t hapiBroadMapDbEntryGet(cpudb_key_t *cpuKey, int cpuunit, bcm_port_t port, int *unit, bcmx_lport_t *lport);
 bcmx_uport_t lvl7_uport_create_callback(bcmx_lport_t lport, int unit, bcm_port_t port, uint32 flags);
 void hapiBroadDebugBcmxMapDump(void);
-
-void hapiBroadModidModportToLportSet (int mod_id, int mod_port, int lport);
-void hapiBroadModidModportToLportGet (int mod_id, int mod_port, int *lport);
 
 void hapiBroadFfpIpAddrSync (void);
 void hpcBroadRediscover(int priority);

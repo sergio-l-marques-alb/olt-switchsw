@@ -7672,3 +7672,66 @@ L7_RC_t hapiBroadIsdpPolicySet(DAPI_USP_t *usp,
 
   return rc;
 }
+
+/*********************************************************************
+*
+* @purpose Prints hapiPortPtr descriptor
+*
+* @param   L7_int8    unit  - management unit assigned to ports (e.g. 1)
+* @param   L7_int8    slot  - slot (0 - physical ports | 1 - other ports such as LAGs)
+* @param   L7_short16 port  - port number/portNum (starts at 0)
+*
+* @returns void
+*
+* @notes   none
+*
+* @end
+*
+*********************************************************************/
+void hapiPortPtr_dump(void)
+{
+  L7_uint32 unitMgr, i;
+  DAPI_USP_t usp;
+  BROAD_PORT_t *hapiPortPtr;
+  SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
+  DAPI_CARD_ENTRY_t            *dapiCardInfoPtr;
+
+  unitMgrNumberGet(&unitMgr);
+
+  sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(dapi_g->unit[unitMgr]->slot[0]->cardId);
+  dapiCardInfoPtr = (DAPI_CARD_ENTRY_t *) sysapiHpcCardInfoPtr->dapiCardInfo;
+
+  for (i = 0; i < dapiCardInfoPtr->numOfSlotMapEntries; i++)
+  {
+    usp.unit = unitMgr;
+    usp.slot = 0;
+    usp.port = i;
+
+    hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+
+    printf("hapiPortPtr: usp={%d,%d,%d}\r\n", usp.unit, usp.slot, usp.port);
+    printf("   bcm_gport     = 0x%08X\r\n", hapiPortPtr->bcmx_lport);
+    printf("   bcm_unit      = %d\r\n", hapiPortPtr->bcm_unit);
+    printf("   bcm_modid     = %d\r\n", hapiPortPtr->bcm_modid);
+    printf("   bcm_port      = %d\r\n", hapiPortPtr->bcm_port);
+  }
+
+  sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(dapi_g->unit[unitMgr]->slot[L7_CPU_SLOT_NUM]->cardId);
+  dapiCardInfoPtr = (DAPI_CARD_ENTRY_t *) sysapiHpcCardInfoPtr->dapiCardInfo;
+
+  for (i = 0; i < dapiCardInfoPtr->numOfSlotMapEntries; i++)
+  {
+    usp.unit = unitMgr;
+    usp.slot = L7_CPU_SLOT_NUM;
+    usp.port = i;
+
+    hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+
+    printf("hapiPortPtr: usp={%d,%d,%d}\r\n", usp.unit, usp.slot, usp.port);
+    printf("   bcm_gport     = 0x%08X\r\n", hapiPortPtr->bcmx_lport);
+    printf("   bcm_unit      = %d\r\n", hapiPortPtr->bcm_unit);
+    printf("   bcm_modid     = %d\r\n", hapiPortPtr->bcm_modid);
+    printf("   bcm_port      = %d\r\n", hapiPortPtr->bcm_port);
+  }
+}
+

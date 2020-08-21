@@ -128,18 +128,6 @@ extern void *hapiLinkStatusQueue;
 
 L7_RC_t broadDriverStart(void *data);
 
-static int hapi_broad_modid_modport_to_lport [BCM_UNITS_MAX][HAPI_BROAD_MAX_PORTS_PER_CPU_UNIT];
-
-void hapiBroadModidModportToLportSet (int mod_id, int mod_port, int lport)
-{
-  hapi_broad_modid_modport_to_lport[mod_id][mod_port] = lport;
-}
-
-void hapiBroadModidModportToLportGet (int mod_id, int mod_port, int *lport)
-{
-  *lport = hapi_broad_modid_modport_to_lport[mod_id][mod_port];
-}
-
 
 /*********************************************************************
 *
@@ -1890,8 +1878,6 @@ L7_RC_t hapiBroadPhysicalPortMapGet(L7_ushort16 unitNum, L7_ushort16 slotNum, DA
   DAPI_CARD_ENTRY_t            *dapiCardInfoPtr;
   L7_uint32                     portCount;
   cpudb_key_t                   cpuKey;
-  bcmx_uport_t                  uport;
-  bcm_port_t                    mod_port;
 #ifdef L7_STACKING_PACKAGE
   int                           rv;
 #endif
@@ -1961,75 +1947,22 @@ L7_RC_t hapiBroadPhysicalPortMapGet(L7_ushort16 unitNum, L7_ushort16 slotNum, DA
       hapiPortPtr  = (BROAD_PORT_t *)dapi_g->unit[usp.unit]->slot[usp.slot]->port[usp.port]->hapiPort;
       hapiPortPtr->bcm_port =  dapiCardInfoPtr->slotMap[slotMapIndex].bcm_port;
 
-      if (hapiBroadMapDbEntryGet(&cpuKey,
-                                 dapiCardInfoPtr->slotMap[slotMapIndex].bcm_cpuunit,
-                                 dapiCardInfoPtr->slotMap[slotMapIndex].bcm_port,
-                                 &hapiPortPtr->bcm_unit,
-                                 &hapiPortPtr->bcmx_lport) != L7_SUCCESS)
+      /* FIXME: BCMX - Field don't exist @ dapiCardInfoPtr->slotMap[slotMapIndex] */
+      hapiPortPtr->bcm_modid = dapiCardInfoPtr->slotMap[slotMapIndex].bcm_cpuunit;
+      hapiPortPtr->bcm_unit  = dapiCardInfoPtr->slotMap[slotMapIndex].bcm_cpuunit;
+      BCM_GPORT_MODPORT_SET(hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_modid, hapiPortPtr->bcm_port);
+
+      /* Update LUT tables at BCMY module */
+      if (bcmy_lut_gport_set(hapiPortPtr->bcmx_lport,
+                             hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
+                             &usp) != BCMY_E_NONE)
       {
-#ifdef L7_STACKING_PACKAGE
-        /* We may have failed because the remote units are not attached yet.
-        ** Attach them now and try again.
-        */
-        sysapiPrintf("\nTrying to attach more units.....\n");
-        /*if (bcm_st_cur_db != 0)*/
-        {
-          {
-             rv = fp_stk_mgr_key_attach(cpuKey.key);
-             if (rv != BCM_E_NONE)
-             {
-               dapiTraceStackEvent("Cpu Key %x:%x:%x:%x:%x:%x attach failed\n",
-                                cpuKey.key[0], cpuKey.key[1], cpuKey.key[2],
-                                cpuKey.key[3], cpuKey.key[4], cpuKey.key[5]); 
-               result = L7_FAILURE;
-               return result;
-             }
-             else
-             {
-                 dapiTraceStackEvent("Cpu Key %x:%x:%x:%x:%x:%x attach success\n",
-                                  cpuKey.key[0], cpuKey.key[1], cpuKey.key[2],
-                                  cpuKey.key[3], cpuKey.key[4], cpuKey.key[5]); 
-
-             }
-
-          }
-        }
-#endif
-
-        if (hapiBroadMapDbEntryGet(&cpuKey,
-                                   dapiCardInfoPtr->slotMap[slotMapIndex].bcm_cpuunit,
-                                   dapiCardInfoPtr->slotMap[slotMapIndex].bcm_port,
-                                   &hapiPortPtr->bcm_unit,
-                                   &hapiPortPtr->bcmx_lport) != L7_SUCCESS)
-        {
-          printf("Physical card insert failed due to missing BCMX ports. Unit = %d, Slot = %d.\n",
-                 usp.unit,
-                 usp.slot);
-          printf("Use 'devshell hapiBroadDebugBcmxMapDump()' to see existing ports.\n\n");
-          result = L7_FAILURE;
-          return result;
-        }
-      }
-
-      /* Configure the uport in bcmx */
-      HAPI_BROAD_USP_TO_UPORT(&usp,uport);
-      bcmx_uport_set(hapiPortPtr->bcmx_lport, uport);
-
-      PT_LOG_INFO(LOG_CTX_STARTUP,"usp={%d,%d,%d} lport=0x%x uport=0x%x",usp.unit, usp.slot, usp.port, hapiPortPtr->bcmx_lport, uport);
-
-      hapiPortPtr->bcm_modid = BCM_GPORT_MODPORT_MODID_GET (hapiPortPtr->bcmx_lport);
-      mod_port               = BCM_GPORT_MODPORT_PORT_GET(hapiPortPtr->bcmx_lport);
-
-      if ((hapiPortPtr->bcm_modid == HAPI_BROAD_INVALID_MODID) ||
-          (mod_port == HAPI_BROAD_INVALID_MODPORT))
-      {
-        PT_LOG_ERR(LOG_CTX_STARTUP,"Invalid usp={%d,%d,%d} lport=0x%x uport=0x%x\r\n",usp.unit, usp.slot, usp.port, hapiPortPtr->bcmx_lport, uport);
+        PT_LOG_ERR(LOG_CTX_STARTUP, "BCMY local ports: Error updating LUT tables (bcm_unit=%d bcm_port=%d usp={%d,%d,%d} lport=0x%x",
+                   hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
+                   usp.unit, usp.slot, usp.port,
+                   hapiPortPtr->bcmx_lport);
         L7_LOG_ERROR(0);
       }
-
-      hapiBroadModidModportToLportSet (hapiPortPtr->bcm_modid,
-                                       mod_port,
-                                       hapiPortPtr->bcmx_lport);
     }
   }
 
@@ -2156,7 +2089,6 @@ L7_RC_t hapiBroadCpuPortMapGet(L7_ushort16 unitNum, L7_ushort16 slotNum, DAPI_t 
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
   DAPI_CARD_ENTRY_t            *dapiCardInfoPtr;
   cpudb_key_t                   cpuKey;
-  bcmx_uport_t                  uport;
 
   usp.unit = unitNum;
   usp.slot = slotNum;
@@ -2213,20 +2145,11 @@ L7_RC_t hapiBroadCpuPortMapGet(L7_ushort16 unitNum, L7_ushort16 slotNum, DAPI_t 
   {
     hapiPortPtr  = (BROAD_PORT_t *)dapi_g->unit[usp.unit]->slot[usp.slot]->port[usp.port]->hapiPort;
 
-    if (hapiBroadMapDbEntryGet(&cpuKey,
-                               dapiCardInfoPtr->slotMap[slotMapIndex].bcm_cpuunit,
-                               dapiCardInfoPtr->slotMap[slotMapIndex].bcm_port,
-                               &hapiPortPtr->bcm_unit,
-                               &hapiPortPtr->bcmx_lport) != L7_SUCCESS)
-    {
-      hapiBroadDebugBcmxMapDump();
-      result = L7_FAILURE;
-      return result;
-    }
-
-    /* Configure the uport in bcmx */
-    HAPI_BROAD_USP_TO_UPORT(&usp,uport);
-    bcmx_uport_set(hapiPortPtr->bcmx_lport, uport);
+    hapiPortPtr->bcm_port  = dapiCardInfoPtr->slotMap[slotMapIndex].bcm_port;
+    /* FIXME: BCMX - Field don't exist @ dapiCardInfoPtr->slotMap[slotMapIndex] */
+    hapiPortPtr->bcm_modid = dapiCardInfoPtr->slotMap[slotMapIndex].bcm_cpuunit;
+    hapiPortPtr->bcm_unit  = dapiCardInfoPtr->slotMap[slotMapIndex].bcm_cpuunit;
+    BCM_GPORT_MODPORT_SET(hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_modid, hapiPortPtr->bcm_port);
   }
 
   /* scan card database for needed data, phy address and media */
@@ -3595,3 +3518,4 @@ void hapiBroadWarmStartCompleteCb(void)
 
   return;
 }
+

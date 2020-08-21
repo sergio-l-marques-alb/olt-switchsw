@@ -1511,7 +1511,10 @@ static int hapiBroadMcastHardwareAddEntry(BroadGroupEntryType *entry,DAPI_t *dap
       BROAD_WLAN_TUNNEL_ENTRY_t tunnelEntry;
       hapiBroadWlanInfoGet(dapi_g, hapiPortPtr->bcmx_lport, &tunnelEntry);
       ipmc_info.port_tgid = tunnelEntry.wlan_port.port;
-      HAPI_BROAD_LPORT_TO_USP(tunnelEntry.wlan_port.port,usp);
+      if (bcmy_lut_gport_to_usp_get(tunnelEntry.wlan_port.port, usp) != BCMY_E_NONE)
+      {
+        return BCM_E_FAIL;
+      }
     }
 #endif
     else
@@ -3760,7 +3763,10 @@ L7_RC_t hapiBroadL3McastRPF(L7_netBufHandle frameHdl, L7_ushort16 vlanID, DAPI_U
   {
     BROAD_WLAN_TUNNEL_ENTRY_t tunnelEntry;
     hapiBroadWlanInfoGet(dapi_g, hapiPortPtr->bcmx_lport, &tunnelEntry);
-    HAPI_BROAD_LPORT_TO_USP(tunnelEntry.wlan_port.port,usp);
+    if (bcmy_lut_gport_to_usp_get(tunnelEntry.wlan_port.port, usp) != BCMY_E_NONE)
+    {
+      return L7_FAILURE;             /* indicate frame consumed */
+    }
     hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
   }
 #endif
