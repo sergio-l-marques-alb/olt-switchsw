@@ -995,7 +995,7 @@ L7_RC_t ptin_hapi_maclimit_fdbFlush(bcm_vlan_t vlan_id, bcm_gport_t gport, BROAD
   /* Flush FDB */
   BROAD_L2ADDR_FLUSH_t  l2addr_vlan;
   /* Fill in the structure */
-  l2addr_vlan.bcmx_lport = gport;
+  l2addr_vlan.bcm_gport = gport;
   l2addr_vlan.vlanID = vlan_id;
   l2addr_vlan.flushtype = type;
   l2addr_vlan.flushflags = BROAD_FLUSH_FLAGS_NONE;
@@ -1167,7 +1167,7 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
   hapiPortPtr   = HAPI_PORT_GET( ddUsp, dapi_g );
 
   /* Extract lport */
-  PT_LOG_TRACE(LOG_CTX_HAPI,"Analysing interface {%d,%d,%d}: lport=0x%08x", ddUsp->unit, ddUsp->slot, ddUsp->port, hapiPortPtr->bcmx_lport);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"Analysing interface {%d,%d,%d}: lport=0x%08x", ddUsp->unit, ddUsp->slot, ddUsp->port, hapiPortPtr->bcm_gport);
 
   /* Extract Physical port */
   if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
@@ -1417,7 +1417,7 @@ L7_RC_t ptin_hapi_maclimit_status(DAPI_USP_t *ddUsp, L7_uint32 *mac_learned, L7_
   hapiPortPtr = HAPI_PORT_GET( ddUsp, dapi_g );
 
   /* Extract gport */
-  gport = hapiPortPtr->bcmx_lport;
+  gport = hapiPortPtr->bcm_gport;
   PT_LOG_TRACE(LOG_CTX_HAPI,"Analysing interface {%d,%d,%d}: gport=0x%08x", ddUsp->unit, ddUsp->slot, ddUsp->port, gport);
 
 

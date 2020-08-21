@@ -422,7 +422,7 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 			if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
 				L7_LOG_ERROR(rc);
 
-			rc = usl_bcmx_port_medium_config_set(hapiPortPtr->bcmx_lport,
+			rc = usl_bcmx_port_medium_config_set(hapiPortPtr->bcm_gport,
                                                 BCM_PORT_MEDIUM_COPPER, &copper_config);
 			if (L7_BCMX_OK(rc) != L7_TRUE)
 				L7_LOG_ERROR(rc);
@@ -455,7 +455,7 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 				}
 #else
                 PT_LOG_INFO(LOG_CTX_STARTUP,"usp={%d,%d,%d}, hapiPortPtr->bcmx_lport=0x%x, speed=%u (rc=%d)",
-                            usp->unit, usp->slot, usp->port, hapiPortPtr->bcmx_lport, bcmSpeed, rc);
+                            usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_gport, bcmSpeed, rc);
 				L7_LOG_ERROR(rc);
 #endif
 			}
@@ -566,7 +566,7 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 			/* When autonegotiation is enabled MAC pause and jam setting will be done after
 			* link comes UP */
 
-			rc = usl_bcmx_port_medium_config_set(hapiPortPtr->bcmx_lport,
+			rc = usl_bcmx_port_medium_config_set(hapiPortPtr->bcm_gport,
                                                  BCM_PORT_MEDIUM_COPPER, &copper_config);
 			if (L7_BCMX_OK(rc) != L7_TRUE)
 				L7_LOG_ERROR(rc);
@@ -662,7 +662,7 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 				}
 				fiber_config.force_speed = 1000;
 				fiber_config.force_duplex = 1;
-				rc = usl_bcmx_port_medium_config_set(hapiPortPtr->bcmx_lport,
+				rc = usl_bcmx_port_medium_config_set(hapiPortPtr->bcm_gport,
                                                      BCM_PORT_MEDIUM_FIBER,
                                                      &fiber_config);
 				if (rc == BCM_E_NONE)

@@ -858,7 +858,7 @@ L7_RC_t hapiBroadDot1sStateAsyncSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
 
         hapiLagMemberPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
 
-        gport = hapiLagMemberPortPtr->bcmx_lport;
+        gport = hapiLagMemberPortPtr->bcm_gport;
 
         /* Call BCMX to set the state for a port in a STG instance */
         rc = usl_bcmx_stg_stp_set (stg, gport, stgState);
@@ -910,7 +910,7 @@ L7_RC_t hapiBroadDot1sStateAsyncSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
       }
       #endif
 
-      gport = hapiPortPtr->bcmx_lport;
+      gport = hapiPortPtr->bcm_gport;
 
       /* Call BCMX to set the state for a port in a STG instance */
       rc = usl_bcmx_stg_stp_set (stg, gport, stgState);
@@ -1278,7 +1278,7 @@ void hapiBroadDot1sPortStateCopy(DAPI_USP_t *destUsp, DAPI_USP_t *srcUsp, DAPI_t
     {
       stg = broadDot1sMapping[index].stg;
 
-      gport = hapiDestPortPtr->bcmx_lport;
+      gport = hapiDestPortPtr->bcm_gport;
 
       /* Call BCMX to set the state for a port in a STG instance */
       rc = usl_bcmx_stg_stp_set (stg, gport, hapiSrcPortPtr->hw_dot1s_state[index]);
@@ -1330,7 +1330,7 @@ void hapiBroadDot1sPortAllGroupsStateSet(DAPI_USP_t *usp,
     {
       stg = broadDot1sMapping[index].stg;
 
-      gport = hapiPortPtr->bcmx_lport;
+      gport = hapiPortPtr->bcm_gport;
 
       /* Call BCMX to set the state for a port in a STG instance */
       rc = usl_bcmx_stg_stp_set (stg, gport, state);
@@ -1426,7 +1426,7 @@ void hapiBroadGetStpNotParticipatingPbmp(DAPI_USP_t *usp, bcmy_gplist_t *gplist,
             }
           }
 
-          bcmy_gplist_add(gplist, hapiPortPtr->bcmx_lport);
+          bcmy_gplist_add(gplist, hapiPortPtr->bcm_gport);
         }
       }
     }
@@ -1673,7 +1673,7 @@ static L7_RC_t hapiBroadPortDoubleVlanTagConfig(DAPI_USP_t *usp,
     dtagMode = HAPI_BROAD_DTAG_MODE_INTERNAL; /* rigid configurations to all the ports*/
 #endif
 
-    rc = usl_bcmx_port_dtag_mode_set(hapiPortPtr->bcmx_lport, dtagMode);
+    rc = usl_bcmx_port_dtag_mode_set(hapiPortPtr->bcm_gport, dtagMode);
 
     if (L7_BCMX_OK(rc) != L7_TRUE)
     {
@@ -1694,7 +1694,7 @@ static L7_RC_t hapiBroadPortDoubleVlanTagConfig(DAPI_USP_t *usp,
     if ((dtagMode == HAPI_BROAD_DTAG_MODE_INTERNAL) || (isTriumphFamily == L7_TRUE))
     {
       dtagTpid = dapiCmd->cmdData.doubleVlanTagConfig.etherType;
-      rc = usl_bcmx_port_tpid_set(hapiPortPtr->bcmx_lport, dtagTpid);
+      rc = usl_bcmx_port_tpid_set(hapiPortPtr->bcm_gport, dtagTpid);
 
       if (L7_BCMX_OK(rc) != L7_TRUE)
       {
@@ -1817,7 +1817,7 @@ void hapiBroadLearnSet(DAPI_USP_t *usp, L7_uint32 flags, DAPI_t *dapi_g)
 
   dapiPortPtr = DAPI_PORT_GET(usp, dapi_g);
   hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
-  gport       = hapiPortPtr->bcmx_lport;
+  gport       = hapiPortPtr->bcm_gport;
 
   learnMode   = flags;
 
@@ -1843,7 +1843,7 @@ void hapiBroadLearnSet(DAPI_USP_t *usp, L7_uint32 flags, DAPI_t *dapi_g)
            hapiLagMemberPortPtr = 
              HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
 
-           gport = hapiLagMemberPortPtr->bcmx_lport;
+           gport = hapiLagMemberPortPtr->bcm_gport;
 
            rc = usl_bcmx_port_learn_set(gport, learnMode);
           if (L7_BCMX_OK(rc) != L7_TRUE)
@@ -1901,7 +1901,7 @@ L7_RC_t hapiBroadIntfMacLockConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
 
   dapiPortPtr = DAPI_PORT_GET(usp, dapi_g);
   hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
-  gport       = hapiPortPtr->bcmx_lport;
+  gport       = hapiPortPtr->bcm_gport;
   if ((IS_PORT_TYPE_PHYSICAL(dapiPortPtr) == L7_FALSE) && (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) == L7_FALSE))
   {
     return L7_FAILURE;
@@ -2061,7 +2061,7 @@ L7_RC_t hapiBroadAddrMacAddressEntryAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
     }
     else
     {
-      l2Addr.tgid  = hapiPortPtr->bcmx_lport;
+      l2Addr.tgid  = hapiPortPtr->bcm_gport;
     }
   }
 
@@ -2069,13 +2069,13 @@ L7_RC_t hapiBroadAddrMacAddressEntryAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
   {
     /* Discard the packet */
     l2Addr.flags = (BCM_L2_DISCARD_DST | BCM_L2_STATIC | BCM_L2_REPLACE_DYNAMIC);
-    l2Addr.port  = hapiPortPtr->bcmx_lport;
+    l2Addr.port  = hapiPortPtr->bcm_gport;
     l2Addr.modid = hapiPortPtr->bcm_modid;
   } else if (dapiCmd->cmdData.macAddressEntryAdd.flags == DAPI_ADDR_FLAG_LEARNED)
   {
     /* add the individual mac addr */
     l2Addr.flags |= (BCM_L2_HIT | BCM_L2_SRC_HIT);
-    l2Addr.port  = hapiPortPtr->bcmx_lport;
+    l2Addr.port  = hapiPortPtr->bcm_gport;
     l2Addr.modid = hapiPortPtr->bcm_modid;
   } else if (dapiCmd->cmdData.macAddressEntryAdd.flags == DAPI_ADDR_FLAG_STATIC)
   {
@@ -2087,7 +2087,7 @@ L7_RC_t hapiBroadAddrMacAddressEntryAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
     l2Addr.flags |= (BCM_L2_STATIC | BCM_L2_REPLACE_DYNAMIC);
 #endif
 
-    l2Addr.port  = hapiPortPtr->bcmx_lport;
+    l2Addr.port  = hapiPortPtr->bcm_gport;
     l2Addr.modid = hapiPortPtr->bcm_modid;
   } else if ((dapiCmd->cmdData.macAddressEntryAdd.flags == DAPI_ADDR_FLAG_MANAGEMENT) ||
              (dapiCmd->cmdData.macAddressEntryAdd.flags == DAPI_ADDR_FLAG_L3_MANAGEMENT))
@@ -2113,7 +2113,7 @@ L7_RC_t hapiBroadAddrMacAddressEntryAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
       l2Addr.flags = (BCM_L2_STATIC | BCM_L2_COPY_TO_CPU | BCM_L2_REPLACE_DYNAMIC);
     }
 
-    l2Addr.port  = hapiPortPtr->bcmx_lport;
+    l2Addr.port  = hapiPortPtr->bcm_gport;
     l2Addr.modid = hapiPortPtr->bcm_modid;
   }
 
@@ -2197,25 +2197,25 @@ L7_RC_t hapiBroadAddrMacAddressEntryModify(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
   {
     /* update l2Addr.flags to reflect that it is adding to a lag member port */
     l2Addr.flags |= BCM_L2_TRUNK_MEMBER;
-    l2Addr.tgid  = hapiPortPtr->bcmx_lport;
+    l2Addr.tgid  = hapiPortPtr->bcm_gport;
   }
 
   if (dapiCmd->cmdData.macAddressEntryModify.flags == DAPI_ADDR_FLAG_SELF)
   {
     /* Discard the packet */
     l2Addr.flags = (BCM_L2_DISCARD_DST | BCM_L2_STATIC | BCM_L2_REPLACE_DYNAMIC);
-    l2Addr.port  = hapiPortPtr->bcmx_lport;
+    l2Addr.port  = hapiPortPtr->bcm_gport;
     l2Addr.modid = hapiPortPtr->bcm_modid;
   } else if (dapiCmd->cmdData.macAddressEntryModify.flags == DAPI_ADDR_FLAG_LEARNED)
   {
     /* add the individual mac addr */
-    l2Addr.port  = hapiPortPtr->bcmx_lport;
+    l2Addr.port  = hapiPortPtr->bcm_gport;
     l2Addr.modid = hapiPortPtr->bcm_modid;
   } else if (dapiCmd->cmdData.macAddressEntryModify.flags == DAPI_ADDR_FLAG_STATIC)
   {
     /* add the individual mac addr */
     l2Addr.flags |= (BCM_L2_STATIC | BCM_L2_REPLACE_DYNAMIC);
-    l2Addr.port  = hapiPortPtr->bcmx_lport;
+    l2Addr.port  = hapiPortPtr->bcm_gport;
     l2Addr.modid = hapiPortPtr->bcm_modid;
   } else if ((dapiCmd->cmdData.macAddressEntryModify.flags == DAPI_ADDR_FLAG_MANAGEMENT) ||
              (dapiCmd->cmdData.macAddressEntryModify.flags == DAPI_ADDR_FLAG_L3_MANAGEMENT))
@@ -2242,7 +2242,7 @@ L7_RC_t hapiBroadAddrMacAddressEntryModify(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
       l2Addr.flags = (BCM_L2_STATIC | BCM_L2_COPY_TO_CPU | BCM_L2_REPLACE_DYNAMIC);
     }
 
-    l2Addr.port  = hapiPortPtr->bcmx_lport;
+    l2Addr.port  = hapiPortPtr->bcm_gport;
     l2Addr.modid = hapiPortPtr->bcm_modid;
   }
 
@@ -2479,7 +2479,7 @@ L7_RC_t hapiBroadAddrFlush(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *
   dapiPortPtr = DAPI_PORT_GET(usp, dapi_g);
   hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
   l2addr_port.vlanID = 0;
-  l2addr_port.bcmx_lport  = 0;
+  l2addr_port.bcm_gport  = 0;
   l2addr_port.tgid = 0;
   l2addr_port.flushtype = BROAD_FLUSH_BY_PORT;
   /* Set flags */
@@ -2512,7 +2512,7 @@ L7_RC_t hapiBroadAddrFlush(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *
     l2addr_port.port_is_lag = L7_TRUE;
   } else
   {
-    l2addr_port.bcmx_lport = hapiPortPtr->bcmx_lport;
+    l2addr_port.bcm_gport = hapiPortPtr->bcm_gport;
     l2addr_port.port_is_lag = L7_FALSE;
   }
 
@@ -2546,7 +2546,7 @@ L7_RC_t hapiBroadAddrFlushByVlan(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
   hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
 
   /* Fill in the structure */
-  l2addr_vlan.bcmx_lport = hapiPortPtr->bcmx_lport;
+  l2addr_vlan.bcm_gport = hapiPortPtr->bcm_gport;
   l2addr_vlan.vlanID = dapiCmd->cmdData.portAddressFlushVlan.vlanID;
   l2addr_vlan.flushtype = BROAD_FLUSH_BY_VLAN;
   l2addr_vlan.port_is_lag = L7_FALSE;
@@ -2593,7 +2593,7 @@ L7_RC_t hapiBroadAddrFlushByMac(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAP
   hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
 
   /* Fill in the structure */
-  l2addr_mac.bcmx_lport = hapiPortPtr->bcmx_lport;
+  l2addr_mac.bcm_gport = hapiPortPtr->bcm_gport;
   l2addr_mac.vlanID = 0;
   l2addr_mac.flushtype = BROAD_FLUSH_BY_MAC;
   l2addr_mac.port_is_lag = L7_FALSE;
@@ -2912,14 +2912,14 @@ L7_RC_t hapiBroadAddrMacFilterInstall(L7_uint32 idx, DAPI_t *dapi_g)
           if (L7_TRUE == lagMemberSet[lm].inUse)
           {
             lagMemberPtr = HAPI_PORT_GET(&lagMemberSet[lm].usp, dapi_g);
-            if (hapiBroadPolicyRemoveFromIface(filterPtr->policyId, lagMemberPtr->bcmx_lport) != L7_SUCCESS)
+            if (hapiBroadPolicyRemoveFromIface(filterPtr->policyId, lagMemberPtr->bcm_gport) != L7_SUCCESS)
               result = L7_FAILURE;
           }
         }
       } else
       {
         /* remove policy from phy port */
-        if (hapiBroadPolicyRemoveFromIface(filterPtr->policyId, hapiPortPtr->bcmx_lport) != L7_SUCCESS)
+        if (hapiBroadPolicyRemoveFromIface(filterPtr->policyId, hapiPortPtr->bcm_gport) != L7_SUCCESS)
           result = L7_FAILURE;
       }
     }
@@ -4066,9 +4066,9 @@ L7_RC_t hapiBroadFlushL2LearnModeSet (BROAD_L2ADDR_FLUSH_t portInfo, L7_uint32 l
   /* Physical port */
   if (portInfo.port_is_lag == L7_FALSE)
   {
-    if (bcmy_lut_gport_to_usp_get(portInfo.bcmx_lport, &usp) != BCMY_E_NONE)
+    if (bcmy_lut_gport_to_usp_get(portInfo.bcm_gport, &usp) != BCMY_E_NONE)
     {
-      PT_LOG_ERR(LOG_CTX_INTF, "Error converting gport 0x%x to USP", portInfo.bcmx_lport);
+      PT_LOG_ERR(LOG_CTX_INTF, "Error converting gport 0x%x to USP", portInfo.bcm_gport);
       return L7_FAILURE;
     }
 
@@ -4371,7 +4371,7 @@ void hapiBroadL2AddrFlushTask(DAPI_t *dapi_g, L7_uint32 numArgs)
       if (BCMY_GPORT_VALID(gport))
       {
         /* Disable learning on the port */
-        l2addr_flush.bcmx_lport = gport;
+        l2addr_flush.bcm_gport = gport;
         l2addr_flush.port_is_lag = L7_FALSE;
         hapiBroadFlushL2LearnModeSet(l2addr_flush, L7_DISABLE);
 
@@ -4603,7 +4603,7 @@ L7_RC_t hapiBroadDhcpSnoopingPortUpdate(DAPI_USP_t *portUsp,
 
   if (BROAD_POLICY_INVALID != hapiSystem->dhcpSnoopingPolicyId)
   {
-    gport = hapiPortPtr->bcmx_lport;
+    gport = hapiPortPtr->bcm_gport;
     if (enabled == L7_TRUE)
     {
       rc = hapiBroadPolicyApplyToIface(hapiSystem->dhcpSnoopingPolicyId, gport);
@@ -4839,13 +4839,13 @@ L7_RC_t hapiBroadL2ProtectedGroupConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd,
     }
 
     hapiPortPtr = HAPI_PORT_GET(&dapiUsp, dapi_g);
-    modid = BCM_GPORT_MODPORT_MODID_GET(hapiPortPtr->bcmx_lport);
-    modport = BCM_GPORT_MODPORT_PORT_GET(hapiPortPtr->bcmx_lport);
+    modid = BCM_GPORT_MODPORT_MODID_GET(hapiPortPtr->bcm_gport);
+    modport = BCM_GPORT_MODPORT_PORT_GET(hapiPortPtr->bcm_gport);
     if (modid < 0 || modport < 0)
     {
       L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID,
               "Failed to get modid/modport for gport %x: modid %d modport %d\n",
-              hapiPortPtr->bcmx_lport, modid, modport);
+              hapiPortPtr->bcm_gport, modid, modport);
       continue;
     }
 
@@ -4904,7 +4904,7 @@ L7_RC_t hapiBroadL2ProtectedPortDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd,
   groupId = dapiCmd->cmdData.protectedPortConfig.groupId;
 
   hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
-  rv = usl_bcmx_protected_group_port_remove(hapiPortPtr->bcmx_lport, groupId);
+  rv = usl_bcmx_protected_group_port_remove(hapiPortPtr->bcm_gport, groupId);
   if (L7_BCMX_OK(rv) != L7_TRUE)
   {
     result = L7_FAILURE;
@@ -4927,7 +4927,7 @@ void hapiBroadL2FlushRequest(BROAD_L2ADDR_FLUSH_t flushReq)
       else
       {
         osapiSemaTake(hapiBroadFlushSema, L7_WAIT_FOREVER);
-        BCMY_GPLIST_ADD(&hapiBroadFlushAppGpList, flushReq.bcmx_lport);
+        BCMY_GPLIST_ADD(&hapiBroadFlushAppGpList, flushReq.bcm_gport);
         osapiSemaGive(hapiBroadFlushSema);
         hapiBroadFlushStats_g.hapiBroadPortFlushesIssued++;
       }
@@ -5206,7 +5206,7 @@ L7_RC_t hapiBroadDynamicArpInspectionPortUpdate(DAPI_USP_t *portUsp,
 
   if (BROAD_POLICY_INVALID != hapiSystem->dynamicArpInspectUntrustedPolicyId)
   {
-    gport = hapiPortPtr->bcmx_lport;
+    gport = hapiPortPtr->bcm_gport;
 
     temp16 = (oldTrusted << 8) |
              (newTrusted);
@@ -5466,7 +5466,7 @@ L7_RC_t hapiBroadIntfCaptivePortalConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *
       flushReq.tgid = 0;
       flushReq.flushtype = BROAD_FLUSH_BY_PORT;
       flushReq.flushflags = BROAD_FLUSH_FLAGS_NONE;
-      flushReq.bcmx_lport = hapiPortPtr->bcmx_lport;
+      flushReq.bcm_gport = hapiPortPtr->bcm_gport;
       flushReq.port_is_lag = L7_FALSE;
       hapiBroadL2FlushRequest(flushReq);
 
@@ -5584,12 +5584,12 @@ L7_RC_t hapiBroadIntfDoubleVlanTagMultiTpidConfig(DAPI_USP_t *usp,
         {
           if (dapiCmd->cmdData.doubleVlanTagConfig.enable == L7_TRUE)
           {
-            rv = usl_bcmx_port_tpid_add(hapiLagMemberPortPtr->bcmx_lport, dapiCmd->cmdData.doubleVlanTagConfig.etherType);
+            rv = usl_bcmx_port_tpid_add(hapiLagMemberPortPtr->bcm_gport, dapiCmd->cmdData.doubleVlanTagConfig.etherType);
           }
 
           else
           {
-            rv = usl_bcmx_port_tpid_delete(hapiLagMemberPortPtr->bcmx_lport, dapiCmd->cmdData.doubleVlanTagConfig.etherType);
+            rv = usl_bcmx_port_tpid_delete(hapiLagMemberPortPtr->bcm_gport, dapiCmd->cmdData.doubleVlanTagConfig.etherType);
           }
           if ( (L7_BCMX_OK(rv) != L7_TRUE) &&
                (rv != BCM_E_UNAVAIL)
@@ -5608,11 +5608,11 @@ L7_RC_t hapiBroadIntfDoubleVlanTagMultiTpidConfig(DAPI_USP_t *usp,
     {
       if (dapiCmd->cmdData.doubleVlanTagConfig.enable == L7_TRUE)
       {
-        rv = usl_bcmx_port_tpid_add(hapiPortPtr->bcmx_lport, dapiCmd->cmdData.doubleVlanTagConfig.etherType);
+        rv = usl_bcmx_port_tpid_add(hapiPortPtr->bcm_gport, dapiCmd->cmdData.doubleVlanTagConfig.etherType);
       }
       else
       {
-        rv = usl_bcmx_port_tpid_delete(hapiPortPtr->bcmx_lport, dapiCmd->cmdData.doubleVlanTagConfig.etherType);
+        rv = usl_bcmx_port_tpid_delete(hapiPortPtr->bcm_gport, dapiCmd->cmdData.doubleVlanTagConfig.etherType);
       }
     }
   }

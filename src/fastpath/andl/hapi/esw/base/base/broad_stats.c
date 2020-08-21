@@ -111,7 +111,7 @@ int hapiBroadCachedStatsGet (BROAD_PORT_t  *hapiPortPtr,
   
   if (cache_valid == L7_TRUE)
   {
-    if (hapiPortPtr->bcmx_lport != cache_gport)
+    if (hapiPortPtr->bcm_gport != cache_gport)
     {
       cache_valid = L7_FALSE;
       hapiStatsCacheWrongIf++;
@@ -131,9 +131,9 @@ int hapiBroadCachedStatsGet (BROAD_PORT_t  *hapiPortPtr,
   */
   if (cache_valid == L7_FALSE)
   {
-    if  (BCM_GPORT_IS_WLAN_PORT(hapiPortPtr->bcmx_lport))
+    if  (BCM_GPORT_IS_WLAN_PORT(hapiPortPtr->bcm_gport))
     {
-      rc = usl_bcmx_port_stat_get (hapiPortPtr->bcmx_lport, stats);
+      rc = usl_bcmx_port_stat_get (hapiPortPtr->bcm_gport, stats);
       stats[snmpIfHCInOctets] = stats[bcmPortStatIngressBytes];
       stats[snmpIfHCInUcastPkts] = stats[bcmPortStatIngressPackets];
       stats[snmpIfHCOutOctets] = stats[bcmPortStatEgressBytes];
@@ -146,7 +146,7 @@ int hapiBroadCachedStatsGet (BROAD_PORT_t  *hapiPortPtr,
     }
     else
     {
-      rc = usl_bcmx_stat_get (hapiPortPtr->bcmx_lport, stats);
+      rc = usl_bcmx_stat_get (hapiPortPtr->bcm_gport, stats);
     }
     if (L7_BCMX_OK(rc) != L7_TRUE)
     {
@@ -159,7 +159,7 @@ int hapiBroadCachedStatsGet (BROAD_PORT_t  *hapiPortPtr,
     */
     cache_time_stamp = time;
     cache_valid = L7_TRUE;
-    cache_gport = hapiPortPtr->bcmx_lport;
+    cache_gport = hapiPortPtr->bcm_gport;
   } else
   {
     hapiStatsCacheHits++;

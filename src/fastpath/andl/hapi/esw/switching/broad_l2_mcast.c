@@ -267,7 +267,7 @@ L7_RC_t hapiBroadL2McastUSPJoin(bcm_mac_t mac, bcm_vlan_t vid,
       {
         hapiLagMemberPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
 
-        gport = hapiLagMemberPortPtr->bcmx_lport;
+        gport = hapiLagMemberPortPtr->bcm_gport;
 
         modid = BCM_GPORT_MODPORT_MODID_GET(gport);
         modport = BCM_GPORT_MODPORT_PORT_GET(gport);
@@ -305,7 +305,7 @@ L7_RC_t hapiBroadL2McastUSPJoin(bcm_mac_t mac, bcm_vlan_t vid,
     hapiPortPtr = HAPI_PORT_GET(&localUsp, dapi_g);
 
     /* Get the logical port */
-    gport = hapiPortPtr->bcmx_lport;
+    gport = hapiPortPtr->bcm_gport;
 
 
     if (!BCM_GPORT_IS_WLAN_PORT(gport))
@@ -384,7 +384,7 @@ L7_RC_t hapiBroadL2McastUSPLeave(bcm_mac_t mac, bcm_vlan_t vid,
       {
         hapiLagMemberPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
 
-        gport = hapiLagMemberPortPtr->bcmx_lport;
+        gport = hapiLagMemberPortPtr->bcm_gport;
         modid = BCM_GPORT_MODPORT_MODID_GET(gport);
         modport = BCM_GPORT_MODPORT_PORT_GET(gport);
         if (modid < 0 || modport < 0)
@@ -407,7 +407,7 @@ L7_RC_t hapiBroadL2McastUSPLeave(bcm_mac_t mac, bcm_vlan_t vid,
     hapiPortPtr = HAPI_PORT_GET(&localUsp, dapi_g);
     /* Get the logical port */
     /* will not get here unless the hapPortPtr is valid */
-    gport = hapiPortPtr->bcmx_lport;
+    gport = hapiPortPtr->bcm_gport;
 
     if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) == L7_TRUE)
     {
@@ -418,7 +418,7 @@ L7_RC_t hapiBroadL2McastUSPLeave(bcm_mac_t mac, bcm_vlan_t vid,
       {
         hapiPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[0].usp,dapi_g);
 
-        gport = hapiPortPtr->bcmx_lport;
+        gport = hapiPortPtr->bcm_gport;
       }
     }
 
@@ -1143,7 +1143,7 @@ void hapiBroadMgmLagMemberAddNotify (DAPI_USP_t *memberUsp, DAPI_USP_t *lagUsp, 
 
   hapiPortPtr = HAPI_PORT_GET(memberUsp, dapi_g);
 
-  port = hapiPortPtr->bcmx_lport;
+  port = hapiPortPtr->bcm_gport;
 
   if (hapiBroadL2McastLagDistributionSupported() == L7_TRUE)
   {
@@ -1220,7 +1220,7 @@ void hapiBroadMgmLagMemberRemoveNotify (DAPI_USP_t *memberUsp, DAPI_USP_t *lagUs
 
   hapiPortPtr = HAPI_PORT_GET(memberUsp, dapi_g);
 
-  port = hapiPortPtr->bcmx_lport;
+  port = hapiPortPtr->bcm_gport;
 
   if (hapiBroadL2McastLagDistributionSupported() == L7_TRUE)
   {

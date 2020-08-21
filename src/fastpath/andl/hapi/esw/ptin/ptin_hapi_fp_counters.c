@@ -659,7 +659,7 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
         /* Physical port */
         if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
         {
-          if (hapiBroadPolicyApplyToIface(policyId, hapiPortPtr->bcmx_lport) != L7_SUCCESS)
+          if (hapiBroadPolicyApplyToIface(policyId, hapiPortPtr->bcm_gport) != L7_SUCCESS)
           {
             hapiBroadPolicyDelete(policyId);
             PT_LOG_ERR(LOG_CTX_HAPI,"Error applying interface usp={%d,%d,%d}/bcm_port %u!", usp->unit,usp->slot,usp->port, hapiPortPtr->bcm_port);
@@ -678,7 +678,7 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
             {
               hapiLagMemberPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
 
-              if (hapiBroadPolicyApplyToIface(policyId, hapiLagMemberPortPtr->bcmx_lport) != L7_SUCCESS)
+              if (hapiBroadPolicyApplyToIface(policyId, hapiLagMemberPortPtr->bcm_gport) != L7_SUCCESS)
               {
                 hapiBroadPolicyDelete(policyId);
                 PT_LOG_ERR(LOG_CTX_HAPI,"Error applying interface usp={%d,%d,%d}/bcm_port %u!", usp->unit,usp->slot,usp->port, hapiLagMemberPortPtr->bcm_port);

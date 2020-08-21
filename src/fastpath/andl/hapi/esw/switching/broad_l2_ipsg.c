@@ -391,7 +391,7 @@ L7_RC_t hapiBroadIpsgApplyPolicy(BROAD_POLICY_t policy, DAPI_USP_t *usp, DAPI_t 
             {
                 lagMemberPtr = HAPI_PORT_GET(&lagMemberSet[i].usp, dapi_g);
 
-                tmpRc = hapiBroadPolicyApplyToIface(policy, lagMemberPtr->bcmx_lport);
+                tmpRc = hapiBroadPolicyApplyToIface(policy, lagMemberPtr->bcm_gport);
                 if (L7_SUCCESS != tmpRc)
                     result = tmpRc;
             }
@@ -400,7 +400,7 @@ L7_RC_t hapiBroadIpsgApplyPolicy(BROAD_POLICY_t policy, DAPI_USP_t *usp, DAPI_t 
     else
     {
       /* apply policy to individual port */
-      result = hapiBroadPolicyApplyToIface(policy, hapiPortPtr->bcmx_lport);
+      result = hapiBroadPolicyApplyToIface(policy, hapiPortPtr->bcm_gport);
     }
 
     return result;
@@ -438,7 +438,7 @@ L7_RC_t hapiBroadIpsgPortUpdate(DAPI_USP_t  *portUsp,
 
   hapiPortPtr    = HAPI_PORT_GET(portUsp, dapi_g);
 
-  gport = hapiPortPtr->bcmx_lport;
+  gport = hapiPortPtr->bcm_gport;
 
   temp8 = (oldIpsgEnabled << 4) | newIpsgEnabled;
   switch (temp8)
@@ -574,7 +574,7 @@ L7_RC_t hapiBroadIpsgLagAddNotify(DAPI_USP_t *portUsp, DAPI_USP_t *lagUsp, DAPI_
       {
         memcpy(&ipsgEntry, pIpsgEntry, sizeof(ipsgEntry));
 
-        hapiBroadPolicyRemoveFromIface(pIpsgEntry->policyId, hapiPortPtr->bcmx_lport);
+        hapiBroadPolicyRemoveFromIface(pIpsgEntry->policyId, hapiPortPtr->bcm_gport);
 
         pIpsgEntry = avlSearchLVL7(&hapiBroadIpsgTree, &ipsgEntry, AVL_NEXT);
       }
@@ -596,7 +596,7 @@ L7_RC_t hapiBroadIpsgLagAddNotify(DAPI_USP_t *portUsp, DAPI_USP_t *lagUsp, DAPI_
       {
         memcpy(&ipsgEntry, pIpsgEntry, sizeof(ipsgEntry));
 
-        hapiBroadPolicyApplyToIface(pIpsgEntry->policyId, hapiPortPtr->bcmx_lport);
+        hapiBroadPolicyApplyToIface(pIpsgEntry->policyId, hapiPortPtr->bcm_gport);
 
         pIpsgEntry = avlSearchLVL7(&hapiBroadIpsgTree, &ipsgEntry, AVL_NEXT);
       }
@@ -658,7 +658,7 @@ L7_RC_t hapiBroadIpsgLagDeleteNotify(DAPI_USP_t *portUsp, DAPI_USP_t *lagUsp, DA
       {
         memcpy(&ipsgEntry, pIpsgEntry, sizeof(ipsgEntry));
 
-        hapiBroadPolicyRemoveFromIface(pIpsgEntry->policyId, hapiPortPtr->bcmx_lport);
+        hapiBroadPolicyRemoveFromIface(pIpsgEntry->policyId, hapiPortPtr->bcm_gport);
 
         pIpsgEntry = avlSearchLVL7(&hapiBroadIpsgTree, &ipsgEntry, AVL_NEXT);
       }
@@ -680,7 +680,7 @@ L7_RC_t hapiBroadIpsgLagDeleteNotify(DAPI_USP_t *portUsp, DAPI_USP_t *lagUsp, DA
       {
         memcpy(&ipsgEntry, pIpsgEntry, sizeof(ipsgEntry));
 
-        hapiBroadPolicyApplyToIface(pIpsgEntry->policyId, hapiPortPtr->bcmx_lport);
+        hapiBroadPolicyApplyToIface(pIpsgEntry->policyId, hapiPortPtr->bcm_gport);
 
         pIpsgEntry = avlSearchLVL7(&hapiBroadIpsgTree, &ipsgEntry, AVL_NEXT);
       }

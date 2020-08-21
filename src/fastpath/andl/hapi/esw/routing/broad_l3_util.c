@@ -557,11 +557,11 @@ static L7_RC_t hapiBroadL3HostPolicyUpdate(DAPI_USP_t *usp,
     /* Update the policy on the given physical port */
     if (action == HOST_POLICY_ADD)
     {
-      hapiBroadPolicyApplyToIface(sysId, hapiPortPtr->bcmx_lport);
+      hapiBroadPolicyApplyToIface(sysId, hapiPortPtr->bcm_gport);
     }
     else
     {
-      hapiBroadPolicyRemoveFromIface(sysId, hapiPortPtr->bcmx_lport);
+      hapiBroadPolicyRemoveFromIface(sysId, hapiPortPtr->bcm_gport);
     }
   }
   else if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) == L7_TRUE)
@@ -590,11 +590,11 @@ static L7_RC_t hapiBroadL3HostPolicyUpdate(DAPI_USP_t *usp,
               hapiPortPtr = HAPI_PORT_GET(&tUsp,dapi_g);
               if (action == HOST_POLICY_ADD)
               {
-                hapiBroadPolicyApplyToIface(sysId, hapiPortPtr->bcmx_lport);
+                hapiBroadPolicyApplyToIface(sysId, hapiPortPtr->bcm_gport);
               }
               else
               {
-                hapiBroadPolicyRemoveFromIface(sysId, hapiPortPtr->bcmx_lport);
+                hapiBroadPolicyRemoveFromIface(sysId, hapiPortPtr->bcm_gport);
               }
             }
           }
@@ -654,11 +654,11 @@ static L7_RC_t hapiBroadL3HostPolicyApplyToLag(DAPI_USP_t *usp,
 
       if (action == HOST_POLICY_ADD)
       {
-        hapiBroadPolicyApplyToIface(sysId, hapiLagPortPtr->bcmx_lport);
+        hapiBroadPolicyApplyToIface(sysId, hapiLagPortPtr->bcm_gport);
       }
       else
       {
-        hapiBroadPolicyRemoveFromIface(sysId, hapiLagPortPtr->bcmx_lport);
+        hapiBroadPolicyRemoveFromIface(sysId, hapiLagPortPtr->bcm_gport);
       }
     }
   }
@@ -1193,7 +1193,7 @@ L7_RC_t hapiBroadL3MacAddressAdd(DAPI_USP_t *usp,
 
   /* Set the port for the L2 entry to CPU port */
   hapiPortPtr  =  hapiBroadL3CpuHapiPortGet(dapi_g);
-  l2addr.port  = hapiPortPtr->bcmx_lport;
+  l2addr.port  = hapiPortPtr->bcm_gport;
   l2addr.modid = hapiPortPtr->bcm_modid;
 
   rv = usl_bcmx_l2_addr_add(&l2addr, L7_NULL);

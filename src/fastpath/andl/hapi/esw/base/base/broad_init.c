@@ -1507,7 +1507,7 @@ L7_RC_t hapiBroadPhysicalCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *d
     for (usp.port = 0; usp.port < dapi_g->unit[usp.unit]->slot[usp.slot]->numOfPortsInSlot;usp.port++)
     {
       hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
-      bcmy_gplist_add(&tmpGplist, hapiPortPtr->bcmx_lport);
+      bcmy_gplist_add(&tmpGplist, hapiPortPtr->bcm_gport);
     }
 
     /* Synchronize the new units */
@@ -1544,7 +1544,7 @@ L7_RC_t hapiBroadPhysicalCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *d
                                         (usp.port + 1)) == L7_FALSE)
        {
          hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
-         bcmy_gplist_add(&portGplist, hapiPortPtr->bcmx_lport);
+         bcmy_gplist_add(&portGplist, hapiPortPtr->bcm_gport);
        }
      }
 
@@ -1940,24 +1940,24 @@ L7_RC_t hapiBroadPhysicalPortMapGet(L7_ushort16 unitNum, L7_ushort16 slotNum, DA
       /* FIXME: BCMX - Field don't exist @ dapiCardInfoPtr->slotMap[slotMapIndex] */
       hapiPortPtr->bcm_modid = dapiCardInfoPtr->slotMap[slotMapIndex].bcm_cpuunit;
       hapiPortPtr->bcm_unit  = dapiCardInfoPtr->slotMap[slotMapIndex].bcm_cpuunit;
-      BCM_GPORT_MODPORT_SET(hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_modid, hapiPortPtr->bcm_port);
+      BCM_GPORT_MODPORT_SET(hapiPortPtr->bcm_gport, hapiPortPtr->bcm_modid, hapiPortPtr->bcm_port);
 
       /* Update LUT tables at BCMY module */
-      if (bcmy_lut_gport_set(hapiPortPtr->bcmx_lport,
+      if (bcmy_lut_gport_set(hapiPortPtr->bcm_gport,
                              hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
                              &usp) != BCMY_E_NONE)
       {
         PT_LOG_ERR(LOG_CTX_STARTUP, "BCMY local ports: Error updating LUT tables (bcm_unit=%d bcm_port=%d usp={%d,%d,%d} lport=0x%x",
                    hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
                    usp.unit, usp.slot, usp.port,
-                   hapiPortPtr->bcmx_lport);
+                   hapiPortPtr->bcm_gport);
         L7_LOG_ERROR(0);
       }
 
       PT_LOG_NOTICE(LOG_CTX_STARTUP, "PHY: bcm_unit=%d bcm_port=%d => usp={%d,%d,%d} gport=0x%x",
               hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
               usp.unit, usp.slot, usp.port,
-              hapiPortPtr->bcmx_lport);
+              hapiPortPtr->bcm_gport);
     }
   }
 
@@ -2144,12 +2144,12 @@ L7_RC_t hapiBroadCpuPortMapGet(L7_ushort16 unitNum, L7_ushort16 slotNum, DAPI_t 
     /* FIXME: BCMX - Field don't exist @ dapiCardInfoPtr->slotMap[slotMapIndex] */
     hapiPortPtr->bcm_modid = dapiCardInfoPtr->slotMap[slotMapIndex].bcm_cpuunit;
     hapiPortPtr->bcm_unit  = dapiCardInfoPtr->slotMap[slotMapIndex].bcm_cpuunit;
-    BCM_GPORT_MODPORT_SET(hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_modid, hapiPortPtr->bcm_port);
+    BCM_GPORT_MODPORT_SET(hapiPortPtr->bcm_gport, hapiPortPtr->bcm_modid, hapiPortPtr->bcm_port);
 
     PT_LOG_NOTICE(LOG_CTX_STARTUP, "CPU: bcm_unit=%d bcm_port=%d => usp={%d,%d,%d} gport=0x%x",
             hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
             usp.unit, usp.slot, usp.port,
-            hapiPortPtr->bcmx_lport);
+            hapiPortPtr->bcm_gport);
   }
 
   /* scan card database for needed data, phy address and media */
@@ -3001,14 +3001,14 @@ L7_RC_t hapiBroadCardRemove(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *data, voi
 
     if (IS_PORT_TYPE_PHYSICAL(DAPI_PORT_GET(&usp, dapi_g)) == L7_TRUE)
     {
-      bcmy_gplist_add(&tmpGplist, hapiPortPtr->bcmx_lport);
+      bcmy_gplist_add(&tmpGplist, hapiPortPtr->bcm_gport);
     }
 
     /* Skip Stacking ports for portdb list */
     if (spmFpsPortStackingModeCheck (usp.unit, usp.slot, 
                                      (usp.port + 1)) == L7_FALSE)
     {
-      bcmy_gplist_add(&portGplist, hapiPortPtr->bcmx_lport);
+      bcmy_gplist_add(&portGplist, hapiPortPtr->bcm_gport);
     }
 
     if (hapiPortPtr->vrrp_interface_id)
@@ -3045,7 +3045,7 @@ L7_RC_t hapiBroadCardRemove(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *data, voi
     }
 
     if (BROAD_POLICY_INVALID != hapiPortPtr->dot1pPolicy)
-        hapiBroadCosPolicyUtilRemove(hapiPortPtr->dot1pPolicy, hapiPortPtr->bcmx_lport);
+        hapiBroadCosPolicyUtilRemove(hapiPortPtr->dot1pPolicy, hapiPortPtr->bcm_gport);
 
     for (i = 0; i < L7_DOT1X_PORT_MAX_MAC_USERS; i++)
     {

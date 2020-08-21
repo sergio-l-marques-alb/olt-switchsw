@@ -429,13 +429,13 @@ L7_RC_t ptin_hapi_bridge_crossconnect_add(L7_uint16 outerVlanId, L7_uint16 inner
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_cross_connect_add(%d,%u,%u,%u({%d,%d,%d}), %u({%d,%d,%d}))",
             bcm_unit, outerVlanId, innerVlanId,
-            hapiPortPtr1->bcmx_lport, dapiPort1->usp->unit, dapiPort1->usp->slot, dapiPort1->usp->port,
-            hapiPortPtr2->bcmx_lport, dapiPort2->usp->unit, dapiPort2->usp->slot, dapiPort2->usp->port);
+            hapiPortPtr1->bcm_gport, dapiPort1->usp->unit, dapiPort1->usp->slot, dapiPort1->usp->port,
+            hapiPortPtr2->bcm_gport, dapiPort2->usp->unit, dapiPort2->usp->slot, dapiPort2->usp->port);
 
   /* Run all units */
   BCM_UNIT_ITER(unit)
   {
-    error = bcm_vlan_cross_connect_add(unit, outerVlanId, innerVlanId, hapiPortPtr1->bcmx_lport, hapiPortPtr2->bcmx_lport);
+    error = bcm_vlan_cross_connect_add(unit, outerVlanId, innerVlanId, hapiPortPtr1->bcm_gport, hapiPortPtr2->bcm_gport);
     if ( error != BCM_E_NONE && error != BCM_E_EXISTS )
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "unit %d: Error with bcm_vlan_cross_connect_add: %d (%s)", unit, error, bcm_errmsg(error));
@@ -941,7 +941,7 @@ L7_RC_t ptin_hapi_multicast_egress_port_add(L7_int *mcast_group, L7_uint32 multi
     {
     case BCM_MULTICAST_TYPE_L2:  
       /* get the encapsulation id */
-      error = bcm_multicast_l2_encap_get(unit, mc_group, hapiPortPtr->bcmx_lport, -1, &encap_id);
+      error = bcm_multicast_l2_encap_get(unit, mc_group, hapiPortPtr->bcm_gport, -1, &encap_id);
       if (error != BCM_E_NONE)
       {
         PT_LOG_ERR(LOG_CTX_HAPI, "unit %d: Error with bcm_multicast_l2_encap_get: error=%d (\"%s\")", unit, error, bcm_errmsg(error));
@@ -950,7 +950,7 @@ L7_RC_t ptin_hapi_multicast_egress_port_add(L7_int *mcast_group, L7_uint32 multi
       break;      
     case BCM_MULTICAST_TYPE_L3:
       /* get the encapsulation id */   
-      error = bcm_multicast_l3_encap_get(unit, mc_group, hapiPortPtr->bcmx_lport, virtual_gport, &encap_id);
+      error = bcm_multicast_l3_encap_get(unit, mc_group, hapiPortPtr->bcm_gport, virtual_gport, &encap_id);
       if (error != BCM_E_NONE)
       {
         PT_LOG_ERR(LOG_CTX_HAPI, "unit %d: Error with bcm_multicast_l3_encap_get: error=%d (\"%s\")", unit, error, bcm_errmsg(error));
@@ -963,7 +963,7 @@ L7_RC_t ptin_hapi_multicast_egress_port_add(L7_int *mcast_group, L7_uint32 multi
     }  
 
     /* add network port to multicast group */
-    error = bcm_multicast_egress_add(unit, mc_group, hapiPortPtr->bcmx_lport, encap_id);
+    error = bcm_multicast_egress_add(unit, mc_group, hapiPortPtr->bcm_gport, encap_id);
     if (error != BCM_E_NONE)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "unit %d: Error with bcm_multicast_egress_add: error=%d (\"%s\")", unit, error, bcm_errmsg(error));
@@ -1029,7 +1029,7 @@ L7_RC_t ptin_hapi_multicast_egress_port_remove(L7_int mcast_group, L7_uint32 mul
     {
     case BCM_MULTICAST_TYPE_L2:  
       /* get the encapsulation id */   
-      error = bcm_multicast_l2_encap_get(unit, mcast_group, hapiPortPtr->bcmx_lport, -1, &encap_id);
+      error = bcm_multicast_l2_encap_get(unit, mcast_group, hapiPortPtr->bcm_gport, -1, &encap_id);
       if (error != BCM_E_NONE)
       {
         PT_LOG_ERR(LOG_CTX_HAPI, "unit %d: Error with bcm_multicast_l2_encap_get: error=%d (\"%s\")", unit, error, bcm_errmsg(error));
@@ -1038,7 +1038,7 @@ L7_RC_t ptin_hapi_multicast_egress_port_remove(L7_int mcast_group, L7_uint32 mul
       break;  
     case BCM_MULTICAST_TYPE_L3:
       /* get the encapsulation id */   
-      error = bcm_multicast_l3_encap_get(unit, mcast_group, hapiPortPtr->bcmx_lport, virtual_gport, &encap_id);
+      error = bcm_multicast_l3_encap_get(unit, mcast_group, hapiPortPtr->bcm_gport, virtual_gport, &encap_id);
       if (error != BCM_E_NONE)
       {
         PT_LOG_ERR(LOG_CTX_HAPI, "unit %d: Error with bcm_multicast_l3_encap_get: error=%d (\"%s\")", unit, error, bcm_errmsg(error));
@@ -1050,7 +1050,7 @@ L7_RC_t ptin_hapi_multicast_egress_port_remove(L7_int mcast_group, L7_uint32 mul
       return L7_NOT_SUPPORTED;
     }
     
-    error = bcm_multicast_egress_delete(unit, mcast_group, hapiPortPtr->bcmx_lport, encap_id);
+    error = bcm_multicast_egress_delete(unit, mcast_group, hapiPortPtr->bcm_gport, encap_id);
     if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "unit %d: Error with bcm_multicast_egress_delete: error=%d (\"%s\")", unit, error, bcm_errmsg(error));

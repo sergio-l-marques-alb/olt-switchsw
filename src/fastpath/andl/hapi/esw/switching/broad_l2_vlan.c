@@ -259,7 +259,7 @@ void hapiBroadAddRemovePortFromVlans (DAPI_USP_t *usp,
   */
   if (port_cmd == 1)
   {
-    rv = usl_bcmx_port_vlan_member_add (hapiPortPtr->bcmx_lport, &port_command);
+    rv = usl_bcmx_port_vlan_member_add (hapiPortPtr->bcm_gport, &port_command);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       L7_LOG_ERROR(rv);
@@ -339,7 +339,7 @@ void hapiBroadAddRemovePortFromVlans (DAPI_USP_t *usp,
   */
   if (port_cmd == 0)
   {
-    rv = usl_bcmx_port_vlan_member_delete (hapiPortPtr->bcmx_lport, &port_command);
+    rv = usl_bcmx_port_vlan_member_delete (hapiPortPtr->bcm_gport, &port_command);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       L7_LOG_ERROR(rv);
@@ -440,7 +440,7 @@ L7_RC_t hapiBroadPortAcceptableFrameTypeSet(DAPI_USP_t *usp, L7_uint32 acceptFra
 
         hapiLagMemberPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
 
-        rv = usl_bcmx_port_discard_set(hapiLagMemberPortPtr->bcmx_lport, mode);
+        rv = usl_bcmx_port_discard_set(hapiLagMemberPortPtr->bcm_gport, mode);
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
           L7_LOG_ERROR(rv);
@@ -456,7 +456,7 @@ L7_RC_t hapiBroadPortAcceptableFrameTypeSet(DAPI_USP_t *usp, L7_uint32 acceptFra
         (hapiPortPtr->hapiModeparm.physical.isMemberOfLag == L7_FALSE) &&
         (hapiBroadSystemMirroringUSPIsProbe(usp,dapi_g) == L7_FALSE)) 
     {
-      rv = usl_bcmx_port_discard_set(hapiPortPtr->bcmx_lport, mode);
+      rv = usl_bcmx_port_discard_set(hapiPortPtr->bcm_gport, mode);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
         L7_LOG_ERROR(rv);
@@ -503,7 +503,7 @@ L7_RC_t hapiBroadPortUntaggedVlanSet(DAPI_USP_t *usp, L7_ushort16 pvid, DAPI_t *
 
         hapiLagMemberPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
 
-        rv = usl_bcmx_port_untagged_vlan_set(hapiLagMemberPortPtr->bcmx_lport,pvid);
+        rv = usl_bcmx_port_untagged_vlan_set(hapiLagMemberPortPtr->bcm_gport,pvid);
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
           L7_LOG_ERROR(pvid);
@@ -520,7 +520,7 @@ L7_RC_t hapiBroadPortUntaggedVlanSet(DAPI_USP_t *usp, L7_ushort16 pvid, DAPI_t *
         (hapiBroadSystemMirroringUSPIsProbe(usp,dapi_g) == L7_FALSE)) 
     {
 
-      rv = usl_bcmx_port_untagged_vlan_set(hapiPortPtr->bcmx_lport, pvid);
+      rv = usl_bcmx_port_untagged_vlan_set(hapiPortPtr->bcm_gport, pvid);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
         L7_LOG_ERROR(pvid);
@@ -1231,7 +1231,7 @@ L7_RC_t hapiBroadQvlanVlanPurge(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAP
   }
 
   /* Fill in the structure */
-  l2addr_vlan.bcmx_lport = 0; 
+  l2addr_vlan.bcm_gport = 0; 
   l2addr_vlan.vlanID = vid;
   l2addr_vlan.flushtype = BROAD_FLUSH_BY_VLAN;
   l2addr_vlan.flushflags = BROAD_FLUSH_FLAGS_NONE;
@@ -1330,7 +1330,7 @@ L7_RC_t hapiBroadQvlanVlanListPurge(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
         }
 
         /* Fill in the structure */
-        l2addr_vlan.bcmx_lport = 0; 
+        l2addr_vlan.bcm_gport = 0; 
         l2addr_vlan.vlanID = vlanId;
         l2addr_vlan.flushtype = BROAD_FLUSH_BY_VLAN;
         l2addr_vlan.flushflags = BROAD_FLUSH_FLAGS_NONE;
@@ -1422,7 +1422,7 @@ void hapiBroadL2VlanSetPortToVlanListHw (DAPI_USP_t      *usp,
   /* Add a port to list of vlans */
   if (vlanCmd == L7_TRUE) 
   {
-    rv = usl_bcmx_port_vlan_member_add (hapiPortPtr->bcmx_lport, &port_command);
+    rv = usl_bcmx_port_vlan_member_add (hapiPortPtr->bcm_gport, &port_command);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       L7_LOG_ERROR(rv);
@@ -1430,7 +1430,7 @@ void hapiBroadL2VlanSetPortToVlanListHw (DAPI_USP_t      *usp,
   }
   else /* Remove the port from list of vlans */
   {
-    rv = usl_bcmx_port_vlan_member_delete (hapiPortPtr->bcmx_lport, &port_command);
+    rv = usl_bcmx_port_vlan_member_delete (hapiPortPtr->bcm_gport, &port_command);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       L7_LOG_ERROR(rv);
@@ -1821,7 +1821,7 @@ L7_RC_t hapiBroadQvlanPortConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
         {
           hapiLagMemberPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
 
-          result = hapiBroadVlanIngressFilterSet(hapiLagMemberPortPtr->bcmx_lport, ingressFilteringEnabled);
+          result = hapiBroadVlanIngressFilterSet(hapiLagMemberPortPtr->bcm_gport, ingressFilteringEnabled);
           if (result != L7_SUCCESS)
           {
             L7_LOG_ERROR(result);
@@ -1836,7 +1836,7 @@ L7_RC_t hapiBroadQvlanPortConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
           (hapiPortPtr->hapiModeparm.physical.isMemberOfLag == L7_FALSE) &&
           (hapiBroadSystemMirroringUSPIsProbe(usp,dapi_g) == L7_FALSE))
       {
-        result = hapiBroadVlanIngressFilterSet(hapiPortPtr->bcmx_lport, ingressFilteringEnabled);
+        result = hapiBroadVlanIngressFilterSet(hapiPortPtr->bcm_gport, ingressFilteringEnabled);
         if (result != L7_SUCCESS)
         {
           L7_LOG_ERROR(result);
@@ -2002,7 +2002,7 @@ L7_RC_t hapiBroadQvlanPortPriority(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
       {
         hapiPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
 
-        rv = usl_bcmx_port_untagged_priority_set(hapiPortPtr->bcmx_lport, priority);
+        rv = usl_bcmx_port_untagged_priority_set(hapiPortPtr->bcm_gport, priority);
         if (L7_BCMX_OK(rv) != TRUE)
         {
           L7_LOG_ERROR(0);
@@ -2016,7 +2016,7 @@ L7_RC_t hapiBroadQvlanPortPriority(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
     hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
     hapiPortPtr->priority = priority;
 
-    rv = usl_bcmx_port_untagged_priority_set(hapiPortPtr->bcmx_lport, priority);
+    rv = usl_bcmx_port_untagged_priority_set(hapiPortPtr->bcm_gport, priority);
     if (L7_BCMX_OK(rv) != TRUE)
     {
       L7_LOG_ERROR(priority);
@@ -2167,12 +2167,12 @@ L7_RC_t hapiBroadCosCommitDot1pParams(BROAD_PORT_t *hapiPortPtr, L7_uchar8 *dot1
     }
 
     if (L7_SUCCESS == result)
-      result = hapiBroadCosPolicyUtilApply(cosqId, hapiPortPtr->bcmx_lport);
+      result = hapiBroadCosPolicyUtilApply(cosqId, hapiPortPtr->bcm_gport);
 
     /* delete the old policy */
     if (BROAD_POLICY_INVALID != hapiPortPtr->dot1pPolicy)
     {
-      hapiBroadCosPolicyUtilRemove(hapiPortPtr->dot1pPolicy, hapiPortPtr->bcmx_lport);
+      hapiBroadCosPolicyUtilRemove(hapiPortPtr->dot1pPolicy, hapiPortPtr->bcm_gport);
       hapiPortPtr->dot1pPolicy = BROAD_POLICY_INVALID;
     }
 
@@ -2402,7 +2402,7 @@ L7_RC_t hapiBroadProtocolVlanAdd(DAPI_USP_t *usp, L7_ushort16 etherType, L7_usho
       {
         hapiLagMemberPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[lagMemberIdx].usp, dapi_g);
 
-        rv = usl_bcmx_port_protocol_vlan_add(hapiLagMemberPortPtr->bcmx_lport, 
+        rv = usl_bcmx_port_protocol_vlan_add(hapiLagMemberPortPtr->bcm_gport, 
                                              pbvlanConfig);
         if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_EXISTS))
         {
@@ -2417,7 +2417,7 @@ L7_RC_t hapiBroadProtocolVlanAdd(DAPI_USP_t *usp, L7_ushort16 etherType, L7_usho
   {
     hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
 
-    rv = usl_bcmx_port_protocol_vlan_add(hapiPortPtr->bcmx_lport, 
+    rv = usl_bcmx_port_protocol_vlan_add(hapiPortPtr->bcm_gport, 
                                          pbvlanConfig);
     if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_EXISTS))
     {
@@ -2478,7 +2478,7 @@ L7_RC_t hapiBroadProtocolVlanRemove(DAPI_USP_t *usp, L7_ushort16 etherType, DAPI
       {
         hapiLagMemberPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[lagMemberIdx].usp, dapi_g);
 
-        rv = usl_bcmx_port_protocol_vlan_delete(hapiLagMemberPortPtr->bcmx_lport, 
+        rv = usl_bcmx_port_protocol_vlan_delete(hapiLagMemberPortPtr->bcm_gport, 
                                                 pbvlanConfig);
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
@@ -2493,7 +2493,7 @@ L7_RC_t hapiBroadProtocolVlanRemove(DAPI_USP_t *usp, L7_ushort16 etherType, DAPI
   {
     hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
 
-    rv = usl_bcmx_port_protocol_vlan_delete(hapiPortPtr->bcmx_lport, 
+    rv = usl_bcmx_port_protocol_vlan_delete(hapiPortPtr->bcm_gport, 
                                             pbvlanConfig);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
@@ -2646,7 +2646,7 @@ L7_RC_t hapiBroadVlanEgressFilterSet(bcm_gport_t gport, L7_BOOL val, DAPI_t *dap
           hapiLagMemberPortPtr = 
             HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
 
-          rv = usl_bcmx_port_vlan_member_set(hapiLagMemberPortPtr->bcmx_lport, 
+          rv = usl_bcmx_port_vlan_member_set(hapiLagMemberPortPtr->bcm_gport, 
                                              filterMode);               
 
         }

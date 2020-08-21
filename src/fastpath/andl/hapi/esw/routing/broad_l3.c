@@ -573,14 +573,14 @@ L7_RC_t hapiBroadL3CardInit(L7_ushort16 unitNum,
           }
           else
           {
-            bcmEgrObj.bcm_data.module = BCM_GPORT_MODPORT_MODID_GET(hapiPortPtr->bcmx_lport);
-            bcmEgrObj.bcm_data.port   = BCM_GPORT_MODPORT_PORT_GET(hapiPortPtr->bcmx_lport);
+            bcmEgrObj.bcm_data.module = BCM_GPORT_MODPORT_MODID_GET(hapiPortPtr->bcm_gport);
+            bcmEgrObj.bcm_data.port   = BCM_GPORT_MODPORT_PORT_GET(hapiPortPtr->bcm_gport);
             if ((bcmEgrObj.bcm_data.module == HAPI_BROAD_INVALID_MODID) ||
                 (bcmEgrObj.bcm_data.port   == HAPI_BROAD_INVALID_MODPORT))
             {
               L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID,
                       "Failed to get modid/port for lport %x\n",
-                      hapiPortPtr->bcmx_lport);
+                      hapiPortPtr->bcm_gport);
               HAPI_BROAD_L3_L7_LOG_ERROR(0);
             }
           }
@@ -1399,7 +1399,7 @@ static L7_RC_t hapiBroadL3IntfCreate(DAPI_USP_t *usp,
 
     L7_VLAN_SETMASKBIT(portVlanMask.vlan_membership_mask, vid);
 
-    rv = usl_bcmx_port_vlan_member_add(hapiPortPtr->bcmx_lport, &portVlanMask);
+    rv = usl_bcmx_port_vlan_member_add(hapiPortPtr->bcm_gport, &portVlanMask);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       HAPI_BROAD_L3_L7_LOG_ERROR(vid);
@@ -1415,37 +1415,37 @@ static L7_RC_t hapiBroadL3IntfCreate(DAPI_USP_t *usp,
      * entries in hardware. Also, the port can only be part routing VLAN.
      */
     learnMode = BCM_PORT_LEARN_FWD;
-    rv = usl_bcmx_port_learn_set(hapiPortPtr->bcmx_lport, learnMode);
+    rv = usl_bcmx_port_learn_set(hapiPortPtr->bcm_gport, learnMode);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       HAPI_BROAD_L3_L7_LOG_ERROR(rv);
     }
 
     /* Set PVID to this VLAN */
-    rv = usl_bcmx_port_untagged_vlan_set(hapiPortPtr->bcmx_lport, vid);
+    rv = usl_bcmx_port_untagged_vlan_set(hapiPortPtr->bcm_gport, vid);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       HAPI_BROAD_L3_L7_LOG_ERROR(rv);
     }
 
     /* Set default priority */
-    rv = usl_bcmx_port_untagged_priority_set(hapiPortPtr->bcmx_lport, 0);
+    rv = usl_bcmx_port_untagged_priority_set(hapiPortPtr->bcm_gport, 0);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       HAPI_BROAD_L3_L7_LOG_ERROR(rv);
     }
 
     /* Enable ingress filtering */
-    result = hapiBroadVlanIngressFilterSet(hapiPortPtr->bcmx_lport, L7_TRUE);
+    result = hapiBroadVlanIngressFilterSet(hapiPortPtr->bcm_gport, L7_TRUE);
 
     if (result != L7_SUCCESS)
     {
-      HAPI_BROAD_L3_L7_LOG_ERROR(hapiPortPtr->bcmx_lport);
+      HAPI_BROAD_L3_L7_LOG_ERROR(hapiPortPtr->bcm_gport);
     }
 
     /* Set port to accept both untagged and tagged frames */
     discardMode = BCM_PORT_DISCARD_NONE;
-    rv = usl_bcmx_port_discard_set(hapiPortPtr->bcmx_lport, discardMode);
+    rv = usl_bcmx_port_discard_set(hapiPortPtr->bcm_gport, discardMode);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       HAPI_BROAD_L3_L7_LOG_ERROR(rv);
@@ -1719,7 +1719,7 @@ static L7_RC_t hapiBroadL3IntfDelete(DAPI_USP_t *usp,
       learnMode = (BCM_PORT_LEARN_ARL |  BCM_PORT_LEARN_FWD);
     }
 
-    rv = usl_bcmx_port_learn_set(hapiPortPtr->bcmx_lport, learnMode);
+    rv = usl_bcmx_port_learn_set(hapiPortPtr->bcm_gport, learnMode);
 
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
@@ -1733,7 +1733,7 @@ static L7_RC_t hapiBroadL3IntfDelete(DAPI_USP_t *usp,
                             hapiPortPtr->hw_stp_state);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
-        HAPI_BROAD_L3_L7_LOG_ERROR(hapiPortPtr->bcmx_lport);
+        HAPI_BROAD_L3_L7_LOG_ERROR(hapiPortPtr->bcm_gport);
       }
     }
     else

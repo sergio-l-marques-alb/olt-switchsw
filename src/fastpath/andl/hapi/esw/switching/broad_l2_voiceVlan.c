@@ -354,7 +354,7 @@ L7_RC_t hapiBroadVoiceVlanCosOverridePolicyCreate(BROAD_PORT_t *hapiPortPtr,DAPI
   result = hapiBroadPolicyCommit(&cosqId);
   if (L7_SUCCESS == result)
   {
-    hapiBroadPolicyApplyToIface(cosqId, hapiPortPtr->bcmx_lport);
+    hapiBroadPolicyApplyToIface(cosqId, hapiPortPtr->bcm_gport);
     hapiPortPtr->voiceVlanPort.voiceVlanPolicy = cosqId;
     rc =  L7_SUCCESS;
   }
@@ -398,7 +398,7 @@ L7_RC_t hapiBroadVoiceVlanCosOverride(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *dat
     if (hapiPortPtr->voiceVlanPort.voiceVlanPolicy != BROAD_POLICY_INVALID)
     {
       /* remove currently applied policy and reconstruct new policy*/
-      hapiBroadPolicyRemoveFromIface(hapiPortPtr->voiceVlanPort.voiceVlanPolicy, hapiPortPtr->bcmx_lport);
+      hapiBroadPolicyRemoveFromIface(hapiPortPtr->voiceVlanPort.voiceVlanPolicy, hapiPortPtr->bcm_gport);
       hapiBroadPolicyDelete(hapiPortPtr->voiceVlanPort.voiceVlanPolicy);
       hapiPortPtr->voiceVlanPort.voiceVlanPolicy = BROAD_POLICY_INVALID;
     }
@@ -415,7 +415,7 @@ L7_RC_t hapiBroadVoiceVlanCosOverride(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *dat
   {
     if(hapiPortPtr->voiceVlanPort.voiceVlanPolicy != BROAD_POLICY_INVALID)
     {
-      hapiBroadPolicyRemoveFromIface(hapiPortPtr->voiceVlanPort.voiceVlanPolicy, hapiPortPtr->bcmx_lport);
+      hapiBroadPolicyRemoveFromIface(hapiPortPtr->voiceVlanPort.voiceVlanPolicy, hapiPortPtr->bcm_gport);
       hapiBroadPolicyDelete(hapiPortPtr->voiceVlanPort.voiceVlanPolicy);
       hapiPortPtr->voiceVlanPort.voiceVlanPolicy = BROAD_POLICY_INVALID;
       if (hapiPortPtr->voiceVlanPort.deviceCount > 0)
@@ -476,7 +476,7 @@ L7_RC_t hapiBroadVoiceVlanAuth(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
   {
     if (BROAD_POLICY_INVALID != hapiSystem->voiceDhcpSysId)
     {
-      rc = hapiBroadPolicyApplyToIface(hapiSystem->voiceDhcpSysId, hapiPortPtr->bcmx_lport);
+      rc = hapiBroadPolicyApplyToIface(hapiSystem->voiceDhcpSysId, hapiPortPtr->bcm_gport);
       if (L7_SUCCESS != rc)
       {
         if (hapiVoiceVlanDebug1)
@@ -499,7 +499,7 @@ L7_RC_t hapiBroadVoiceVlanAuth(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
   {
     if (BROAD_POLICY_INVALID != hapiSystem->voiceDhcpSysId)
     {
-      rc = hapiBroadPolicyRemoveFromIface(hapiSystem->voiceDhcpSysId, hapiPortPtr->bcmx_lport);
+      rc = hapiBroadPolicyRemoveFromIface(hapiSystem->voiceDhcpSysId, hapiPortPtr->bcm_gport);
       if (L7_SUCCESS != rc)
       {
         if (hapiVoiceVlanDebug1)

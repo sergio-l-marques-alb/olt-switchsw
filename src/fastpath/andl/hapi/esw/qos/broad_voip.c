@@ -78,7 +78,7 @@ static L7_RC_t hapiBroadQosVoIPApplyPolicyToIface(DAPI_USP_t *usp, DAPI_t *dapi_
       if (L7_TRUE == lagMemberSet[i].inUse)
       {
         lagMemberPtr = HAPI_PORT_GET(&lagMemberSet[i].usp, dapi_g);
-        result = hapiBroadPolicyApplyToIface(voipProfilePolicy, lagMemberPtr->bcmx_lport);
+        result = hapiBroadPolicyApplyToIface(voipProfilePolicy, lagMemberPtr->bcm_gport);
       }
     }
 
@@ -91,13 +91,13 @@ static L7_RC_t hapiBroadQosVoIPApplyPolicyToIface(DAPI_USP_t *usp, DAPI_t *dapi_
   {
     if (addDel == L7_TRUE)
     {
-      result = hapiBroadPolicyApplyToIface(voipProfilePolicy, hapiPortPtr->bcmx_lport);
+      result = hapiBroadPolicyApplyToIface(voipProfilePolicy, hapiPortPtr->bcm_gport);
     }
     else
     {
       if (!BROAD_PORT_IS_ACQUIRED(hapiPortPtr))
       {
-        result = hapiBroadPolicyApplyToIface(voipProfilePolicy, hapiPortPtr->bcmx_lport);
+        result = hapiBroadPolicyApplyToIface(voipProfilePolicy, hapiPortPtr->bcm_gport);
         if (result == L7_SUCCESS)
         {
           count++;
@@ -151,7 +151,7 @@ static L7_RC_t hapiBroadQosVoIPRemovePolicyFromIface(DAPI_USP_t *usp, DAPI_t *da
       if (L7_TRUE == lagMemberSet[i].inUse)
       {
         lagMemberPtr = HAPI_PORT_GET(&lagMemberSet[i].usp, dapi_g);
-        result = hapiBroadPolicyRemoveFromIface(voipProfilePolicy, lagMemberPtr->bcmx_lport);
+        result = hapiBroadPolicyRemoveFromIface(voipProfilePolicy, lagMemberPtr->bcm_gport);
 
         if (result == L7_SUCCESS)
         {
@@ -172,13 +172,13 @@ static L7_RC_t hapiBroadQosVoIPRemovePolicyFromIface(DAPI_USP_t *usp, DAPI_t *da
   {
     if (addDel == L7_TRUE)
     {
-      result = hapiBroadPolicyRemoveFromIface(voipProfilePolicy, hapiPortPtr->bcmx_lport);
+      result = hapiBroadPolicyRemoveFromIface(voipProfilePolicy, hapiPortPtr->bcm_gport);
     }
     else
     {
       if (!BROAD_PORT_IS_ACQUIRED(hapiPortPtr))
       {
-        result = hapiBroadPolicyRemoveFromIface(voipProfilePolicy, hapiPortPtr->bcmx_lport);
+        result = hapiBroadPolicyRemoveFromIface(voipProfilePolicy, hapiPortPtr->bcm_gport);
         if (result == L7_SUCCESS)
         {
           count--;
@@ -505,7 +505,7 @@ L7_RC_t    hapiBroadVoipPolicyApply(BROAD_POLICY_t policy, DAPI_t *dapi_g)
           continue;
        }
        hapiPortPtr = HAPI_PORT_GET(&dapiUsp, dapi_g);
-       result = hapiBroadPolicyApplyToIface(policy, hapiPortPtr->bcmx_lport);
+       result = hapiBroadPolicyApplyToIface(policy, hapiPortPtr->bcm_gport);
        if (result !=L7_SUCCESS)
        {
          continue;
@@ -811,7 +811,7 @@ L7_RC_t hapiBroadQosVoipProfile(DAPI_USP_t *usp,
       hapiPortPtr->voipPolicy = voipProfilePolicy;
       if ((count == 1) && (voipCmd->cmdData.voipProfile.guarentedBw))
       {
-        result = cosq_port_bandwidth_set_all(dapi_g, hapiPortPtr->bcmx_lport,
+        result = cosq_port_bandwidth_set_all(dapi_g, hapiPortPtr->bcm_gport,
                                              FD_VOIP_COS_QUEUE,
                                              voipCmd->cmdData.voipProfile.guarentedBw,
                                              0);
@@ -835,7 +835,7 @@ L7_RC_t hapiBroadQosVoipProfile(DAPI_USP_t *usp,
         voipProfilePolicy = BROAD_POLICY_INVALID;
         if (voipCmd->cmdData.voipProfile.guarentedBw)
         {
-          result = cosq_port_bandwidth_set_all(dapi_g, hapiPortPtr->bcmx_lport,
+          result = cosq_port_bandwidth_set_all(dapi_g, hapiPortPtr->bcm_gport,
                                                FD_VOIP_COS_QUEUE,0,0);
         }
       }

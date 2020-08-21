@@ -344,10 +344,10 @@ L7_RC_t hapiBroadSystemMirroringSet(DAPI_USP_t *fromUsp,
   hapiMirrorFromPortPtr = HAPI_PORT_GET(fromUsp, dapi_g);
   hapiMirrorToPortPtr = HAPI_PORT_GET(toUsp, dapi_g);
 
-  bcmMirrorFromGport = hapiMirrorFromPortPtr->bcmx_lport;
-  bcmMirrorToGport = hapiMirrorToPortPtr->bcmx_lport;
+  bcmMirrorFromGport = hapiMirrorFromPortPtr->bcm_gport;
+  bcmMirrorToGport = hapiMirrorToPortPtr->bcm_gport;
 
-  mirrorConfig.probePort = hapiMirrorToPortPtr->bcmx_lport;
+  mirrorConfig.probePort = hapiMirrorToPortPtr->bcm_gport;
   mirrorConfig.stackUnit = toUsp->unit;
 
   if (add == L7_TRUE)
@@ -389,7 +389,7 @@ L7_RC_t hapiBroadSystemMirroringSet(DAPI_USP_t *fromUsp,
         if (dapiPortPtr->modeparm.lag.memberSet[i].inUse == L7_TRUE)
         {
           hapiLagMemberPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
-          gport = hapiLagMemberPortPtr->bcmx_lport;
+          gport = hapiLagMemberPortPtr->bcm_gport;
 
           rv = usl_bcmx_port_mirror_set(gport, mirrorConfig);
           if (L7_BCMX_OK(rv) != L7_TRUE)
@@ -429,7 +429,7 @@ L7_RC_t hapiBroadSystemMirroringSet(DAPI_USP_t *fromUsp,
         {
           hapiLagMemberPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
 
-          gport = hapiLagMemberPortPtr->bcmx_lport;
+          gport = hapiLagMemberPortPtr->bcm_gport;
           rv = usl_bcmx_port_mirror_set(gport, mirrorConfig);
           if (L7_BCMX_OK(rv) != L7_TRUE)
           {
@@ -554,7 +554,7 @@ L7_RC_t hapiBroadSystemMirroring(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
    * is supported
    */
   hapiMirrorToPortPtr = HAPI_PORT_GET(&(dapi_g->system->probeUsp), dapi_g);
-  bcmMirrorToGport = hapiMirrorToPortPtr->bcmx_lport;
+  bcmMirrorToGport = hapiMirrorToPortPtr->bcm_gport;
   if((add == L7_TRUE) && (result == L7_SUCCESS))
   {
      hapiBroadMirrorEnable ();
@@ -720,7 +720,7 @@ L7_BOOL hapiBroadSystemMirroringUSPIsProbe(DAPI_USP_t *usp, DAPI_t *dapi_g)
   if(isValidUsp(&dapi_g->system->probeUsp, dapi_g) && dapi_g->system->mirrorEnable)
   {
       hapiMirrorToPortPtr = HAPI_PORT_GET(&dapi_g->system->probeUsp, dapi_g);
-      if(hapiMirrorToPortPtr->bcmx_lport == hapiPortPtr->bcmx_lport)
+      if(hapiMirrorToPortPtr->bcm_gport == hapiPortPtr->bcm_gport)
       {
           result = L7_TRUE;
       }
@@ -856,7 +856,7 @@ L7_RC_t hapiBroadSystemMacAddress(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
   
   hapiPortPtr = HAPI_PORT_GET(&cpuUsp, dapi_g);
   l2Addr.flags = (BCM_L2_STATIC | BCM_L2_REPLACE_DYNAMIC);
-  l2Addr.port  = hapiPortPtr->bcmx_lport;
+  l2Addr.port  = hapiPortPtr->bcm_gport;
   l2Addr.modid = hapiPortPtr->bcm_modid;
 
   /* Add MAC addr to hw ARL table 
@@ -1097,7 +1097,7 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "broadcastControl.type=%u broadcastControl.enable=%u", dapiCmd->cmdData.broadcastControl.type, dapiCmd->cmdData.broadcastControl.enable);
   PT_LOG_TRACE(LOG_CTX_HAPI, "hapiBroadIntfBroadcastControlModeSet with limit=%llu bucket_size=%u units=%u for bcmx_lport=0x%x",
-            rate, bucket_size, units, hapiPortPtr->bcmx_lport);
+            rate, bucket_size, units, hapiPortPtr->bcm_gport);
 
   switch (dapiCmd->cmdData.broadcastControl.type) 
   {
@@ -1116,8 +1116,8 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
       }
 
       PT_LOG_TRACE(LOG_CTX_HAPI, "usl_bcmx_rate_bcast_set with limit=%u bucket_size=%u flags=0x%x for bcmx_lport=0x%x",
-                rateLimit.limit, rateLimit.bucket_size, rateLimit.flags, hapiPortPtr->bcmx_lport);
-      rv = usl_bcmx_rate_bcast_set(hapiPortPtr->bcmx_lport, rateLimit);
+                rateLimit.limit, rateLimit.bucket_size, rateLimit.flags, hapiPortPtr->bcm_gport);
+      rv = usl_bcmx_rate_bcast_set(hapiPortPtr->bcm_gport, rateLimit);
       PT_LOG_TRACE(LOG_CTX_HAPI, "rv=%d", rv);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
@@ -1141,8 +1141,8 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
       }
 
       PT_LOG_TRACE(LOG_CTX_HAPI, "usl_bcmx_rate_mcast_set with limit=%u bucket_size=%u flags=0x%x for bcmx_lport=0x%x",
-                rateLimit.limit, rateLimit.bucket_size, rateLimit.flags, hapiPortPtr->bcmx_lport);
-      rv = usl_bcmx_rate_mcast_set(hapiPortPtr->bcmx_lport, rateLimit);
+                rateLimit.limit, rateLimit.bucket_size, rateLimit.flags, hapiPortPtr->bcm_gport);
+      rv = usl_bcmx_rate_mcast_set(hapiPortPtr->bcm_gport, rateLimit);
       PT_LOG_TRACE(LOG_CTX_HAPI, "rv=%d", rv);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
@@ -1166,8 +1166,8 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
       }
 
       PT_LOG_TRACE(LOG_CTX_HAPI, "usl_bcmx_rate_dlfbc_set with limit=%u bucket_size=%u flags=0x%x for bcmx_lport=0x%x",
-                rateLimit.limit, rateLimit.bucket_size, rateLimit.flags, hapiPortPtr->bcmx_lport);
-      rv = usl_bcmx_rate_dlfbc_set(hapiPortPtr->bcmx_lport, rateLimit);
+                rateLimit.limit, rateLimit.bucket_size, rateLimit.flags, hapiPortPtr->bcm_gport);
+      rv = usl_bcmx_rate_dlfbc_set(hapiPortPtr->bcm_gport, rateLimit);
       PT_LOG_TRACE(LOG_CTX_HAPI, "rv=%d", rv);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
@@ -1284,7 +1284,7 @@ L7_RC_t hapiBroadInterfaceFlowControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *dat
     memcpy (pauseCmd.pauseMacAddr, ((BROAD_SYSTEM_t*)dapi_g->system->hapiSystem)->bridgeMacAddr.addr, sizeof(pauseCmd.pauseMacAddr));
   }
 
-  rv = usl_bcmx_port_flow_control_set(hapiPortPtr->bcmx_lport, pauseCmd);
+  rv = usl_bcmx_port_flow_control_set(hapiPortPtr->bcm_gport, pauseCmd);
   if (L7_BCMX_OK(rv) != L7_TRUE)
   {  
     SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS,
@@ -1737,7 +1737,7 @@ L7_RC_t hapiBroadIntfIsolatePhyConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *dat
 
   hapiPortPtr->hapiModeparm.physical.admin_enabled = enable;
 
-  rv = usl_bcmx_port_enable_set(hapiPortPtr->bcmx_lport, enable);
+  rv = usl_bcmx_port_enable_set(hapiPortPtr->bcm_gport, enable);
   if (L7_BCMX_OK(rv) != L7_TRUE)
   {
 	L7_LOG_ERROR(rv);
@@ -5548,7 +5548,7 @@ L7_RC_t hapiBroadIntfMaxFrameSizeConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
   /* Max Frame Size is allowed only on physical ports */
   if (IS_PORT_TYPE_PHYSICAL (dapiPortPtr) == L7_TRUE)
   {
-    rc = usl_bcmx_port_frame_max_set(hapiPortPtr->bcmx_lport, maxFrameSize);
+    rc = usl_bcmx_port_frame_max_set(hapiPortPtr->bcm_gport, maxFrameSize);
     if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc!=BCM_E_UNAVAIL))
     {
       result = L7_FAILURE;
@@ -5567,7 +5567,7 @@ L7_RC_t hapiBroadIntfMaxFrameSizeConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
       {
         hapiPortPtr_member = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[index].usp, dapi_g);
 
-        rc = usl_bcmx_port_frame_max_set(hapiPortPtr_member->bcmx_lport, maxFrameSize);
+        rc = usl_bcmx_port_frame_max_set(hapiPortPtr_member->bcm_gport, maxFrameSize);
         if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc!=BCM_E_UNAVAIL))
         {
           result = L7_FAILURE;
@@ -6050,7 +6050,7 @@ L7_RC_t hapiBroadIntfCableTest(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
   }
 
   /* run diag */
-  rv = usl_bcmx_port_copper_diag_get(hapiPortPtr->bcmx_lport, &cd);
+  rv = usl_bcmx_port_copper_diag_get(hapiPortPtr->bcm_gport, &cd);
   /* The api can return values > 0. So check for negative error codes only. */
   if (rv < BCM_E_NONE)
   {
@@ -6142,7 +6142,7 @@ L7_RC_t hapiBroadIntfCableTest(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
    */
   if (hapiPortPtr->hapiModeparm.physical.admin_enabled == L7_FALSE)
   {
-    rv = usl_bcmx_port_enable_set(hapiPortPtr->bcmx_lport, 
+    rv = usl_bcmx_port_enable_set(hapiPortPtr->bcm_gport, 
                                   hapiPortPtr->hapiModeparm.physical.admin_enabled);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
@@ -6209,7 +6209,7 @@ L7_RC_t hapiBroadSystemDosPingFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, vo
   meterDef.cbs = 128;
  
   /* Get the logical BCMX port */
-  gport  = hapiPortPtr->bcmx_lport;
+  gport  = hapiPortPtr->bcm_gport;
 
   if(pingFlood_id == BROAD_POLICY_INVALID)
   {
@@ -6237,7 +6237,7 @@ L7_RC_t hapiBroadSystemDosPingFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, vo
       result = hapiBroadPolicyCommit(&pingFlood_id);
       if (L7_SUCCESS == result)
       {
-        result = hapiBroadPolicyApplyToIface(pingFlood_id, hapiPortPtr->bcmx_lport);
+        result = hapiBroadPolicyApplyToIface(pingFlood_id, hapiPortPtr->bcm_gport);
         if (L7_SUCCESS == result)
         {
           hapiPortPtr->pingFloodPolicyApplied = L7_TRUE;
@@ -6283,7 +6283,7 @@ L7_RC_t hapiBroadSystemDosPingFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, vo
       {
         if (hapiPortPtr->pingFloodPolicyApplied == L7_FALSE)
         {
-          result = hapiBroadPolicyApplyToIface(pingFlood_id, hapiPortPtr->bcmx_lport);
+          result = hapiBroadPolicyApplyToIface(pingFlood_id, hapiPortPtr->bcm_gport);
           if (result == L7_SUCCESS)
           {
             hapiPortPtr->pingFloodPolicyApplied = L7_TRUE;
@@ -6296,7 +6296,7 @@ L7_RC_t hapiBroadSystemDosPingFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, vo
     {
       if (hapiPortPtr->pingFloodPolicyApplied == L7_TRUE)
       {
-        result = hapiBroadPolicyRemoveFromIface(pingFlood_id, hapiPortPtr->bcmx_lport);
+        result = hapiBroadPolicyRemoveFromIface(pingFlood_id, hapiPortPtr->bcm_gport);
         if(result == L7_SUCCESS)
         {
           hapiPortPtr->pingFloodPolicyApplied = L7_FALSE;
@@ -6388,7 +6388,7 @@ L7_RC_t hapiBroadSystemDosSmurfAttackFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, voi
       result = hapiBroadPolicyCommit(&smurfPolicy_id);
       if (L7_SUCCESS == result)
       {
-        result = hapiBroadPolicyApplyToIface(smurfPolicy_id, hapiPortPtr->bcmx_lport);
+        result = hapiBroadPolicyApplyToIface(smurfPolicy_id, hapiPortPtr->bcm_gport);
         if (L7_SUCCESS == result)
         {
           hapiPortPtr->smurfAttackPolicyApplied = L7_TRUE;
@@ -6411,7 +6411,7 @@ L7_RC_t hapiBroadSystemDosSmurfAttackFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, voi
     {
       if (hapiPortPtr->smurfAttackPolicyApplied == L7_FALSE)
       {
-        result = hapiBroadPolicyApplyToIface(smurfPolicy_id, hapiPortPtr->bcmx_lport);
+        result = hapiBroadPolicyApplyToIface(smurfPolicy_id, hapiPortPtr->bcm_gport);
         if (result == L7_SUCCESS)
         {
           hapiPortPtr->smurfAttackPolicyApplied = L7_TRUE;
@@ -6423,7 +6423,7 @@ L7_RC_t hapiBroadSystemDosSmurfAttackFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, voi
     {
       if (hapiPortPtr->smurfAttackPolicyApplied == L7_TRUE)
       {
-        result = hapiBroadPolicyRemoveFromIface(smurfPolicy_id, hapiPortPtr->bcmx_lport);
+        result = hapiBroadPolicyRemoveFromIface(smurfPolicy_id, hapiPortPtr->bcm_gport);
         if(result == L7_SUCCESS)
         {
           hapiPortPtr->smurfAttackPolicyApplied = L7_FALSE;
@@ -6503,7 +6503,7 @@ L7_RC_t hapiBroadSystemDosSynAckFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, 
   meterDef.cbs = 128;
 
   /* Get the logical BCMX port */
-  gport  = hapiPortPtr->bcmx_lport;
+  gport  = hapiPortPtr->bcm_gport;
 
   if( synFlood_id  == BROAD_POLICY_INVALID )
   {
@@ -6533,7 +6533,7 @@ L7_RC_t hapiBroadSystemDosSynAckFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, 
       result = hapiBroadPolicyCommit(&synFlood_id );
       if (L7_SUCCESS == result)
       {
-        result = hapiBroadPolicyApplyToIface(synFlood_id , hapiPortPtr->bcmx_lport);
+        result = hapiBroadPolicyApplyToIface(synFlood_id , hapiPortPtr->bcm_gport);
         if (L7_SUCCESS == result)
         {
           hapiPortPtr->synAckPolicyApplied = L7_TRUE;
@@ -6579,7 +6579,7 @@ L7_RC_t hapiBroadSystemDosSynAckFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, 
       {
         if (hapiPortPtr->synAckPolicyApplied == L7_FALSE)
        {
-         result = hapiBroadPolicyApplyToIface(synFlood_id, hapiPortPtr->bcmx_lport);
+         result = hapiBroadPolicyApplyToIface(synFlood_id, hapiPortPtr->bcm_gport);
           if (result == L7_SUCCESS)
          {
             hapiPortPtr->synAckPolicyApplied = L7_TRUE;
@@ -6592,7 +6592,7 @@ L7_RC_t hapiBroadSystemDosSynAckFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, 
     {
       if (hapiPortPtr->synAckPolicyApplied == L7_TRUE)
       {
-        result = hapiBroadPolicyRemoveFromIface(synFlood_id , hapiPortPtr->bcmx_lport);
+        result = hapiBroadPolicyRemoveFromIface(synFlood_id , hapiPortPtr->bcm_gport);
         if(result == L7_SUCCESS)
         {
           hapiPortPtr->synAckPolicyApplied = L7_FALSE;
@@ -6768,7 +6768,7 @@ L7_RC_t hapiBroadIntfSampleRate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAP
   {
     sflowConfig.ingressSamplingRate = dapiCmd->cmdData.sFlowConfig.ingressSamplingRate;
     sflowConfig.egressSamplingRate =  dapiCmd->cmdData.sFlowConfig.egressSamplingRate;
-    rv = usl_bcmx_port_sample_rate_set(hapiPortPtr->bcmx_lport, &sflowConfig);
+    rv = usl_bcmx_port_sample_rate_set(hapiPortPtr->bcm_gport, &sflowConfig);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       result = L7_FAILURE;
@@ -6777,7 +6777,7 @@ L7_RC_t hapiBroadIntfSampleRate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAP
   else
   {
     /* get configured rate */
-    rv = usl_bcmx_port_sample_rate_get(hapiPortPtr->bcmx_lport, &sflowConfig);
+    rv = usl_bcmx_port_sample_rate_get(hapiPortPtr->bcm_gport, &sflowConfig);
                                       
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
@@ -6836,7 +6836,7 @@ L7_RC_t hapiBroadIntfFiberDiagTest(DAPI_USP_t *usp,
   {
     if (dapiCmd->cmdData.cableFiberDiag.getOrSet == DAPI_CMD_GET)
     {
-      if (BCM_E_NONE == usl_bcmx_port_sfp_diag_get(hapiPortPtr->bcmx_lport,
+      if (BCM_E_NONE == usl_bcmx_port_sfp_diag_get(hapiPortPtr->bcm_gport,
                                                    &temperature,
                                                    &voltage,
                                                    &current,
@@ -7271,7 +7271,7 @@ L7_RC_t hapiBroadIntfPfcConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
     if (hapiPortPtr == L7_NULLPTR) break;
 
     rc = usl_portdb_pfc_config_get(USL_CURRENT_DB, 
-                                   hapiPortPtr->bcmx_lport, 
+                                   hapiPortPtr->bcm_gport, 
                                    &currPfcConfig);
 
     if (rc != BCM_E_NONE) 
@@ -7300,7 +7300,7 @@ L7_RC_t hapiBroadIntfPfcConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
       break;
     }
 
-    rv = usl_bcmx_port_pfc_config_set(hapiPortPtr->bcmx_lport, pfcConfig); 
+    rv = usl_bcmx_port_pfc_config_set(hapiPortPtr->bcm_gport, pfcConfig); 
 
     if (L7_BCMX_OK(rv) != L7_TRUE) break;
 
@@ -7378,7 +7378,7 @@ L7_RC_t hapiBroadIntfPfcStatGet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAP
   }
 
   if (rv == BCM_E_NONE && rc == L7_SUCCESS)
-    rv = usl_bcmx_port_pfc_stat_get(hapiPortPtr->bcmx_lport,&stat);
+    rv = usl_bcmx_port_pfc_stat_get(hapiPortPtr->bcm_gport,&stat);
 
   if (rv == BCM_E_UNAVAIL) rc =  L7_NOT_SUPPORTED;
   else if (L7_BCMX_OK(rv) != L7_TRUE) rc = L7_FAILURE;
@@ -7414,7 +7414,7 @@ L7_RC_t hapiBroadIntfPfcStatsClear(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
   hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
   if (hapiPortPtr == L7_NULLPTR) return L7_FAILURE;;
 
-  rv = usl_bcmx_port_pfc_stats_clear(hapiPortPtr->bcmx_lport);
+  rv = usl_bcmx_port_pfc_stats_clear(hapiPortPtr->bcm_gport);
 
   if (rv == BCM_E_UNAVAIL) rc =  L7_NOT_SUPPORTED;
   else if (L7_BCMX_OK(rv) != L7_TRUE) rc = L7_FAILURE;
@@ -7509,7 +7509,7 @@ L7_RC_t hapiBroadIsdpPortUpdate(DAPI_USP_t *usp,
   hapiSystem  = (BROAD_SYSTEM_t *)dapi_g->system->hapiSystem;
   hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
 
-  gport = hapiPortPtr->bcmx_lport;
+  gport = hapiPortPtr->bcm_gport;
 
   isdpPolicyId = hapiSystem->isdpSysId;
 #ifdef L7_LLPF_PACKAGE
@@ -7711,7 +7711,7 @@ void hapiPortPtr_dump(void)
     hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
 
     printf("hapiPortPtr: usp={%d,%d,%d}\r\n", usp.unit, usp.slot, usp.port);
-    printf("   bcm_gport     = 0x%08X\r\n", hapiPortPtr->bcmx_lport);
+    printf("   bcm_gport     = 0x%08X\r\n", hapiPortPtr->bcm_gport);
     printf("   bcm_unit      = %d\r\n", hapiPortPtr->bcm_unit);
     printf("   bcm_modid     = %d\r\n", hapiPortPtr->bcm_modid);
     printf("   bcm_port      = %d\r\n", hapiPortPtr->bcm_port);
@@ -7729,7 +7729,7 @@ void hapiPortPtr_dump(void)
     hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
 
     printf("hapiPortPtr: usp={%d,%d,%d}\r\n", usp.unit, usp.slot, usp.port);
-    printf("   bcm_gport     = 0x%08X\r\n", hapiPortPtr->bcmx_lport);
+    printf("   bcm_gport     = 0x%08X\r\n", hapiPortPtr->bcm_gport);
     printf("   bcm_unit      = %d\r\n", hapiPortPtr->bcm_unit);
     printf("   bcm_modid     = %d\r\n", hapiPortPtr->bcm_modid);
     printf("   bcm_port      = %d\r\n", hapiPortPtr->bcm_port);

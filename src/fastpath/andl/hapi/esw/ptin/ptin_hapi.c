@@ -2037,7 +2037,7 @@ L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, pbmp_t *
   hapiPortPtr = HAPI_PORT_GET( ddUsp, dapi_g );
 
   /* Extract gport */
-  gport = hapiPortPtr->bcmx_lport;
+  gport = hapiPortPtr->bcm_gport;
   PT_LOG_TRACE(LOG_CTX_HAPI,"Analysing interface {%d,%d,%d}: gport=0x%08x",ddUsp->unit,ddUsp->slot,ddUsp->port,gport);
 
   /* Extract Trunk id */
@@ -3227,13 +3227,13 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
       }
 
       /* Associate class to the specified interface */
-      rv = bcm_l2_learn_port_class_set(unit, hapiPortPtr->bcmx_lport, class_id);
+      rv = bcm_l2_learn_port_class_set(unit, hapiPortPtr->bcm_gport, class_id);
       if (rv != BCM_E_NONE)
       {
         PT_LOG_ERR(LOG_CTX_HAPI, "unit %d: Error setting class %d to port {%d,%d,%d} (bcmx_lport=0x%x) (rv=%d)",
                    unit, class_id,
                    dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port,
-                   hapiPortPtr->bcmx_lport, rv);
+                   hapiPortPtr->bcm_gport, rv);
         return L7_FAILURE;
       }
     }
@@ -3399,7 +3399,7 @@ L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_
   {
     /* Get class id from the specified interface */
     /* FIXME: Only applied to unit 0 */
-    rv = bcm_l2_learn_port_class_get(0 /*unit*/, hapiPortPtr->bcmx_lport, &class_id);
+    rv = bcm_l2_learn_port_class_get(0 /*unit*/, hapiPortPtr->bcm_gport, &class_id);
     if (rv != BCM_E_NONE)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error getting classId from port {%d,%d,%d}",
@@ -6566,7 +6566,7 @@ L7_RC_t ptin_hapi_vcap_defvid(DAPI_USP_t *usp, L7_uint16 outerVlan, L7_uint16 in
   }
 
   PT_LOG_TRACE(LOG_CTX_HAPI,"Configuring policy: usp={%d,%d,%d}/gport=0x%x, vlan format 0x%x, outerVlan %u, innerVlan %u",
-            usp->unit,usp->slot,usp->port, hapiPortPtr->bcmx_lport, vlan_format, outerVlan, innerVlan);
+            usp->unit,usp->slot,usp->port, hapiPortPtr->bcm_gport, vlan_format, outerVlan, innerVlan);
 
   /* Only consider valid VLANs between 2 and 4095 */
   if (outerVlan >= 2 && outerVlan <= 4095)
@@ -6619,11 +6619,11 @@ L7_RC_t ptin_hapi_vcap_defvid(DAPI_USP_t *usp, L7_uint16 outerVlan, L7_uint16 in
     PT_LOG_TRACE(LOG_CTX_HAPI,"Policy %d commited successfully!", policyId);
 
     /* Apply to interface */
-    rc = hapiBroadPolicyApplyToIface(policyId, hapiPortPtr->bcmx_lport);
+    rc = hapiBroadPolicyApplyToIface(policyId, hapiPortPtr->bcm_gport);
     if (L7_SUCCESS != rc)
     {
       PT_LOG_ERR(LOG_CTX_HAPI,"Error applying interface usp={%d,%d,%d}/gport=0x%x to policy %d: rc=%d",
-              usp->unit,usp->slot,usp->port, hapiPortPtr->bcmx_lport, policyId, rc);
+              usp->unit,usp->slot,usp->port, hapiPortPtr->bcm_gport, policyId, rc);
       hapiBroadPolicyDelete(policyId);
       return rc;
     }

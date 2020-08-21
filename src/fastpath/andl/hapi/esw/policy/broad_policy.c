@@ -141,7 +141,7 @@ static L7_RC_t hapiBroadPolicyPortSelect(DAPI_USP_t *usp, bcm_gport_t *gport)
     }
 
     if (L7_SUCCESS == result)
-        *gport = hapiPortPtr->bcmx_lport;
+        *gport = hapiPortPtr->bcm_gport;
 
     return result;
 }

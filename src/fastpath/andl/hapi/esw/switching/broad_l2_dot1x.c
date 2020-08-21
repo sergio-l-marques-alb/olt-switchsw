@@ -190,7 +190,7 @@ L7_RC_t hapiBroadDot1xPolicyCreate(DAPI_USP_t *usp,
 
   if (hapiBroadDiffServPolicyCreate(usp, pTLV, direction, groupId, L7_FALSE, policyId, dapi_g) == L7_SUCCESS)
   {
-    result = hapiBroadPolicyApplyToIface(*policyId, hapiPortPtr->bcmx_lport);
+    result = hapiBroadPolicyApplyToIface(*policyId, hapiPortPtr->bcm_gport);
   }
 
   if (result != L7_SUCCESS)
@@ -235,7 +235,7 @@ L7_RC_t hapiBroadDot1xMacAddrAdd(DAPI_USP_t *usp, L7_enetMacAddr_t macAddr, L7_u
   l2Addr.vid = vid;
   /* add the individual mac addr */
   l2Addr.flags |= (BCM_L2_STATIC | BCM_L2_REPLACE_DYNAMIC);
-  l2Addr.port  = hapiPortPtr->bcmx_lport;
+  l2Addr.port  = hapiPortPtr->bcm_gport;
   l2Addr.modid = hapiPortPtr->bcm_modid;
   l2Addr.group = groupId;
 
@@ -1030,7 +1030,7 @@ L7_RC_t hapiBroadIntfDot1xAuthModeUpdate( DAPI_USP_t *usp, BROAD_PORT_t *hapiPor
   if (L7_DOT1X_PORT_STATUS_UNAUTHORIZED == hapiPortPtr->dot1x.dot1xStatus )
   {
     learnMode = 0;
-    rc = usl_bcmx_port_learn_set( hapiPortPtr->bcmx_lport, learnMode); /* Do not forward or learn */
+    rc = usl_bcmx_port_learn_set( hapiPortPtr->bcm_gport, learnMode); /* Do not forward or learn */
     if ( L7_BCMX_OK( rc ) != L7_TRUE )
     {
       SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
@@ -1142,14 +1142,14 @@ L7_RC_t hapiBroadDot1xViolationPolicyInstall(DAPI_USP_t *usp, DAPI_t *dapi_g)
     if ((hapiPortPtr->dot1x.dot1xStatus == L7_DOT1X_PORT_STATUS_UNAUTHORIZED) && 
         (hapiPortPtr->dot1x.violationCallbackEnabled == L7_TRUE))
     {
-      if (hapiBroadPolicyApplyToIface(hapiSystem->dot1xViolationPolicyId, hapiPortPtr->bcmx_lport) == L7_SUCCESS)
+      if (hapiBroadPolicyApplyToIface(hapiSystem->dot1xViolationPolicyId, hapiPortPtr->bcm_gport) == L7_SUCCESS)
       {
         result = L7_SUCCESS;
       }
     }
     else
     {
-      if (hapiBroadPolicyRemoveFromIface(hapiSystem->dot1xViolationPolicyId, hapiPortPtr->bcmx_lport) == L7_SUCCESS)
+      if (hapiBroadPolicyRemoveFromIface(hapiSystem->dot1xViolationPolicyId, hapiPortPtr->bcm_gport) == L7_SUCCESS)
       {
         result = L7_SUCCESS;
       }
@@ -1191,7 +1191,7 @@ L7_RC_t hapiBroadDot1xPortVlanRemove(DAPI_USP_t *usp, DAPI_t *dapi_g)
 
   /* Disable ingress filtering on the port */
   
-   gport = hapiPortPtr->bcmx_lport;
+   gport = hapiPortPtr->bcm_gport;
    result = hapiBroadVlanIngressFilterSet(gport, L7_FALSE);
 
    return result;
@@ -1229,7 +1229,7 @@ L7_RC_t hapiBroadDot1xPortVlanReset(DAPI_USP_t *usp, DAPI_t *dapi_g)
                                   dapi_g);
 
  /*Reset Ingress Filtering on the port*/
- gport = hapiPortPtr->bcmx_lport;
+ gport = hapiPortPtr->bcm_gport;
  result = hapiBroadVlanIngressFilterSet(gport, hapiPortPtr->ingressFilteringEnabled);
  return result;
 }
@@ -1313,7 +1313,7 @@ L7_RC_t hapiBroadIntfDot1xStatus(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
       return result;
     }
 
-    rv = usl_bcmx_port_dot1x_config(hapiPortPtr->bcmx_lport, status);
+    rv = usl_bcmx_port_dot1x_config(hapiPortPtr->bcm_gport, status);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       L7_LOG_ERROR(rv);    
@@ -1327,11 +1327,11 @@ L7_RC_t hapiBroadIntfDot1xStatus(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
      
       /* Flush FDB */
       l2addr_port.vlanID = 0;
-      l2addr_port.bcmx_lport  = 0;
+      l2addr_port.bcm_gport  = 0;
       l2addr_port.tgid = 0;
       l2addr_port.flushtype = BROAD_FLUSH_BY_PORT;
       l2addr_port.flushflags = BROAD_FLUSH_FLAGS_NONE;
-      l2addr_port.bcmx_lport = hapiPortPtr->bcmx_lport;
+      l2addr_port.bcm_gport = hapiPortPtr->bcm_gport;
       l2addr_port.port_is_lag = L7_FALSE;
 
       hapiBroadL2FlushRequest(l2addr_port);
@@ -1614,7 +1614,7 @@ L7_RC_t hapiBroadIntfDot1xClientAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
      }
 
      /* check client timeout inorder to reset the HIT_SRC bit , so that if client is absent after 5 mins, client details are removed from the application*/
-     hapiBroadDot1xMacAddrTimeoutCheck(hapiPortPtr->bcmx_lport,
+     hapiBroadDot1xMacAddrTimeoutCheck(hapiPortPtr->bcm_gport,
                                        pClient->macAddr,
                                        pClient->vid,  
                                        &timeout,
@@ -1646,7 +1646,7 @@ L7_RC_t hapiBroadIntfDot1xClientAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
          }
 
          /* check client timeout inorder to reset the HIT_SRC bit , so that if client is absent after 5 mins, client details are removed from the application*/
-         hapiBroadDot1xMacAddrTimeoutCheck(hapiPortPtr->bcmx_lport,
+         hapiBroadDot1xMacAddrTimeoutCheck(hapiPortPtr->bcm_gport,
                                            pClient->macAddr,
                                            vlan_id,  
                                            &timeout,
@@ -1730,7 +1730,7 @@ L7_RC_t hapiBroadIntfDot1xClientAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
 
            if (hapiBroadPolicyCommit(&pClient->vlanAssignmentPolicyId) == L7_SUCCESS)
            {
-             if (hapiBroadPolicyApplyToIface(pClient->vlanAssignmentPolicyId, hapiPortPtr->bcmx_lport) != L7_SUCCESS)
+             if (hapiBroadPolicyApplyToIface(pClient->vlanAssignmentPolicyId, hapiPortPtr->bcm_gport) != L7_SUCCESS)
              {
                L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
                        "\n%s %d: In %s Couldn't apply policy to interface\n",
@@ -2002,7 +2002,7 @@ L7_RC_t hapiBroadIntfDot1xClientTimeout(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
  if (pClient->vid != 0)
   {
     /* This client was authorized on only one VLAN. */
-    rc = hapiBroadDot1xMacAddrTimeoutCheck(hapiPortPtr->bcmx_lport,
+    rc = hapiBroadDot1xMacAddrTimeoutCheck(hapiPortPtr->bcm_gport,
                                            pClient->macAddr,
                                            pClient->vid,  
                                            &timeout,
@@ -2026,7 +2026,7 @@ L7_RC_t hapiBroadIntfDot1xClientTimeout(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
       if (BROAD_IS_VLAN_MEMBER(usp, vlanId, dapi_g))
       {
           timeout = L7_FALSE;
-          rc =hapiBroadDot1xMacAddrTimeoutCheck(hapiPortPtr->bcmx_lport,
+          rc =hapiBroadDot1xMacAddrTimeoutCheck(hapiPortPtr->bcm_gport,
                                               pClient->macAddr,
                                               vlanId,
                                               &timeout,
@@ -2109,7 +2109,7 @@ L7_RC_t hapiBroadIntfDot1xClientBlock(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *dat
   memcpy(clientCmd.mac_addr, dapiCmd->cmdData.dot1xClientBlock.macAddr.addr, L7_ENET_MAC_ADDR_LEN);
   clientCmd.vlan_id = dapiCmd->cmdData.dot1xClientBlock.vlanId;
 
-  if (usl_bcmx_port_dot1x_client_block(hapiPortPtr->bcmx_lport, &clientCmd) == BCM_E_NONE)
+  if (usl_bcmx_port_dot1x_client_block(hapiPortPtr->bcm_gport, &clientCmd) == BCM_E_NONE)
   {
     result = L7_SUCCESS;
   }
@@ -2180,7 +2180,7 @@ L7_RC_t hapiBroadIntfDot1xClientUnblock(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
   memcpy(clientCmd.mac_addr, dapiCmd->cmdData.dot1xClientUnblock.macAddr.addr, L7_ENET_MAC_ADDR_LEN);
   clientCmd.vlan_id = dapiCmd->cmdData.dot1xClientUnblock.vlanId;
 
-  if (usl_bcmx_port_dot1x_client_unblock(hapiPortPtr->bcmx_lport, &clientCmd) == BCM_E_NONE)
+  if (usl_bcmx_port_dot1x_client_unblock(hapiPortPtr->bcm_gport, &clientCmd) == BCM_E_NONE)
   {
     result = L7_SUCCESS;
   }
@@ -2305,7 +2305,7 @@ void hapiBroadDebugDot1xIntfVlanRemove(L7_uint32 unit, L7_uint32 slot, L7_uint32
 
   /* Disable ingress filtering on the port */
   
-   gport = hapiPortPtr->bcmx_lport;
+   gport = hapiPortPtr->bcm_gport;
    result = hapiBroadVlanIngressFilterSet(gport, L7_FALSE);
 }
 
@@ -2333,6 +2333,6 @@ void hapiBroadDebugDot1xIntfVlanReset(L7_uint32 unit, L7_uint32 slot, L7_uint32 
                                    dapi_g);
 
   /*Reset Ingress Filtering on the port*/
-   gport = hapiPortPtr->bcmx_lport;
+   gport = hapiPortPtr->bcm_gport;
    result = hapiBroadVlanIngressFilterSet(gport, hapiPortPtr->ingressFilteringEnabled);
 }

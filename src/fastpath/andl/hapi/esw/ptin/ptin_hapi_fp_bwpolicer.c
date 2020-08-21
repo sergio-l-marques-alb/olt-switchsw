@@ -781,7 +781,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
       /* Physical port */
       if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
       {
-        rc = hapiBroadPolicyApplyToIface(policyId, hapiPortPtr->bcmx_lport);
+        rc = hapiBroadPolicyApplyToIface(policyId, hapiPortPtr->bcm_gport);
         if (rc != L7_SUCCESS)
         {
           hapiBroadPolicyDelete(policyId);
@@ -801,7 +801,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
           {
             hapiLagMemberPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
 
-            rc = hapiBroadPolicyApplyToIface(policyId, hapiLagMemberPortPtr->bcmx_lport);
+            rc = hapiBroadPolicyApplyToIface(policyId, hapiLagMemberPortPtr->bcm_gport);
             if (rc != L7_SUCCESS)
             {
               hapiBroadPolicyDelete(policyId);

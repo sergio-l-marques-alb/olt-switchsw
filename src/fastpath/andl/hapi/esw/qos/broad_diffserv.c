@@ -1449,7 +1449,7 @@ L7_RC_t hapiBroadQosDiffServInstDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *da
     if (BROAD_POLICY_INVALID == qosPort->aclds.policyId[direction])
     {
         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-                "No DiffServ policy applied on port %d\n", hapiPortPtr->bcmx_lport);
+                "No DiffServ policy applied on port %d\n", hapiPortPtr->bcm_gport);
         hapiBroadQosSemGive(dapi_g);
         return L7_ERROR;
     }

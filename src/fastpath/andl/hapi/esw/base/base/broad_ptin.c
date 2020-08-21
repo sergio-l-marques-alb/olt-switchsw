@@ -1396,10 +1396,10 @@ L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
     {
       bcm_l2_addr.flags = 0; 
       bcm_l2_addr.modid = hapiPortPtr_prev->bcm_modid;
-      bcm_l2_addr.port  = hapiPortPtr_prev->bcmx_lport;
+      bcm_l2_addr.port  = hapiPortPtr_prev->bcm_gport;
       bcm_l2_addr.tgid  = -1;
 
-      gport_prev = hapiPortPtr_prev->bcmx_lport;
+      gport_prev = hapiPortPtr_prev->bcm_gport;
       modid_prev = hapiPortPtr_prev->bcm_modid;
     }
     /* Logical port to be removed */
@@ -1422,7 +1422,7 @@ L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
       {
         bcm_l2_addr.flags = BCM_L2_TRUNK_MEMBER;
         bcm_l2_addr.modid = hapiPortPtr_prev->bcm_modid;
-        bcm_l2_addr.port  = hapiPortPtr_prev->bcmx_lport;
+        bcm_l2_addr.port  = hapiPortPtr_prev->bcm_gport;
         bcm_l2_addr.tgid  = tgid_prev;
 
         /* We have a valid lag */
@@ -1447,7 +1447,7 @@ L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
   /* Physical port to be added */
   if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr) == L7_TRUE)
   {
-    gport = hapiPortPtr->bcmx_lport;
+    gport = hapiPortPtr->bcm_gport;
     modid = hapiPortPtr->bcm_modid;
   }
   /* Logical port to be added */
@@ -1503,7 +1503,7 @@ L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
           }
           else
           {
-            rv = bcm_l2_replace(unit, BCM_L2_REPLACE_MATCH_DEST | BCM_L2_REPLACE_NO_CALLBACKS, &bcm_l2_addr, hapiPortPtr->bcmx_lport, -1);
+            rv = bcm_l2_replace(unit, BCM_L2_REPLACE_MATCH_DEST | BCM_L2_REPLACE_NO_CALLBACKS, &bcm_l2_addr, hapiPortPtr->bcm_gport, -1);
           }
 
           if (rv != BCM_E_NONE) 
@@ -2845,7 +2845,7 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, void *data, DAPI_t *dapi_g) {
   //mep.pkt_pri=
   //mep.inner_pkt_pri=
   //mep.int_pri=
-  mep.gport=        hapiPortPtr->bcmx_lport;    //mep.gport=        mep.tx_gport=       hapiPortPtr->bcmx_lport;//BCM_GPORT_LOCAL_SET(mep.tx_gport, 2);
+  mep.gport=        hapiPortPtr->bcm_gport;    //mep.gport=        mep.tx_gport=       hapiPortPtr->bcmx_lport;//BCM_GPORT_LOCAL_SET(mep.tx_gport, 2);
   mep.trunk_index = -1;//_BCM_OAM_INVALID_INDEX;
   //mep.trunk_index= //The trunk port index for this
   //mep.intf_id=

@@ -593,8 +593,8 @@ static void hapiBroadL3McastAddVlanMembersAsL2Ports (DAPI_USP_t *usp,
 
               if (BROAD_IS_VLAN_MEMBER(&searchUsp, *vid, dapi_g) )
               {
-                modid   = BCM_GPORT_MODPORT_MODID_GET(hapiPortPtr->bcmx_lport);
-                bcmPort = BCM_GPORT_MODPORT_PORT_GET(hapiPortPtr->bcmx_lport);
+                modid   = BCM_GPORT_MODPORT_MODID_GET(hapiPortPtr->bcm_gport);
+                bcmPort = BCM_GPORT_MODPORT_PORT_GET(hapiPortPtr->bcm_gport);
 
                 if ((modid < 0) || (bcmPort < 0))
                 {
@@ -603,7 +603,7 @@ static void hapiBroadL3McastAddVlanMembersAsL2Ports (DAPI_USP_t *usp,
  
                 BCM_PBMP_PORT_ADD(ipmcAddress.l2_pbmp[modid], bcmPort);
 
-                HAPI_L3_MCAST_DEBUG("Inserted port %d to the l2_port_list", hapiPortPtr->bcmx_lport);  
+                HAPI_L3_MCAST_DEBUG("Inserted port %d to the l2_port_list", hapiPortPtr->bcm_gport);  
                 if (!BROAD_IS_VLAN_TAGGING(&searchUsp, *vid, dapi_g))
                 {
                   BCM_PBMP_PORT_ADD(ipmcAddress.l2_ubmp[modid], bcmPort);
@@ -636,8 +636,8 @@ static void hapiBroadL3McastAddVlanMembersAsL2Ports (DAPI_USP_t *usp,
           {
             hapiLagMemberPortPtr = HAPI_PORT_GET(&lagMemberSet[lagMemberIndex].usp,dapi_g);
 
-            modid   = BCM_GPORT_MODPORT_MODID_GET(hapiLagMemberPortPtr->bcmx_lport);
-            bcmPort = BCM_GPORT_MODPORT_PORT_GET(hapiLagMemberPortPtr->bcmx_lport);
+            modid   = BCM_GPORT_MODPORT_MODID_GET(hapiLagMemberPortPtr->bcm_gport);
+            bcmPort = BCM_GPORT_MODPORT_PORT_GET(hapiLagMemberPortPtr->bcm_gport);
   
             if ((modid < 0) || (bcmPort < 0))
             {
@@ -646,7 +646,7 @@ static void hapiBroadL3McastAddVlanMembersAsL2Ports (DAPI_USP_t *usp,
 
             BCM_PBMP_PORT_ADD(ipmcAddress.l2_pbmp[modid], bcmPort);
 
-            HAPI_L3_MCAST_DEBUG("Inserted port %d to the l2_port_list", hapiPortPtr->bcmx_lport); 
+            HAPI_L3_MCAST_DEBUG("Inserted port %d to the l2_port_list", hapiPortPtr->bcm_gport); 
             if (!BROAD_IS_VLAN_TAGGING(&searchUsp, *vid, dapi_g))
             {
               BCM_PBMP_PORT_ADD(ipmcAddress.l2_ubmp[modid], bcmPort);
@@ -737,8 +737,8 @@ static void hapiBroadL3McastAddL2Ports (DAPI_USP_t *usp,
           if ((IS_PORT_TYPE_PHYSICAL(dapiPortPtr2) == L7_TRUE) ||
               (IS_PORT_TYPE_CAPWAP_TUNNEL(dapiPortPtr2) == L7_TRUE))
           {
-            modid   = BCM_GPORT_MODPORT_MODID_GET(hapiPortPtr->bcmx_lport);
-            bcmPort = BCM_GPORT_MODPORT_PORT_GET(hapiPortPtr->bcmx_lport);
+            modid   = BCM_GPORT_MODPORT_MODID_GET(hapiPortPtr->bcm_gport);
+            bcmPort = BCM_GPORT_MODPORT_PORT_GET(hapiPortPtr->bcm_gport);
 
             if ((modid != HAPI_BROAD_INVALID_MODID) &&  
                 (bcmPort != HAPI_BROAD_INVALID_MODPORT))
@@ -746,7 +746,7 @@ static void hapiBroadL3McastAddL2Ports (DAPI_USP_t *usp,
               BCM_PBMP_PORT_ADD(ipmcAddress.l2_pbmp[modid], bcmPort);
 
               HAPI_L3_MCAST_DEBUG("Inserted port %d to the l2_port_list", 
-                                  hapiPortPtr->bcmx_lport);
+                                  hapiPortPtr->bcm_gport);
               if (!BROAD_IS_VLAN_TAGGING(&l2BitmapList[i], *vid, dapi_g))
               {
                 BCM_PBMP_PORT_ADD(ipmcAddress.l2_ubmp[modid], bcmPort);
@@ -760,8 +760,8 @@ static void hapiBroadL3McastAddL2Ports (DAPI_USP_t *usp,
             if (lagMemberSet[0].inUse == L7_TRUE)
             {
               hapiLagMemberPortPtr = HAPI_PORT_GET(&lagMemberSet[0].usp,dapi_g);
-              modid   = BCM_GPORT_MODPORT_MODID_GET(hapiLagMemberPortPtr->bcmx_lport);
-              bcmPort = BCM_GPORT_MODPORT_PORT_GET(hapiLagMemberPortPtr->bcmx_lport);
+              modid   = BCM_GPORT_MODPORT_MODID_GET(hapiLagMemberPortPtr->bcm_gport);
+              bcmPort = BCM_GPORT_MODPORT_PORT_GET(hapiLagMemberPortPtr->bcm_gport);
 
               if ((modid != HAPI_BROAD_INVALID_MODID) &&
                   (bcmPort != HAPI_BROAD_INVALID_MODPORT))
@@ -769,7 +769,7 @@ static void hapiBroadL3McastAddL2Ports (DAPI_USP_t *usp,
                 BCM_PBMP_PORT_ADD(ipmcAddress.l2_pbmp[modid], bcmPort);
 
                 HAPI_L3_MCAST_DEBUG("Inserted port %d to the l2_port_list", 
-                                    hapiLagMemberPortPtr->bcmx_lport);
+                                    hapiLagMemberPortPtr->bcm_gport);
                 if (!BROAD_IS_VLAN_TAGGING(&l2BitmapList[i], *vid, dapi_g))
                 {
                   BCM_PBMP_PORT_ADD(ipmcAddress.l2_ubmp[modid], bcmPort);
@@ -926,7 +926,7 @@ static void hapiBroadL3McastAddRemoveL3Ports (DAPI_USP_t *usp,
 
     if (add_remove)
     {
-      hapiBroadL3McastAddL3Port (hapiPortPtr->bcmx_lport,
+      hapiBroadL3McastAddL3Port (hapiPortPtr->bcm_gport,
                                  ipmc_index,
                                  *groupIp,
                                  *srcAddr,
@@ -937,7 +937,7 @@ static void hapiBroadL3McastAddRemoveL3Ports (DAPI_USP_t *usp,
                                  ttl);
     } else
     {
-      hapiBroadL3McastDeleteL3Port (hapiPortPtr->bcmx_lport,
+      hapiBroadL3McastDeleteL3Port (hapiPortPtr->bcm_gport,
                                        ipmc_index,
                                         *groupIp,
                                        *srcAddr,
@@ -991,22 +991,22 @@ static void hapiBroadL3McastAddRemoveL3Ports (DAPI_USP_t *usp,
                   ipmc_tagged = FALSE; /* untagged */
                 }
 
-                if (BCM_GPORT_IS_WLAN_PORT(hapiPortPtr->bcmx_lport))
+                if (BCM_GPORT_IS_WLAN_PORT(hapiPortPtr->bcm_gport))
                 {
               #ifdef L7_WIRELESS_PACKAGE
                   BROAD_WLAN_TUNNEL_ENTRY_t tunnelEntry;
-                  if (hapiBroadWlanInfoGet(dapi_g, hapiPortPtr->bcmx_lport, &tunnelEntry) == L7_SUCCESS)
+                  if (hapiBroadWlanInfoGet(dapi_g, hapiPortPtr->bcm_gport, &tunnelEntry) == L7_SUCCESS)
                   {
                     if (add_remove)
                     {
                       usl_bcmx_ipmc_wlan_l3_port_add(ipmc_index, l3_interface_id, vlan_id,
-                                                     hapiPortPtr->bcmx_lport,
+                                                     hapiPortPtr->bcm_gport,
                                                      tunnelEntry.wlan_port.port);
                     }
                     else
                     {
                       usl_bcmx_ipmc_wlan_l3_port_delete(ipmc_index, l3_interface_id, vlan_id,
-                                                     hapiPortPtr->bcmx_lport,
+                                                     hapiPortPtr->bcm_gport,
                                                      tunnelEntry.wlan_port.port);
 
                     }
@@ -1017,7 +1017,7 @@ static void hapiBroadL3McastAddRemoveL3Ports (DAPI_USP_t *usp,
                 {
                   if (add_remove)
                   {
-                    hapiBroadL3McastAddL3Port (hapiPortPtr->bcmx_lport,
+                    hapiBroadL3McastAddL3Port (hapiPortPtr->bcm_gport,
                                                ipmc_index,
                                                     *groupIp,
                                                *srcAddr,
@@ -1029,7 +1029,7 @@ static void hapiBroadL3McastAddRemoveL3Ports (DAPI_USP_t *usp,
                   }
                   else
                   {
-                    hapiBroadL3McastDeleteL3Port (hapiPortPtr->bcmx_lport,
+                    hapiBroadL3McastDeleteL3Port (hapiPortPtr->bcm_gport,
                                                      ipmc_index,
                                                       *groupIp,
                                                      *srcAddr,
@@ -1076,7 +1076,7 @@ static void hapiBroadL3McastAddRemoveL3Ports (DAPI_USP_t *usp,
 
             if (add_remove)
             {
-              hapiBroadL3McastAddL3Port (hapiLagMemberPortPtr->bcmx_lport,
+              hapiBroadL3McastAddL3Port (hapiLagMemberPortPtr->bcm_gport,
                                          ipmc_index,
                                          *groupIp,
                                          *srcAddr,
@@ -1089,7 +1089,7 @@ static void hapiBroadL3McastAddRemoveL3Ports (DAPI_USP_t *usp,
             }
             else
             {
-              hapiBroadL3McastDeleteL3Port (hapiLagMemberPortPtr->bcmx_lport,
+              hapiBroadL3McastDeleteL3Port (hapiLagMemberPortPtr->bcm_gport,
                                             ipmc_index,
                                             *groupIp,
                                             *srcAddr,
@@ -1487,8 +1487,8 @@ static int hapiBroadMcastHardwareAddEntry(BroadGroupEntryType *entry,DAPI_t *dap
   {
     /* The port is physical; get the proper hardware port info & vlan ID */
     hapiPortPtr = HAPI_PORT_GET(usp,dapi_g);
-    ipmc_info.port_tgid = BCMY_GPORT_MODPORT(hapiPortPtr->bcmx_lport);
-    ipmc_info.mod_id    = BCMY_GPORT_MODID(hapiPortPtr->bcmx_lport);
+    ipmc_info.port_tgid = BCMY_GPORT_MODPORT(hapiPortPtr->bcm_gport);
+    ipmc_info.mod_id    = BCMY_GPORT_MODID(hapiPortPtr->bcm_gport);
   }
   else /* (L7_TRUE == IS_PORT_TYPE_PHYSICAL(dapiPortPtr)) */
   {
@@ -1508,7 +1508,7 @@ static int hapiBroadMcastHardwareAddEntry(BroadGroupEntryType *entry,DAPI_t *dap
     else if (IS_PORT_TYPE_CAPWAP_TUNNEL(dapiPortPtr))
     {
       BROAD_WLAN_TUNNEL_ENTRY_t tunnelEntry;
-      hapiBroadWlanInfoGet(dapi_g, hapiPortPtr->bcmx_lport, &tunnelEntry);
+      hapiBroadWlanInfoGet(dapi_g, hapiPortPtr->bcm_gport, &tunnelEntry);
       ipmc_info.port_tgid = tunnelEntry.wlan_port.port;
       if (bcmy_lut_gport_to_usp_get(tunnelEntry.wlan_port.port, usp) != BCMY_E_NONE)
       {
@@ -1518,8 +1518,8 @@ static int hapiBroadMcastHardwareAddEntry(BroadGroupEntryType *entry,DAPI_t *dap
 #endif
     else
     {
-      ipmc_info.port_tgid = BCMY_GPORT_MODPORT(hapiPortPtr->bcmx_lport);
-      ipmc_info.mod_id    = BCMY_GPORT_MODID(hapiPortPtr->bcmx_lport);
+      ipmc_info.port_tgid = BCMY_GPORT_MODPORT(hapiPortPtr->bcm_gport);
+      ipmc_info.mod_id    = BCMY_GPORT_MODID(hapiPortPtr->bcm_gport);
     }
   } /* (L7_TRUE == IS_PORT_TYPE_PHYSICAL(dapiPortPtr)) */
 
@@ -1886,7 +1886,7 @@ L7_RC_t hapiBroadRoutingIntfMcastSnoopAsyncNotifyProcess(L7_uchar8 *mcastMacAddr
                          if (dapiPortPtr->modeparm.lag.memberSet[j].inUse == L7_TRUE)
                          {
                            hapiPortPtr = HAPI_PORT_GET(&lagMemberSet[j].usp, dapi_g);
-                           hapiBroadL3McastAddL3Port (hapiPortPtr->bcmx_lport,
+                           hapiBroadL3McastAddL3Port (hapiPortPtr->bcm_gport,
                                                       BroadGroupList[tableIndex].ipmc_index,
                                                       BroadGroupList[tableIndex].groupIp,
                                                       BroadGroupList[tableIndex].srcAddr,
@@ -1900,21 +1900,21 @@ L7_RC_t hapiBroadRoutingIntfMcastSnoopAsyncNotifyProcess(L7_uchar8 *mcastMacAddr
                      }
                      else
                      {
-                       if (BCM_GPORT_IS_WLAN_PORT(hapiPortPtr->bcmx_lport))
+                       if (BCM_GPORT_IS_WLAN_PORT(hapiPortPtr->bcm_gport))
                        {
                      #ifdef L7_WIRELESS_PACKAGE
                          BROAD_WLAN_TUNNEL_ENTRY_t tunnelEntry;
-                         if (hapiBroadWlanInfoGet(dapi_g, hapiPortPtr->bcmx_lport, &tunnelEntry) == L7_SUCCESS)
+                         if (hapiBroadWlanInfoGet(dapi_g, hapiPortPtr->bcm_gport, &tunnelEntry) == L7_SUCCESS)
                          {
                            usl_bcmx_ipmc_wlan_l3_port_add(BroadGroupList[tableIndex].ipmc_index, l3_interface_id, vlan_id,
-                                                          hapiPortPtr->bcmx_lport,
+                                                          hapiPortPtr->bcm_gport,
                                                           tunnelEntry.wlan_port.port);
                          }
                      #endif
                        }
                        else
                        {
-                        hapiBroadL3McastAddL3Port (hapiPortPtr->bcmx_lport,
+                        hapiBroadL3McastAddL3Port (hapiPortPtr->bcm_gport,
                                                    BroadGroupList[tableIndex].ipmc_index,
                                                    BroadGroupList[tableIndex].groupIp,
                                                    BroadGroupList[tableIndex].srcAddr,
@@ -1940,7 +1940,7 @@ L7_RC_t hapiBroadRoutingIntfMcastSnoopAsyncNotifyProcess(L7_uchar8 *mcastMacAddr
                        if (dapiPortPtr->modeparm.lag.memberSet[j].inUse == L7_TRUE)
                        {
                          hapiPortPtr = HAPI_PORT_GET(&lagMemberSet[j].usp, dapi_g);
-                         hapiBroadL3McastDeleteL3Port (hapiPortPtr->bcmx_lport,
+                         hapiBroadL3McastDeleteL3Port (hapiPortPtr->bcm_gport,
                                                        BroadGroupList[tableIndex].ipmc_index,
                                                        BroadGroupList[tableIndex].groupIp,
                                                        BroadGroupList[tableIndex].srcAddr,
@@ -1951,21 +1951,21 @@ L7_RC_t hapiBroadRoutingIntfMcastSnoopAsyncNotifyProcess(L7_uchar8 *mcastMacAddr
                    }/* Is lag port check */
                    else
                    {
-                     if (BCM_GPORT_IS_WLAN_PORT(hapiPortPtr->bcmx_lport))
+                     if (BCM_GPORT_IS_WLAN_PORT(hapiPortPtr->bcm_gport))
                      {
                    #ifdef L7_WIRELESS_PACKAGE
                        BROAD_WLAN_TUNNEL_ENTRY_t tunnelEntry;
-                       if (hapiBroadWlanInfoGet(dapi_g, hapiPortPtr->bcmx_lport, &tunnelEntry) == L7_SUCCESS)
+                       if (hapiBroadWlanInfoGet(dapi_g, hapiPortPtr->bcm_gport, &tunnelEntry) == L7_SUCCESS)
                        {
                          usl_bcmx_ipmc_wlan_l3_port_delete(BroadGroupList[tableIndex].ipmc_index, l3_interface_id, vlan_id,
-                                                           hapiPortPtr->bcmx_lport,
+                                                           hapiPortPtr->bcm_gport,
                                                            tunnelEntry.wlan_port.port);
                        }
                    #endif
                      }
                      else
                      {
-                       hapiBroadL3McastDeleteL3Port (hapiPortPtr->bcmx_lport,
+                       hapiBroadL3McastDeleteL3Port (hapiPortPtr->bcm_gport,
                                                      BroadGroupList[tableIndex].ipmc_index,
                                                      BroadGroupList[tableIndex].groupIp,
                                                      BroadGroupList[tableIndex].srcAddr,
@@ -1987,7 +1987,7 @@ L7_RC_t hapiBroadRoutingIntfMcastSnoopAsyncNotifyProcess(L7_uchar8 *mcastMacAddr
                      if (dapiPortPtr->modeparm.lag.memberSet[j].inUse == L7_TRUE)
                      {
                        hapiPortPtr = HAPI_PORT_GET(&lagMemberSet[j].usp, dapi_g);
-                       hapiBroadL3McastAddL3Port (hapiPortPtr->bcmx_lport,
+                       hapiBroadL3McastAddL3Port (hapiPortPtr->bcm_gport,
                                                   BroadGroupList[tableIndex].ipmc_index,
                                                   BroadGroupList[tableIndex].groupIp,
                                                   BroadGroupList[tableIndex].srcAddr,
@@ -2001,21 +2001,21 @@ L7_RC_t hapiBroadRoutingIntfMcastSnoopAsyncNotifyProcess(L7_uchar8 *mcastMacAddr
                  }/* Is lag interface check */
                  else
                  {
-                   if (BCM_GPORT_IS_WLAN_PORT(hapiPortPtr->bcmx_lport))
+                   if (BCM_GPORT_IS_WLAN_PORT(hapiPortPtr->bcm_gport))
                    {
                  #ifdef L7_WIRELESS_PACKAGE
                      BROAD_WLAN_TUNNEL_ENTRY_t tunnelEntry;
-                     if (hapiBroadWlanInfoGet(dapi_g, hapiPortPtr->bcmx_lport, &tunnelEntry) == L7_SUCCESS)
+                     if (hapiBroadWlanInfoGet(dapi_g, hapiPortPtr->bcm_gport, &tunnelEntry) == L7_SUCCESS)
                      {
                        usl_bcmx_ipmc_wlan_l3_port_add(BroadGroupList[tableIndex].ipmc_index, l3_interface_id, vlan_id,
-                                                      hapiPortPtr->bcmx_lport,
+                                                      hapiPortPtr->bcm_gport,
                                                       tunnelEntry.wlan_port.port);
                      }
                  #endif
                    }
                    else
                    {
-                     hapiBroadL3McastAddL3Port (hapiPortPtr->bcmx_lport,
+                     hapiBroadL3McastAddL3Port (hapiPortPtr->bcm_gport,
                                                 BroadGroupList[tableIndex].ipmc_index,
                                                 BroadGroupList[tableIndex].groupIp,
                                                 BroadGroupList[tableIndex].srcAddr,
@@ -2104,7 +2104,7 @@ L7_RC_t hapiBroadRoutingIntfMcastAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void 
     vlan_id = hapiPortPtr->port_based_routing_vlanid;
     physUsp = *usp;
     HAPI_L3_MCAST_DEBUG("Src intf %d src usp %d.%d.%d vlan %d outUspCount %d",
-       hapiPortPtr->bcmx_lport, usp->unit, usp->slot, usp->port, vlan_id, outUspCount);
+       hapiPortPtr->bcm_gport, usp->unit, usp->slot, usp->port, vlan_id, outUspCount);
   }
   else
   {
@@ -2216,7 +2216,7 @@ L7_RC_t hapiBroadRoutingIntfMcastAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void 
     /* Set reverse path interface (ingress interface) */
     memcpy (&BroadGroupList[tableIndex].rpf_usp, usp, sizeof (DAPI_USP_t));
     memcpy (&BroadGroupList[tableIndex].rpf_physical_usp, &physUsp, sizeof (DAPI_USP_t));
-    rpf_gport = hapiPortPtr->bcmx_lport;
+    rpf_gport = hapiPortPtr->bcm_gport;
     /* Check whether replacing an existing entry */
     if (override_existing_entry == L7_TRUE)
     {
@@ -2776,7 +2776,7 @@ L7_RC_t hapiBroadRoutingIntfMcastTtlSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
                                   hapiPortPtr->multicast_ttl_limit); /* ttl threshold */
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
-      L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set the egress port info for port 0x%x, rv = %d", hapiPortPtr->bcmx_lport, rv);
+      L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set the egress port info for port 0x%x, rv = %d", hapiPortPtr->bcm_gport, rv);
     }
   }
   else
@@ -2822,7 +2822,7 @@ L7_RC_t hapiBroadRoutingIntfMcastTtlSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
                                               &ttl_old); /* ttl threshold */
                 if (L7_BCMX_OK(rv) != L7_TRUE)
                 {
-                  L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't get the egress port info for port 0x%x, rv = %d", hapiPortPtr->bcmx_lport, rv);
+                  L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't get the egress port info for port 0x%x, rv = %d", hapiPortPtr->bcm_gport, rv);
                 }
 
                 /* Setup the ipmc egress port config */
@@ -2833,7 +2833,7 @@ L7_RC_t hapiBroadRoutingIntfMcastTtlSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
                                               dapiCmd->cmdData.ttlMcastVal.ttlVal); /* ttl threshold */
                 if (L7_BCMX_OK(rv) != L7_TRUE)
                 {
-                  L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set the egress port info for port 0x%x, rv = %d", hapiPortPtr->bcmx_lport, rv);
+                  L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set the egress port info for port 0x%x, rv = %d", hapiPortPtr->bcm_gport, rv);
                 }
               }
             }
@@ -2865,7 +2865,7 @@ L7_RC_t hapiBroadRoutingIntfMcastTtlSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
                                           &ttl_old); /* ttl threshold */
             if (L7_BCMX_OK(rv) != L7_TRUE)
             {
-              L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't get the egress port info for port 0x%x, rv = %d", hapiPortPtr->bcmx_lport, rv);
+              L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't get the egress port info for port 0x%x, rv = %d", hapiPortPtr->bcm_gport, rv);
             }
 
             /* Setup the ipmc egress port config */
@@ -2876,7 +2876,7 @@ L7_RC_t hapiBroadRoutingIntfMcastTtlSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
                                           dapiCmd->cmdData.ttlMcastVal.ttlVal); /* ttl threshold */
             if (L7_BCMX_OK(rv) != L7_TRUE)
             {
-              L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set the egress port info for port 0x%x, rv = %d", hapiPortPtr->bcmx_lport, rv);
+              L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set the egress port info for port 0x%x, rv = %d", hapiPortPtr->bcm_gport, rv);
             }
         }
       }
@@ -3362,7 +3362,7 @@ static void hapiBroadL3McastPortVlanAddDelete (DAPI_USP_t *usp,
       if (lagMemberSet[i].inUse == L7_TRUE)
       {
           hapiLagMemberPortPtr = HAPI_PORT_GET(&lagMemberSet[i].usp,dapi_g);
-          gport[lport_count++] = hapiLagMemberPortPtr->bcmx_lport;
+          gport[lport_count++] = hapiLagMemberPortPtr->bcm_gport;
       }
       /*For XGS3 we can distribute non-unicast
                traffic across the lag members*/
@@ -3381,7 +3381,7 @@ static void hapiBroadL3McastPortVlanAddDelete (DAPI_USP_t *usp,
     }
   } else
   {
-    gport[lport_count++] = hapiPortPtr->bcmx_lport;
+    gport[lport_count++] = hapiPortPtr->bcm_gport;
   }
 
   hapiBroadL3McastCritEnter ();
@@ -3761,7 +3761,7 @@ L7_RC_t hapiBroadL3McastRPF(L7_netBufHandle frameHdl, L7_ushort16 vlanID, DAPI_U
   if (IS_SLOT_TYPE_CAPWAP_TUNNEL(usp,dapi_g))
   {
     BROAD_WLAN_TUNNEL_ENTRY_t tunnelEntry;
-    hapiBroadWlanInfoGet(dapi_g, hapiPortPtr->bcmx_lport, &tunnelEntry);
+    hapiBroadWlanInfoGet(dapi_g, hapiPortPtr->bcm_gport, &tunnelEntry);
     if (bcmy_lut_gport_to_usp_get(tunnelEntry.wlan_port.port, usp) != BCMY_E_NONE)
     {
       return L7_FAILURE;             /* indicate frame consumed */
@@ -3800,7 +3800,7 @@ L7_RC_t hapiBroadL3McastRPF(L7_netBufHandle frameHdl, L7_ushort16 vlanID, DAPI_U
 
   master_cpu_port = HAPI_PORT_GET(&master_cpu_usp, dapi_g);
 
-  if(bcmx_lport_modid(hapiPortPtr->bcmx_lport) == bcmx_lport_modid(master_cpu_port->bcmx_lport))
+  if(bcmx_lport_modid(hapiPortPtr->bcm_gport) == bcmx_lport_modid(master_cpu_port->bcm_gport))
   {
     /* Pass to application */
     HAPI_L3_MCAST_DEBUG("Passing to application");
@@ -3909,8 +3909,8 @@ void hapiBroadL3McastAsyncRpfHandle(DAPI_t *dapi_g)
       /* port: specify the source logical port */
       HAPI_L3_MCAST_DEBUG("Setting ts false");
       ipmc.ts = FALSE;
-      ipmc.port_tgid = BCMY_GPORT_MODPORT(hapiPortPtr->bcmx_lport);
-      ipmc.mod_id    = BCMY_GPORT_MODID(hapiPortPtr->bcmx_lport);
+      ipmc.port_tgid = BCMY_GPORT_MODPORT(hapiPortPtr->bcm_gport);
+      ipmc.mod_id    = BCMY_GPORT_MODID(hapiPortPtr->bcm_gport);
     }
 
     mcast_stats.rpf_handle_count++;

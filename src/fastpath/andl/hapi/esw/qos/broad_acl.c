@@ -1527,7 +1527,7 @@ L7_RC_t hapiBroadQosAclAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *
         else
         {
           L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-                  "ACL failed to apply on port %d\n", hapiPortPtr->bcmx_lport);
+                  "ACL failed to apply on port %d\n", hapiPortPtr->bcm_gport);
         }
       }
       v6PolicyId = broadAclTable[idx].v6PolicyId;
@@ -1546,7 +1546,7 @@ L7_RC_t hapiBroadQosAclAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *
         else
         {
           L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-                  "ACL failed to apply on port %d\n", hapiPortPtr->bcmx_lport);
+                  "ACL failed to apply on port %d\n", hapiPortPtr->bcm_gport);
           /* Clean up l2V4 ACL if it was applied. */
           if (qosPort->aclds.policyId[direction] != BROAD_POLICY_INVALID)
           {
@@ -1625,7 +1625,7 @@ L7_RC_t hapiBroadQosAclAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *
       if ((L7_SUCCESS != l2V4Result) || (L7_SUCCESS != v6Result))
       {
         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-                "ACL not applied to port %d\n", hapiPortPtr->bcmx_lport);
+                "ACL not applied to port %d\n", hapiPortPtr->bcm_gport);
 
         if (hapiBroadQosAclPolicyTLVFind(pTLV, direction, &idx) == L7_TRUE)
         {
@@ -1788,7 +1788,7 @@ L7_RC_t hapiBroadQosAclDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_
   {
     /* continue to clean-up even if an error occurs */
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-            "ACL not removed from port %d\n", hapiPortPtr->bcmx_lport);
+            "ACL not removed from port %d\n", hapiPortPtr->bcm_gport);
   }
 
   if (--broadAclTable[idx].ifCount <= 0)

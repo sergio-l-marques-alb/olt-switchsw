@@ -400,12 +400,12 @@ static L7_RC_t hapiBroadQosCosIntfUntrusted(BROAD_PORT_t *hapiPortPtr, L7_uchar8
     }
 
     if (L7_SUCCESS == result)
-        result = hapiBroadCosPolicyUtilApply(cosqId, hapiPortPtr->bcmx_lport);
+        result = hapiBroadCosPolicyUtilApply(cosqId, hapiPortPtr->bcm_gport);
 
     /* delete the old policy */
     if (BROAD_POLICY_INVALID != hapiPortPtr->dot1pPolicy)
     {
-        hapiBroadCosPolicyUtilRemove(hapiPortPtr->dot1pPolicy, hapiPortPtr->bcmx_lport);
+        hapiBroadCosPolicyUtilRemove(hapiPortPtr->dot1pPolicy, hapiPortPtr->bcm_gport);
         hapiPortPtr->dot1pPolicy = BROAD_POLICY_INVALID;
     }
 
@@ -437,13 +437,13 @@ static L7_RC_t hapiBroadQosCosRemoveIpPrec(BROAD_PORT_t *hapiPortPtr)
     /* delete existing policy */
     if (BROAD_POLICY_INVALID != qosPortPtr->cos.precId)
     {
-        hapiBroadCosPolicyUtilRemove(qosPortPtr->cos.precId, hapiPortPtr->bcmx_lport);
+        hapiBroadCosPolicyUtilRemove(qosPortPtr->cos.precId, hapiPortPtr->bcm_gport);
         qosPortPtr->cos.precId = BROAD_POLICY_INVALID;
     }
     /* delete default 'match all' policy */
     if (BROAD_POLICY_INVALID != qosPortPtr->cos.precDefaultPolicyId)
     {
-        hapiBroadCosPolicyUtilRemove(qosPortPtr->cos.precDefaultPolicyId, hapiPortPtr->bcmx_lport);
+        hapiBroadCosPolicyUtilRemove(qosPortPtr->cos.precDefaultPolicyId, hapiPortPtr->bcm_gport);
         qosPortPtr->cos.precDefaultPolicyId = BROAD_POLICY_INVALID;
     }
 
@@ -490,19 +490,19 @@ static L7_RC_t hapiBroadQosCosIntfTrustIpPrec(BROAD_PORT_t *hapiPortPtr, L7_ucha
     /* delete existing ip precedence policy */
     if (BROAD_POLICY_INVALID != qosPortPtr->cos.precId)
     {
-        hapiBroadCosPolicyUtilRemove(qosPortPtr->cos.precId, hapiPortPtr->bcmx_lport);
+        hapiBroadCosPolicyUtilRemove(qosPortPtr->cos.precId, hapiPortPtr->bcm_gport);
         qosPortPtr->cos.precId = BROAD_POLICY_INVALID;
     }
     if (BROAD_POLICY_INVALID != qosPortPtr->cos.precDefaultPolicyId)
     {
-        hapiBroadCosPolicyUtilRemove(qosPortPtr->cos.precDefaultPolicyId, hapiPortPtr->bcmx_lport);
+        hapiBroadCosPolicyUtilRemove(qosPortPtr->cos.precDefaultPolicyId, hapiPortPtr->bcm_gport);
         qosPortPtr->cos.precDefaultPolicyId = BROAD_POLICY_INVALID;
     }
 
     /* delete existing dot1p/untrusted policy */
     if (BROAD_POLICY_INVALID != hapiPortPtr->dot1pPolicy)
     {
-        hapiBroadCosPolicyUtilRemove(hapiPortPtr->dot1pPolicy, hapiPortPtr->bcmx_lport);
+        hapiBroadCosPolicyUtilRemove(hapiPortPtr->dot1pPolicy, hapiPortPtr->bcm_gport);
         hapiPortPtr->dot1pPolicy = BROAD_POLICY_INVALID;
     }
     
@@ -538,7 +538,7 @@ static L7_RC_t hapiBroadQosCosIntfTrustIpPrec(BROAD_PORT_t *hapiPortPtr, L7_ucha
     }
 
     if (L7_SUCCESS == result)
-        result = hapiBroadCosPolicyUtilApply(precId, hapiPortPtr->bcmx_lport);
+        result = hapiBroadCosPolicyUtilApply(precId, hapiPortPtr->bcm_gport);
 
     if (L7_SUCCESS == result)
     {
@@ -570,7 +570,7 @@ static L7_RC_t hapiBroadQosCosIntfTrustIpPrec(BROAD_PORT_t *hapiPortPtr, L7_ucha
         }
 
         if (L7_SUCCESS == result)
-            result = hapiBroadCosPolicyUtilApply(defaultPolicyId, hapiPortPtr->bcmx_lport);
+            result = hapiBroadCosPolicyUtilApply(defaultPolicyId, hapiPortPtr->bcm_gport);
 
         qosPortPtr->cos.precDefaultPolicyId = defaultPolicyId;
     }
@@ -651,9 +651,9 @@ static L7_RC_t hapiBroadQosCosIntfRateShape(BROAD_PORT_t *dstPortPtr, L7_uint32 
         shaperConfig.burst = 16000;
     }
 
-    PT_LOG_TRACE(LOG_CTX_HAPI, "Shaping rate=%u burst=%u (lport=0x%x)", shaperConfig.rate, shaperConfig.burst, dstPortPtr->bcmx_lport);
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Shaping rate=%u burst=%u (lport=0x%x)", shaperConfig.rate, shaperConfig.burst, dstPortPtr->bcm_gport);
         
-    rv = usl_bcmx_port_rate_egress_set(dstPortPtr->bcmx_lport, shaperConfig);
+    rv = usl_bcmx_port_rate_egress_set(dstPortPtr->bcm_gport, shaperConfig);
     if (L7_BCMX_OK(rv) != L7_TRUE)
       result = L7_FAILURE;
 
@@ -777,7 +777,7 @@ static L7_RC_t hapiBroadQosCosEgressBwConfig(BROAD_PORT_t *dstPortPtr, HAPI_BROA
   memcpy(&(cosqSchedConfig.maxKbps), maxKbps, sizeof(cosqSchedConfig.maxKbps));
   cosqSchedConfig.mode = schedulerMode;
 
-  rv = usl_bcmx_port_cosq_sched_set(dstPortPtr->bcmx_lport, cosqSchedConfig);
+  rv = usl_bcmx_port_cosq_sched_set(dstPortPtr->bcm_gport, cosqSchedConfig);
   if (L7_BCMX_OK(rv) == L7_FALSE)
   {
     result = L7_FAILURE;
@@ -928,7 +928,7 @@ static L7_RC_t hapiBroadQosCosQueueWeightsConfig(BROAD_PORT_t *dstPortPtr, HAPI_
 
     printf("%s(%d) I was here: weights={%u,%u,%u,%u,%u,%u,%u,%u}\r\n",__FUNCTION__,__LINE__,
            cosqSchedConfig.weights[0],cosqSchedConfig.weights[1],cosqSchedConfig.weights[2],cosqSchedConfig.weights[3],cosqSchedConfig.weights[4],cosqSchedConfig.weights[5],cosqSchedConfig.weights[6],cosqSchedConfig.weights[7]);
-    rv = usl_bcmx_port_cosq_sched_set(dstPortPtr->bcmx_lport, cosqSchedConfig);
+    rv = usl_bcmx_port_cosq_sched_set(dstPortPtr->bcm_gport, cosqSchedConfig);
     if (L7_BCMX_OK(rv) == L7_FALSE)
     {
       result = L7_FAILURE;
@@ -1409,7 +1409,7 @@ static L7_RC_t hapiBroadQosCosWredApply(DAPI_USP_t *usp)
         hapiLagPortPtr = HAPI_PORT_GET(lagUsp, dapi_g);
         qosPortPtr = (HAPI_BROAD_QOS_PORT_t*)hapiLagPortPtr->qos;
     }
-    parms.bcm_gport = (bcm_gport_t)(hapiPortPtr->bcmx_lport);
+    parms.bcm_gport = (bcm_gport_t)(hapiPortPtr->bcm_gport);
     for(cosIndex = 0; cosIndex < L7_MAX_CFG_QUEUES_PER_PORT; cosIndex++) 
     {                
         if (qosPortPtr->cos.dropType[cosIndex] == DAPI_QOS_COS_QUEUE_MGMT_TYPE_WRED) 

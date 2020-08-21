@@ -226,22 +226,22 @@ static void hapiBroadL3AsyncNhopWlistProcess (DAPI_t *dapi_g)
           }
           else
           {
-            if (BCM_GPORT_IS_WLAN_PORT(hapiPortPtr->bcmx_lport))
+            if (BCM_GPORT_IS_WLAN_PORT(hapiPortPtr->bcm_gport))
             {
-              bcmEgrObj.bcm_data.module = hapiPortPtr->bcmx_lport;
-              bcmEgrObj.bcm_data.port   = hapiPortPtr->bcmx_lport;
+              bcmEgrObj.bcm_data.module = hapiPortPtr->bcm_gport;
+              bcmEgrObj.bcm_data.port   = hapiPortPtr->bcm_gport;
             }
             else
             {
-              bcmEgrObj.bcm_data.module = BCM_GPORT_MODPORT_MODID_GET(hapiPortPtr->bcmx_lport);
-              bcmEgrObj.bcm_data.port   = BCM_GPORT_MODPORT_PORT_GET(hapiPortPtr->bcmx_lport);
+              bcmEgrObj.bcm_data.module = BCM_GPORT_MODPORT_MODID_GET(hapiPortPtr->bcm_gport);
+              bcmEgrObj.bcm_data.port   = BCM_GPORT_MODPORT_PORT_GET(hapiPortPtr->bcm_gport);
             }
             if ((bcmEgrObj.bcm_data.module == HAPI_BROAD_INVALID_MODID) ||
                 (bcmEgrObj.bcm_data.port   == HAPI_BROAD_INVALID_MODPORT))  
             {
               L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, 
                       "Failed to get modid/port for lport %x\n",
-                      hapiPortPtr->bcmx_lport);
+                      hapiPortPtr->bcm_gport);
             }
           }
           bcmEgrObj.bcm_data.intf = pNhop->l3_intf_id;
@@ -253,14 +253,14 @@ static void hapiBroadL3AsyncNhopWlistProcess (DAPI_t *dapi_g)
           cpuHapiPortPtr = hapiBroadL3CpuHapiPortGet(dapi_g);
           bcmEgrObj.bcm_data.vlan = HPC_STACKING_VLAN_ID;
 
-          bcmEgrObj.bcm_data.module = BCM_GPORT_MODPORT_MODID_GET(cpuHapiPortPtr->bcmx_lport);
-          bcmEgrObj.bcm_data.port   = BCM_GPORT_MODPORT_PORT_GET(cpuHapiPortPtr->bcmx_lport);
+          bcmEgrObj.bcm_data.module = BCM_GPORT_MODPORT_MODID_GET(cpuHapiPortPtr->bcm_gport);
+          bcmEgrObj.bcm_data.port   = BCM_GPORT_MODPORT_PORT_GET(cpuHapiPortPtr->bcm_gport);
           if ((bcmEgrObj.bcm_data.module == HAPI_BROAD_INVALID_MODID) ||
               (bcmEgrObj.bcm_data.port   == HAPI_BROAD_INVALID_MODPORT))  
           {
             L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, 
                     "Failed to get modid/port for lport %x\n",
-                    cpuHapiPortPtr->bcmx_lport);
+                    cpuHapiPortPtr->bcm_gport);
           }
           bcmEgrObj.bcm_data.intf = hapiBroadL3CpuIntfId;
           memcpy(bcmEgrObj.bcm_data.mac_addr, hapiBroadL3CpuMac, sizeof(bcm_mac_t));

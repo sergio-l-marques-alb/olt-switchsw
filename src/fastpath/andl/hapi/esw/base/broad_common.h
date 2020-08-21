@@ -339,7 +339,7 @@ typedef struct BROAD_SYSTEM_s BROAD_SYSTEM_t;
 *******************************************************************************/
 typedef struct
 {
-  bcm_gport_t             bcmx_lport;
+  bcm_gport_t             bcm_gport;
   int                     bcm_unit;
   int                     bcm_port;
   int                     bcm_modid;
@@ -577,7 +577,7 @@ struct BROAD_SYSTEM_s
 
 typedef struct 
 {
-  bcm_gport_t      bcmx_lport;
+  bcm_gport_t      bcm_gport;
   L7_uint32        vlanID;
   DAPI_USP_t       usp;
 
@@ -596,7 +596,7 @@ typedef struct
          /* Following structure is for L2 Protocol Tunneling */
 typedef struct 
 {
-  bcm_gport_t      bcmx_lport;
+  bcm_gport_t      bcm_gport;
   L7_uint32        vlanID;
   L7_ushort16      dot1adSVlanId;
   L7_ushort16      dot1adRemarkCVlanId;
@@ -646,7 +646,7 @@ typedef enum
 
 typedef struct
 {
-  L7_uint32           bcmx_lport;
+  L7_uint32           bcm_gport;
   L7_uint32           tgid;
   L7_BOOL             port_is_lag;
   L7_uint32           vlanID;
