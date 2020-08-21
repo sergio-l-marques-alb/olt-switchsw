@@ -59,13 +59,30 @@ L7_RC_t hapiBroadL2VlanMacEntryAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd,
     dapiCmd = (DAPI_QVLAN_MGMT_CMD_t *) data;
     if (initialized == 0)
     {
-        rc = usl_mac_bcmx_vlan_control_port_set(BCMX_LPORT_ETHER_ALL,
-                                                bcmVlanLookupMACEnable, 1);
-        if (L7_BCMX_OK(rc) != L7_TRUE)
+        int gp_idx, gport;
+        int bcm_unit, bcm_port;
+
+        /* Iterate all local gports */
+        BCMY_GPORT_LOCAL_ITER(gp_idx, gport)
         {
-            printf("Error calling  bcm_vlan_control_port_set: %d\n", rc); 
-            return(L7_FAILURE);
+            /* Convert gport to unit+port */
+            rc = bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port);
+            if (rc != BCM_E_NONE)
+            {
+                PT_LOG_ERR(LOG_CTX_L2, "idx %d, gport=0x%x: Error converting to bcm_unit/port: %d\n",
+                           gp_idx, gport, rc); 
+                return(L7_FAILURE);
+            }
+
+            rc = bcm_vlan_control_port_set(bcm_unit, bcm_port, bcmVlanLookupMACEnable, 1);
+            if (L7_BCMX_OK(rc) != L7_TRUE)
+            {
+                PT_LOG_ERR(LOG_CTX_L2, "idx %d, gport=0x%x, bcm_unit %d, bcm_port %d: Error calling  bcm_vlan_control_port_set: %d\n",
+                           gp_idx, gport, bcm_unit, bcm_port, rc); 
+                return(L7_FAILURE);
+            }
         }
+
         initialized = 1;
     }
 

@@ -368,7 +368,8 @@ int usl_bcmx_l2_addr_remove_all (BROAD_FLUSH_FLAGS_t flags)
   BROAD_L2ADDR_FLUSH_t l2addr_msg;
   int modid; 
   bcm_port_t modport;
-  bcmx_lport_t lport;
+  bcm_gport_t gport;
+  int gp_idx;
 
   /* Set flags */
   if (flags == BROAD_FLUSH_FLAGS_NOEVENTS)
@@ -380,20 +381,24 @@ int usl_bcmx_l2_addr_remove_all (BROAD_FLUSH_FLAGS_t flags)
     flags = 0;
   }
   
-  BCMX_FOREACH_LPORT(lport) {
-	  if ((BCMX_LPORT_FLAGS(lport) & BCMX_PORT_F_FE) ||
-		  (BCMX_LPORT_FLAGS(lport) & BCMX_PORT_F_GE) ||
-		  (BCMX_LPORT_FLAGS(lport) & BCMX_PORT_F_XE) ||
-          (BCMX_LPORT_FLAGS(lport) & BCMX_PORT_F_HG)) {
-
+  /* Iterate all local gports */
+  BCMY_GPORT_ITER(gp_idx, gport)
+  {
+#if 0
+  BCMX_FOREACH_LPORT(gport) {
+	  if ((BCMX_LPORT_FLAGS(gport) & BCMX_PORT_F_FE) ||
+		  (BCMX_LPORT_FLAGS(gport) & BCMX_PORT_F_GE) ||
+		  (BCMX_LPORT_FLAGS(gport) & BCMX_PORT_F_XE) ||
+          (BCMX_LPORT_FLAGS(gport) & BCMX_PORT_F_HG)) {
+#endif
 		  /* Disable Hw Learning*/
 		  memset((void *)&l2addr_msg, 0, sizeof(l2addr_msg));
-		  l2addr_msg.bcmx_lport = lport;
+		  l2addr_msg.bcmx_lport = gport;
 		  l2addr_msg.port_is_lag = L7_FALSE;
 		  hapiBroadFlushL2LearnModeSet(l2addr_msg, L7_DISABLE);
 
 		  /* Get the soc structure for the unit */
-		  unit = BCMX_LPORT_BCM_UNIT(lport);
+		  unit = BCMX_LPORT_BCM_UNIT(gport);
 		  soc = SOC_CONTROL (unit);
  
 		 /* If 5690 then do the manual removal of all the learnt addresses
@@ -401,21 +406,21 @@ int usl_bcmx_l2_addr_remove_all (BROAD_FLUSH_FLAGS_t flags)
 		  if (SOC_IS_DRACO1(unit))
 		  {
 			  sal_mutex_take(soc->arlShadowMutex, -1);
-			  shr_avl_traverse (soc->arlShadow, usl_l7_remove_l2_addr_by_port, &lport);
+			  shr_avl_traverse (soc->arlShadow, usl_l7_remove_l2_addr_by_port, &gport);
 			  sal_mutex_give(soc->arlShadowMutex);
 		  }
 		  else
 		  { /* In all other cases call the broadcom call to flush */
-			  bcmx_lport_to_modid_port(lport, &modid, &modport);
+			  bcmx_lport_to_modid_port(gport, &modid, &modport);
 			  rc = bcm_l2_addr_delete_by_port(unit, modid, modport, flags);
 		  }
 
 		  /* Re-Enable Learning */
 		  memset((void *)&l2addr_msg, 0, sizeof(l2addr_msg));
-		  l2addr_msg.bcmx_lport = lport;
+		  l2addr_msg.bcmx_lport = gport;
 		  l2addr_msg.port_is_lag = L7_FALSE;
 		  hapiBroadFlushL2LearnModeSet(l2addr_msg, L7_ENABLE);
-	  }
+//	  }
   }
 
   return rc;
