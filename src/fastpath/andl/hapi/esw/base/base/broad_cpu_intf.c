@@ -85,7 +85,7 @@ extern L7_ushort16 hapiBroadDvlanEthertype;
 
 static int _bcmy_tx_pkt_untagged_set(bcm_pkt_t *pkt, int untagged);
 /* FIXME: BCMX - Check me */
-static int _bcmy_tx_uc(bcm_pkt_t *pkt, bcmx_lport_t d_port, uint32 flags);
+static int _bcmy_tx_uc(bcm_pkt_t *pkt, bcm_gport_t d_port, uint32 flags);
 /* FIXME: BCMX - Check me */
 static int _bcmy_tx_gplist(bcm_pkt_t *pkt, bcmy_gplist_t *tx_ports,
                            bcmy_gplist_t *untagged_ports, uint32 flags);
@@ -855,7 +855,7 @@ L7_BOOL hapiBroadPktIsDhcp(L7_uchar8 *pkt)
 * @purpose Insert CAPWAP header when sending to a wlan virtual port
 *
 * @param   L7_uchar8    *pkt      payload frame
-* @param   bcmx_lport_t lport     gport of wlan vp
+* @param   bcm_gport_t  gport     gport of wlan vp
 * @param   uint32       flags     
 *
 * @returns void
@@ -865,7 +865,7 @@ L7_BOOL hapiBroadPktIsDhcp(L7_uchar8 *pkt)
 * @end
 *
 *********************************************************************/
-void hapiBroadWlanPortSend(bcm_pkt_t *pkt, bcmx_lport_t lport, uint32 flags, DAPI_t *dapi_g)
+void hapiBroadWlanPortSend(bcm_pkt_t *pkt, bcm_gport_t gport, uint32 flags, DAPI_t *dapi_g)
 {
 #ifdef L7_WIRELESS_PACKAGE
   bcm_pkt_t bcm_pkt;
@@ -899,7 +899,7 @@ void hapiBroadWlanPortSend(bcm_pkt_t *pkt, bcmx_lport_t lport, uint32 flags, DAP
   bcm_pkt.pkt_data  = &bcm_pkt_blk;
   bcm_pkt.blk_count = 1;
 
-  if (hapiBroadWlanInfoGet(dapi_g, lport, &wlanTunnelInfo) != L7_SUCCESS)
+  if (hapiBroadWlanInfoGet(dapi_g, gport, &wlanTunnelInfo) != L7_SUCCESS)
   {
     return;
   }
@@ -922,7 +922,7 @@ void hapiBroadWlanPortSend(bcm_pkt_t *pkt, bcmx_lport_t lport, uint32 flags, DAP
     DAPI_USP_t    lag_member_usp;
     BROAD_PORT_t *lagMemHapiPortPtr;
 
-    /* get usp of lag port and lport of first physical member port */
+    /* get usp of lag port and gport of first physical member port */
     if (hapiBroadTgidToUspConvert(BCM_GPORT_TRUNK_GET(physical_txgport), &usp, dapi_g) != L7_SUCCESS)
     {
       sal_dma_free(bcm_pkt.pkt_data->data);
@@ -1134,7 +1134,7 @@ void hapiBroadWlanPortSend(bcm_pkt_t *pkt, bcmx_lport_t lport, uint32 flags, DAP
     if (wlanVpDebugEncap)
     {
       L7_uint32 k;
-      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS,"\n\n %s: Sending fragment to wlanvp %d with flags %x; pktflags %x \n", __FUNCTION__, lport, flags, bcm_pkt_frag.flags);
+      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS,"\n\n %s: Sending fragment to wlanvp %d with flags %x; pktflags %x \n", __FUNCTION__, gport, flags, bcm_pkt_frag.flags);
       for (k=0; k<wlanVpDebugSize && k<bcm_pkt_frag.pkt_data->len; k++)
       {
         if (k%32 == 0 && k != 0)
@@ -1162,7 +1162,7 @@ void hapiBroadWlanPortSend(bcm_pkt_t *pkt, bcmx_lport_t lport, uint32 flags, DAP
   if (wlanVpDebugEncap)
   {
     L7_uint32 k;
-    SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS,"\n\n %s: Sending capwap to wlanvp %d with flags %x; pktflags %x \n", __FUNCTION__, lport, flags, bcm_pkt.flags);
+    SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS,"\n\n %s: Sending capwap to wlanvp %d with flags %x; pktflags %x \n", __FUNCTION__, gport, flags, bcm_pkt.flags);
     for (k=0; k<wlanVpDebugSize && k<bcm_pkt.pkt_data->len; k++)
     {
       if (k%32 == 0 && k != 0)
@@ -1352,7 +1352,7 @@ _bcmy_tx_gplist(bcm_pkt_t *pkt, bcmy_gplist_t *tx_ports,
 /* FIXME: BCMX - Check me */
 /* Direct a packet to a logical port. */
 static int
-_bcmy_tx_uc(bcm_pkt_t *pkt, bcmx_lport_t d_port, uint32 flags)
+_bcmy_tx_uc(bcm_pkt_t *pkt, bcm_gport_t d_port, uint32 flags)
 {
   pbmp_t pbmp_tx;
   int bcm_unit, bcm_port;
@@ -1729,7 +1729,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
   /* Dump first 64 bytes */
   if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL3)
   {
-    PT_LOG_DEBUG(LOG_CTX_HAPI,"Packet to be transmited on usp={%d,%d,%d} (lport=0x%08x) with sendVLAN=%u (frameType=%u, flags=0x%08x)",
+    PT_LOG_DEBUG(LOG_CTX_HAPI,"Packet to be transmited on usp={%d,%d,%d} (gport=0x%08x) with sendVLAN=%u (frameType=%u, flags=0x%08x)",
               destUsp.unit, destUsp.slot, destUsp.port, hapiPortPtr->bcmx_lport, cmdInfo->cmdData.send.vlanID, frameType, bcm_pkt.flags);
   }
 
@@ -2230,7 +2230,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
   /* Dump first 64 bytes */
   if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_STDOUT)
   {
-    printf("Packet transmited on usp={%d,%d,%d} (lport=0x%08x) with sendVLAN=%u, length=%u (frameType=%u, flags=0x%x): bcmTxRv=%d result=%d\r\n",
+    printf("Packet transmited on usp={%d,%d,%d} (gport=0x%08x) with sendVLAN=%u, length=%u (frameType=%u, flags=0x%x): bcmTxRv=%d result=%d\r\n",
            destUsp.unit, destUsp.slot, destUsp.port, hapiPortPtr->bcmx_lport, cmdInfo->cmdData.send.vlanID, bcm_pkt.pkt_data->len, frameType, bcm_pkt.flags, bcmTxRv, result);
     fflush(stdout);
   }
@@ -6216,7 +6216,7 @@ void hapiBroadPduTransmitTask(DAPI_t *dapi_g, L7_uint32 numArgs)
   BROAD_PORT_t                    *tmpHapiPort;
   BROAD_PORT_t                    *searchHapiPortPtr;
   DAPI_PORT_t                     *dapiPortPtr;
-  bcmx_lport_t                    lPort=0;
+  bcm_gport_t                     gport=0;
   L7_ushort16                     svid=0;
   L7_ushort16                     remarkCVID=0;
   L7_uchar8                       *user_data;
@@ -6332,9 +6332,9 @@ void hapiBroadPduTransmitTask(DAPI_t *dapi_g, L7_uint32 numArgs)
                {
                  continue;
                }
-                  lPort=searchHapiPortPtr->bcmx_lport;
+                  gport=searchHapiPortPtr->bcmx_lport;
 
-               if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) == L7_TRUE) /* Adjust the lport */
+               if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) == L7_TRUE) /* Adjust the gport */
                {
                  for (index = 0; index < L7_MAX_MEMBERS_PER_LAG; index++)
                  {
@@ -6349,7 +6349,7 @@ void hapiBroadPduTransmitTask(DAPI_t *dapi_g, L7_uint32 numArgs)
                  }
                  tmpHapiPort = HAPI_PORT_GET(&(dapiPortPtr->modeparm.lag.memberSet[index].usp),
                                                   dapi_g);
-                 lPort = tmpHapiPort->bcmx_lport;
+                 gport = tmpHapiPort->bcmx_lport;
               }
 
 
@@ -6378,7 +6378,7 @@ void hapiBroadPduTransmitTask(DAPI_t *dapi_g, L7_uint32 numArgs)
                                                     searchUsp.port);
                  }
                   
-                  _bcmy_tx_uc(&bcm_pkt, lPort, 0 /*BCMX_TX_F_CPU_TUNNEL*/);
+                  _bcmy_tx_uc(&bcm_pkt, gport, 0 /*BCMX_TX_F_CPU_TUNNEL*/);
                   hapiPort->hapiDot1adIntfStats.numPduTunneled++;
 
                   if (remarkCVID > 0)
@@ -6497,7 +6497,7 @@ void hapiBroadPduTransmitTask(DAPI_t *dapi_g, L7_uint32 numArgs)
                        pdu_msg.user_data_size -=4;
                        bcm_pkt.pkt_data->len = pdu_msg.user_data_size;
                     }
-                    _bcmy_tx_uc(&bcm_pkt, lPort, 0 /*BCMX_TX_F_CPU_TUNNEL*/);
+                    _bcmy_tx_uc(&bcm_pkt, gport, 0 /*BCMX_TX_F_CPU_TUNNEL*/);
                     hapiPort->hapiDot1adIntfStats.numPduTunneled++;
                     if (frameLength > pdu_msg.user_data_size)
                     {
@@ -6699,17 +6699,17 @@ L7_RC_t hapiBroadRxProtoSnoopModify(BROAD_PKT_RX_MSG_t *pktRxMsg,DAPI_t *dapi_g)
           {
             cvid = L7_NULL;
           }
-          if(hapiBroadDot1adUpstreamInfoGet((bcmx_lport_t)hapiPortPtr->bcmx_lport,
-                                  cvid,  
-                                  (L7_ushort16 *)&SVID,
-                                  (L7_ushort16 *)&remarkCVID)!=L7_SUCCESS)
+          if(hapiBroadDot1adUpstreamInfoGet((bcm_gport_t) hapiPortPtr->bcmx_lport,
+                                            cvid,  
+                                            (L7_ushort16 *)&SVID,
+                                            (L7_ushort16 *)&remarkCVID)!=L7_SUCCESS)
           {
             if (cvid == L7_NULL)
             {
-              if (hapiBroadDot1adUpstreamInfoGet((bcmx_lport_t)hapiPortPtr->bcmx_lport,
-                                  hapiPortPtr->pvid,
-                                  (L7_ushort16 *)&SVID,
-                                  (L7_ushort16 *)&remarkCVID)!=L7_SUCCESS)
+              if (hapiBroadDot1adUpstreamInfoGet((bcm_gport_t) hapiPortPtr->bcmx_lport,
+                                                 hapiPortPtr->pvid,
+                                                 (L7_ushort16 *)&SVID,
+                                                 (L7_ushort16 *)&remarkCVID)!=L7_SUCCESS)
               {
                 return L7_FAILURE;
               }

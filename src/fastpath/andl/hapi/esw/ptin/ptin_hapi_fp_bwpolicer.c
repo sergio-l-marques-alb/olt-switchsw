@@ -506,7 +506,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
   hapi_ptin_bcmPbmPort_get(PTIN_SYSTEM_10G_PORTS_MASK, &pbm_uplink);
 
   BCM_PBMP_CLEAR(pbm);
-  portDescriptor.lport    = -1;
+  portDescriptor.gport    = -1;
   portDescriptor.bcm_port = -1;
   portDescriptor.trunk_id = -1;
 

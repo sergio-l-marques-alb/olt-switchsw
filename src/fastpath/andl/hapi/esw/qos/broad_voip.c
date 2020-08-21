@@ -205,7 +205,7 @@ static L7_RC_t hapiBroadQosVoIPRemovePolicyFromIface(DAPI_USP_t *usp, DAPI_t *da
 * @end
 *
 *********************************************************************/
-static L7_RC_t cosq_port_bandwidth_set_all(DAPI_t *dapi_g, bcmx_lport_t port,
+static L7_RC_t cosq_port_bandwidth_set_all(DAPI_t *dapi_g, bcm_gport_t gport,
                                            L7_uint32 queueId, L7_uint32 minBw,
                                            L7_uint32 maxBw)
 {

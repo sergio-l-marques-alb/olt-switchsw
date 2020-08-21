@@ -324,7 +324,7 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
   hapi_ptin_allportsbmp_get(&pbm_mask);
 
   BCM_PBMP_CLEAR(pbm);
-  portDescriptor.lport            = -1;
+  portDescriptor.gport            = -1;
   portDescriptor.bcm_port         = -1;
   portDescriptor.trunk_id         = -1;
 //portDescriptor.efp_class_port   =  0;

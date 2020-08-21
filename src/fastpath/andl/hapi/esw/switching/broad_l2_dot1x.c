@@ -51,7 +51,7 @@ void hapiBroadDot1xAuthMacUpdate(BROAD_PORT_t *hapiPortPtr, DAPI_t *dapi_g);
 
 static void *hapiBroadDot1xSemaphore = L7_NULL;
 
-static L7_RC_t hapiBroadDot1xMacAddrTimeoutCheck(bcmx_lport_t port,L7_enetMacAddr_t macAddr, L7_ushort16 vid,L7_BOOL *timedout, DAPI_t *dapi_g);
+static L7_RC_t hapiBroadDot1xMacAddrTimeoutCheck(bcm_gport_t port, L7_enetMacAddr_t macAddr, L7_ushort16 vid, L7_BOOL *timedout, DAPI_t *dapi_g);
 
 static L7_BOOL hapiVoiceVlanDebug=0;
 
@@ -1180,7 +1180,7 @@ L7_RC_t hapiBroadDot1xViolationPolicyInstall(DAPI_USP_t *usp, DAPI_t *dapi_g)
 L7_RC_t hapiBroadDot1xPortVlanRemove(DAPI_USP_t *usp, DAPI_t *dapi_g)
 {
    BROAD_PORT_t *hapiPortPtr;
-   bcmx_lport_t  lport;
+   bcm_gport_t   gport;
    L7_RC_t       result;
 
   hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
@@ -1191,8 +1191,8 @@ L7_RC_t hapiBroadDot1xPortVlanRemove(DAPI_USP_t *usp, DAPI_t *dapi_g)
 
   /* Disable ingress filtering on the port */
   
-   lport = hapiPortPtr->bcmx_lport;
-   result = hapiBroadVlanIngressFilterSet(lport,L7_FALSE);
+   gport = hapiPortPtr->bcmx_lport;
+   result = hapiBroadVlanIngressFilterSet(gport, L7_FALSE);
 
    return result;
 }
@@ -1219,7 +1219,7 @@ L7_RC_t hapiBroadDot1xPortVlanRemove(DAPI_USP_t *usp, DAPI_t *dapi_g)
 L7_RC_t hapiBroadDot1xPortVlanReset(DAPI_USP_t *usp, DAPI_t *dapi_g)
 {
   BROAD_PORT_t *hapiPortPtr;
-  bcmx_lport_t  lport;
+  bcm_gport_t   gport;
   L7_RC_t       result;
 
  hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
@@ -1229,8 +1229,8 @@ L7_RC_t hapiBroadDot1xPortVlanReset(DAPI_USP_t *usp, DAPI_t *dapi_g)
                                   dapi_g);
 
  /*Reset Ingress Filtering on the port*/
- lport = hapiPortPtr->bcmx_lport;
- result = hapiBroadVlanIngressFilterSet(lport,hapiPortPtr->ingressFilteringEnabled);
+ gport = hapiPortPtr->bcmx_lport;
+ result = hapiBroadVlanIngressFilterSet(gport, hapiPortPtr->ingressFilteringEnabled);
  return result;
 }
 /*********************************************************************
@@ -1894,7 +1894,7 @@ L7_RC_t hapiBroadIntfDot1xClientRemove(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *da
 *       
 * @end
 *********************************************************************/
-L7_RC_t hapiBroadDot1xMacAddrTimeoutCheck(bcmx_lport_t port,L7_enetMacAddr_t macAddr, L7_ushort16 vid,L7_BOOL *timedout, DAPI_t *dapi_g)
+L7_RC_t hapiBroadDot1xMacAddrTimeoutCheck(bcm_gport_t gport, L7_enetMacAddr_t macAddr, L7_ushort16 vid, L7_BOOL *timedout, DAPI_t *dapi_g)
 {
     usl_bcm_port_dot1x_client_t clientCmd;
     L7_int32 rv;
@@ -1905,7 +1905,7 @@ L7_RC_t hapiBroadDot1xMacAddrTimeoutCheck(bcmx_lport_t port,L7_enetMacAddr_t mac
     clientCmd.vlan_id = vid;
     clientCmd.timedout_flg = L7_FALSE;
 
-   rv= usl_bcmx_port_dot1x_client_timeout_get(port,&clientCmd);
+   rv= usl_bcmx_port_dot1x_client_timeout_get(gport, &clientCmd);
    if (L7_BCMX_OK(rv)==L7_TRUE) 
    {
        *timedout = clientCmd.timedout_flg;
@@ -2284,7 +2284,7 @@ void hapiBroadDebugDot1xIntfVlanRemove(L7_uint32 unit, L7_uint32 slot, L7_uint32
 {
  DAPI_USP_t    usp;
  BROAD_PORT_t *hapiPortPtr;
- bcmx_lport_t  lport;
+ bcm_gport_t   gport;
  L7_RC_t       result;
   
   usp.unit = unit;
@@ -2305,15 +2305,15 @@ void hapiBroadDebugDot1xIntfVlanRemove(L7_uint32 unit, L7_uint32 slot, L7_uint32
 
   /* Disable ingress filtering on the port */
   
-   lport = hapiPortPtr->bcmx_lport;
-   result = hapiBroadVlanIngressFilterSet(lport,L7_FALSE);
+   gport = hapiPortPtr->bcmx_lport;
+   result = hapiBroadVlanIngressFilterSet(gport, L7_FALSE);
 }
 
 void hapiBroadDebugDot1xIntfVlanReset(L7_uint32 unit, L7_uint32 slot, L7_uint32 port)
 {
   DAPI_USP_t    usp;
   BROAD_PORT_t *hapiPortPtr;
-  bcmx_lport_t  lport;
+  bcm_gport_t   gport;
   L7_RC_t       result;
 
   usp.unit = unit;
@@ -2333,6 +2333,6 @@ void hapiBroadDebugDot1xIntfVlanReset(L7_uint32 unit, L7_uint32 slot, L7_uint32 
                                    dapi_g);
 
   /*Reset Ingress Filtering on the port*/
-   lport = hapiPortPtr->bcmx_lport;
-   result = hapiBroadVlanIngressFilterSet(lport,hapiPortPtr->ingressFilteringEnabled);
+   gport = hapiPortPtr->bcmx_lport;
+   result = hapiBroadVlanIngressFilterSet(gport, hapiPortPtr->ingressFilteringEnabled);
 }

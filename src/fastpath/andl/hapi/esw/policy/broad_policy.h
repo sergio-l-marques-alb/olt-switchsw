@@ -528,7 +528,7 @@ L7_RC_t hapiBroadPolicyUpdateFinish();
 * @purpose Apply a policy to a port after it has been committed.
 *
 * @param   BROAD_POLICY_t policy   - policy to apply
-* @param   bcmx_lport_t lport      - affected port
+* @param   bcm_gport_t gport       - affected port
 *
 * @returns L7_RC_t
 *
@@ -539,7 +539,7 @@ L7_RC_t hapiBroadPolicyUpdateFinish();
 *
 *********************************************************************/
 L7_RC_t hapiBroadPolicyApplyToIface(BROAD_POLICY_t policy,
-                                    bcmx_lport_t   lport);
+                                    bcm_gport_t    gport);
 
 /*********************************************************************
 *
@@ -562,7 +562,7 @@ L7_RC_t hapiBroadPolicyApplyToAll(BROAD_POLICY_t policy);
 * @purpose Remove a policy from a port.
 *
 * @param   BROAD_POLICY_t policy   - policy to remove
-* @param   bcmx_lport_t lport      - affected port
+* @param   bcm_gport_t gport       - affected port
 *
 * @returns L7_RC_t
 *
@@ -573,14 +573,13 @@ L7_RC_t hapiBroadPolicyApplyToAll(BROAD_POLICY_t policy);
 *
 *********************************************************************/
 L7_RC_t hapiBroadPolicyRemoveFromIface(BROAD_POLICY_t policy,
-                                       bcmx_lport_t   lport);
+                                       bcm_gport_t    gport);
 
 /*********************************************************************
 *
 * @purpose Remove a policy from all Ethernet ports..
 *
 * @param   BROAD_POLICY_t policy   - policy to remove
-* @param   bcmx_lport_t lport      - affected port
 *
 * @returns L7_RC_t
 *

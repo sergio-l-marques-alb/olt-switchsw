@@ -97,16 +97,16 @@ static L7_RC_t hapiBroadPolicyActionFind(BROAD_POLICY_RULE_ENTRY_t  *rulePtr,
 * @end
 *
 *********************************************************************/
-static L7_RC_t hapiBroadPolicyPortSelect(DAPI_USP_t *usp, bcmx_lport_t *lport)
+static L7_RC_t hapiBroadPolicyPortSelect(DAPI_USP_t *usp, bcm_gport_t *gport)
 {
     BROAD_PORT_t          *hapiPortPtr;
     L7_RC_t                result = L7_SUCCESS;
 
-    *lport = BCM_GPORT_INVALID;
+    *gport = BCM_GPORT_INVALID;
 
     if (usp->slot == L7_CPU_SLOT_NUM)
     {
-      result = bcmx_lport_local_cpu_get(0, lport);
+      result = bcmx_lport_local_cpu_get(0 /*unit*/, gport);
       return result;
     }
 
@@ -141,7 +141,7 @@ static L7_RC_t hapiBroadPolicyPortSelect(DAPI_USP_t *usp, bcmx_lport_t *lport)
     }
 
     if (L7_SUCCESS == result)
-        *lport = hapiPortPtr->bcmx_lport;
+        *gport = hapiPortPtr->bcmx_lport;
 
     return result;
 }
@@ -432,7 +432,7 @@ static L7_RC_t hapiBroadPolicyActionAdd(BROAD_POLICY_RULE_ENTRY_t  *rulePtr,
 static void hapiBroadPolicyActionUpdate(BROAD_POLICY_ENTRY_t *policyInfo)
 {
   int                        actionIdx;
-  bcmx_lport_t               lport;
+  bcm_gport_t                gport;
   BROAD_POLICY_RULE_ENTRY_t *rulePtr;
   BROAD_ACTION_ENTRY_t      *actionPtr;
 
@@ -449,11 +449,11 @@ static void hapiBroadPolicyActionUpdate(BROAD_POLICY_ENTRY_t *policyInfo)
         switch (actionIdx)
         {
         case BROAD_ACTION_REDIRECT:
-          if (hapiBroadPolicyPortSelect(&actionPtr->u.ifp_parms.usp, &lport) == L7_SUCCESS)
+          if (hapiBroadPolicyPortSelect(&actionPtr->u.ifp_parms.usp, &gport) == L7_SUCCESS)
           {
-            /* Use gport (i.e. lport) for parameter */
+            /* Use gport (i.e. gport) for parameter */
             actionPtr->u.ifp_parms.modid   = 0;
-            actionPtr->u.ifp_parms.modport = lport;
+            actionPtr->u.ifp_parms.modport = gport;
           }
           else
           {
@@ -464,17 +464,17 @@ static void hapiBroadPolicyActionUpdate(BROAD_POLICY_ENTRY_t *policyInfo)
           break;
 
         case BROAD_ACTION_MIRROR:
-          if (hapiBroadPolicyPortSelect(&actionPtr->u.ifp_parms.usp, &lport) == L7_SUCCESS)
+          if (hapiBroadPolicyPortSelect(&actionPtr->u.ifp_parms.usp, &gport) == L7_SUCCESS)
           {
-            actionPtr->u.ifp_parms.modid  = BCM_GPORT_MODPORT_MODID_GET(lport);
-            actionPtr->u.ifp_parms.modport = BCM_GPORT_MODPORT_PORT_GET(lport);
+            actionPtr->u.ifp_parms.modid  = BCM_GPORT_MODPORT_MODID_GET(gport);
+            actionPtr->u.ifp_parms.modport = BCM_GPORT_MODPORT_PORT_GET(gport);
 
             if ((actionPtr->u.ifp_parms.modid == HAPI_BROAD_INVALID_MODID) ||
                 (actionPtr->u.ifp_parms.modport   == HAPI_BROAD_INVALID_MODPORT))
             {
               L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID,
-                      "Failed to get modid/port for lport %x\n",
-                      lport);
+                      "Failed to get modid/port for gport %x\n",
+                      gport);
             }
 
           }
@@ -1702,14 +1702,14 @@ L7_RC_t hapiBroadPolicyUpdateFinish()
 *  is not sufficient, all units in the system need to be configured.
 *
 *********************************************************************/
-L7_RC_t hapiBroadPolicySetMirroringPath(BROAD_POLICY_t policy, bcmx_lport_t lport, int flags)
+L7_RC_t hapiBroadPolicySetMirroringPath(BROAD_POLICY_t policy, bcm_gport_t gport, int flags)
 {
   int                            rv            = BCM_E_NONE;
   int                            directed      = 0;
   L7_RC_t                        result        = L7_SUCCESS;
   static int                     mirrorCounter = 0;
-  static bcmx_lport_t            mtpPort       = BCM_GPORT_INVALID;
-  bcmx_lport_t                   dest_lport;
+  static bcm_gport_t             mtpPort       = BCM_GPORT_INVALID;
+  bcm_gport_t                    dest_lport;
   BROAD_POLICY_RULE_ENTRY_t     *rulePtr;
   BROAD_ACTION_ENTRY_t          *actionPtr;
   DAPI_USP_t                     usp;
@@ -1760,7 +1760,7 @@ L7_RC_t hapiBroadPolicySetMirroringPath(BROAD_POLICY_t policy, bcmx_lport_t lpor
             mirrorConfig.flags = BCM_MIRROR_PORT_ENABLE;
             mirrorConfig.probePort = dest_lport;
             mirrorConfig.stackUnit = usp.unit;
-            rv = usl_bcmx_port_mirror_set (lport, mirrorConfig);
+            rv = usl_bcmx_port_mirror_set (gport, mirrorConfig);
             if (rv != BCM_E_NONE)
               break;
 
@@ -1808,7 +1808,7 @@ L7_RC_t hapiBroadPolicySetMirroringPath(BROAD_POLICY_t policy, bcmx_lport_t lpor
             mirrorConfig.flags = BCM_MIRROR_DISABLE;
             mirrorConfig.probePort = dest_lport;
             mirrorConfig.stackUnit = 0;
-            rv = usl_bcmx_port_mirror_set(lport, mirrorConfig);
+            rv = usl_bcmx_port_mirror_set(gport, mirrorConfig);
             if (rv != BCM_E_NONE)
               break;
 
@@ -1858,7 +1858,7 @@ L7_RC_t hapiBroadPolicySetMirroringPath(BROAD_POLICY_t policy, bcmx_lport_t lpor
 * @end
 *
 *********************************************************************/
-L7_RC_t hapiBroadPolicyApplyToIface(BROAD_POLICY_t policy, bcmx_lport_t lport)
+L7_RC_t hapiBroadPolicyApplyToIface(BROAD_POLICY_t policy, bcm_gport_t gport)
 {
     int                         rv;
     L7_RC_t                     result = L7_SUCCESS;
@@ -1866,7 +1866,7 @@ L7_RC_t hapiBroadPolicyApplyToIface(BROAD_POLICY_t policy, bcmx_lport_t lport)
     CHECK_POLICY(policy);
 
     /* apply policy to the specified port */
-    rv = usl_bcmx_policy_port_apply(policy, lport);
+    rv = usl_bcmx_policy_port_apply(policy, gport);
     if (BCM_E_NONE != rv)
     {
       result = L7_FAILURE;
@@ -1874,7 +1874,7 @@ L7_RC_t hapiBroadPolicyApplyToIface(BROAD_POLICY_t policy, bcmx_lport_t lport)
     else
     {
       /* Check to see the policy has MIRROR action. If yes, configure */
-      result = hapiBroadPolicySetMirroringPath(policy, lport, L7_ENABLE);
+      result = hapiBroadPolicySetMirroringPath(policy, gport, L7_ENABLE);
     }
 
     return result;
@@ -1890,7 +1890,7 @@ L7_RC_t hapiBroadPolicyApplyToIface(BROAD_POLICY_t policy, bcmx_lport_t lport)
 * @end
 *
 *********************************************************************/
-L7_RC_t hapiBroadPolicyRemoveFromIface(BROAD_POLICY_t policy, bcmx_lport_t lport)
+L7_RC_t hapiBroadPolicyRemoveFromIface(BROAD_POLICY_t policy, bcm_gport_t gport)
 {
     int                         rv;
     L7_RC_t                     result = L7_SUCCESS;
@@ -1898,7 +1898,7 @@ L7_RC_t hapiBroadPolicyRemoveFromIface(BROAD_POLICY_t policy, bcmx_lport_t lport
     CHECK_POLICY(policy);
 
     /* remove policy from the specified port */
-    rv = usl_bcmx_policy_port_remove(policy, lport);
+    rv = usl_bcmx_policy_port_remove(policy, gport);
     if (BCM_E_NONE != rv)
     {
         result = L7_FAILURE;
@@ -1906,7 +1906,7 @@ L7_RC_t hapiBroadPolicyRemoveFromIface(BROAD_POLICY_t policy, bcmx_lport_t lport
     else
     {
         /* Check if the policy has mirror action. If yes, unconfigure */
-        hapiBroadPolicySetMirroringPath(policy, lport, L7_DISABLE);
+        hapiBroadPolicySetMirroringPath(policy, gport, L7_DISABLE);
     }
 
     return result;

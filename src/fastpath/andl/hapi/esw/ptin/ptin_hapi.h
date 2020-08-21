@@ -17,11 +17,9 @@ typedef struct {
 } ptin_dapi_port_t;
 
 typedef struct {
-//L7_int        ptin_port;
-  bcmx_lport_t  lport;
+  bcm_gport_t   gport;
   bcm_trunk_t   trunk_id;
   bcm_port_t    bcm_port;
-//L7_uint32     efp_class_port;
   L7_uint32     xlate_class_port;
 } ptin_hapi_intf_t;
 

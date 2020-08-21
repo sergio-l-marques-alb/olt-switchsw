@@ -799,23 +799,22 @@ static void hapiBroadL3McastAddL2Ports (DAPI_USP_t *usp,
 * Delete L3 port from a multicast group on Strata or XGS.
 *
 *********************************************************************/
-static void hapiBroadL3McastDeleteL3Port (bcmx_lport_t lport,
-                                       int        ipmc_index,
-                                       L7_inet_addr_t groupIp,
-                                       L7_inet_addr_t srcAddr,
-                                       bcm_vlan_t group_vid,
-                                       bcm_vlan_t vlan_id
-                                       )
+static void hapiBroadL3McastDeleteL3Port(bcm_gport_t gport,
+                                         int        ipmc_index,
+                                         L7_inet_addr_t groupIp,
+                                         L7_inet_addr_t srcAddr,
+                                         bcm_vlan_t group_vid,
+                                         bcm_vlan_t vlan_id)
 {
   int rv;
 
-  rv = usl_bcmx_ipmc_delete_l3_port_groups(lport,
+  rv = usl_bcmx_ipmc_delete_l3_port_groups(gport,
                                     &ipmc_index,
                                     1,
                                            vlan_id, 0, L7_NULLPTR, 0);
   if (L7_BCMX_OK(rv) != L7_TRUE)
   {
-    L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't delete L3 port 0x%x from IPMC index %d, rv = %d", lport, ipmc_index, rv);
+    L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't delete L3 port 0x%x from IPMC index %d, rv = %d", gport, ipmc_index, rv);
   }
 
 }
@@ -824,7 +823,7 @@ static void hapiBroadL3McastDeleteL3Port (bcmx_lport_t lport,
 * Add L3 port to a multicast group on Strata or XGS.
 *
 *********************************************************************/
-static void hapiBroadL3McastAddL3Port (bcmx_lport_t lport,
+static void hapiBroadL3McastAddL3Port (bcm_gport_t gport,
                                        int        ipmc_index,
                                        L7_inet_addr_t groupIp,
                                        L7_inet_addr_t srcAddr,
@@ -837,7 +836,7 @@ static void hapiBroadL3McastAddL3Port (bcmx_lport_t lport,
   int             rv;
   int             ipmc_untag_flag;
 
-  HAPI_L3_MCAST_DEBUG("Entered lport %d vlan %d", lport, vlan_id);
+  HAPI_L3_MCAST_DEBUG("Entered gport %d vlan %d", gport, vlan_id);
 
   if (ipmc_tagged)
   {
@@ -847,7 +846,7 @@ static void hapiBroadL3McastAddL3Port (bcmx_lport_t lport,
     ipmc_untag_flag = TRUE;
   }
 
-  rv = usl_bcmx_ipmc_add_l3_port_groups (lport,
+  rv = usl_bcmx_ipmc_add_l3_port_groups (gport,
                                  &ipmc_index,
                                  1,
                                  vlan_id,
@@ -857,7 +856,7 @@ static void hapiBroadL3McastAddL3Port (bcmx_lport_t lport,
   if (L7_BCMX_OK(rv) != L7_TRUE)
   {
     HAPI_L3_MCAST_DEBUG("customx_ipmc_l3_port_add failed");
-    L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't add L3 port 0x%x to IPMC index %d, rv = %d", lport, ipmc_index, rv);
+    L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't add L3 port 0x%x to IPMC index %d, rv = %d", gport, ipmc_index, rv);
   }
   HAPI_L3_MCAST_DEBUG("customx_ipmc_l3_port_add rv %d", rv);
 }
@@ -2078,7 +2077,7 @@ L7_RC_t hapiBroadRoutingIntfMcastAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void 
   L7_uint32                     outUspCount;
   L7_BOOL                       override_existing_entry = L7_FALSE;
   bcm_vlan_t                    old_vlan_id = 0;
-  bcmx_lport_t                  rpf_lport;
+  bcm_gport_t                   rpf_gport;
 
   /* determine number of outgoing interfaces */
   if (dapiCmd->cmdData.mcastAdd.outGoingIntfPresent == L7_TRUE)
@@ -2217,7 +2216,7 @@ L7_RC_t hapiBroadRoutingIntfMcastAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void 
     /* Set reverse path interface (ingress interface) */
     memcpy (&BroadGroupList[tableIndex].rpf_usp, usp, sizeof (DAPI_USP_t));
     memcpy (&BroadGroupList[tableIndex].rpf_physical_usp, &physUsp, sizeof (DAPI_USP_t));
-    rpf_lport = hapiPortPtr->bcmx_lport;
+    rpf_gport = hapiPortPtr->bcmx_lport;
     /* Check whether replacing an existing entry */
     if (override_existing_entry == L7_TRUE)
     {
@@ -2225,8 +2224,8 @@ L7_RC_t hapiBroadRoutingIntfMcastAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void 
       memset(&ipmc_info, 0, sizeof(ipmc_info));
       ipmc_info.vid = old_vlan_id;
       hapiBroadL3McastSetIpAddress(&srcAddr, &groupIp, &ipmc_info);
-      ipmc_info.port_tgid = BCMY_GPORT_MODPORT(rpf_lport);
-      ipmc_info.mod_id    = BCMY_GPORT_MODID(rpf_lport);
+      ipmc_info.port_tgid = BCMY_GPORT_MODPORT(rpf_gport);
+      ipmc_info.mod_id    = BCMY_GPORT_MODID(rpf_gport);
       ipmc_info.ipmc_index = BroadGroupList[tableIndex].ipmc_index;
 
       /* Delete the exiting entry with (S G V) */
@@ -3293,7 +3292,7 @@ static void hapiBroadL3McastPortVlanAddDelete (DAPI_USP_t *usp,
   static L7_uint32              ipmc_group_index [L7_L3_MCAST_ROUTE_TBL_SIZE_TOTAL];
   L7_uint32                     num_ipmc_groups;
   L7_uint32                     tagged;
-  bcmx_lport_t                  lport[L7_MAX_MEMBERS_PER_LAG];
+  bcm_gport_t                   gport[L7_MAX_MEMBERS_PER_LAG];
   L7_uint32                     lport_count = 0;
   L7_uint32                     lport_idx;
 
@@ -3363,7 +3362,7 @@ static void hapiBroadL3McastPortVlanAddDelete (DAPI_USP_t *usp,
       if (lagMemberSet[i].inUse == L7_TRUE)
       {
           hapiLagMemberPortPtr = HAPI_PORT_GET(&lagMemberSet[i].usp,dapi_g);
-          lport[lport_count++] = hapiLagMemberPortPtr->bcmx_lport;
+          gport[lport_count++] = hapiLagMemberPortPtr->bcmx_lport;
       }
       /*For XGS3 we can distribute non-unicast
                traffic across the lag members*/
@@ -3382,7 +3381,7 @@ static void hapiBroadL3McastPortVlanAddDelete (DAPI_USP_t *usp,
     }
   } else
   {
-    lport[lport_count++] = hapiPortPtr->bcmx_lport;
+    gport[lport_count++] = hapiPortPtr->bcmx_lport;
   }
 
   hapiBroadL3McastCritEnter ();
@@ -3446,29 +3445,29 @@ static void hapiBroadL3McastPortVlanAddDelete (DAPI_USP_t *usp,
     {
       if (num_ipmc_groups > 0)
       {
-        HAPI_L3_MCAST_DEBUG("Going to add port %d to vlan %d, groups %d", lport[lport_idx], vlan_id, num_ipmc_groups);
-        rv = usl_bcmx_ipmc_add_l2_port_groups (lport[lport_idx],
+        HAPI_L3_MCAST_DEBUG("Going to add port %d to vlan %d, groups %d", gport[lport_idx], vlan_id, num_ipmc_groups);
+        rv = usl_bcmx_ipmc_add_l2_port_groups (gport[lport_idx],
                                                ipmc_group_index,
                                                num_ipmc_groups,
                                                vlan_id,
                                                tagged);
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
-          L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't add L2 port 0x%x to IPMC indices, rv = %d", lport[lport_idx], rv);
+          L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't add L2 port 0x%x to IPMC indices, rv = %d", gport[lport_idx], rv);
         }
       }
     } else
     {
       if (num_ipmc_groups > 0)
       {
-        HAPI_L3_MCAST_DEBUG("Going to delete port %d to vlan %d, groups %d", lport[lport_idx], vlan_id, num_ipmc_groups);
-        rv = usl_bcmx_ipmc_delete_l2_port_groups (lport[lport_idx],
+        HAPI_L3_MCAST_DEBUG("Going to delete port %d to vlan %d, groups %d", gport[lport_idx], vlan_id, num_ipmc_groups);
+        rv = usl_bcmx_ipmc_delete_l2_port_groups (gport[lport_idx],
                                                   ipmc_group_index,
                                                   num_ipmc_groups,
                                                   vlan_id, 0);
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
-          L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't delete L2 port 0x%x from IPMC indices, rv = %d", lport[lport_idx], rv);
+          L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't delete L2 port 0x%x from IPMC indices, rv = %d", gport[lport_idx], rv);
         }
       }
     }
@@ -3546,7 +3545,7 @@ static void hapiBroadL3McastPortVlanAddDelete (DAPI_USP_t *usp,
     {
       if (add_remove)
       {
-        rv = usl_bcmx_ipmc_add_l3_port_groups (lport[lport_idx],
+        rv = usl_bcmx_ipmc_add_l3_port_groups (gport[lport_idx],
                                                ipmc_group_index,
                                                num_ipmc_groups,
                                                vlan_id,
@@ -3555,12 +3554,12 @@ static void hapiBroadL3McastPortVlanAddDelete (DAPI_USP_t *usp,
                                                ttl);
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
-          L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't add L3 port 0x%x to IPMC indices, rv = %d", lport[lport_idx], rv);
+          L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't add L3 port 0x%x to IPMC indices, rv = %d", gport[lport_idx], rv);
         }
       }
       else
       {
-        rv = usl_bcmx_ipmc_delete_l3_port_groups (lport[lport_idx],
+        rv = usl_bcmx_ipmc_delete_l3_port_groups (gport[lport_idx],
                                                   ipmc_group_index,
                                                   num_ipmc_groups,
                                                   vlan_id,
@@ -3569,7 +3568,7 @@ static void hapiBroadL3McastPortVlanAddDelete (DAPI_USP_t *usp,
                                                   ttl);
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
-          L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't delete L3 port 0x%x from IPMC indices, rv = %d", lport[lport_idx], rv);
+          L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't delete L3 port 0x%x from IPMC indices, rv = %d", gport[lport_idx], rv);
         }
       }
     }

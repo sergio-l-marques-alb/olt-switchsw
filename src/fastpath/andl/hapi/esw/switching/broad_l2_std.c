@@ -168,7 +168,7 @@ static HAPI_BROAD_STG_t broadDot1sMapping[HAPI_MAX_MULTIPLE_STP_INSTANCES];
 
 typedef struct LportL2AddrRemoveTime
 {
-  bcmx_lport_t   lport;
+  bcm_gport_t    gport;
   L7_uint32      lastRemoveTime;
   L7_BOOL        port_is_lag;
 
@@ -763,8 +763,7 @@ L7_RC_t hapiBroadDot1sStateAsyncSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
   L7_uint32                 instNumber;
   L7_uint32                 i, stg_index;
   L7_int32                  rc;
-  bcmx_lport_t              lport;
-
+  bcm_gport_t               gport;
 
   /* Get the spanning tree instance ID, action to take and the new state */
   instNumber = dapiCmd->cmdData.dot1sState.instNumber;
@@ -859,10 +858,10 @@ L7_RC_t hapiBroadDot1sStateAsyncSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
 
         hapiLagMemberPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
 
-        lport = hapiLagMemberPortPtr->bcmx_lport;
+        gport = hapiLagMemberPortPtr->bcmx_lport;
 
         /* Call BCMX to set the state for a port in a STG instance */
-        rc = usl_bcmx_stg_stp_set (stg, lport, stgState);
+        rc = usl_bcmx_stg_stp_set (stg, gport, stgState);
 
         if (BCM_E_NOT_FOUND == rc)
         {
@@ -911,10 +910,10 @@ L7_RC_t hapiBroadDot1sStateAsyncSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
       }
       #endif
 
-      lport = hapiPortPtr->bcmx_lport;
+      gport = hapiPortPtr->bcmx_lport;
 
       /* Call BCMX to set the state for a port in a STG instance */
-      rc = usl_bcmx_stg_stp_set (stg, lport, stgState);
+      rc = usl_bcmx_stg_stp_set (stg, gport, stgState);
 
       if (BCM_E_NOT_FOUND == rc)
       {
@@ -1259,7 +1258,7 @@ void hapiBroadDot1sPortStateCopy(DAPI_USP_t *destUsp, DAPI_USP_t *srcUsp, DAPI_t
   BROAD_PORT_t *hapiDestPortPtr;
   BROAD_PORT_t *hapiSrcPortPtr;
   bcm_stg_t     stg;
-  bcmx_lport_t  lport;
+  bcm_gport_t   gport;
   L7_uint32     index;
   L7_uint32     rc;
 
@@ -1279,10 +1278,10 @@ void hapiBroadDot1sPortStateCopy(DAPI_USP_t *destUsp, DAPI_USP_t *srcUsp, DAPI_t
     {
       stg = broadDot1sMapping[index].stg;
 
-      lport = hapiDestPortPtr->bcmx_lport;
+      gport = hapiDestPortPtr->bcmx_lport;
 
       /* Call BCMX to set the state for a port in a STG instance */
-      rc = usl_bcmx_stg_stp_set (stg, lport, hapiSrcPortPtr->hw_dot1s_state[index]);
+      rc = usl_bcmx_stg_stp_set (stg, gport, hapiSrcPortPtr->hw_dot1s_state[index]);
       if (L7_BCMX_OK(rc) != L7_TRUE)
       {
         L7_LOG_ERROR(rc);
@@ -1313,7 +1312,7 @@ void hapiBroadDot1sPortAllGroupsStateSet(DAPI_USP_t *usp,
   DAPI_PORT_t  *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr;
   bcm_stg_t     stg;
-  bcmx_lport_t  lport;
+  bcm_gport_t   gport;
   L7_uint32     index;
   L7_uint32     rc;
 
@@ -1331,10 +1330,10 @@ void hapiBroadDot1sPortAllGroupsStateSet(DAPI_USP_t *usp,
     {
       stg = broadDot1sMapping[index].stg;
 
-      lport = hapiPortPtr->bcmx_lport;
+      gport = hapiPortPtr->bcmx_lport;
 
       /* Call BCMX to set the state for a port in a STG instance */
-      rc = usl_bcmx_stg_stp_set (stg, lport, state);
+      rc = usl_bcmx_stg_stp_set (stg, gport, state);
       if (L7_BCMX_OK(rc) != L7_TRUE)
       {
         L7_LOG_ERROR(rc);
@@ -1812,20 +1811,20 @@ void hapiBroadLearnSet(DAPI_USP_t *usp, L7_uint32 flags, DAPI_t *dapi_g)
   DAPI_PORT_t                *dapiPortPtr;
   BROAD_PORT_t               *hapiPortPtr;
   BROAD_PORT_t               *hapiLagMemberPortPtr;
-  bcmx_lport_t                lport;
+  bcm_gport_t                 gport;
   L7_uint32                   i;
   usl_bcm_port_learn_mode_t  learnMode;
 
   dapiPortPtr = DAPI_PORT_GET(usp, dapi_g);
   hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
-  lport       = hapiPortPtr->bcmx_lport;
+  gport       = hapiPortPtr->bcmx_lport;
 
   learnMode   = flags;
 
   /* assumes this function is only called w/ physical and LAG ports */
   if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
   {
-    rc = usl_bcmx_port_learn_set(lport, learnMode);
+    rc = usl_bcmx_port_learn_set(gport, learnMode);
     if (L7_BCMX_OK(rc) != L7_TRUE)
     {
       SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
@@ -1844,9 +1843,9 @@ void hapiBroadLearnSet(DAPI_USP_t *usp, L7_uint32 flags, DAPI_t *dapi_g)
            hapiLagMemberPortPtr = 
              HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
 
-           lport = hapiLagMemberPortPtr->bcmx_lport;
+           gport = hapiLagMemberPortPtr->bcmx_lport;
 
-           rc = usl_bcmx_port_learn_set(lport, learnMode);
+           rc = usl_bcmx_port_learn_set(gport, learnMode);
           if (L7_BCMX_OK(rc) != L7_TRUE)
           {
             SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
@@ -1889,7 +1888,7 @@ L7_RC_t hapiBroadIntfMacLockConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
   DAPI_INTF_MGMT_CMD_t    *dapiCmd = (DAPI_INTF_MGMT_CMD_t*)data;
   DAPI_PORT_t             *dapiPortPtr;
   BROAD_PORT_t            *hapiPortPtr;
-  bcmx_lport_t            lport;
+  bcm_gport_t             gport;
 
   if (dapiCmd->cmdData.macLockConfig.getOrSet != DAPI_CMD_SET)
   {
@@ -1902,7 +1901,7 @@ L7_RC_t hapiBroadIntfMacLockConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
 
   dapiPortPtr = DAPI_PORT_GET(usp, dapi_g);
   hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
-  lport       = hapiPortPtr->bcmx_lport;
+  gport       = hapiPortPtr->bcmx_lport;
   if ((IS_PORT_TYPE_PHYSICAL(dapiPortPtr) == L7_FALSE) && (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) == L7_FALSE))
   {
     return L7_FAILURE;
@@ -2335,18 +2334,18 @@ L7_RC_t hapiBroadAddrMacAddressEntryDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
 //  L7_RC_t               result  = L7_SUCCESS;
 //  DAPI_ADDR_MGMT_CMD_t *dapiCmd = (DAPI_ADDR_MGMT_CMD_t*)data;
 //  BROAD_PORT_t         *hapiPortPtr;
-//  L7_uint32             lport, port;
+//  L7_uint32             gport, port;
 //  L7_int32              learnEnabled;
 //
 //  hapiPortPtr = HAPI_PORT_GET(usp,dapi_g);
-//  lport = hapiPortPtr->bcmx_lport;
+//  gport = hapiPortPtr->bcmx_lport;
 //
 //  /* Port should be local */
-//  if (!BCMX_LPORT_IS_PHYSICAL(lport))
+//  if (!BCMX_LPORT_IS_PHYSICAL(gport))
 //    return L7_FAILURE;
 //
 //  /* Get local port */
-//  port = BCMX_LPORT_BCM_PORT(lport);
+//  port = BCMX_LPORT_BCM_PORT(gport);
 //
 //  learnEnabled = (dapiCmd->cmdData.portAddressSetLearnMode.learn_enabled & 1);
 //
@@ -2374,7 +2373,7 @@ L7_RC_t hapiBroadAddrMacAddressEntryDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
 //        {
 //          /* Deactivate learning, and clear adresses related to this port */
 //          hapiBroadLearnSet(usp, BCM_PORT_LEARN_FWD, dapi_g);
-//          usl_bcmx_l2_addr_remove_by_port(lport,L7_FALSE);
+//          usl_bcmx_l2_addr_remove_by_port(gport,L7_FALSE);
 //        }
 //      }
 //    }
@@ -3367,14 +3366,14 @@ void hapiBroadAddrMacFrameLearn(bcm_pkt_t *bcm_pkt, DAPI_t *dapi_g)
     bcm_l2_addr.tgid = bcm_pkt->src_trunk;
     bcm_l2_addr.flags |= BCM_L2_TRUNK_MEMBER;
 
-    /* Fake out the lport. The lport is used by bcmx to retrieve the souce module.
+    /* Fake out the gport. The gport is used by bcmx to retrieve the souce module.
     */
     BCM_GPORT_MODPORT_SET(bcm_l2_addr.port, bcm_pkt->src_mod, 0);
     bcm_l2_addr.modid = bcm_pkt->src_mod;
   }
   else if (BCM_GPORT_IS_WLAN_PORT(bcm_pkt->src_gport))
   {
-    /*bcm_l2_addr.lport = bcm_pkt->src_gport;*/
+    /*bcm_l2_addr.gport = bcm_pkt->src_gport;*/
     bcm_l2_addr.port  = bcm_pkt->src_gport;
     bcm_l2_addr.modid = bcm_pkt->src_mod;
   }
@@ -4027,7 +4026,7 @@ extern DAPI_t *dapi_g;
 *
 * @purpose Enable/Disable learning on a port or trunk during flush operation.
 *
-* @param   portInfo  - Learn mode of lport/tgid to be changed
+* @param   portInfo  - Learn mode of gport/tgid to be changed
 * @param   learnMode - L7_ENABLE: Enable learning
 *                      L7_DISABLE: Disable learning
 *
@@ -4234,7 +4233,7 @@ L7_RC_t hapiBroadL2AddrFlushInit (DAPI_t *dapi_g)
 
   memset((void *) &hapiBroadFlushStats_g,0,sizeof(hapiBroadFlushStats_g));
 
-  /* an gplist to indicate which lport should be flushed */
+  /* an gplist to indicate which gport should be flushed */
   size  = platIntfPhysicalIntfMaxCountGet();
 
   if (BCMY_GPLIST_IS_NULL(&hapiBroadFlushAppGpList))
@@ -4312,7 +4311,7 @@ L7_RC_t hapiBroadL2AddrFlushInit (DAPI_t *dapi_g)
 void hapiBroadL2AddrFlushTask(DAPI_t *dapi_g, L7_uint32 numArgs)
 {
   BROAD_L2ADDR_FLUSH_t   l2addr_flush;
-  bcmx_lport_t           lport;
+  bcm_gport_t            gport;
   L7_int32               index;
   L7_uint32              tgid = 0;
   L7_int32               count = 0;
@@ -4365,19 +4364,19 @@ void hapiBroadL2AddrFlushTask(DAPI_t *dapi_g, L7_uint32 numArgs)
 
     /* iterate over the ports */
 
-    BCMY_GPLIST_ITER(hapiBroadFlushTaskGpList, lport, count)
+    BCMY_GPLIST_ITER(hapiBroadFlushTaskGpList, gport, count)
     {
       if (hapiDot1sDebug & HAPI_BROAD_DOT1S_DEBUG_ENQUEUE)
-         printf ("%s : Flushing physical port 0x%x\n", __FUNCTION__, lport);
-      if (BCMY_GPORT_VALID(lport))
+         printf ("%s : Flushing physical port 0x%x\n", __FUNCTION__, gport);
+      if (BCMY_GPORT_VALID(gport))
       {
         /* Disable learning on the port */
-        l2addr_flush.bcmx_lport = lport;
+        l2addr_flush.bcmx_lport = gport;
         l2addr_flush.port_is_lag = L7_FALSE;
         hapiBroadFlushL2LearnModeSet(l2addr_flush, L7_DISABLE);
 
         hapiBroadFlushStats_g.hapiBroadPortFlushesDone++;
-        (void)usl_bcmx_l2_addr_remove_by_port(lport, flags);
+        (void)usl_bcmx_l2_addr_remove_by_port(gport, flags);
       }
     }
 
@@ -4596,7 +4595,7 @@ L7_RC_t hapiBroadDhcpSnoopingPortUpdate(DAPI_USP_t *portUsp,
 {
   L7_RC_t         rc = L7_SUCCESS;
   BROAD_PORT_t   *hapiPortPtr;
-  bcmx_lport_t    lport;
+  bcm_gport_t     gport;
   BROAD_SYSTEM_t *hapiSystem;
 
   hapiSystem     = (BROAD_SYSTEM_t *)dapi_g->system->hapiSystem;
@@ -4604,14 +4603,14 @@ L7_RC_t hapiBroadDhcpSnoopingPortUpdate(DAPI_USP_t *portUsp,
 
   if (BROAD_POLICY_INVALID != hapiSystem->dhcpSnoopingPolicyId)
   {
-    lport = hapiPortPtr->bcmx_lport;
+    gport = hapiPortPtr->bcmx_lport;
     if (enabled == L7_TRUE)
     {
-      rc = hapiBroadPolicyApplyToIface(hapiSystem->dhcpSnoopingPolicyId, lport);
+      rc = hapiBroadPolicyApplyToIface(hapiSystem->dhcpSnoopingPolicyId, gport);
     }
     else
     {
-      rc = hapiBroadPolicyRemoveFromIface(hapiSystem->dhcpSnoopingPolicyId, lport);
+      rc = hapiBroadPolicyRemoveFromIface(hapiSystem->dhcpSnoopingPolicyId, gport);
     }
   }
   return rc;
@@ -4845,7 +4844,7 @@ L7_RC_t hapiBroadL2ProtectedGroupConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd,
     if (modid < 0 || modport < 0)
     {
       L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID,
-              "Failed to get modid/modport for lport %x: modid %d modport %d\n",
+              "Failed to get modid/modport for gport %x: modid %d modport %d\n",
               hapiPortPtr->bcmx_lport, modid, modport);
       continue;
     }
@@ -5198,7 +5197,7 @@ L7_RC_t hapiBroadDynamicArpInspectionPortUpdate(DAPI_USP_t *portUsp,
 {
   L7_RC_t         rc = L7_SUCCESS;
   BROAD_PORT_t   *hapiPortPtr;
-  bcmx_lport_t    lport;
+  bcm_gport_t     gport;
   BROAD_SYSTEM_t *hapiSystem;
   L7_ushort16     temp16;
 
@@ -5207,7 +5206,7 @@ L7_RC_t hapiBroadDynamicArpInspectionPortUpdate(DAPI_USP_t *portUsp,
 
   if (BROAD_POLICY_INVALID != hapiSystem->dynamicArpInspectUntrustedPolicyId)
   {
-    lport = hapiPortPtr->bcmx_lport;
+    gport = hapiPortPtr->bcmx_lport;
 
     temp16 = (oldTrusted << 8) |
              (newTrusted);
@@ -5220,10 +5219,10 @@ L7_RC_t hapiBroadDynamicArpInspectionPortUpdate(DAPI_USP_t *portUsp,
       /* No action needed */
       break;
     case 0x0001:                                             /*        F               T        */
-      rc = hapiBroadPolicyRemoveFromIface(hapiSystem->dynamicArpInspectUntrustedPolicyId, lport);
+      rc = hapiBroadPolicyRemoveFromIface(hapiSystem->dynamicArpInspectUntrustedPolicyId, gport);
       break;
     case 0x0100:                                             /*        T               F        */
-      rc = hapiBroadPolicyApplyToIface(hapiSystem->dynamicArpInspectUntrustedPolicyId, lport);
+      rc = hapiBroadPolicyApplyToIface(hapiSystem->dynamicArpInspectUntrustedPolicyId, gport);
       break;
 
     default:

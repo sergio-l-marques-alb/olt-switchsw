@@ -125,7 +125,7 @@ L7_RC_t hapiBroadCosPolicyUtilAdd(L7_uchar8 *data, L7_uint32 size, BROAD_POLICY_
     return L7_FAILURE;
 }
 
-L7_RC_t hapiBroadCosPolicyUtilApply(BROAD_POLICY_t policy, bcmx_lport_t lport)
+L7_RC_t hapiBroadCosPolicyUtilApply(BROAD_POLICY_t policy, bcm_gport_t gport)
 {
     int     i;
     L7_RC_t result;
@@ -134,7 +134,7 @@ L7_RC_t hapiBroadCosPolicyUtilApply(BROAD_POLICY_t policy, bcmx_lport_t lport)
     {
         if ((L7_TRUE == broadCosUtilTable[i].used) && (policy == broadCosUtilTable[i].policyId))
         {
-            result = hapiBroadPolicyApplyToIface(policy, lport);
+            result = hapiBroadPolicyApplyToIface(policy, gport);
             if (L7_SUCCESS == result)
                 broadCosUtilTable[i].ifCount++;
 
@@ -145,7 +145,7 @@ L7_RC_t hapiBroadCosPolicyUtilApply(BROAD_POLICY_t policy, bcmx_lport_t lport)
     return L7_FAILURE;
 }
 
-L7_RC_t hapiBroadCosPolicyUtilRemove(BROAD_POLICY_t policy, bcmx_lport_t lport)
+L7_RC_t hapiBroadCosPolicyUtilRemove(BROAD_POLICY_t policy, bcm_gport_t gport)
 {
     int     i;
     L7_RC_t result = L7_FAILURE;
@@ -154,7 +154,7 @@ L7_RC_t hapiBroadCosPolicyUtilRemove(BROAD_POLICY_t policy, bcmx_lport_t lport)
     {
         if ((L7_TRUE == broadCosUtilTable[i].used) && (policy == broadCosUtilTable[i].policyId))
         {
-            result = hapiBroadPolicyRemoveFromIface(policy, lport);
+            result = hapiBroadPolicyRemoveFromIface(policy, gport);
             if (L7_SUCCESS == result)
                 broadCosUtilTable[i].ifCount--;
             

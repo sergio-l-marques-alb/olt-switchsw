@@ -1682,8 +1682,8 @@ L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier)
 {
   int i, unit=0;
   bcm_port_t bcm_port;
-  bcmx_lport_t lport_cpu;
-  bcm_port_t bcm_port_cpu;
+  bcm_gport_t lport_cpu;
+  bcm_port_t  bcm_port_cpu;
 
   /* Validate arguments */
   if (port_frontier>=ptin_sys_number_of_ports)
@@ -2005,7 +2005,7 @@ void hapi_ptin_allportsbmp_get(pbmp_t *pbmp_mask)
  * @param dapi_g
  * @param pbmp : If is a physical port, it will be ADDED to this
  *               port bitmap.
- * @param intf_desc : interface descriptor with lport, bcm_port 
+ * @param intf_desc : interface descriptor with gport, bcm_port 
  *                  (-1 if not physical) and trunk_id (-1 if not
  *                  trunk)
  * 
@@ -2016,7 +2016,7 @@ L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, pbmp_t *
 {
   DAPI_PORT_t  *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr;
-  bcmx_lport_t  lport=-1;
+  bcm_gport_t   gport=-1;
   bcm_trunk_t   trunk_id=-1;
   bcm_port_t    bcm_port=-1;
   L7_uint32     /*efp_class_port=0,*/ xlate_class_port=0;
@@ -2036,9 +2036,9 @@ L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, pbmp_t *
   dapiPortPtr = DAPI_PORT_GET( ddUsp, dapi_g );
   hapiPortPtr = HAPI_PORT_GET( ddUsp, dapi_g );
 
-  /* Extract lport */
-  lport = hapiPortPtr->bcmx_lport;
-  PT_LOG_TRACE(LOG_CTX_HAPI,"Analysing interface {%d,%d,%d}: lport=0x%08x",ddUsp->unit,ddUsp->slot,ddUsp->port,lport);
+  /* Extract gport */
+  gport = hapiPortPtr->bcmx_lport;
+  PT_LOG_TRACE(LOG_CTX_HAPI,"Analysing interface {%d,%d,%d}: gport=0x%08x",ddUsp->unit,ddUsp->slot,ddUsp->port,gport);
 
   /* Extract Trunk id */
   if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr))
@@ -2114,7 +2114,7 @@ L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, pbmp_t *
   /* Update interface descriptor */
   if (intf_desc!=L7_NULLPTR)
   {
-    intf_desc->lport            = lport;
+    intf_desc->gport            = gport;
     intf_desc->trunk_id         = trunk_id;
     intf_desc->bcm_port         = bcm_port;
     //intf_desc->efp_class_port   = efp_class_port;
@@ -4166,7 +4166,7 @@ static BROAD_POLICY_t policyId_storm_cpu = BROAD_POLICY_INVALID;
  */
 L7_RC_t hapi_ptin_stormControl_cpu_set(L7_BOOL enable, L7_uint32 cir1, L7_uint32 cbs1, L7_uint32 cir2, L7_uint32 cbs2)
 {
-  bcmx_lport_t  lport;
+  bcm_gport_t   gport;
   bcm_port_t    bcm_port;
   bcm_port_t    bcm_port_mask = (bcm_port_t) -1;
   BROAD_POLICY_t      policyId;
@@ -4184,12 +4184,12 @@ L7_RC_t hapi_ptin_stormControl_cpu_set(L7_BOOL enable, L7_uint32 cir1, L7_uint32
   }
 
   /* CPU port */
-  if (bcmx_lport_local_cpu_get(0, &lport) != BCM_E_NONE)
+  if (bcmx_lport_local_cpu_get(0, &gport) != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI,"Error with bcmx_lport_local_cpu_get");
     return L7_FAILURE;
   }
-  bcm_port = bcmx_lport_bcm_port(lport);
+  bcm_port = bcmx_lport_bcm_port(gport);
   if (bcm_port < 0)
   {
     PT_LOG_ERR(LOG_CTX_HAPI,"Error with bcmx_lport_bcm_port");
@@ -5469,7 +5469,6 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
   {
     L7_uint8  prio_mask  = 0x7;
     L7_uint8  vlanFormat_value, vlanFormat_mask;
-    //bcmx_lport_t gport;
     BROAD_POLICY_t      policyId;
     BROAD_POLICY_RULE_t ruleId;
 
@@ -5587,7 +5586,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
      At egressing is important to guarantee PBIT value of outer vlan is null: Multicast GEM of OLTD only deals with pbit=0 */
   {
     /* Multicast services */
-    bcmx_lport_t  gport;
+    bcm_gport_t   gport;
     //L7_uint32     ip_addr = 0xe0000000, ip_addr_mask=0xf0000000;
     L7_uchar8     macAddr_iptv_value[6] = { 0x01, 0x00, 0x5e, 0x00, 0x00, 0x00 };
     L7_uchar8     macAddr_iptv_mask[6]  = { 0xff, 0xff, 0xff, 0x80, 0x00, 0x00 };
@@ -6165,9 +6164,6 @@ L7_RC_t teste_case(void)
   L7_RC_t             rc = L7_SUCCESS;
 
   /* Multicast services */
-//L7_int        port;
-//bcmx_lport_t  gport;
-//bcm_port_t    bcm_port;
   //L7_uint8      ip_type = BROAD_IP_TYPE_IPV4, ip_type_mask = 0xff;
   L7_uint16     ethertype = 0x0800, ethertype_mask = 0xffff;
   L7_uint32     ip_addr = 0xe0000000, ip_addr_mask=0xf0000000;
@@ -6283,7 +6279,7 @@ L7_RC_t fp_teste(void)
 
   /* Multicast services */
   L7_int        port;
-  bcmx_lport_t  gport;
+  bcm_gport_t   gport;
   bcm_port_t    bcm_port;
   L7_uint16     vlanId_value;
   L7_uint16     vlanId_mask;
@@ -6387,7 +6383,7 @@ L7_RC_t fp_teste2(L7_int port_in, L7_int port_out, L7_int vlan_add)
 
   /* Multicast services */
   bcm_port_t    bcm_port;
-  bcmx_lport_t  gport;
+  bcm_gport_t   gport;
 //L7_uint16     vlanId_value;
 //L7_uint16     vlanId_mask;
 
@@ -6569,7 +6565,7 @@ L7_RC_t ptin_hapi_vcap_defvid(DAPI_USP_t *usp, L7_uint16 outerVlan, L7_uint16 in
     PT_LOG_TRACE(LOG_CTX_HAPI,"PVID cleared successfully");
   }
 
-  PT_LOG_TRACE(LOG_CTX_HAPI,"Configuring policy: usp={%d,%d,%d}/lport=0x%x, vlan format 0x%x, outerVlan %u, innerVlan %u",
+  PT_LOG_TRACE(LOG_CTX_HAPI,"Configuring policy: usp={%d,%d,%d}/gport=0x%x, vlan format 0x%x, outerVlan %u, innerVlan %u",
             usp->unit,usp->slot,usp->port, hapiPortPtr->bcmx_lport, vlan_format, outerVlan, innerVlan);
 
   /* Only consider valid VLANs between 2 and 4095 */
@@ -6626,7 +6622,7 @@ L7_RC_t ptin_hapi_vcap_defvid(DAPI_USP_t *usp, L7_uint16 outerVlan, L7_uint16 in
     rc = hapiBroadPolicyApplyToIface(policyId, hapiPortPtr->bcmx_lport);
     if (L7_SUCCESS != rc)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI,"Error applying interface usp={%d,%d,%d}/lport=0x%x to policy %d: rc=%d",
+      PT_LOG_ERR(LOG_CTX_HAPI,"Error applying interface usp={%d,%d,%d}/gport=0x%x to policy %d: rc=%d",
               usp->unit,usp->slot,usp->port, hapiPortPtr->bcmx_lport, policyId, rc);
       hapiBroadPolicyDelete(policyId);
       return rc;

@@ -325,13 +325,12 @@ L7_RC_t hapiBroadSystemMirroringSet(DAPI_USP_t *fromUsp,
                                     L7_BOOL add,
                                     L7_uint32 probeType)
 {
-
   L7_RC_t               result = L7_SUCCESS;
   DAPI_PORT_t           *dapiPortPtr;
   BROAD_PORT_t          *hapiMirrorFromPortPtr;
   BROAD_PORT_t          *hapiMirrorToPortPtr;
-  bcmx_lport_t          bcmxMirrorFromLport;
-  bcmx_lport_t          bcmxMirrorToLport, lport;
+  bcm_gport_t           bcmMirrorFromGport;
+  bcm_gport_t           bcmMirrorToGport, gport;
   BROAD_PORT_t          *hapiLagMemberPortPtr;
   int                              rv, i;
   usl_bcm_port_mirror_config_t     mirrorConfig;
@@ -345,8 +344,8 @@ L7_RC_t hapiBroadSystemMirroringSet(DAPI_USP_t *fromUsp,
   hapiMirrorFromPortPtr = HAPI_PORT_GET(fromUsp, dapi_g);
   hapiMirrorToPortPtr = HAPI_PORT_GET(toUsp, dapi_g);
 
-  bcmxMirrorFromLport = hapiMirrorFromPortPtr->bcmx_lport;
-  bcmxMirrorToLport = hapiMirrorToPortPtr->bcmx_lport;
+  bcmMirrorFromGport = hapiMirrorFromPortPtr->bcmx_lport;
+  bcmMirrorToGport = hapiMirrorToPortPtr->bcmx_lport;
 
   mirrorConfig.probePort = hapiMirrorToPortPtr->bcmx_lport;
   mirrorConfig.stackUnit = toUsp->unit;
@@ -390,15 +389,15 @@ L7_RC_t hapiBroadSystemMirroringSet(DAPI_USP_t *fromUsp,
         if (dapiPortPtr->modeparm.lag.memberSet[i].inUse == L7_TRUE)
         {
           hapiLagMemberPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
-          lport = hapiLagMemberPortPtr->bcmx_lport;
+          gport = hapiLagMemberPortPtr->bcmx_lport;
 
-          rv = usl_bcmx_port_mirror_set(lport, mirrorConfig);
+          rv = usl_bcmx_port_mirror_set(gport, mirrorConfig);
           if (L7_BCMX_OK(rv) != L7_TRUE)
           {
             hapiBroadLagCritSecExit ();
             L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
                     "Failed to apply port mirroring configuration (enable from = NA, to = %d, rv %d)\n",
-                    bcmxMirrorToLport, rv);
+                    bcmMirrorToGport, rv);
 
             return L7_FAILURE;
           }
@@ -408,12 +407,12 @@ L7_RC_t hapiBroadSystemMirroringSet(DAPI_USP_t *fromUsp,
     }
     else
     {
-      rv = usl_bcmx_port_mirror_set(bcmxMirrorFromLport, mirrorConfig);
+      rv = usl_bcmx_port_mirror_set(bcmMirrorFromGport, mirrorConfig);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
                 "Failed to apply port mirroring configuration (enable from = %d, to = %d, rv %d)\n",
-                bcmxMirrorFromLport, bcmxMirrorToLport, rv);
+                bcmMirrorFromGport, bcmMirrorToGport, rv);
 
         return L7_FAILURE;
       }
@@ -430,14 +429,14 @@ L7_RC_t hapiBroadSystemMirroringSet(DAPI_USP_t *fromUsp,
         {
           hapiLagMemberPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
 
-          lport = hapiLagMemberPortPtr->bcmx_lport;
-          rv = usl_bcmx_port_mirror_set(lport, mirrorConfig);
+          gport = hapiLagMemberPortPtr->bcmx_lport;
+          rv = usl_bcmx_port_mirror_set(gport, mirrorConfig);
           if (L7_BCMX_OK(rv) != L7_TRUE)
           {
             hapiBroadLagCritSecExit ();
             L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
                     "Failed to apply port mirroring configuration (enable from = NA, to = %d, rv %d)\n",
-                    bcmxMirrorToLport, rv);
+                    bcmMirrorToGport, rv);
 
             return L7_FAILURE;
           }
@@ -447,7 +446,7 @@ L7_RC_t hapiBroadSystemMirroringSet(DAPI_USP_t *fromUsp,
     }
     else
     {
-      rv = usl_bcmx_port_mirror_set(bcmxMirrorFromLport, mirrorConfig);
+      rv = usl_bcmx_port_mirror_set(bcmMirrorFromGport, mirrorConfig);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
         return L7_FAILURE;
@@ -481,7 +480,7 @@ L7_RC_t hapiBroadSystemMirroring(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
   DAPI_SYSTEM_CMD_t   *dapiCmd = (DAPI_SYSTEM_CMD_t*)data;
   L7_int32             i, add; 
   BROAD_PORT_t        *hapiMirrorToPortPtr;
-  bcmx_lport_t         bcmxMirrorToLport;
+  bcm_gport_t          bcmMirrorToGport;
   int                  rv;
   usl_bcm_port_filter_mode_t  mode;
   DAPI_PORT_t         *dapiPortPtr;
@@ -555,34 +554,34 @@ L7_RC_t hapiBroadSystemMirroring(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
    * is supported
    */
   hapiMirrorToPortPtr = HAPI_PORT_GET(&(dapi_g->system->probeUsp), dapi_g);
-  bcmxMirrorToLport = hapiMirrorToPortPtr->bcmx_lport;
+  bcmMirrorToGport = hapiMirrorToPortPtr->bcmx_lport;
   if((add == L7_TRUE) && (result == L7_SUCCESS))
   {
      hapiBroadMirrorEnable ();
 
      mode.flags = BCM_PORT_VLAN_MEMBER_INGRESS;
      mode.setFlags = L7_TRUE;
-     rv = usl_bcmx_port_vlan_member_set(bcmxMirrorToLport, mode);
+     rv = usl_bcmx_port_vlan_member_set(bcmMirrorToGport, mode);
      if (L7_BCMX_OK(rv) != L7_TRUE)
      {
-       L7_LOG_ERROR(bcmxMirrorToLport);
+       L7_LOG_ERROR(bcmMirrorToGport);
      }
 
      /* Disable egress filtering. The mirrored packets may not be on the
       * same vlan as the probe port */
      mode.flags = BCM_PORT_VLAN_MEMBER_EGRESS;
      mode.setFlags = L7_FALSE;
-     rv = usl_bcmx_port_vlan_member_set(bcmxMirrorToLport, mode);
+     rv = usl_bcmx_port_vlan_member_set(bcmMirrorToGport, mode);
      if (L7_BCMX_OK(rv) != L7_TRUE)
      {
-       L7_LOG_ERROR(bcmxMirrorToLport);
+       L7_LOG_ERROR(bcmMirrorToGport);
      }
 
 
-     rv = usl_bcmx_port_untagged_vlan_set(bcmxMirrorToLport, HPC_STACKING_VLAN_ID);
+     rv = usl_bcmx_port_untagged_vlan_set(bcmMirrorToGport, HPC_STACKING_VLAN_ID);
      if (L7_BCMX_OK(rv) != L7_TRUE)
      {
-       L7_LOG_ERROR(bcmxMirrorToLport);
+       L7_LOG_ERROR(bcmMirrorToGport);
      }
  
      /*Session can be active only with an active probe*/
@@ -590,27 +589,27 @@ L7_RC_t hapiBroadSystemMirroring(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
   }
   else if((add == L7_FALSE) && (result == L7_SUCCESS))
   {
-     result = hapiBroadVlanIngressFilterSet(bcmxMirrorToLport,hapiMirrorToPortPtr->ingressFilteringEnabled);
+     result = hapiBroadVlanIngressFilterSet(bcmMirrorToGport,hapiMirrorToPortPtr->ingressFilteringEnabled);
 
      if (result != L7_SUCCESS)
      {
-       L7_LOG_ERROR(bcmxMirrorToLport);
+       L7_LOG_ERROR(bcmMirrorToGport);
      }
 
      /* Re-enable egress filtering. */
      mode.flags = BCM_PORT_VLAN_MEMBER_EGRESS;
      mode.setFlags = L7_TRUE;
-     rv = usl_bcmx_port_vlan_member_set(bcmxMirrorToLport, mode);
+     rv = usl_bcmx_port_vlan_member_set(bcmMirrorToGport, mode);
      if (L7_BCMX_OK(rv) != L7_TRUE)
      {
-       L7_LOG_ERROR(bcmxMirrorToLport);
+       L7_LOG_ERROR(bcmMirrorToGport);
      }
 
 
-     rv = usl_bcmx_port_untagged_vlan_set(bcmxMirrorToLport,hapiMirrorToPortPtr->pvid);
+     rv = usl_bcmx_port_untagged_vlan_set(bcmMirrorToGport,hapiMirrorToPortPtr->pvid);
      if (L7_BCMX_OK(rv) != L7_TRUE)
      {
-       L7_LOG_ERROR(bcmxMirrorToLport);
+       L7_LOG_ERROR(bcmMirrorToGport);
      }
 
      dapi_g->system->mirrorEnable = L7_FALSE;
@@ -7502,7 +7501,7 @@ L7_RC_t hapiBroadIsdpPortUpdate(DAPI_USP_t *usp,
 {
   L7_RC_t         rc = L7_SUCCESS;
   BROAD_PORT_t   *hapiPortPtr;
-  bcmx_lport_t    lport;
+  bcm_gport_t     gport;
   L7_ushort16     temp16;
   BROAD_SYSTEM_t *hapiSystem;
   BROAD_POLICY_t  llpfPolicyId, isdpPolicyId;
@@ -7510,7 +7509,7 @@ L7_RC_t hapiBroadIsdpPortUpdate(DAPI_USP_t *usp,
   hapiSystem  = (BROAD_SYSTEM_t *)dapi_g->system->hapiSystem;
   hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
 
-  lport = hapiPortPtr->bcmx_lport;
+  gport = hapiPortPtr->bcmx_lport;
 
   isdpPolicyId = hapiSystem->isdpSysId;
 #ifdef L7_LLPF_PACKAGE
@@ -7540,7 +7539,7 @@ L7_RC_t hapiBroadIsdpPortUpdate(DAPI_USP_t *usp,
     /* Add this port to the ISDP policy. */
     if (isdpPolicyId != BROAD_POLICY_INVALID)
     {
-      rc = hapiBroadPolicyApplyToIface(isdpPolicyId, lport);
+      rc = hapiBroadPolicyApplyToIface(isdpPolicyId, gport);
     }
     break;
 
@@ -7549,7 +7548,7 @@ L7_RC_t hapiBroadIsdpPortUpdate(DAPI_USP_t *usp,
     /* Remove this port from the ISDP policy. */
     if (isdpPolicyId != BROAD_POLICY_INVALID)
     {
-      rc = hapiBroadPolicyRemoveFromIface(isdpPolicyId, lport);
+      rc = hapiBroadPolicyRemoveFromIface(isdpPolicyId, gport);
     }
     break;
 
@@ -7557,7 +7556,7 @@ L7_RC_t hapiBroadIsdpPortUpdate(DAPI_USP_t *usp,
     /* Add this port to the LLPF policy. */
     if (llpfPolicyId != BROAD_POLICY_INVALID)
     {
-      rc = hapiBroadPolicyApplyToIface(llpfPolicyId, lport);
+      rc = hapiBroadPolicyApplyToIface(llpfPolicyId, gport);
     }
     break;
 
@@ -7565,7 +7564,7 @@ L7_RC_t hapiBroadIsdpPortUpdate(DAPI_USP_t *usp,
     /* Remove this port from the LLPF policy. */
     if (llpfPolicyId != BROAD_POLICY_INVALID)
     {
-      rc = hapiBroadPolicyRemoveFromIface(llpfPolicyId, lport);
+      rc = hapiBroadPolicyRemoveFromIface(llpfPolicyId, gport);
     }
     break;
 
@@ -7574,14 +7573,14 @@ L7_RC_t hapiBroadIsdpPortUpdate(DAPI_USP_t *usp,
     /* Remove this port from the ISDP policy. */
     if (isdpPolicyId != BROAD_POLICY_INVALID)
     {
-      rc = hapiBroadPolicyRemoveFromIface(isdpPolicyId, lport);
+      rc = hapiBroadPolicyRemoveFromIface(isdpPolicyId, gport);
     }
     if (rc == L7_SUCCESS)
     {
       /* Add this port to the LLPF policy. */
       if (llpfPolicyId != BROAD_POLICY_INVALID)
       {
-        rc = hapiBroadPolicyApplyToIface(llpfPolicyId, lport);
+        rc = hapiBroadPolicyApplyToIface(llpfPolicyId, gport);
       }
     }
     break;
@@ -7591,14 +7590,14 @@ L7_RC_t hapiBroadIsdpPortUpdate(DAPI_USP_t *usp,
     /* Remove this port from the LLPF policy. */
     if (llpfPolicyId != BROAD_POLICY_INVALID)
     {
-      rc = hapiBroadPolicyRemoveFromIface(llpfPolicyId, lport);
+      rc = hapiBroadPolicyRemoveFromIface(llpfPolicyId, gport);
     }
     if (rc == L7_SUCCESS)
     {
       /* Add this port to the ISDP policy. */
       if (isdpPolicyId != BROAD_POLICY_INVALID)
       {
-        rc = hapiBroadPolicyApplyToIface(isdpPolicyId, lport);
+        rc = hapiBroadPolicyApplyToIface(isdpPolicyId, gport);
       }
     }
     break;

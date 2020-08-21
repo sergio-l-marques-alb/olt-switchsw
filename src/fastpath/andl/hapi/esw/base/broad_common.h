@@ -339,7 +339,7 @@ typedef struct BROAD_SYSTEM_s BROAD_SYSTEM_t;
 *******************************************************************************/
 typedef struct
 {
-  bcmx_lport_t            bcmx_lport;
+  bcm_gport_t             bcmx_lport;
   int                     bcm_unit;
   int                     bcm_port;
   int                     bcm_modid;
@@ -577,7 +577,7 @@ struct BROAD_SYSTEM_s
 
 typedef struct 
 {
-  bcmx_lport_t     bcmx_lport;
+  bcm_gport_t      bcmx_lport;
   L7_uint32        vlanID;
   DAPI_USP_t       usp;
 
@@ -596,20 +596,20 @@ typedef struct
          /* Following structure is for L2 Protocol Tunneling */
 typedef struct 
 {
-  bcmx_lport_t   bcmx_lport;
+  bcm_gport_t      bcmx_lport;
   L7_uint32        vlanID;
   L7_ushort16      dot1adSVlanId;
   L7_ushort16      dot1adRemarkCVlanId;
-  DAPI_USP_t    usp;
+  DAPI_USP_t       usp;
 
   L7_uchar8       *pkt_data;
   L7_uint32        user_data_size;
-  L7_uchar8       proto_byte;
-  L7_uchar8       rx_untagged;
+  L7_uchar8        proto_byte;
+  L7_uchar8        rx_untagged;
   L7_uint32        sendFrame;
   L7_uint32        sendBpdu;
-  BROAD_PORT_t          *hapiPortPtr;
-  L7_BOOL         tunnel;     /* tells whether to tunnel or detunnel */
+  BROAD_PORT_t    *hapiPortPtr;
+  L7_BOOL          tunnel;     /* tells whether to tunnel or detunnel */
 
 } BROAD_TX_PDU_MSG_t;
 #endif

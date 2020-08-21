@@ -49,7 +49,7 @@ typedef struct
 /* Policy Types */
 /* Stack ports do not get any policies by default. Instead, to apply a policy to
  * a stack port it is necessary to specifically apply the policy to the corresponding
- * bcmx_lport(s).
+ * bcm_gport(s).
  */
 typedef unsigned char BROAD_POLICY_TYPE_t;
                                          /* Precedence           Default Port Application         */

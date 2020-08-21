@@ -2383,8 +2383,8 @@ void hapiBroadLogicalUspGet(L7_int32 unit, L7_int32 port, DAPI_t *dapi_g, DAPI_U
 * @end
 *
 *********************************************************************/
-bcmx_lport_t
-hapiBroadDestRouteGet(bcmx_lport_t src, bcmx_lport_t dest)
+bcm_gport_t
+hapiBroadDestRouteGet(bcm_gport_t src, bcm_gport_t dest)
 {
   /* Currently under non-stacking dest is the port */
   /* FIX ME - when stacking is enabled */
@@ -2535,17 +2535,17 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
   {
     BROAD_POLICY_t      mgmtId;
     BROAD_POLICY_RULE_t ruleId;
-    bcmx_lport_t  lport;
+    bcm_gport_t   gport;
     bcm_port_t    bcm_port;
     bcm_port_t    bcm_port_mask = (bcm_port_t) -1;
 
     /* CPU port */
-    if (bcmx_lport_local_cpu_get(0, &lport) != BCM_E_NONE)
+    if (bcmx_lport_local_cpu_get(0, &gport) != BCM_E_NONE)
     {
       PT_LOG_ERR(LOG_CTX_HAPI,"Error with bcmx_lport_local_cpu_get");
       return;
     }
-    bcm_port = bcmx_lport_bcm_port(lport);
+    bcm_port = bcmx_lport_bcm_port(gport);
     if (bcm_port < 0)
     {
       PT_LOG_ERR(LOG_CTX_HAPI,"Error with bcmx_lport_bcm_port");

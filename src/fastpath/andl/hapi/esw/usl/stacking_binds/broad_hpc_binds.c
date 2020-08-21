@@ -639,8 +639,8 @@ void hpcHardwareRemoveStackManager(L7_enetMacAddr_t managerKey)
 *********************************************************************/
 L7_int32 hpcBroadMasterCpuModPortGet(L7_int32 *modid, L7_int32 *cpuport)
 {
-  bcmx_lport_t gport_cpu;
-  L7_int32     rv = BCM_E_FAIL;
+  bcm_gport_t gport_cpu;
+  L7_int32    rv = BCM_E_FAIL;
 
   /* Get lport belonging to CPU of unit 0 */
   rv = bcmx_lport_local_cpu_get(0, &gport_cpu);

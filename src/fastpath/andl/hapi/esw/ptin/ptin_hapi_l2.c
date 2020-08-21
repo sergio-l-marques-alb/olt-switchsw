@@ -1393,7 +1393,7 @@ L7_RC_t ptin_hapi_maclimit_status(DAPI_USP_t *ddUsp, L7_uint32 *mac_learned, L7_
 {
   DAPI_PORT_t           *dapiPortPtr;
   BROAD_PORT_t          *hapiPortPtr;
-  bcmx_lport_t          lport=-1;
+  bcm_gport_t           gport=-1;
   bcm_port_t            bcm_port=-1;
   L7_RC_t               rc = L7_SUCCESS;
   L7_uint               physical_port = 0;
@@ -1416,9 +1416,9 @@ L7_RC_t ptin_hapi_maclimit_status(DAPI_USP_t *ddUsp, L7_uint32 *mac_learned, L7_
   dapiPortPtr = DAPI_PORT_GET( ddUsp, dapi_g );
   hapiPortPtr = HAPI_PORT_GET( ddUsp, dapi_g );
 
-  /* Extract lport */
-  lport = hapiPortPtr->bcmx_lport;
-  PT_LOG_TRACE(LOG_CTX_HAPI,"Analysing interface {%d,%d,%d}: lport=0x%08x", ddUsp->unit, ddUsp->slot, ddUsp->port, lport);
+  /* Extract gport */
+  gport = hapiPortPtr->bcmx_lport;
+  PT_LOG_TRACE(LOG_CTX_HAPI,"Analysing interface {%d,%d,%d}: gport=0x%08x", ddUsp->unit, ddUsp->slot, ddUsp->port, gport);
 
 
   /* Extract Trunk id */

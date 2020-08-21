@@ -106,12 +106,12 @@ int hapiBroadCachedStatsGet (BROAD_PORT_t  *hapiPortPtr,
   static uint64         stats[snmpValCount];
   static L7_BOOL        cache_valid = L7_FALSE;
   static L7_uint64      cache_time_stamp;
-  static bcmx_lport_t   cache_lport;
+  static bcm_gport_t    cache_gport;
   L7_uint64 time = 0;
   
   if (cache_valid == L7_TRUE)
   {
-    if (hapiPortPtr->bcmx_lport != cache_lport)
+    if (hapiPortPtr->bcmx_lport != cache_gport)
     {
       cache_valid = L7_FALSE;
       hapiStatsCacheWrongIf++;
@@ -159,7 +159,7 @@ int hapiBroadCachedStatsGet (BROAD_PORT_t  *hapiPortPtr,
     */
     cache_time_stamp = time;
     cache_valid = L7_TRUE;
-    cache_lport = hapiPortPtr->bcmx_lport;
+    cache_gport = hapiPortPtr->bcmx_lport;
   } else
   {
     hapiStatsCacheHits++;

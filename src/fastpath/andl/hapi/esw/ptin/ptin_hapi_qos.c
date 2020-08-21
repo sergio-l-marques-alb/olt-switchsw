@@ -819,9 +819,9 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
   /* If trust mode was not provided, reconfigure all rules with newer port bitmap */
   if (qos_cfg->trust_mode < 0)
   {
-    bcm_port_t    bcm_port;
-    bcmx_lport_t  bcmx_lport;
-    bcm_pbmp_t    pbmp_result;
+    bcm_port_t   bcm_port;
+    bcm_gport_t  gport;
+    bcm_pbmp_t   pbmp_result;
 
     /* To reconfigure an entry should be found */
     if (qos_entry == L7_NULLPTR)
@@ -845,7 +845,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
         BCM_PBMP_ITER(pbmp_result, bcm_port)
         {
           /* FIXME: Only applied to unit 0 */
-          if (bcmy_lut_unit_port_to_gport_get(0 /*unit*/, bcm_port, &bcmx_lport) != BCMY_E_NONE)
+          if (bcmy_lut_unit_port_to_gport_get(0 /*unit*/, bcm_port, &gport) != BCMY_E_NONE)
           {
             printf("Error with unit %d, port %d", 0, bcm_port);
             return L7_FAILURE;
@@ -853,7 +853,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
 
           if (BCM_PBMP_MEMBER(pbm, bcm_port) && !BCM_PBMP_MEMBER(qos_entry->port_bmp, bcm_port))
           {
-            if (hapiBroadPolicyApplyToIface(qos_entry->rule[rule].policyId_icap, bcmx_lport) != L7_SUCCESS) 
+            if (hapiBroadPolicyApplyToIface(qos_entry->rule[rule].policyId_icap, gport) != L7_SUCCESS) 
             {
               PT_LOG_ERR(LOG_CTX_HAPI, "Error adding bcm_port %u to rule %u", bcm_port, rule);
               return L7_FAILURE;
@@ -861,7 +861,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
           }
           else if (!BCM_PBMP_MEMBER(pbm, bcm_port) && BCM_PBMP_MEMBER(qos_entry->port_bmp, bcm_port))
           {
-            if (hapiBroadPolicyRemoveFromIface(qos_entry->rule[rule].policyId_icap, bcmx_lport) != L7_SUCCESS) 
+            if (hapiBroadPolicyRemoveFromIface(qos_entry->rule[rule].policyId_icap, gport) != L7_SUCCESS) 
             {
               PT_LOG_ERR(LOG_CTX_HAPI, "Error removing bcm_port %u from rule %u", bcm_port, rule);
               return L7_FAILURE;

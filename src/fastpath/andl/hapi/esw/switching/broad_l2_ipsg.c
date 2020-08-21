@@ -430,7 +430,7 @@ L7_RC_t hapiBroadIpsgPortUpdate(DAPI_USP_t  *portUsp,
 {
   L7_RC_t         rc = L7_SUCCESS;
   BROAD_PORT_t   *hapiPortPtr;
-  bcmx_lport_t    lport;
+  bcm_gport_t     gport;
   L7_uchar8       temp8;
   BROAD_SYSTEM_t *hapiSystem;
 
@@ -438,7 +438,7 @@ L7_RC_t hapiBroadIpsgPortUpdate(DAPI_USP_t  *portUsp,
 
   hapiPortPtr    = HAPI_PORT_GET(portUsp, dapi_g);
 
-  lport = hapiPortPtr->bcmx_lport;
+  gport = hapiPortPtr->bcmx_lport;
 
   temp8 = (oldIpsgEnabled << 4) | newIpsgEnabled;
   switch (temp8)
@@ -450,11 +450,11 @@ L7_RC_t hapiBroadIpsgPortUpdate(DAPI_USP_t  *portUsp,
 
   case 0x01:
     /* Add this port to the IPSG default policy */
-    rc = hapiBroadPolicyApplyToIface(hapiSystem->ipsgPolicyId, lport);
+    rc = hapiBroadPolicyApplyToIface(hapiSystem->ipsgPolicyId, gport);
     break;
   case 0x10:
     /* Remove this port from the IPSG default policy */
-    rc = hapiBroadPolicyRemoveFromIface(hapiSystem->ipsgPolicyId, lport);
+    rc = hapiBroadPolicyRemoveFromIface(hapiSystem->ipsgPolicyId, gport);
     break;
   }
 

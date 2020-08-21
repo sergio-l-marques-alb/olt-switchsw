@@ -463,7 +463,7 @@ int ptin_lookup_counter_clear(L7_int index)
 int ptin_lookup_counter_set(L7_int type, L7_int stage, L7_int index, L7_int port, L7_uint16 outerVlan, L7_uint16 innerVlan)
 {
   bcm_port_t          bcm_port;
-  bcmx_lport_t        gport;
+  bcm_gport_t         gport;
   BROAD_POLICY_t      policyId;
   BROAD_POLICY_RULE_t ruleId;
   L7_uint8  dmac[]       = {0x00, 0x00, 0xc0, 0x01, 0x01, 0x02};
@@ -597,7 +597,7 @@ static BROAD_POLICY_t policyId_pvid[PTIN_SYSTEM_N_PORTS]  = {[0 ... PTIN_SYSTEM_
 int ptin_lookup_pvid_set(L7_int port, L7_uint16 outerVlan, L7_uint16 innerVlan, L7_uint8 vlan_format)
 {
   bcm_port_t          bcm_port;
-  bcmx_lport_t        gport;
+  bcm_gport_t         gport;
   BROAD_POLICY_t      policyId;
   BROAD_POLICY_RULE_t ruleId;
   L7_uint8  mask[]       = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
@@ -749,7 +749,7 @@ int ptin_l2_replace_trunk(bcm_trunk_t tgid_old, bcm_trunk_t tgid_new)
 int ptin_link_notify(bcm_port_t bcm_port)
 {
   int link_status;
-  bcmx_lport_t gport;
+  bcm_gport_t gport;
   bcm_port_info_t info;
   bcm_error_t rv;
 
