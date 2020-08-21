@@ -1169,13 +1169,13 @@ L7_RC_t dot1xTimerAction()
                     (pCfg->mabEnabled == L7_ENABLE)&&
                     (dot1xPortInfo[phyIntf].portControlMode == L7_DOT1X_PORT_AUTO_MAC_BASED))
                 {
-                  DOT1X_EVENT_TRACE(DOT1X_TRACE_TIMER,phyIntf,"\n%s:%d MAB Timer timed out for lport %d\n",__FUNCTION__,__LINE__,
+                  DOT1X_EVENT_TRACE(DOT1X_TRACE_TIMER,phyIntf,"\n%s:%d MAB Timer timed out for gport %d\n",__FUNCTION__,__LINE__,
                                                    lIntIfNum);
                   rc = dot1xIssueCmd(dot1xMgmtPortMABTimerExpired, lIntIfNum,L7_NULLPTR);
                 }
                 else
                 {
-                  DOT1X_EVENT_TRACE(DOT1X_TRACE_TIMER,phyIntf,"\n%s:%d Guest Vlan Timer timed out for lport %d\n",__FUNCTION__,__LINE__,
+                  DOT1X_EVENT_TRACE(DOT1X_TRACE_TIMER,phyIntf,"\n%s:%d Guest Vlan Timer timed out for gport %d\n",__FUNCTION__,__LINE__,
                                                  lIntIfNum);
                   rc = dot1xIssueCmd(dot1xMgmtPortGuestVlanTimerExpired, lIntIfNum,L7_NULLPTR);
                   /*
@@ -4751,7 +4751,7 @@ L7_RC_t dot1xCtlPortUnauthenticatedVlanOperational(dot1xLogicalPortInfo_t *logic
       dot1xCtlResetPortSessionData(phyIntf);
     }
 
-    /* reset session statictics for the logicalport*/
+    /* reset session statictics for the logical port*/
      dot1xCtlResetLogicalPortSessionData(logicalPortInfo);
 
 
@@ -6153,7 +6153,7 @@ L7_RC_t dot1xCtlPortMonitorModeOperational(L7_uint32 lIntIfNum)
       dot1xCtlResetPortSessionData(phyIntf);
     }
 
-    /* reset session statictics for the logicalport*/
+    /* reset session statictics for the logical port*/
     dot1xCtlResetLogicalPortSessionData(logicalPortInfo);
 
     return L7_SUCCESS;
