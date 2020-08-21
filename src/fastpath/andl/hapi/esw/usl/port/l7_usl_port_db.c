@@ -1020,7 +1020,7 @@ L7_RC_t usl_portdb_update(L7_BOOL updateCmd, L7_uint32 targetFpUnit,
   L7_RC_t           rc = L7_SUCCESS;
   L7_uint32         thisFpUnit, mgrFpUnit;
   L7_int32          i, rv;
-  bcmx_lport_t      gport;
+  bcm_gport_t       gport;
   L7_uint32         globalBcmUnit, localBcmUnit = 0, bcmPort = 0;
 
   if ((rc = unitMgrNumberGet(&thisFpUnit)) != L7_SUCCESS)

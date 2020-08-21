@@ -1169,10 +1169,8 @@ int usl_bcm_mcast_addr_add(usl_bcm_mcast_addr_t *mcAddr)
   bcm_l2_addr_t       bcm_l2;
   bcm_pbmp_t          pbmp;
   L7_uint32           flags, myModid, encap_id;
-  bcmx_lport_t        gport;
+  bcm_gport_t         gport;
  
-  
-
   if (USL_BCM_CONFIGURE_HW(USL_L2_MCAST_DB_ID) == L7_TRUE)
   {
     /* Add the mcast entry to any non-fabric switches that

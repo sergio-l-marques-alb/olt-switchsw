@@ -443,7 +443,7 @@ void usl_mac_table_all_flush (void)
 }
 
 /*********************************************************************
-* @purpose  Associate the lport characteristics with the FP unit/slot
+* @purpose  Associate the gport characteristics with the FP unit/slot
 *
 * @param    fp_unit     {(input)}   The FASTPATH unit being inserted
 * @param    fp_slot     {(input)}   The FASTPATH slot being inserted

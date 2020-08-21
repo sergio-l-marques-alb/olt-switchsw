@@ -900,7 +900,7 @@ L7_RC_t usl_ipmc_db_init()
 
         avlCreateAvlTree(&uslIpMcastWlanPortTreeData, pUslIpMcastWlanPortTreeHeap, pUslIpMcastWlanPortDataHeap,
                          USL_PORT_DB_TREE_SIZE, sizeof(usl_ipmc_wlan_port_elem_t), 0x10,
-                         sizeof(bcm_if_t)+sizeof(bcm_vlan_t)+sizeof(bcmx_lport_t));
+                         sizeof(bcm_if_t)+sizeof(bcm_vlan_t)+sizeof(bcm_gport_t));
       }
 #endif
    }
