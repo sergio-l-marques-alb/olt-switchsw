@@ -240,7 +240,7 @@ static void hapiBroadL3AsyncNhopWlistProcess (DAPI_t *dapi_g)
                 (bcmEgrObj.bcm_data.port   == HAPI_BROAD_INVALID_MODPORT))  
             {
               L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, 
-                      "Failed to get modid/port for lport %x\n",
+                      "Failed to get modid/port for gport %x\n",
                       hapiPortPtr->bcm_gport);
             }
           }
@@ -259,7 +259,7 @@ static void hapiBroadL3AsyncNhopWlistProcess (DAPI_t *dapi_g)
               (bcmEgrObj.bcm_data.port   == HAPI_BROAD_INVALID_MODPORT))  
           {
             L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, 
-                    "Failed to get modid/port for lport %x\n",
+                    "Failed to get modid/port for gport %x\n",
                     cpuHapiPortPtr->bcm_gport);
           }
           bcmEgrObj.bcm_data.intf = hapiBroadL3CpuIntfId;

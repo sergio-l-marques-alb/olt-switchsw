@@ -182,7 +182,7 @@ extern void hapi_ptin_allportsbmp_get(pbmp_t *pbmp_mask);
  * @param dapi_g
  * @param pbmp : If is a physical port, it will be ADDED to this
  *             port bitmap.
- * @param intf_desc : interface descriptor with lport, bcm_port 
+ * @param intf_desc : interface descriptor with gport, bcm_port 
  *                  (-1 if not physical) and trunk_id (-1 if not
  *                  trunk)
  * 

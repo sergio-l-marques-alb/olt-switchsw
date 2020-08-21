@@ -188,7 +188,7 @@ typedef enum
     BROAD_ACTION_HARD_DROP,               /* n/a       n/a     n/a      drop all (overrides all other rules)     */
     BROAD_ACTION_PERMIT,                  /* n/a       n/a     n/a      permit unless another rule drops         */
     BROAD_ACTION_REDIRECT,                /* unit      slot    port     override switching decision              */
-    BROAD_ACTION_MIRROR,                  /* unit      slot    port     mirror to lport                          */
+    BROAD_ACTION_MIRROR,                  /* unit      slot    port     mirror to gport                          */
     BROAD_ACTION_TRAP_TO_CPU,             /* n/a       n/a     n/a      unconditional trap to cpu, no switching  */
     BROAD_ACTION_COPY_TO_CPU,             /* cosq      n/a     n/a      copy to cpu in addition to switching (1) */
     BROAD_ACTION_TS_TO_CPU,               /* cosq      n/a     n/a      copy to cpu in addition to switching (1) */

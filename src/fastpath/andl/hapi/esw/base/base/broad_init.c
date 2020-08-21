@@ -1501,7 +1501,7 @@ L7_RC_t hapiBroadPhysicalCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *d
       break;
     }
 
-    /* obtain a list of lport for the usl call */
+    /* obtain a list of gport for the usl call */
     bcmy_gplist_init(&tmpGplist, 0, 0);
 
     for (usp.port = 0; usp.port < dapi_g->unit[usp.unit]->slot[usp.slot]->numOfPortsInSlot;usp.port++)
@@ -1947,7 +1947,7 @@ L7_RC_t hapiBroadPhysicalPortMapGet(L7_ushort16 unitNum, L7_ushort16 slotNum, DA
                              hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
                              &usp) != BCMY_E_NONE)
       {
-        PT_LOG_ERR(LOG_CTX_STARTUP, "BCMY local ports: Error updating LUT tables (bcm_unit=%d bcm_port=%d usp={%d,%d,%d} lport=0x%x",
+        PT_LOG_ERR(LOG_CTX_STARTUP, "BCMY local ports: Error updating LUT tables (bcm_unit=%d bcm_port=%d usp={%d,%d,%d} gport=0x%x",
                    hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
                    usp.unit, usp.slot, usp.port,
                    hapiPortPtr->bcm_gport);
@@ -2540,15 +2540,17 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
     bcm_port_t    bcm_port_mask = (bcm_port_t) -1;
 
     /* CPU port */
-    if (bcmx_lport_local_cpu_get(0, &gport) != BCM_E_NONE)
+    gport = bcmy_gport_local_cpu_get_first(0 /*unit*/);
+    if (gport_cpu == BCMY_INVALID_VAL)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI,"Error with bcmx_lport_local_cpu_get");
+      PT_LOG_ERR(LOG_CTX_HAPI,"Error with bcmy_gport_local_cpu_get_first");
       return;
     }
-    bcm_port = bcmx_lport_bcm_port(gport);
+
+    bcm_port = BCMY_GPORT_BCM_PORT(gport);
     if (bcm_port < 0)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI,"Error with bcmx_lport_bcm_port");
+      PT_LOG_ERR(LOG_CTX_HAPI,"Error with BCMY_GPORT_BCM_PORT");
       return;
     }
 

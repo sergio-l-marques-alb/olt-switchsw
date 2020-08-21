@@ -1709,7 +1709,7 @@ L7_RC_t hapiBroadPolicySetMirroringPath(BROAD_POLICY_t policy, bcm_gport_t gport
   L7_RC_t                        result        = L7_SUCCESS;
   static int                     mirrorCounter = 0;
   static bcm_gport_t             mtpPort       = BCM_GPORT_INVALID;
-  bcm_gport_t                    dest_lport;
+  bcm_gport_t                    dest_gport;
   BROAD_POLICY_RULE_ENTRY_t     *rulePtr;
   BROAD_ACTION_ENTRY_t          *actionPtr;
   DAPI_USP_t                     usp;
@@ -1744,7 +1744,7 @@ L7_RC_t hapiBroadPolicySetMirroringPath(BROAD_POLICY_t policy, bcm_gport_t gport
 
       if (BROAD_ACTION_IS_SPECIFIED(actionPtr, BROAD_ACTION_MIRROR))
       {
-        BCM_GPORT_MODPORT_SET(dest_lport, 
+        BCM_GPORT_MODPORT_SET(dest_gport, 
                               actionPtr->u.ifp_parms.modid, actionPtr->u.ifp_parms.modport);
 
         usp = actionPtr->u.ifp_parms.usp;
@@ -1758,18 +1758,18 @@ L7_RC_t hapiBroadPolicySetMirroringPath(BROAD_POLICY_t policy, bcm_gport_t gport
           if (mirrorCounter == 0)
           {
             mirrorConfig.flags = BCM_MIRROR_PORT_ENABLE;
-            mirrorConfig.probePort = dest_lport;
+            mirrorConfig.probePort = dest_gport;
             mirrorConfig.stackUnit = usp.unit;
             rv = usl_bcmx_port_mirror_set (gport, mirrorConfig);
             if (rv != BCM_E_NONE)
               break;
 
-            mtpPort = dest_lport;
+            mtpPort = dest_gport;
 
             /* Enable ingress filtering */
             mode.flags =  BCM_PORT_VLAN_MEMBER_INGRESS;
             mode.setFlags = L7_TRUE;
-            rv = usl_bcmx_port_vlan_member_set(dest_lport,
+            rv = usl_bcmx_port_vlan_member_set(dest_gport,
                                                mode);
             if (L7_BCMX_OK(rv) != L7_TRUE)
               break;
@@ -1780,18 +1780,18 @@ L7_RC_t hapiBroadPolicySetMirroringPath(BROAD_POLICY_t policy, bcm_gport_t gport
 
             mode.flags =  BCM_PORT_VLAN_MEMBER_EGRESS;
             mode.setFlags = L7_FALSE;
-            rv = usl_bcmx_port_vlan_member_set(dest_lport,
+            rv = usl_bcmx_port_vlan_member_set(dest_gport,
                                                mode);
 
 
             if (L7_BCMX_OK(rv) != L7_TRUE)
               break;
 
-            rv = usl_bcmx_port_untagged_vlan_set(dest_lport, HPC_STACKING_VLAN_ID);
+            rv = usl_bcmx_port_untagged_vlan_set(dest_gport, HPC_STACKING_VLAN_ID);
             if (L7_BCMX_OK(rv) != L7_TRUE)
               break;
           }
-          else if ((mtpPort != BCM_GPORT_INVALID) && (mtpPort != dest_lport))
+          else if ((mtpPort != BCM_GPORT_INVALID) && (mtpPort != dest_gport))
           {
             /* Do not allow multiple MTP ports at a time */
             rv = BCM_E_PARAM;
@@ -1806,13 +1806,13 @@ L7_RC_t hapiBroadPolicySetMirroringPath(BROAD_POLICY_t policy, bcm_gport_t gport
           if (mirrorCounter == 0)
           {
             mirrorConfig.flags = BCM_MIRROR_DISABLE;
-            mirrorConfig.probePort = dest_lport;
+            mirrorConfig.probePort = dest_gport;
             mirrorConfig.stackUnit = 0;
             rv = usl_bcmx_port_mirror_set(gport, mirrorConfig);
             if (rv != BCM_E_NONE)
               break;
 
-            result = hapiBroadVlanIngressFilterSet(dest_lport, hapiMirrorToPortPtr->ingressFilteringEnabled);
+            result = hapiBroadVlanIngressFilterSet(dest_gport, hapiMirrorToPortPtr->ingressFilteringEnabled);
             if (result != L7_SUCCESS)
             {
               rv = BCM_E_FAIL;
@@ -1824,12 +1824,12 @@ L7_RC_t hapiBroadPolicySetMirroringPath(BROAD_POLICY_t policy, bcm_gport_t gport
 
             mode.flags =  BCM_PORT_VLAN_MEMBER_EGRESS;
             mode.setFlags = L7_TRUE;
-            rv = usl_bcmx_port_vlan_member_set(dest_lport,
+            rv = usl_bcmx_port_vlan_member_set(dest_gport,
                                                mode);
             if (L7_BCMX_OK(rv) != L7_TRUE)
               break;
 
-            rv = usl_bcmx_port_untagged_vlan_set(dest_lport, hapiMirrorToPortPtr->pvid);
+            rv = usl_bcmx_port_untagged_vlan_set(dest_gport, hapiMirrorToPortPtr->pvid);
             if (L7_BCMX_OK(rv) != L7_TRUE)
               break;
           }

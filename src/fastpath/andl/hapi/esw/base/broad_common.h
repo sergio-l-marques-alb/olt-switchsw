@@ -1158,7 +1158,7 @@ L7_RC_t hapiBroadVlanEgressFilterSet(bcm_gport_t gport, L7_BOOL val, DAPI_t *dap
 *
 * @purpose Set the tpid on a port
 *
-* @param   gport  - broadcom lport
+* @param   gport  - broadcom gport
 * @param   val    - True, enabled
 *                 - False, disabled
 *
@@ -1196,7 +1196,7 @@ L7_RC_t hapiBroadMmuConfigModify(L7_uint32 unit);
 *
 * @purpose Enable/Disable learning on a port or trunk during flush operation.
 *
-* @param   portInfo  - Learn mode of lport/tgid to be changed
+* @param   portInfo  - Learn mode of gport/tgid to be changed
 * @param   learnMode - L7_ENABLE: Enable learning
 *                      L7_DISABLE: Disable learning
 *

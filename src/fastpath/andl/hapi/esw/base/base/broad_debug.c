@@ -2189,7 +2189,7 @@ void hapiBroadDebugPktSend(int unit,
   while (pkt_count)
   {
     osapiTaskYield();
-    printf("\nSending packet[%d] to %d.%d.%d (lport %d)of size %d \n",pkt_count,unit,slot,port,hapiPortPtr->bcm_gport,pkt_size);
+    printf("\nSending packet[%d] to %d.%d.%d (gport %d)of size %d \n",pkt_count,unit,slot,port,hapiPortPtr->bcm_gport,pkt_size);
     _bcmy_tx_pkt_untagged_set(&pkt,L7_FALSE);
 
     /* Transmit */

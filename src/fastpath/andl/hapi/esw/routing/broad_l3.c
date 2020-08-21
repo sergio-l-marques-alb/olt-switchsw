@@ -579,7 +579,7 @@ L7_RC_t hapiBroadL3CardInit(L7_ushort16 unitNum,
                 (bcmEgrObj.bcm_data.port   == HAPI_BROAD_INVALID_MODPORT))
             {
               L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID,
-                      "Failed to get modid/port for lport %x\n",
+                      "Failed to get modid/port for gport %x\n",
                       hapiPortPtr->bcm_gport);
               HAPI_BROAD_L3_L7_LOG_ERROR(0);
             }
