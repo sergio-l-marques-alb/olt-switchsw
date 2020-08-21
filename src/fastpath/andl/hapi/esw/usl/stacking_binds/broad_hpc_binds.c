@@ -642,11 +642,11 @@ L7_int32 hpcBroadMasterCpuModPortGet(L7_int32 *modid, L7_int32 *cpuport)
   bcm_gport_t gport_cpu;
   L7_int32    rv = BCM_E_FAIL;
 
-  /* Get lport belonging to CPU of unit 0 */
-  rv = bcmx_lport_local_cpu_get(0, &gport_cpu);
-  if (rv != BCM_E_NONE)
+  /* Get gport belonging to CPU of unit 0 */
+  gport_cpu = bcmy_gport_local_cpu_get_first(0 /*unit*/);
+  if (gport_cpu == BCMY_INVALID_VAL)
   {
-    return rv;
+    return BCM_E_FAIL;
   }
   
   rv = bcmy_gport_to_modid_port(gport_cpu, modid, cpuport);

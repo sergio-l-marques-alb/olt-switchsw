@@ -1682,7 +1682,7 @@ L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier)
 {
   int i, unit=0;
   bcm_port_t bcm_port;
-  bcm_gport_t lport_cpu;
+  bcm_gport_t gport_cpu;
   bcm_port_t  bcm_port_cpu;
 
   /* Validate arguments */
@@ -1705,17 +1705,19 @@ L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier)
   BCM_PBMP_CLEAR(pbm_egress_community_ports);
 
   /* Add CPU to port bitmaps */
-  if (bcmx_lport_local_cpu_get(0, &lport_cpu) != BCM_E_NONE)
+  gport_cpu = bcmy_gport_local_cpu_get_first(0 /*unit*/);
+  if (gport_cpu == BCMY_INVALID_VAL)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI,"Error with bcmx_lport_local_cpu_get");
+    PT_LOG_ERR(LOG_CTX_HAPI,"Error with bcmy_gport_local_cpu_get_first");
     return L7_FAILURE;
   }
-  bcm_port_cpu = bcmx_lport_bcm_port(lport_cpu);
+  bcm_port_cpu = BCMY_GPORT_BCM_PORT(gport_cpu);
   if (bcm_port_cpu < 0)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI,"Error with bcmx_lport_bcm_port");
+    PT_LOG_ERR(LOG_CTX_HAPI,"Error with BCMY_GPORT_BCM_PORT");
     return L7_FAILURE;
   }
+
   BCM_PBMP_PORT_ADD(pbm_egress_all_ports, bcm_port_cpu);
   BCM_PBMP_PORT_ADD(pbm_egress_root_ports, bcm_port_cpu);
   BCM_PBMP_PORT_ADD(pbm_egress_community_ports, bcm_port_cpu);
@@ -4184,15 +4186,16 @@ L7_RC_t hapi_ptin_stormControl_cpu_set(L7_BOOL enable, L7_uint32 cir1, L7_uint32
   }
 
   /* CPU port */
-  if (bcmx_lport_local_cpu_get(0, &gport) != BCM_E_NONE)
+  gport = bcmy_gport_local_cpu_get_first(0 /*unit*/);
+  if (gport == BCMY_INVALID_VAL)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI,"Error with bcmx_lport_local_cpu_get");
+    PT_LOG_ERR(LOG_CTX_HAPI,"Error with bcmy_gport_local_cpu_get_first");
     return L7_FAILURE;
   }
-  bcm_port = bcmx_lport_bcm_port(gport);
+  bcm_port = BCMY_GPORT_BCM_PORT(gport);
   if (bcm_port < 0)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI,"Error with bcmx_lport_bcm_port");
+    PT_LOG_ERR(LOG_CTX_HAPI,"Error with BCMY_GPORT_BCM_PORT");
     return L7_FAILURE;
   }
 

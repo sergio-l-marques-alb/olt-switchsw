@@ -106,8 +106,16 @@ static L7_RC_t hapiBroadPolicyPortSelect(DAPI_USP_t *usp, bcm_gport_t *gport)
 
     if (usp->slot == L7_CPU_SLOT_NUM)
     {
-      result = bcmx_lport_local_cpu_get(0 /*unit*/, gport);
-      return result;
+      /* Get gport belonging to CPU of unit 0 */
+      *gport = bcmy_gport_local_cpu_get_first(0 /*unit*/);
+      if (gport_cpu == BCMY_INVALID_VAL)
+      {
+        return L7_FAILURE;
+      }
+      else
+      {
+        return L7_SUCCESS;
+      }
     }
 
     hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
