@@ -33,7 +33,6 @@
 #include "broad_l2_lag.h"
 #include "broad_policy.h"
 #include "sysbrds.h"
-#include "bcmx/port.h"
 
 #include "l7_usl_bcmx_l2.h"
 #include "l7_usl_api.h"

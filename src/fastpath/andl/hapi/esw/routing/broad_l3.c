@@ -24,8 +24,6 @@
 #define L7_MAC_ENET_VRRP
 
 #include "bcm/l2.h"
-#include "bcmx/port.h"
-
 #include "l7_common.h"
 #include "l7_packet.h"
 #include "osapi.h"

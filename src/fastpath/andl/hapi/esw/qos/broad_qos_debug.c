@@ -27,7 +27,6 @@
 #include "soc/debug.h"
 #include "soc/cm.h"
 #include "soc/mcm/allenum.h"
-#include "bcmx/port.h"
 #ifdef L7_STACKING_PACKAGE
 #include "../../../../../src/l7public/api/unitmgr_api.h"
 #endif

@@ -30,8 +30,6 @@
 #include "broad_policy.h"
 #include "broad_llpf.h"
 #include "sysbrds.h"
-#include "bcmx/port.h"
-
 
 #ifdef L7_QOS_PACKAGE
 #include "broad_qos_common.h"

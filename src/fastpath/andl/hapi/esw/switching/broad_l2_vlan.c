@@ -47,9 +47,6 @@
 #include "soc/drv.h"
 #include "bcm/types.h"
 
-#include "bcmx/lport.h"
-#include "bcmx/port.h"
-
 #ifdef L7_MCAST_PACKAGE
 #include "broad_l3_mcast.h"
 #endif

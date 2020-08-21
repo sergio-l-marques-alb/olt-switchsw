@@ -47,8 +47,6 @@
 #include "soc/arl.h"
 #include "bcm/stack.h"
 
-#include "bcmx/port.h"
-#include "bcmx/lport.h"
 /* PTin removed: SDK 6.3.0 */
 #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
 /* No include */

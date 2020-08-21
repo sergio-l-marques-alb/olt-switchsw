@@ -27,7 +27,6 @@
 #include "broad_l2_vlan.h"
 #include "commdefs.h"
 #include "bcm/error.h"
-#include "bcmx/port.h"
 #include "l7_usl_bcmx_l2.h"
 
 /* Maximum number of HOST policies allowed.

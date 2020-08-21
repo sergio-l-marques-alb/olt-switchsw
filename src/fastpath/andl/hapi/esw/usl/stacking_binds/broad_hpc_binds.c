@@ -34,8 +34,6 @@
 
 #include "broad_common.h"
 
-#include "bcmx/port.h"
-
 #include "ibde.h"
 #include "bcm/init.h"
 #include "bcm/vlan.h"

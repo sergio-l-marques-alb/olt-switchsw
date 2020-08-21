@@ -37,7 +37,6 @@
 #include "broad_l2_lag.h"
 #include "broad_l3.h"
 #include "phy_hapi.h"
-#include "bcmx/port.h"
 
 #ifdef L7_QOS_PACKAGE
 #include "broad_qos.h"

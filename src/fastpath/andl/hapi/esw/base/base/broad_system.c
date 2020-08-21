@@ -55,8 +55,6 @@
 #include "soc/mem.h"
 #include "soc/cm.h"
 
-#include "bcmx/port.h"
-#include "bcmx/lport.h"
 #include "bcm/custom.h"
 #include "bcm_int/esw/mbcm.h"
 #include "l7_usl_bcmx_l2.h"

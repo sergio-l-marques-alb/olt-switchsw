@@ -53,9 +53,6 @@
 #include "bcm/trunk.h"
 #include "bcm/port.h"
 
-#include "bcmx/lport.h"
-#include "bcmx/port.h"
-
 #include "l7_usl_bcmx_l2.h"
 #include "l7_usl_bcmx_port.h"
 

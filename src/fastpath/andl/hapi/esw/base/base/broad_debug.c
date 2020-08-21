@@ -78,8 +78,6 @@ extern void init_symtab();
   #include "broad_l3_mcast_debug.h"
 #endif
 
-#include "bcmx/port.h"
-#include "bcmx/lport.h"
 #include "ibde.h"
 
 #define  __C_CODE__

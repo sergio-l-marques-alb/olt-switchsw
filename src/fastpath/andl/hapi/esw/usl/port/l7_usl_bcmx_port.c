@@ -26,7 +26,6 @@
 #include "l7_rpc_port.h"
 #include "l7_usl_trace.h"
 #include "l7_usl_sm.h"
-#include "bcmx/port.h"
 
 /* Port Db Bcmx Lock */
 static osapiRWLock_t      uslPortDbBcmxRWLock;

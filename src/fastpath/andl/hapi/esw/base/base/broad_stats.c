@@ -43,8 +43,6 @@
 /* broadcom hw */
 #include "bcm/stat.h"
 
-#include "bcmx/lport.h"
-
 #include "bcm/custom.h"
 #include "bcm/stat.h"
 #include "ibde.h"

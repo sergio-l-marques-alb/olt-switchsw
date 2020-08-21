@@ -30,8 +30,6 @@
 #include "broad_cos_util.h"
 #include "l7_usl_bcmx_port.h"
 #include "sysbrds.h"
-
-#include "bcmx/port.h"
 #include "soc/drv.h"
 
 /* Default weights used in non-QoS packages. */

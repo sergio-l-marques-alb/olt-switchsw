@@ -81,7 +81,6 @@
 #include "bcm/cosq.h"
 #include "bcm/ipmc.h"
 #include "bcm/stack.h"
-#include "bcmx/lport.h"
 /* PTin modified: SDK 6.3.0 */
 #include "ptin_globaldefs.h"
 #include "ibde.h"
@@ -94,7 +93,6 @@
 #include "cardmgr_api.h"
 
 #include <bcmx/bcmx.h>
-#include <bcmx/port.h>
 #include "sysbrds.h"
 #include <soc/debug.h>
 #include <soc/drv.h>

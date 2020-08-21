@@ -42,9 +42,6 @@
 #include "unitmgr_api.h"
 #include "sysnet_api.h"
 
-#include <bcmx/lport.h>
-#include <bcmx/port.h>    /* PTin added: link up status */
-
 #include "ibde.h"
 #include "bcm_int/esw/mbcm.h"
 #include "dapi_trace.h"

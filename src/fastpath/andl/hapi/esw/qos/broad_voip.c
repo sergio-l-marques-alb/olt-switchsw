@@ -18,8 +18,6 @@
 * Application will 
 *********************************************************************/
 
-#include "bcmx/port.h"
-
 #include "dapi.h"
 #include "broad_policy_types.h"
 #include "broad_common.h"

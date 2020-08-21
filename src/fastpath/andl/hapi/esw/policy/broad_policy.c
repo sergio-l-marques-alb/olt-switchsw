@@ -30,7 +30,6 @@
 #include "l7_usl_policy_db.h"
 #include "sysbrds.h"
 #include "appl/stktask/topo_brd.h"
-#include "bcmx/port.h"
 #include "feature.h"
 
 
@@ -108,7 +107,7 @@ static L7_RC_t hapiBroadPolicyPortSelect(DAPI_USP_t *usp, bcm_gport_t *gport)
     {
       /* Get gport belonging to CPU of unit 0 */
       *gport = bcmy_gport_local_cpu_get_first(0 /*unit*/);
-      if (gport_cpu == BCMY_INVALID_VAL)
+      if (*gport == BCMY_INVALID_VAL)
       {
         return L7_FAILURE;
       }

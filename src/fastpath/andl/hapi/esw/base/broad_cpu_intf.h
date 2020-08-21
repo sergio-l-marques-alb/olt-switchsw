@@ -27,7 +27,6 @@
 
 #include "bcmy_gport_api.h"
 #include "bcmx/bcmx.h"
-#include "bcmx/lport.h"
 
 
 /*********************************************************************
