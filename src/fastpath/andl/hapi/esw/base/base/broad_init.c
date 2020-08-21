@@ -1923,16 +1923,6 @@ L7_RC_t hapiBroadPhysicalPortMapGet(L7_ushort16 unitNum, L7_ushort16 slotNum, DA
     return L7_FAILURE;
   }
 
-  /* First call the hapiBroadMapDbEntryGet with known unmatched BCM unit. This forces
-  ** BCMX attachment of all known units.
-  */
-  {
-    int ignore_unit;
-    bcmx_lport_t ignore_port;
-
-    hapiBroadMapDbEntryGet (&cpuKey, 0xffff, 0xffff, &ignore_unit, &ignore_port);
-  }
-
   /*
    * scan slot database by port for needed data; switch core, switch core module
    * port index as seen from module, usp
@@ -1963,6 +1953,11 @@ L7_RC_t hapiBroadPhysicalPortMapGet(L7_ushort16 unitNum, L7_ushort16 slotNum, DA
                    hapiPortPtr->bcmx_lport);
         L7_LOG_ERROR(0);
       }
+
+      PT_LOG_NOTICE(LOG_CTX_STARTUP, "PHY: bcm_unit=%d bcm_port=%d => usp={%d,%d,%d} gport=0x%x",
+              hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
+              usp.unit, usp.slot, usp.port,
+              hapiPortPtr->bcmx_lport);
     }
   }
 
@@ -2150,6 +2145,11 @@ L7_RC_t hapiBroadCpuPortMapGet(L7_ushort16 unitNum, L7_ushort16 slotNum, DAPI_t 
     hapiPortPtr->bcm_modid = dapiCardInfoPtr->slotMap[slotMapIndex].bcm_cpuunit;
     hapiPortPtr->bcm_unit  = dapiCardInfoPtr->slotMap[slotMapIndex].bcm_cpuunit;
     BCM_GPORT_MODPORT_SET(hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_modid, hapiPortPtr->bcm_port);
+
+    PT_LOG_NOTICE(LOG_CTX_STARTUP, "CPU: bcm_unit=%d bcm_port=%d => usp={%d,%d,%d} gport=0x%x",
+            hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
+            usp.unit, usp.slot, usp.port,
+            hapiPortPtr->bcmx_lport);
   }
 
   /* scan card database for needed data, phy address and media */
@@ -3009,11 +3009,6 @@ L7_RC_t hapiBroadCardRemove(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *data, voi
                                      (usp.port + 1)) == L7_FALSE)
     {
       bcmy_gplist_add(&portGplist, hapiPortPtr->bcmx_lport);
-    }
-
-    if (BCMX_LPORT_TO_UPORT(hapiPortPtr->bcmx_lport) != _bcmx_uport_invalid)
-    {
-      bcmx_uport_set(hapiPortPtr->bcmx_lport, _bcmx_uport_invalid);
     }
 
     if (hapiPortPtr->vrrp_interface_id)

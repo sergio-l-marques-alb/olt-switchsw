@@ -332,8 +332,6 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
 /* Added this for non-stackable, it was lifted from hpcBroadTransportInit */
   for (i = 0; i < bde->num_devices(BDE_SWITCH_DEVICES); i++)
   {
-
-    hapiBroadMapDbCpuUnitEntryAdd(i, &cpu_key, i);
     (void) bcmx_device_attach(i);
 
     rv = bcm_rx_init(i);

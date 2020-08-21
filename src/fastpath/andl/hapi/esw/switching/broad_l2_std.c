@@ -3473,7 +3473,6 @@ void hapiBroadAddrMacUpdateLearn(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *d
       usp.unit = (L7_uchar8)L7_LOGICAL_UNIT;                //1;
       usp.slot = (L7_uchar8)platSlotVlanPortSlotNumGet (); //L7_VLAN_PORT_SLOT_NUM;
       usp.port = 0;
-      //HAPI_BROAD_LPORT_TO_USP(bcm_l2_addr->port,&usp); unusable: UPORTS aren't fixed in case of virtual VLAN PORTs
       L7_LOGF(L7_LOG_SEVERITY_DEBUG, L7_DRIVER_COMPONENT_ID, "BCM_GPORT_IS_VLAN_PORT usp=(%d,%d,%d)", usp.unit, usp.slot, usp.port);
     }
     #endif
@@ -3509,9 +3508,9 @@ void hapiBroadAddrMacUpdateLearn(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *d
   if (!BCM_GPORT_IS_VLAN_PORT(bcm_l2_addr->port) && isValidUsp(&usp,dapi_g) == L7_FALSE)
   {
     L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_DRIVER_COMPONENT_ID,
-            "Invalid USP calculated from the BCM uport\nbcm_l2_addr->port = 0x%x."
+            "Invalid USP calculated from unit %d, bcm_l2_addr->port = 0x%x."
             " USP not able to be calculated from the learn event for BCM driver.",
-             bcm_l2_addr->port);
+             unit ,bcm_l2_addr->port);
     dapiCardRemovalReadLockGive ();
     return;
   }
@@ -3736,7 +3735,6 @@ void hapiBroadAddrMacUpdateAge(int unit, bcm_l2_addr_t *bcm_l2_addr, DAPI_t *dap
     usp.unit = (L7_uchar8) L7_LOGICAL_UNIT;                //1;
     usp.slot = (L7_uchar8) platSlotVlanPortSlotNumGet (); //L7_VLAN_PORT_SLOT_NUM;
     usp.port = 0;
-    //HAPI_BROAD_LPORT_TO_USP(bcm_l2_addr->port,&usp); unusable: UPORTS aren't fixed in case of virtual VLAN PORTs
     L7_LOGF(L7_LOG_SEVERITY_DEBUG, L7_DRIVER_COMPONENT_ID, "BCM_GPORT_IS_VLAN_PORT usp=(%d,%d,%d)", usp.unit, usp.slot, usp.port);
   }
   else

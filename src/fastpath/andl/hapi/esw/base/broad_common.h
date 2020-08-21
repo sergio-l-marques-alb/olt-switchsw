@@ -312,19 +312,6 @@ extern L7_uint32 hapiDriverPrintfFlag;
 
 #define HAPI_BROAD_INVALID_L3_INTF_ID 0xFFFFFFFF
 
-#define HAPI_BROAD_USP_TO_UPORT(_usp,_uport)  (_uport) = (bcmx_uport_t) (((_usp)->unit << 24) | ((_usp)->slot << 16) | (_usp)->port)
-#define HAPI_BROAD_UPORT_TO_USP(_uport,_usp)  do {                                       \
-                                              (_usp)->unit = (((L7_uint32)_uport) >> 24) & 0xFF;     \
-                                              (_usp)->slot = (((L7_uint32)_uport) >> 16) & 0xFF;     \
-                                              (_usp)->port = (((L7_uint32)_uport))       & 0xFFFF;   \
-                                            } while (0)
-#define HAPI_BROAD_LPORT_TO_USP(_lport,_usp)  do {                                       \
-                                              bcmx_uport_t _uport = BCMX_UPORT_GET(_lport);       \
-                                              (_usp)->unit = (((L7_uint32)_uport) >> 24) & 0xFF;     \
-                                              (_usp)->slot = (((L7_uint32)_uport) >> 16) & 0xFF;     \
-                                              (_usp)->port = (((L7_uint32)_uport))       & 0xFFFF;   \
-                                            } while (0)
-
 /* maximum voip profile supported 
 */
 #define L7_MAX_VOIP_PROFILES 1
@@ -1027,14 +1014,6 @@ L7_BOOL hapiBroadMldHwIssueCheck (void);
 * @end
 *********************************************************************/
 L7_BOOL hapiBroadTriumphCheck (void);
-
-L7_RC_t hapiBroadMapDbCreate(void);
-L7_RC_t hapiBroadMapDbCpuUnitEntryAdd(int unit, cpudb_key_t *cpuKey, int cpuunit);
-L7_RC_t hapiBroadMapDbCpuUnitEntryDel(int unit);
-L7_RC_t hapiBroadMapDbPortEntryAdd(int unit, bcm_port_t port, bcmx_lport_t lport);
-L7_RC_t hapiBroadMapDbEntryGet(cpudb_key_t *cpuKey, int cpuunit, bcm_port_t port, int *unit, bcmx_lport_t *lport);
-bcmx_uport_t lvl7_uport_create_callback(bcmx_lport_t lport, int unit, bcm_port_t port, uint32 flags);
-void hapiBroadDebugBcmxMapDump(void);
 
 void hapiBroadFfpIpAddrSync (void);
 void hpcBroadRediscover(int priority);
