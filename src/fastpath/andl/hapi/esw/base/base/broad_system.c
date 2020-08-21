@@ -1096,7 +1096,7 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
   rateLimit.units = units;
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "broadcastControl.type=%u broadcastControl.enable=%u", dapiCmd->cmdData.broadcastControl.type, dapiCmd->cmdData.broadcastControl.enable);
-  PT_LOG_TRACE(LOG_CTX_HAPI, "hapiBroadIntfBroadcastControlModeSet with limit=%llu bucket_size=%u units=%u for bcmx_lport=0x%x",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "hapiBroadIntfBroadcastControlModeSet with limit=%llu bucket_size=%u units=%u for bcm_gport=0x%x",
             rate, bucket_size, units, hapiPortPtr->bcm_gport);
 
   switch (dapiCmd->cmdData.broadcastControl.type) 
@@ -1115,7 +1115,7 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
         rateLimit.flags       = 0;
       }
 
-      PT_LOG_TRACE(LOG_CTX_HAPI, "usl_bcmx_rate_bcast_set with limit=%u bucket_size=%u flags=0x%x for bcmx_lport=0x%x",
+      PT_LOG_TRACE(LOG_CTX_HAPI, "usl_bcmx_rate_bcast_set with limit=%u bucket_size=%u flags=0x%x for bcm_gport=0x%x",
                 rateLimit.limit, rateLimit.bucket_size, rateLimit.flags, hapiPortPtr->bcm_gport);
       rv = usl_bcmx_rate_bcast_set(hapiPortPtr->bcm_gport, rateLimit);
       PT_LOG_TRACE(LOG_CTX_HAPI, "rv=%d", rv);
@@ -1140,7 +1140,7 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
         rateLimit.flags       = 0;
       }
 
-      PT_LOG_TRACE(LOG_CTX_HAPI, "usl_bcmx_rate_mcast_set with limit=%u bucket_size=%u flags=0x%x for bcmx_lport=0x%x",
+      PT_LOG_TRACE(LOG_CTX_HAPI, "usl_bcmx_rate_mcast_set with limit=%u bucket_size=%u flags=0x%x for bcm_gport=0x%x",
                 rateLimit.limit, rateLimit.bucket_size, rateLimit.flags, hapiPortPtr->bcm_gport);
       rv = usl_bcmx_rate_mcast_set(hapiPortPtr->bcm_gport, rateLimit);
       PT_LOG_TRACE(LOG_CTX_HAPI, "rv=%d", rv);
@@ -1165,7 +1165,7 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
         rateLimit.flags       = 0;
       }
 
-      PT_LOG_TRACE(LOG_CTX_HAPI, "usl_bcmx_rate_dlfbc_set with limit=%u bucket_size=%u flags=0x%x for bcmx_lport=0x%x",
+      PT_LOG_TRACE(LOG_CTX_HAPI, "usl_bcmx_rate_dlfbc_set with limit=%u bucket_size=%u flags=0x%x for bcm_gport=0x%x",
                 rateLimit.limit, rateLimit.bucket_size, rateLimit.flags, hapiPortPtr->bcm_gport);
       rv = usl_bcmx_rate_dlfbc_set(hapiPortPtr->bcm_gport, rateLimit);
       PT_LOG_TRACE(LOG_CTX_HAPI, "rv=%d", rv);

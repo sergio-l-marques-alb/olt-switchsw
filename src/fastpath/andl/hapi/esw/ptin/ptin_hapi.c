@@ -3230,7 +3230,7 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
       rv = bcm_l2_learn_port_class_set(unit, hapiPortPtr->bcm_gport, class_id);
       if (rv != BCM_E_NONE)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI, "unit %d: Error setting class %d to port {%d,%d,%d} (bcmx_lport=0x%x) (rv=%d)",
+        PT_LOG_ERR(LOG_CTX_HAPI, "unit %d: Error setting class %d to port {%d,%d,%d} (bcm_gport=0x%x) (rv=%d)",
                    unit, class_id,
                    dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port,
                    hapiPortPtr->bcm_gport, rv);

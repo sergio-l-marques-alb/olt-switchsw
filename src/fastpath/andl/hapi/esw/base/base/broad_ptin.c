@@ -2845,7 +2845,7 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, void *data, DAPI_t *dapi_g) {
   //mep.pkt_pri=
   //mep.inner_pkt_pri=
   //mep.int_pri=
-  mep.gport=        hapiPortPtr->bcm_gport;    //mep.gport=        mep.tx_gport=       hapiPortPtr->bcmx_lport;//BCM_GPORT_LOCAL_SET(mep.tx_gport, 2);
+  mep.gport=        hapiPortPtr->bcm_gport;    //mep.gport=        mep.tx_gport=       hapiPortPtr->bcm_gport;//BCM_GPORT_LOCAL_SET(mep.tx_gport, 2);
   mep.trunk_index = -1;//_BCM_OAM_INVALID_INDEX;
   //mep.trunk_index= //The trunk port index for this
   //mep.intf_id=

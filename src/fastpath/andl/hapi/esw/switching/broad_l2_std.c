@@ -2338,7 +2338,7 @@ L7_RC_t hapiBroadAddrMacAddressEntryDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
 //  L7_int32              learnEnabled;
 //
 //  hapiPortPtr = HAPI_PORT_GET(usp,dapi_g);
-//  gport = hapiPortPtr->bcmx_lport;
+//  gport = hapiPortPtr->bcm_gport;
 //
 //  /* Port should be local */
 //  if (!BCMX_LPORT_IS_PHYSICAL(gport))

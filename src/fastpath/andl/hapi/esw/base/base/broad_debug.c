@@ -2870,18 +2870,18 @@ TKS_DEBUG(TKS_DBG_ERR,("TKS_DBG_TUNNELV=0x%lx  /* Tunnel verbose */\n", TKS_DBG_
 
 /* PTin removed: BCMX */
 #if 0
-extern _bcmx_port_t *_bcmx_port;
-extern int bcmx_lport_max;
-void debug_bcmx_db_print(void)
+extern _bcmx_port_t *_bcm_gport;
+extern int bcm_gport_max;
+void debug_bcm_db_print(void)
 {
     int i=0;
-    for (i = 0; i < bcmx_lport_max; i++) {
+    for (i = 0; i < bcm_gport_max; i++) {
       if (BCMY_GPORT_VALID(i)) {
         sal_printf("\n***********************\n");
-        sal_printf("modid = %u \n", _bcmx_port[i].modid);
-        sal_printf("unit = %u \n", _bcmx_port[i].bcm_unit);
-        sal_printf("modport = %u \n", _bcmx_port[i].modport);
-        sal_printf("port = %u \n", _bcmx_port[i].bcm_port);
+        sal_printf("modid = %u \n", _bcm_gport[i].modid);
+        sal_printf("unit = %u \n", _bcm_gport[i].bcm_unit);
+        sal_printf("modport = %u \n", _bcm_gport[i].modport);
+        sal_printf("port = %u \n", _bcm_gport[i].bcm_port);
       }
     }
 

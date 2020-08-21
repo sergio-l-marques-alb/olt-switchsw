@@ -1426,7 +1426,7 @@ L7_RC_t hapiBroadLagPortAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
         L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't create trunk ID %d, rv = %d", usp->port, rc);
       }
       hapiLagPortPtr->hapiModeparm.lag.tgid = tid;
-      BCM_GPORT_TRUNK_SET(hapiLagPortPtr->bcmx_lport, tid);
+      BCM_GPORT_TRUNK_SET(hapiLagPortPtr->bcm_gport, tid);
 
       /* Need to apply learn mode now that we have a tgid */
       usl_bcmx_trunk_learn_mode_set(usp->port, tid, hapiLagPortPtr->locked);
@@ -1977,7 +1977,7 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
 //    hapiLagPortPtr->hapiModeparm.lag.isolatePending = L7_FALSE;
 //    hapiLagPortPtr->hapiModeparm.lag.lastValidTgid = hapiLagPortPtr->hapiModeparm.lag.tgid;
 //    hapiLagPortPtr->hapiModeparm.lag.tgid = -1;
-//    hapiLagPortPtr->bcmx_lport = 0;
+//    hapiLagPortPtr->bcm_gport = 0;
     }
     /* otherwise set the membership to the remaining members */
     else
