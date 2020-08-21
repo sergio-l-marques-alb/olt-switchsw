@@ -1399,7 +1399,7 @@ L7_RC_t hapiBroadDebugStpVlanList(L7_uint32 instNumber)
 
 
   /* Loop thru and print the instances */
-  printf ("For Spanning Tree : %d\n", instNumber);
+  printf ("bcm_unit %d: For Spanning Tree (instNumber %d)\n", bcm_unit, instNumber);
   for (vlanIndex = 0; vlanIndex < numVlans; vlanIndex++)
   {
     printf ("Vlan [%d] : %d\n", vlanIndex, vlanList [vlanIndex]);
