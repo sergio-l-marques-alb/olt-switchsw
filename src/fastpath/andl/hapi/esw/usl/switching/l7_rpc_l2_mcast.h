@@ -85,7 +85,7 @@ int  l7_rpc_client_mcast_update_ports(usl_bcm_mcast_addr_t *mcAddr,
 /*********************************************************************
 * @purpose  RPC client API to add a port to a list of L2 Multicast addresses
 *
-* @param    port              @{(input)} port being operated on
+* @param    gport             @{(input)} port being operated on
 * @param    l2mc_index        @{(input)} array of L2MC indices
 * @param    l2mc_index_count  @{(input)} count of L2MC indices
 *
@@ -93,6 +93,6 @@ int  l7_rpc_client_mcast_update_ports(usl_bcm_mcast_addr_t *mcAddr,
 *
 * @end
 *********************************************************************/
-int l7_rpc_client_mcast_port_update_groups(bcm_gport_t port, int *l2mc_index, int l2mc_index_count, USL_CMD_t updateCmd);
+int l7_rpc_client_mcast_port_update_groups(bcm_gport_t gport, int *l2mc_index, int l2mc_index_count, USL_CMD_t updateCmd);
 
 #endif

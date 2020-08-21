@@ -22,7 +22,6 @@
 #include "l7_common.h"
 
 #include "bcm/types.h"
-#include "bcmx/custom.h"
 
 #include "l7_rpc_policy.h"
 #include "l7_rpc_port.h"

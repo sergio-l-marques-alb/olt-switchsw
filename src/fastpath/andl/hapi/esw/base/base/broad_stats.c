@@ -47,7 +47,6 @@
 
 #include "bcm/custom.h"
 #include "bcm/stat.h"
-#include "bcmx/custom.h"
 #include "ibde.h"
 #include "l7_usl_bcmx_port.h"
 #include "broad_hpc_helper.h"

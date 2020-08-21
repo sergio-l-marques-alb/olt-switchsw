@@ -156,27 +156,27 @@ int l7_rpc_client_policy_remove_all(BROAD_POLICY_t policy);
 * @purpose  Apply a policy to a port
 *
 * @param    policy      @{(input)} policy ID
-* @param    port        @{(input)} port
+* @param    gport       @{(input)} port
 *
 * @returns  Defined by the Broadcom driver
 *
 * @end
 *********************************************************************/
 int l7_rpc_client_policy_port_apply(BROAD_POLICY_t policyId,
-                                    bcmx_lport_t   port);
+                                    bcm_gport_t    gport);
 
 /*********************************************************************
 * @purpose  Remove a policy from a port
 *
 * @param    policy      @{(input)} policy ID
-* @param    port        @{(input)} port
+* @param    gport       @{(input)} port
 *
 * @returns  Defined by the Broadcom driver
 *
 * @end
 *********************************************************************/
 int l7_rpc_client_policy_port_remove(BROAD_POLICY_t policyId,
-                                     bcmx_lport_t   port);
+                                     bcm_gport_t    gport);
 
 /*********************************************************************
 * @purpose  Retrieve statistics for a policy

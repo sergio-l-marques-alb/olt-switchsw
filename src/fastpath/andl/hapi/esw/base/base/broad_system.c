@@ -57,7 +57,7 @@
 
 #include "bcmx/port.h"
 #include "bcmx/lport.h"
-#include "bcmx/custom.h"
+#include "bcm/custom.h"
 #include "bcm_int/esw/mbcm.h"
 #include "l7_usl_bcmx_l2.h"
 #include "l7_usl_api.h"
@@ -6886,8 +6886,8 @@ L7_RC_t hapiBroadIntfFiberDiagTest(DAPI_USP_t *usp,
 *
 * @returns L7_RC_t result
 *
-* @notes   Uses customx port infra-structure to send the message to the 
-*          appropriate unit. The port number in the customx call is
+* @notes   Uses custom port infra-structure to send the message to the 
+*          appropriate unit. The port number in the custom call is
 *          dummy parameter.
 *
 * @end
@@ -6897,14 +6897,15 @@ L7_RC_t hapiBroadSystemCardPortsAdminModeSet(L7_uint32 unit, L7_uint32 slot,
                                              L7_BOOL forceMode, L7_BOOL forcedAdminMode,
                                              DAPI_t *dapi_g)
 {
-  DAPI_USP_t                                       usp;
-  BROAD_PORT_t                                    *hapiPortPtr;
-  L7_uint32                                        maxElems, numElems;
-  L7_uchar8                                       *msg, *msgPtr;
-  L7_RC_t                                          result = L7_SUCCESS;
-  usl_bcm_port_admin_mode_t         element;
-  uint32                                           args[BCM_CUSTOM_ARGS_MAX];
-  int                                              localBcmUnitNum, rv, dummyLport = BCMX_LPORT_INVALID;
+  DAPI_USP_t                usp;
+  BROAD_PORT_t             *hapiPortPtr;
+  L7_uint32                 maxElems, numElems;
+  L7_uchar8                *msg, *msgPtr;
+  L7_RC_t                   result = L7_SUCCESS;
+  usl_bcm_port_admin_mode_t element;
+  uint32                    args[BCM_CUSTOM_ARGS_MAX];
+  int                       localBcmUnitNum, rv;
+  int                       dummy_bcm_unit=-1, dummy_bcm_port=-1;
   
   usp.unit = unit;
   usp.slot = slot; 
@@ -6938,9 +6939,10 @@ L7_RC_t hapiBroadSystemCardPortsAdminModeSet(L7_uint32 unit, L7_uint32 slot,
     }
 
     /* If dummyLport is unassigned, populate it */
-    if (dummyLport == BCMX_LPORT_INVALID) 
+    if (dummy_bcm_unit < 0 || dummy_bcm_port < 0) 
     {
-      dummyLport = hapiPortPtr->bcmx_lport;
+      dummy_bcm_unit = hapiPortPtr->bcm_unit;
+      dummy_bcm_port = hapiPortPtr->bcm_port;
     }
 
     memset(&element, 0, sizeof(element));
@@ -6952,7 +6954,7 @@ L7_RC_t hapiBroadSystemCardPortsAdminModeSet(L7_uint32 unit, L7_uint32 slot,
     }
     else
     {
-    element.adminMode =  hapiPortPtr->hapiModeparm.physical.admin_enabled;
+      element.adminMode =  hapiPortPtr->hapiModeparm.physical.admin_enabled;
     }
  
     /* Copy this element in the message */
@@ -6966,9 +6968,9 @@ L7_RC_t hapiBroadSystemCardPortsAdminModeSet(L7_uint32 unit, L7_uint32 slot,
       *(L7_uint32 *)&msg[0] = numElems;
       /* PTin modified: SDK 6.3.0 */
       #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-      rv = bcmx_custom_port_set(dummyLport, USL_BCMX_PORT_ADMIN_MODE_SET, (sizeof(L7_uint32)+sizeof(element)*numElems)/sizeof(L7_uint32), args);
+      rv = bcm_custom_port_set(dummy_bcm_unit, dummy_bcm_port, USL_BCMX_PORT_ADMIN_MODE_SET, (sizeof(L7_uint32)+sizeof(element)*numElems)/sizeof(L7_uint32), args);
       #else
-      rv = bcmx_custom_port_set(dummyLport, USL_BCMX_PORT_ADMIN_MODE_SET, args);
+      rv = bcm_custom_port_set(dummy_bcm_unit, dummy_bcm_port, USL_BCMX_PORT_ADMIN_MODE_SET, args);
       #endif
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
@@ -6990,9 +6992,9 @@ L7_RC_t hapiBroadSystemCardPortsAdminModeSet(L7_uint32 unit, L7_uint32 slot,
     *(L7_uint32 *)&msg[0] = numElems;
     /* PTin modified: SDK 6.3.0 */
     #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-    rv = bcmx_custom_port_set(dummyLport, USL_BCMX_PORT_ADMIN_MODE_SET, (sizeof(L7_uint32)+sizeof(element)*numElems)/sizeof(L7_uint32), args);
+    rv = bcm_custom_port_set(dummy_bcm_unit, dummy_bcm_port, USL_BCMX_PORT_ADMIN_MODE_SET, (sizeof(L7_uint32)+sizeof(element)*numElems)/sizeof(L7_uint32), args);
     #else
-    rv = bcmx_custom_port_set(dummyLport, USL_BCMX_PORT_ADMIN_MODE_SET, args);
+    rv = bcm_custom_port_set(dummy_bcm_unit, dummy_bcm_port, USL_BCMX_PORT_ADMIN_MODE_SET, args);
     #endif
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {

@@ -25,7 +25,6 @@
 #include "l7_rpc_port.h"
 
 #include "sal/core/libc.h"
-#include "bcmx/custom.h"
 #include "bcm/custom.h"
 #include "bcm/l2.h"
 #include "bcm/link.h"
@@ -38,7 +37,7 @@ extern int l7_rpc_server_mcast_port_update_groups(int unit, bcm_port_t port,
 * @purpose RPC Client API to set the broadcast rate threshold for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    bcast_limit    @{(input)} Bcast rate threshold limits
 *
 * @returns  BCMX Error Code
@@ -48,12 +47,20 @@ extern int l7_rpc_server_mcast_port_update_groups(int unit, bcm_port_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_rate_bcast_set(bcmx_lport_t port, 
+int l7_rpc_client_rate_bcast_set(bcm_gport_t gport, 
                                  usl_bcm_port_rate_limit_t bcast_limit)
 {
   int     rv = BCM_E_NONE;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if (sizeof(bcast_limit) > sizeof(args))
   {
@@ -67,9 +74,9 @@ int l7_rpc_client_rate_bcast_set(bcmx_lport_t port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_BCAST_RATE_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_BCAST_RATE_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_BCAST_RATE_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_BCAST_RATE_SET, args);
   #endif
 
   return rv;
@@ -116,7 +123,7 @@ int l7_rpc_server_rate_bcast_set (int unit, bcm_port_t port,
 * @purpose RPC Client API to set the Multicast rate threshold for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    mcast_limit    @{(input)} Mcast rate threshold limits
 *
 * @returns BCMX Error Code
@@ -126,12 +133,20 @@ int l7_rpc_server_rate_bcast_set (int unit, bcm_port_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_rate_mcast_set(bcmx_lport_t port, 
+int l7_rpc_client_rate_mcast_set(bcm_gport_t gport, 
                                  usl_bcm_port_rate_limit_t mcast_limit)
 {
   int     rv = BCM_E_NONE;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if (sizeof(mcast_limit) > sizeof(args))
   {
@@ -145,9 +160,9 @@ int l7_rpc_client_rate_mcast_set(bcmx_lport_t port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_MCAST_RATE_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_MCAST_RATE_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_MCAST_RATE_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_MCAST_RATE_SET, args);
   #endif
 
   return rv;
@@ -195,7 +210,7 @@ int l7_rpc_server_rate_mcast_set (int unit, bcm_port_t port,
 * @purpose RPC Client API to set the DLF rate threshold for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    dlf_limit      @{(input)} Dlf rate threshold limits
 *
 * @returns BCMX Error Code
@@ -205,12 +220,20 @@ int l7_rpc_server_rate_mcast_set (int unit, bcm_port_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_rate_dlfbc_set(bcmx_lport_t port, 
+int l7_rpc_client_rate_dlfbc_set(bcm_gport_t gport, 
                                  usl_bcm_port_rate_limit_t dlf_limit)
 {
   int     rv = BCM_E_NONE;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if (sizeof(dlf_limit) > sizeof(args))
   {
@@ -224,9 +247,9 @@ int l7_rpc_client_rate_dlfbc_set(bcmx_lport_t port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_DLF_RATE_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_DLF_RATE_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_DLF_RATE_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_DLF_RATE_SET, args);
   #endif
 
   return rv;
@@ -273,7 +296,7 @@ int l7_rpc_server_rate_dlfbc_set (int unit, bcm_port_t port,
 *
 * @purpose RPC Client API to set the Ingress filtering mode for a port
 *
-* @param   port    -  The LPORT 
+* @param   gport   -  The GPORT 
 * @param   mode    -  Filtering mode
 *
 * @returns BCMX Error Code
@@ -283,12 +306,20 @@ int l7_rpc_server_rate_dlfbc_set (int unit, bcm_port_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_vlan_member_set(bcmx_lport_t port, 
+int l7_rpc_client_port_vlan_member_set(bcm_gport_t gport, 
                                        usl_bcm_port_filter_mode_t mode)
 {
   int     rv = BCM_E_NONE;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if (sizeof(mode) > sizeof(args))
   {
@@ -302,9 +333,9 @@ int l7_rpc_client_port_vlan_member_set(bcmx_lport_t port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_FILTER_MODE_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_FILTER_MODE_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_FILTER_MODE_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_FILTER_MODE_SET, args);
   #endif
 
   return rv;
@@ -351,7 +382,7 @@ int l7_rpc_server_port_vlan_member_set (int unit, bcm_port_t port,
 *
 * @purpose RPC Client API to set the default priority for a port
 *
-* @param   port        -  The LPORT 
+* @param   gport       -  The GPORT 
 * @param   priority    -  Deafult priority for the port
 *
 * @returns BCMX Error Code
@@ -361,12 +392,20 @@ int l7_rpc_server_port_vlan_member_set (int unit, bcm_port_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_untagged_priority_set(bcmx_lport_t port, 
+int l7_rpc_client_port_untagged_priority_set(bcm_gport_t gport, 
                                              usl_bcm_port_priority_t priority)
 {
   int     rv = BCM_E_NONE;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if (sizeof(priority) > sizeof(args))
   {
@@ -380,9 +419,9 @@ int l7_rpc_client_port_untagged_priority_set(bcmx_lport_t port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PRIORITY_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_PRIORITY_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PRIORITY_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_PRIORITY_SET, args);
   #endif
 
   return rv;
@@ -430,7 +469,7 @@ int l7_rpc_server_port_untagged_priority_set (int unit, bcm_port_t port,
 *
 * @purpose RPC Client API to set the max frame size allowed on a port
 *
-* @param   port           -  The LPORT 
+* @param   gport          -  The GPORT 
 * @param   maxFrameSize   -  Max frame size data
 *
 * @returns BCMX Error Code
@@ -440,12 +479,20 @@ int l7_rpc_server_port_untagged_priority_set (int unit, bcm_port_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_frame_max_set(bcmx_lport_t port, 
+int l7_rpc_client_port_frame_max_set(bcm_gport_t gport, 
                                      usl_bcm_port_frame_size_t max_frame_size)
 {
   int     rv = BCM_E_NONE;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if (sizeof(max_frame_size) > sizeof(args))
   {
@@ -459,9 +506,9 @@ int l7_rpc_client_port_frame_max_set(bcmx_lport_t port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_MAX_FRAME_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_MAX_FRAME_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_MAX_FRAME_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_MAX_FRAME_SET, args);
   #endif
 
   return rv;
@@ -509,7 +556,7 @@ int l7_rpc_server_port_frame_max_set(int unit, bcm_port_t port,
 *
 * @purpose RPC Client API to set the learn mode for a port
 *
-* @param   port           -  The LPORT 
+* @param   gport          -  The GPORT 
 * @param   learnMode      -  Learn mode of the port
 *
 * @returns BCMX Error Code
@@ -519,12 +566,20 @@ int l7_rpc_server_port_frame_max_set(int unit, bcm_port_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_learn_set(bcmx_lport_t port, 
+int l7_rpc_client_port_learn_set(bcm_gport_t gport, 
                                  usl_bcm_port_learn_mode_t learn_mode)
 {
   int     rv = BCM_E_NONE;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if (sizeof(learn_mode) > sizeof(args))
   {
@@ -538,9 +593,9 @@ int l7_rpc_client_port_learn_set(bcmx_lport_t port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_LEARN_MODE_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_LEARN_MODE_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_LEARN_MODE_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_LEARN_MODE_SET, args);
   #endif
 
   return rv;
@@ -553,7 +608,7 @@ int l7_rpc_client_port_learn_set(bcmx_lport_t port,
 *
 *
 * @param    unit          @{(input)} Local bcm unit number
-* @param    port          @{(input)} Local bcm port number 
+* @param    gport         @{(input)} Local bcm port number 
 * @param    setget        @{(input)} Set or Get command
 * @param    args          @{(input)} priority data
 *
@@ -588,7 +643,7 @@ int l7_rpc_server_port_learn_set(int unit, bcm_port_t port,
 *
 * @purpose RPC Client API to set the dtag mode for a port
 *
-* @param   port           -  The LPORT 
+* @param   gport          -  The GPORT 
 * @param   dtagMode       -  Learn mode
 *
 * @returns BCMX Error Code
@@ -598,12 +653,20 @@ int l7_rpc_server_port_learn_set(int unit, bcm_port_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_dtag_mode_set(bcmx_lport_t port, 
+int l7_rpc_client_dtag_mode_set(bcm_gport_t gport, 
                                 usl_bcm_port_dtag_mode_t dtag_mode)
 {
   int     rv = BCM_E_NONE;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if (sizeof(dtag_mode) > sizeof(args))
   {
@@ -617,9 +680,9 @@ int l7_rpc_client_dtag_mode_set(bcmx_lport_t port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_DTAG_MODE_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_DTAG_MODE_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_DTAG_MODE_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_DTAG_MODE_SET, args);
   #endif
 
   return rv;
@@ -669,7 +732,7 @@ int l7_rpc_server_port_dtag_mode_set(int unit, bcm_port_t port,
 *
 * @purpose RPC Client API to set the dtag tpid for a port
 *
-* @param   port           -  The LPORT 
+* @param   gport          -  The GPORT 
 * @param   tpid           -  tpid for the port
 *
 * @returns BCMX Error Code
@@ -679,11 +742,19 @@ int l7_rpc_server_port_dtag_mode_set(int unit, bcm_port_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_tpid_set(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
+int l7_rpc_client_port_tpid_set(bcm_gport_t gport, usl_bcm_port_tpid_t tpid)
 {
   int     rv = BCM_E_NONE;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if (sizeof(tpid) > sizeof(args))
   {
@@ -697,9 +768,9 @@ int l7_rpc_client_port_tpid_set(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_TPID_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_TPID_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_TPID_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_TPID_SET, args);
   #endif
 
   return rv;
@@ -710,7 +781,7 @@ int l7_rpc_client_port_tpid_set(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
 *
 * @purpose RPC Client API to add a dtag tpid for a port
 *
-* @param   port           -  The LPORT 
+* @param   gport          -  The GPORT 
 * @param   tpid           -  tpid for the port
 *
 * @returns BCMX Error Code
@@ -720,11 +791,19 @@ int l7_rpc_client_port_tpid_set(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_tpid_add(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
+int l7_rpc_client_port_tpid_add(bcm_gport_t gport, usl_bcm_port_tpid_t tpid)
 {
   int     rv = BCM_E_NONE;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if (sizeof(tpid) > sizeof(args))
   {
@@ -738,9 +817,9 @@ int l7_rpc_client_port_tpid_add(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_TPID_ADD, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_TPID_ADD, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_TPID_ADD, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_TPID_ADD, args);
   #endif
 
   return rv;
@@ -751,7 +830,7 @@ int l7_rpc_client_port_tpid_add(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
 *
 * @purpose RPC Client API to delete a dtag tpid from a port
 *
-* @param   port           -  The LPORT 
+* @param   gport          -  The GPORT 
 * @param   tpid           -  tpid for the port
 *
 * @returns BCMX Error Code
@@ -761,11 +840,19 @@ int l7_rpc_client_port_tpid_add(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_tpid_delete(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
+int l7_rpc_client_port_tpid_delete(bcm_gport_t gport, usl_bcm_port_tpid_t tpid)
 {
   int     rv = BCM_E_NONE;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if (sizeof(tpid) > sizeof(args))
   {
@@ -779,9 +866,9 @@ int l7_rpc_client_port_tpid_delete(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_TPID_DELETE, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_TPID_DELETE, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_TPID_DELETE, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_TPID_DELETE, args);
   #endif
 
   return rv;
@@ -901,7 +988,7 @@ int l7_rpc_server_port_tpid_delete(int unit, bcm_port_t port,
 * @purpose RPC Client API to set the default vid for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    vid            @{(input)} Default vid
 *
 * @returns BCMX Error Code
@@ -911,11 +998,19 @@ int l7_rpc_server_port_tpid_delete(int unit, bcm_port_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_untagged_vlan_set(bcmx_lport_t port, bcm_vlan_t vid)
+int l7_rpc_client_port_untagged_vlan_set(bcm_gport_t gport, bcm_vlan_t vid)
 {
   int     rv = BCM_E_NONE;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if (sizeof(vid) > sizeof(args))
   {
@@ -929,9 +1024,9 @@ int l7_rpc_client_port_untagged_vlan_set(bcmx_lport_t port, bcm_vlan_t vid)
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PVID_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_PVID_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PVID_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_PVID_SET, args);
   #endif
 
   return rv;
@@ -980,7 +1075,7 @@ int l7_rpc_server_port_untagged_vlan_set(int unit, bcm_port_t port,
 * @purpose RPC Client API to set the discard mode for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    mode           @{(input)} Discard mode
 *
 * @returns BCMX Error Code
@@ -990,11 +1085,19 @@ int l7_rpc_server_port_untagged_vlan_set(int unit, bcm_port_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_discard_set(bcmx_lport_t port, bcm_port_discard_t mode)
+int l7_rpc_client_port_discard_set(bcm_gport_t gport, bcm_port_discard_t mode)
 {
   int     rv = BCM_E_NONE;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if (sizeof(mode) > sizeof(args))
   {
@@ -1008,9 +1111,9 @@ int l7_rpc_client_port_discard_set(bcmx_lport_t port, bcm_port_discard_t mode)
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_DISCARD_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_DISCARD_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_DISCARD_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_DISCARD_SET, args);
   #endif
 
   return rv;
@@ -1059,7 +1162,7 @@ int l7_rpc_server_port_discard_set(int unit, bcm_port_t port,
 * @purpose RPC Client API to set the phy medium config for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    medium         @{(input)} Medium of the phy
 * @param    config         @{(input)} Medium configuration
 *
@@ -1070,7 +1173,7 @@ int l7_rpc_server_port_discard_set(int unit, bcm_port_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_medium_config_set(bcmx_lport_t port,
+int l7_rpc_client_port_medium_config_set(bcm_gport_t gport,
                                          bcm_port_medium_t medium,
                                          bcm_phy_config_t  *config)
 {
@@ -1078,6 +1181,14 @@ int l7_rpc_client_port_medium_config_set(bcmx_lport_t port,
   uint32     args[BCM_CUSTOM_ARGS_MAX];
   L7_uchar8 *argPtr;
   uint32     n_args;
+  int        bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if ((sizeof(medium) + sizeof(*config)) > sizeof(args))
   {
@@ -1098,9 +1209,9 @@ int l7_rpc_client_port_medium_config_set(bcmx_lport_t port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PHY_CONFIG_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_PHY_CONFIG_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PHY_CONFIG_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_PHY_CONFIG_SET, args);
   #endif
 
   return rv;
@@ -1158,7 +1269,7 @@ int l7_rpc_server_port_medium_config_set(int unit, bcm_port_t port,
 * @purpose RPC Client API to set the flow-control config for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    pauseConfig    @{(input)} Pause configuration for the port
 *
 * @returns BCMX Error Code
@@ -1168,12 +1279,20 @@ int l7_rpc_server_port_medium_config_set(int unit, bcm_port_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_flow_control_set(bcmx_lport_t port, 
+int l7_rpc_client_port_flow_control_set(bcm_gport_t gport, 
                                         usl_bcm_port_pause_config_t pauseConfig)
 {
-  int        rv = BCM_E_NONE;
-  uint32     args[BCM_CUSTOM_ARGS_MAX];
-  uint32     n_args;
+  int     rv = BCM_E_NONE;
+  uint32  args[BCM_CUSTOM_ARGS_MAX];
+  uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if (sizeof(pauseConfig) > sizeof(args))
   {
@@ -1187,9 +1306,9 @@ int l7_rpc_client_port_flow_control_set(bcmx_lport_t port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_FLOW_CONTROL_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_FLOW_CONTROL_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_FLOW_CONTROL_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_FLOW_CONTROL_SET, args);
   #endif
 
   return rv;
@@ -1238,7 +1357,7 @@ int l7_rpc_server_port_flow_control_set(int unit, bcm_port_t port,
 * @purpose RPC Client API to set the Cos queue sched config for a port
 *
 *
-* @param    port               @{(input)} Lport 
+* @param    gport              @{(input)} Gport 
 * @param    cosqSchedConfig    @{(input)} Cosq Sched configuration for the port
 *
 * @returns BCMX Error Code
@@ -1248,12 +1367,20 @@ int l7_rpc_server_port_flow_control_set(int unit, bcm_port_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_cosq_sched_set(bcmx_lport_t port, 
+int l7_rpc_client_port_cosq_sched_set(bcm_gport_t gport, 
                                       usl_bcm_port_cosq_sched_config_t cosqSchedConfig)
 {
-  int        rv = BCM_E_NONE;
-  uint32     args[BCM_CUSTOM_ARGS_MAX];
-  uint32     n_args;
+  int     rv = BCM_E_NONE;
+  uint32  args[BCM_CUSTOM_ARGS_MAX];
+  uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if (sizeof(cosqSchedConfig) > sizeof(args))
   {
@@ -1267,9 +1394,9 @@ int l7_rpc_client_port_cosq_sched_set(bcmx_lport_t port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_COSQ_SCHED_CONFIG_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_COSQ_SCHED_CONFIG_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_COSQ_SCHED_CONFIG_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_COSQ_SCHED_CONFIG_SET, args);
   #endif
 
   return rv;
@@ -1317,7 +1444,7 @@ int l7_rpc_server_port_cosq_sched_set(int unit, bcm_port_t port,
 * @purpose RPC Client API to set the rate shaper config for a port
 *
 *
-* @param    port               @{(input)} Lport 
+* @param    gport              @{(input)} Gport 
 * @param    shaperConfig       @{(input)} Rate shaper configuration for the port
 *
 * @returns BCMX Error Code
@@ -1327,12 +1454,20 @@ int l7_rpc_server_port_cosq_sched_set(int unit, bcm_port_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_rate_egress_set(bcmx_lport_t port, 
+int l7_rpc_client_port_rate_egress_set(bcm_gport_t gport, 
                                        usl_bcm_port_shaper_config_t shaperConfig)
 {
-  int        rv = BCM_E_NONE;
-  uint32     args[BCM_CUSTOM_ARGS_MAX];
-  uint32     n_args;
+  int     rv = BCM_E_NONE;
+  uint32  args[BCM_CUSTOM_ARGS_MAX];
+  uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if (sizeof(shaperConfig) > sizeof(args))
   {
@@ -1346,9 +1481,9 @@ int l7_rpc_client_port_rate_egress_set(bcmx_lport_t port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_SHAPER_CONFIG_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_SHAPER_CONFIG_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_SHAPER_CONFIG_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_SHAPER_CONFIG_SET, args);
   #endif
 
   return rv;
@@ -1397,7 +1532,7 @@ int l7_rpc_server_port_rate_egress_set(int unit, bcm_port_t port,
 * @purpose RPC Client API to add/remove port to/from vlans 
 *
 *
-* @param    port               @{(input)} Lport 
+* @param    gport              @{(input)} Gport 
 * @param    vlanConfig         @{(input)} Vlan configuration
 * @param    cmd                @{(input)} L7_TRUE: Add ports to vlan
 *                                         L7_FALSE: Remove ports from vlan
@@ -1409,7 +1544,7 @@ int l7_rpc_server_port_rate_egress_set(int unit, bcm_port_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_vlan_config(bcmx_lport_t port, 
+int l7_rpc_client_port_vlan_config(bcm_gport_t gport, 
                                    usl_bcm_port_vlan_t *vlanConfig, 
                                    L7_BOOL cmd)
 {
@@ -1417,6 +1552,14 @@ int l7_rpc_client_port_vlan_config(bcmx_lport_t port,
   uint32     args[BCM_CUSTOM_ARGS_MAX];
   L7_uchar8 *argPtr;
   uint32     n_args;
+  int        bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if ((sizeof (*vlanConfig) + sizeof(cmd)) > sizeof (args))
   {
@@ -1437,9 +1580,9 @@ int l7_rpc_client_port_vlan_config(bcmx_lport_t port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_CONFIG_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_VLAN_CONFIG_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_CONFIG_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_VLAN_CONFIG_SET, args);
   #endif
 
   return rv;
@@ -1495,7 +1638,7 @@ int l7_rpc_server_port_vlan_config(int unit, bcm_port_t port,
 *
 *
 * @param    stg                @{(input)}  Stg id
-* @param    port               @{(input)} Lport 
+* @param    gport              @{(input)} Gport 
 * @param    stpState           @{(input)}  State configuration
 *
 * @returns BCMX Error Code
@@ -1505,13 +1648,21 @@ int l7_rpc_server_port_vlan_config(int unit, bcm_port_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_stg_stp_set(bcm_stg_t stg, bcmx_lport_t port,
+int l7_rpc_client_stg_stp_set(bcm_stg_t stg, bcm_gport_t gport,
                               bcm_stg_stp_t stpState)
 {
   int        rv;
   uint32     args[BCM_CUSTOM_ARGS_MAX];
   L7_uchar8 *argPtr;
   uint32     n_args;
+  int        bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if ((sizeof (stg) + sizeof(stpState)) > sizeof (args))
   {
@@ -1532,9 +1683,9 @@ int l7_rpc_client_stg_stp_set(bcm_stg_t stg, bcmx_lport_t port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_STG_STATE_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_STG_STATE_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_STG_STATE_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_STG_STATE_SET, args);
   #endif
 
   return rv;
@@ -1591,7 +1742,7 @@ int l7_rpc_server_stg_stp_set(int unit, bcm_port_t port,
 * @purpose RPC Client API to configure protocol based vlans on a port 
 *
 *
-* @param    port               @{(input)} Lport 
+* @param    gport              @{(input)} Gport 
 * @param    pbvlanConfig       @{(input)} protocol Vlan configuration
 * @param    cmd                @{(input)} L7_TRUE: Add pbvlan config
 *                                         L7_FALSE: Remove pbvlan config
@@ -1603,14 +1754,22 @@ int l7_rpc_server_stg_stp_set(int unit, bcm_port_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_protocol_vlan_config(bcmx_lport_t port, 
+int l7_rpc_client_port_protocol_vlan_config(bcm_gport_t gport, 
                                             usl_bcm_port_pbvlan_config_t pbvlanConfig, 
                                             L7_BOOL cmd)
 {
-  int              rv;
-  uint32           args[BCM_CUSTOM_ARGS_MAX];
-  L7_uchar8       *argPtr;
-  uint32           n_args;
+  int       rv;
+  uint32    args[BCM_CUSTOM_ARGS_MAX];
+  L7_uchar8 *argPtr;
+  uint32    n_args;
+  int       bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if ((sizeof (pbvlanConfig) + sizeof(cmd)) > sizeof (args))
   {
@@ -1631,9 +1790,9 @@ int l7_rpc_client_port_protocol_vlan_config(bcmx_lport_t port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PBVLAN_CONFIG_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_PBVLAN_CONFIG_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PBVLAN_CONFIG_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_PBVLAN_CONFIG_SET, args);
   #endif
 
   return rv;
@@ -1688,7 +1847,7 @@ int l7_rpc_server_port_protocol_vlan_config(int unit, bcm_port_t port,
 * @purpose RPC Client API to set the dot1x state for the port
 *
 *
-* @param    port               @{(input)} Lport 
+* @param    gport              @{(input)} Gport 
 * @param    dot1xStatus        @{(input)} Dot1x state for the port
 *
 * @returns BCMX Error Code
@@ -1698,12 +1857,20 @@ int l7_rpc_server_port_protocol_vlan_config(int unit, bcm_port_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_dot1x_config(bcmx_lport_t port,
+int l7_rpc_client_port_dot1x_config(bcm_gport_t gport,
                                     L7_DOT1X_PORT_STATUS_t dot1xStatus)
 {
-  int              rv;
-  uint32           args[BCM_CUSTOM_ARGS_MAX];
-  uint32           n_args;
+  int     rv;
+  uint32  args[BCM_CUSTOM_ARGS_MAX];
+  uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if (sizeof(dot1xStatus) > sizeof (args))
   {
@@ -1717,9 +1884,9 @@ int l7_rpc_client_port_dot1x_config(bcmx_lport_t port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_DOT1X_CONFIG_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_DOT1X_CONFIG_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_DOT1X_CONFIG_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_DOT1X_CONFIG_SET, args);
   #endif
 
   return rv;
@@ -1766,7 +1933,7 @@ int l7_rpc_server_port_dot1x_config(int unit, bcm_port_t port,
  *
  * @purpose RPC Client API to get SFP diagnostics for the specified port.
  *
- * @param   port - BCMX Lport
+ * @param   gport- BCM Gport
  * @param
  *
  * @returns BCMX Error Code
@@ -1777,7 +1944,7 @@ int l7_rpc_server_port_dot1x_config(int unit, bcm_port_t port,
  *
  *********************************************************************/
 int
-l7_rpc_client_port_sfp_diag_get(bcmx_lport_t port,
+l7_rpc_client_port_sfp_diag_get(bcm_gport_t gport,
                                 int32 *temperature,
                                 uint32 *voltage,
                                 uint32 *current,
@@ -1788,13 +1955,21 @@ l7_rpc_client_port_sfp_diag_get(bcmx_lport_t port,
 {
   int     rv;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   L7_int len;
-  rv = bcmx_custom_port_get(port, USL_BCMX_PORT_SFP_DIAG_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
+  rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_PORT_SFP_DIAG_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
   #else
-  rv = bcmx_custom_port_get(port, USL_BCMX_PORT_SFP_DIAG_GET, args);
+  rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_PORT_SFP_DIAG_GET, args);
   #endif
 
   if (rv >= 0) {
@@ -1813,7 +1988,7 @@ l7_rpc_client_port_sfp_diag_get(bcmx_lport_t port,
  *
  * @purpose RPC Client API to get copper diagnostics for the specified port.
  *
- * @param   port - BCMX Lport
+ * @param   gport- BCM Gport
  * @param
  *
  * @returns BCMX Error Code
@@ -1824,17 +1999,25 @@ l7_rpc_client_port_sfp_diag_get(bcmx_lport_t port,
  *
  *********************************************************************/
 int
-l7_rpc_client_port_copper_diag_get(bcmx_lport_t port, bcm_port_cable_diag_t *cd)
+l7_rpc_client_port_copper_diag_get(bcm_gport_t gport, bcm_port_cable_diag_t *cd)
 {
   int     rv;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   L7_int len;
-  rv = bcmx_custom_port_get(port, USL_BCMX_PORT_COPPER_DIAG_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
+  rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_PORT_COPPER_DIAG_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
   #else
-  rv = bcmx_custom_port_get(port, USL_BCMX_PORT_COPPER_DIAG_GET, args);
+  rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_PORT_COPPER_DIAG_GET, args);
   #endif
 
   if (rv >= 0) 
@@ -2009,7 +2192,7 @@ int l7_rpc_server_port_copper_diag_get(int unit, bcm_port_t port, int setget, ui
 *
 * @purpose RPC Client API to block an unauthorized dot1x client for the specified port.
 *
-* @param   port - BCMX Lport
+* @param   gport- BCM Gport
 * @param   client_cmd - Mac address, vlan Id 
 *
 * @returns BCMX Error Code
@@ -2020,12 +2203,20 @@ int l7_rpc_server_port_copper_diag_get(int unit, bcm_port_t port, int setget, ui
 *
 *********************************************************************/
 int
-l7_rpc_client_port_dot1x_client_block(bcmx_lport_t port,
+l7_rpc_client_port_dot1x_client_block(bcm_gport_t gport,
                                       usl_bcm_port_dot1x_client_t *client_cmd)
 {
   int     rv;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if (sizeof(usl_bcm_port_dot1x_client_t) > sizeof(args)) 
   {
@@ -2039,9 +2230,9 @@ l7_rpc_client_port_dot1x_client_block(bcmx_lport_t port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_DOT1X_CLIENT_BLOCK, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_DOT1X_CLIENT_BLOCK, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_DOT1X_CLIENT_BLOCK, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_DOT1X_CLIENT_BLOCK, args);
   #endif
 
   return rv;
@@ -2051,7 +2242,7 @@ l7_rpc_client_port_dot1x_client_block(bcmx_lport_t port,
 *
 * @purpose RPC Client API to unblock an unauthorized dot1x client for the specified port.
 *
-* @param   port - BCMX Lport
+* @param   gport- BCM Gport
 * @param   client_cmd - Mac address, vlan Id 
 *
 * @returns BCMX Error Code
@@ -2062,12 +2253,20 @@ l7_rpc_client_port_dot1x_client_block(bcmx_lport_t port,
 *
 *********************************************************************/
 int
-l7_rpc_client_port_dot1x_client_unblock(bcmx_lport_t port,
+l7_rpc_client_port_dot1x_client_unblock(bcm_gport_t gport,
                                         usl_bcm_port_dot1x_client_t *client_cmd)
 {
   int     rv;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if (sizeof(usl_bcm_port_dot1x_client_t) > sizeof(args)) 
   {
@@ -2081,9 +2280,9 @@ l7_rpc_client_port_dot1x_client_unblock(bcmx_lport_t port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_DOT1X_CLIENT_UNBLOCK, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_DOT1X_CLIENT_UNBLOCK, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_DOT1X_CLIENT_UNBLOCK, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_DOT1X_CLIENT_UNBLOCK, args);
   #endif
 
   return rv;
@@ -2157,7 +2356,7 @@ int l7_rpc_server_port_dot1x_client_unblock(int unit, bcm_port_t port,
 *
 * @purpose RPC Client API to get dot1x client timeout for the specified port.
 *
-* @param   port - BCMX Lport
+* @param   gport- BCM Gport
 * @param   client_cmd - Mac address, vlan Id 
 *
 * @returns BCMX Error Code
@@ -2168,12 +2367,20 @@ int l7_rpc_server_port_dot1x_client_unblock(int unit, bcm_port_t port,
 *
 *********************************************************************/
 int
-l7_rpc_client_port_dot1x_client_timeout_get(bcmx_lport_t port,
+l7_rpc_client_port_dot1x_client_timeout_get(bcm_gport_t gport,
                                             usl_bcm_port_dot1x_client_t *client_cmd)
 {
   int     rv;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   usl_bcm_port_dot1x_client_t *pReturnClient;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if (sizeof(usl_bcm_port_dot1x_client_t) > sizeof(args)) 
   {
@@ -2185,9 +2392,9 @@ l7_rpc_client_port_dot1x_client_timeout_get(bcmx_lport_t port,
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   L7_int len;
-  rv = bcmx_custom_port_get(port, USL_BCMX_DOT1X_CLIENT_TIMEOUT_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
+  rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_DOT1X_CLIENT_TIMEOUT_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
   #else
-  rv = bcmx_custom_port_get(port, USL_BCMX_DOT1X_CLIENT_TIMEOUT_GET, args);
+  rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_DOT1X_CLIENT_TIMEOUT_GET, args);
   #endif
 
   if (rv >= 0) 
@@ -2252,7 +2459,7 @@ int l7_rpc_server_port_dot1x_client_timeout_get(int unit, bcm_port_t port,
 *
 * @purpose RPC Client API to get all statistics for the specified port.
 *
-* @param   port - BCMX Lport
+* @param   gport- BCM Gport
 * @param   stats - 64-bit stats for the port.
 *
 * @returns BCMX Error Code
@@ -2263,17 +2470,25 @@ int l7_rpc_server_port_dot1x_client_timeout_get(int unit, bcm_port_t port,
 *
 *********************************************************************/
 int
-l7_rpc_client_stat_get(bcmx_lport_t port, uint64 stats[snmpValCount])
+l7_rpc_client_stat_get(bcm_gport_t gport, uint64 stats[snmpValCount])
 {
   int     rv, argi, s;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   L7_int len;
-  rv = bcmx_custom_port_get(port, USL_BCMX_STATS_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
+  rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_STATS_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
   #else
-  rv = bcmx_custom_port_get(port, USL_BCMX_STATS_GET, args);
+  rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_STATS_GET, args);
   #endif
 
   if (rv >= 0) 
@@ -2293,7 +2508,7 @@ l7_rpc_client_stat_get(bcmx_lport_t port, uint64 stats[snmpValCount])
 *
 * @purpose RPC Client API to get all statistics for the specified port.
 *
-* @param   port - BCMX Lport
+* @param   gport- BCM Gport
 * @param   stats - 64-bit stats for the port.
 *
 * @returns BCMX Error Code
@@ -2304,17 +2519,25 @@ l7_rpc_client_stat_get(bcmx_lport_t port, uint64 stats[snmpValCount])
 *
 *********************************************************************/
 int
-l7_rpc_client_port_stat_get(bcmx_lport_t port, uint64 stats[snmpValCount])
+l7_rpc_client_port_stat_get(bcm_gport_t gport, uint64 stats[snmpValCount])
 {
   int     rv, argi, s;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
- 
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
+
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   L7_int len;
-  rv = bcmx_custom_port_get(port, USL_BCMX_PORT_STATS_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
+  rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_PORT_STATS_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
   #else
-  rv = bcmx_custom_port_get(port, USL_BCMX_PORT_STATS_GET, args);
+  rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_PORT_STATS_GET, args);
   #endif
 
   if (rv >= 0) 
@@ -2439,7 +2662,7 @@ static int l7_rpc_server_port_stat_get(int unit, bcm_port_t port, int setget,
 * @purpose RPC Client API to set the mirroring configuration for the port
 *
 *
-* @param    port               @{(input)} Lport 
+* @param    gport              @{(input)} Gport 
 * @param    mirrorConfig       @{(input)} Mirroring configuration
 *
 * @returns BCMX Error Code
@@ -2449,12 +2672,20 @@ static int l7_rpc_server_port_stat_get(int unit, bcm_port_t port, int setget,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_mirror_set(bcmx_lport_t port, 
+int l7_rpc_client_port_mirror_set(bcm_gport_t gport, 
                                   usl_bcm_port_mirror_config_t mirrorConfig)
 {
   int     rv;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if (sizeof(mirrorConfig) > sizeof(args)) 
   {
@@ -2468,9 +2699,9 @@ int l7_rpc_client_port_mirror_set(bcmx_lport_t port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_MIRROR_CONFIG_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_MIRROR_CONFIG_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_MIRROR_CONFIG_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_MIRROR_CONFIG_SET, args);
   #endif
 
   return rv;
@@ -2559,7 +2790,7 @@ int l7_rpc_server_ports_admin_mode_set(int unit, bcm_port_t port,
 * @purpose RPC Client API to set the admin mode for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    enable         @{(input)} 
 *
 * @returns BCMX Error Code
@@ -2569,12 +2800,20 @@ int l7_rpc_server_ports_admin_mode_set(int unit, bcm_port_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_enable_set(bcmx_lport_t port, 
+int l7_rpc_client_port_enable_set(bcm_gport_t gport, 
                                   int enable)
 {
   int     rv;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if (sizeof(enable) > sizeof(args)) 
   {
@@ -2588,9 +2827,9 @@ int l7_rpc_client_port_enable_set(bcmx_lport_t port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_ADMIN_MODE_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_ADMIN_MODE_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_ADMIN_MODE_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_ADMIN_MODE_SET, args);
   #endif
 
   return rv;
@@ -2638,7 +2877,7 @@ int l7_rpc_server_port_enable_set(int unit, bcm_port_t port,
 * @purpose RPC Client API to set the wred params for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    enable         @{(input)} 
 *
 * @returns BCMX Error Code
@@ -2648,12 +2887,20 @@ int l7_rpc_server_port_enable_set(int unit, bcm_port_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_wred_set(bcmx_lport_t port, 
+int l7_rpc_client_port_wred_set(bcm_gport_t gport, 
                                 usl_bcm_port_wred_config_t *wredParams)
 {
   int     rv;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if (sizeof(*wredParams) > sizeof(args)) 
   {
@@ -2667,9 +2914,9 @@ int l7_rpc_client_port_wred_set(bcmx_lport_t port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_WRED_CONFIG_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_WRED_CONFIG_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_WRED_CONFIG_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_WRED_CONFIG_SET, args);
   #endif
 
   return rv;
@@ -2717,7 +2964,7 @@ int l7_rpc_server_port_wred_set(int unit, bcm_port_t port,
 * @purpose RPC Client API to set the sflow config for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    enable         @{(input)} 
 *
 * @returns BCMX Error Code
@@ -2727,12 +2974,20 @@ int l7_rpc_server_port_wred_set(int unit, bcm_port_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_sflow_config_set(bcmx_lport_t port, 
+int l7_rpc_client_port_sflow_config_set(bcm_gport_t gport, 
                                         usl_bcm_port_sflow_config_t *sflowConfig)
 {
   int     rv;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if (sizeof(*sflowConfig) > sizeof(args)) 
   {
@@ -2746,9 +3001,9 @@ int l7_rpc_client_port_sflow_config_set(bcmx_lport_t port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_SFLOW_CONFIG_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_SFLOW_CONFIG_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_SFLOW_CONFIG_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_SFLOW_CONFIG_SET, args);
   #endif
 
   return rv;
@@ -2795,7 +3050,7 @@ int l7_rpc_server_port_sflow_config_set(int unit, bcm_port_t port,
 * @purpose RPC Client API to set the VLAN translation config for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    enable         @{(input)} 
 *
 * @returns BCMX Error Code
@@ -2805,11 +3060,19 @@ int l7_rpc_server_port_sflow_config_set(int unit, bcm_port_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_vlan_translate_ingress_enable_set(bcmx_lport_t port, L7_BOOL enable)
+int l7_rpc_client_port_vlan_translate_ingress_enable_set(bcm_gport_t gport, L7_BOOL enable)
 {
   int     rv;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   memcpy (args, &enable, sizeof (enable));
 
@@ -2818,9 +3081,9 @@ int l7_rpc_client_port_vlan_translate_ingress_enable_set(bcmx_lport_t port, L7_B
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_INGRESS_ENABLE_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_VLAN_XLATE_INGRESS_ENABLE_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_INGRESS_ENABLE_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_VLAN_XLATE_INGRESS_ENABLE_SET, args);
   #endif
 
   return rv;
@@ -2867,7 +3130,7 @@ int l7_rpc_server_port_vlan_translate_ingress_enable_set(int unit, bcm_port_t po
 * @purpose RPC Client API to set the VLAN translation config for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    enable         @{(input)} 
 *
 * @returns BCMX Error Code
@@ -2877,11 +3140,19 @@ int l7_rpc_server_port_vlan_translate_ingress_enable_set(int unit, bcm_port_t po
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_vlan_translate_ingress_miss_drop_set(bcmx_lport_t port, L7_BOOL drop)
+int l7_rpc_client_port_vlan_translate_ingress_miss_drop_set(bcm_gport_t gport, L7_BOOL drop)
 {
   int     rv;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   memcpy (args, &drop, sizeof (drop));
 
@@ -2890,9 +3161,9 @@ int l7_rpc_client_port_vlan_translate_ingress_miss_drop_set(bcmx_lport_t port, L
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_INGRESS_MISS_DROP_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_VLAN_XLATE_INGRESS_MISS_DROP_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_INGRESS_MISS_DROP_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_VLAN_XLATE_INGRESS_MISS_DROP_SET, args);
   #endif
 
   return rv;
@@ -2939,7 +3210,7 @@ int l7_rpc_server_port_vlan_translate_ingress_miss_drop_set(int unit, bcm_port_t
 * @purpose RPC Client API to set the VLAN translation config for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    enable         @{(input)} 
 *
 * @returns BCMX Error Code
@@ -2949,11 +3220,19 @@ int l7_rpc_server_port_vlan_translate_ingress_miss_drop_set(int unit, bcm_port_t
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_vlan_translate_egress_enable_set(bcmx_lport_t port, L7_BOOL enable)
+int l7_rpc_client_port_vlan_translate_egress_enable_set(bcm_gport_t gport, L7_BOOL enable)
 {
   int     rv;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   memcpy (args, &enable, sizeof (enable));
 
@@ -2962,9 +3241,9 @@ int l7_rpc_client_port_vlan_translate_egress_enable_set(bcmx_lport_t port, L7_BO
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_EGRESS_ENABLE_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_VLAN_XLATE_EGRESS_ENABLE_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_EGRESS_ENABLE_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_VLAN_XLATE_EGRESS_ENABLE_SET, args);
   #endif
 
   return rv;
@@ -3011,7 +3290,7 @@ int l7_rpc_server_port_vlan_translate_egress_enable_set(int unit, bcm_port_t por
 * @purpose RPC Client API to set the VLAN translation config for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    enable         @{(input)} 
 *
 * @returns BCMX Error Code
@@ -3021,11 +3300,19 @@ int l7_rpc_server_port_vlan_translate_egress_enable_set(int unit, bcm_port_t por
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_vlan_translate_egress_miss_drop_set(bcmx_lport_t port, L7_BOOL drop)
+int l7_rpc_client_port_vlan_translate_egress_miss_drop_set(bcm_gport_t gport, L7_BOOL drop)
 {
   int     rv;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   memcpy (args, &drop, sizeof (drop));
 
@@ -3034,9 +3321,9 @@ int l7_rpc_client_port_vlan_translate_egress_miss_drop_set(bcmx_lport_t port, L7
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_EGRESS_MISS_DROP_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_VLAN_XLATE_EGRESS_MISS_DROP_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_EGRESS_MISS_DROP_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_VLAN_XLATE_EGRESS_MISS_DROP_SET, args);
   #endif
 
   return rv;
@@ -3083,7 +3370,7 @@ int l7_rpc_server_port_vlan_translate_egress_miss_drop_set(int unit, bcm_port_t 
 * @purpose RPC Client API to set the VLAN translation config for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    enable         @{(input)} 
 *
 * @returns BCMX Error Code
@@ -3093,11 +3380,19 @@ int l7_rpc_server_port_vlan_translate_egress_miss_drop_set(int unit, bcm_port_t 
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_vlan_translate_key_first_set(bcmx_lport_t port, bcm_vlan_translate_key_t key)
+int l7_rpc_client_port_vlan_translate_key_first_set(bcm_gport_t gport, bcm_vlan_translate_key_t key)
 {
   int     rv;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   memcpy (args, &key, sizeof (key));
 
@@ -3106,9 +3401,9 @@ int l7_rpc_client_port_vlan_translate_key_first_set(bcmx_lport_t port, bcm_vlan_
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_KEY_FIRST_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_VLAN_XLATE_KEY_FIRST_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_KEY_FIRST_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_VLAN_XLATE_KEY_FIRST_SET, args);
   #endif
 
   return rv;
@@ -3155,7 +3450,7 @@ int l7_rpc_server_port_vlan_translate_key_first_set(int unit, bcm_port_t port,
 * @purpose RPC Client API to set the VLAN translation config for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    enable         @{(input)} 
 *
 * @returns BCMX Error Code
@@ -3165,11 +3460,19 @@ int l7_rpc_server_port_vlan_translate_key_first_set(int unit, bcm_port_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_vlan_translate_key_second_set(bcmx_lport_t port, bcm_vlan_translate_key_t key)
+int l7_rpc_client_port_vlan_translate_key_second_set(bcm_gport_t gport, bcm_vlan_translate_key_t key)
 {
   int     rv;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   memcpy (args, &key, sizeof (key));
 
@@ -3178,9 +3481,9 @@ int l7_rpc_client_port_vlan_translate_key_second_set(bcmx_lport_t port, bcm_vlan
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_KEY_SECOND_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_VLAN_XLATE_KEY_SECOND_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_VLAN_XLATE_KEY_SECOND_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_VLAN_XLATE_KEY_SECOND_SET, args);
   #endif
 
   return rv;
@@ -3226,7 +3529,7 @@ int l7_rpc_server_port_vlan_translate_key_second_set(int unit, bcm_port_t port,
 * @purpose RPC Client API to set the PFC configuration for the port
 *
 *
-* @param    port               @{(input)} Lport 
+* @param    gport              @{(input)} Gport 
 * @param    pfcConfig       @{(input)} PFC configuration
 *
 * @returns BCMX Error Code
@@ -3236,12 +3539,20 @@ int l7_rpc_server_port_vlan_translate_key_second_set(int unit, bcm_port_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_pfc_config_set(bcmx_lport_t port, 
+int l7_rpc_client_port_pfc_config_set(bcm_gport_t gport, 
                                       usl_bcm_port_pfc_config_t pfcConfig)
 {
   int     rv;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if (sizeof(pfcConfig) > sizeof(args)) 
   {
@@ -3255,9 +3566,9 @@ int l7_rpc_client_port_pfc_config_set(bcmx_lport_t port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PFC_CONFIG_SET, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_PFC_CONFIG_SET, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PFC_CONFIG_SET, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_PFC_CONFIG_SET, args);
   #endif
 
   return rv;
@@ -3304,7 +3615,7 @@ int l7_rpc_server_port_pfc_config_set(int unit, bcm_port_t port,
 * @purpose RPC Client API to get the PFC stat for the port
 *
 *
-* @param    port       @{(input)} Lport 
+* @param    gport      @{(input)} Gport 
 * @param    stat       @{(input)} PFC configuration
 *
 * @returns BCMX Error Code
@@ -3314,12 +3625,20 @@ int l7_rpc_server_port_pfc_config_set(int unit, bcm_port_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_pfc_stat_get(bcmx_lport_t port, 
+int l7_rpc_client_port_pfc_stat_get(bcm_gport_t gport, 
                                     usl_bcm_port_pfc_stat_t *stat)
 {
   int     rv;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   usl_bcm_port_pfc_stat_t *ret_stat;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   if (sizeof(*stat) > sizeof(args)) 
   {
@@ -3333,9 +3652,9 @@ int l7_rpc_client_port_pfc_stat_get(bcmx_lport_t port,
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   L7_int len;
-  rv = bcmx_custom_port_get(port, USL_BCMX_PORT_PFC_STAT_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
+  rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_PORT_PFC_STAT_GET, BCM_CUSTOM_ARGS_MAX, args, &len);
   #else
-  rv = bcmx_custom_port_get(port, USL_BCMX_PORT_PFC_STAT_GET, args);
+  rv = bcm_custom_port_get(bcm_unit, bcm_port, USL_BCMX_PORT_PFC_STAT_GET, args);
   #endif
 
   if (BCM_E_NONE == rv)
@@ -3382,7 +3701,7 @@ int l7_rpc_server_port_pfc_stat_get(int unit, bcm_port_t port,
 * @purpose RPC Client API to clear the PFC stats for the port
 *
 *
-* @param    port               @{(input)} Lport 
+* @param    gport              @{(input)} Gport 
 *
 * @returns BCMX Error Code
 *
@@ -3391,30 +3710,38 @@ int l7_rpc_server_port_pfc_stat_get(int unit, bcm_port_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_pfc_stats_clear(bcmx_lport_t port)
+int l7_rpc_client_port_pfc_stats_clear(bcm_gport_t gport)
 {
   int     rv;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   /* PTin added: bug? */
   #if 1
-  if (sizeof(port) > sizeof(args)) 
+  if (sizeof(gport) > sizeof(args)) 
   {
-      L7_LOG_ERROR(sizeof(port));
+      L7_LOG_ERROR(sizeof(gport));
   }
 
-  memcpy (args, &port, sizeof (port));
+  memcpy (args, &gport, sizeof (gport));
   #endif
 
-  n_args = sizeof(port)/sizeof(uint32);
-  if (sizeof(port)%sizeof(uint32) != 0)  n_args++;
+  n_args = sizeof(gport)/sizeof(uint32);
+  if (sizeof(gport)%sizeof(uint32) != 0)  n_args++;
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PFC_STATS_CLEAR, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_PFC_STATS_CLEAR, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_PFC_STATS_CLEAR, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_PFC_STATS_CLEAR, args);
   #endif
 
   return rv;

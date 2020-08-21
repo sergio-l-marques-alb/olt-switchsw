@@ -114,7 +114,7 @@ int l7_rpc_client_ipmc_set_l2_ports(usl_bcm_ipmc_addr_t *ipmc_addr,
 *
 * @purpose Add L2 ports to the multicast group.
 *
-* @param   port - BCMX Lport
+* @param   gport - BCM Gport
 * @param   *index - List of IPMC indexes to modify with this call.
 * @param   num_groups - Number of IPMC groups in the *index array.
 * @param   vlan_id - VLAN affected by this call.
@@ -129,7 +129,7 @@ int l7_rpc_client_ipmc_set_l2_ports(usl_bcm_ipmc_addr_t *ipmc_addr,
 *
 *********************************************************************/
 int
-l7_rpc_client_ipmc_add_l2_port_groups (bcmx_lport_t     port,
+l7_rpc_client_ipmc_add_l2_port_groups (bcm_gport_t       gport,
                                        L7_uint32        *ipmc_index,
                                        L7_uint32         num_groups,
                                        L7_uint32         vlan_id,
@@ -139,7 +139,7 @@ l7_rpc_client_ipmc_add_l2_port_groups (bcmx_lport_t     port,
 *
 * @purpose Delete L2 ports from the multicast group.
 *
-* @param   port - BCMX Lport
+* @param   gport - BCM Gport
 * @param   *index - List of IPMC indexes to modify with this call.
 * @param   num_groups - Number of IPMC groups in the *index array.
 * @param   vlan_id - VLAN affected by this call.
@@ -153,7 +153,7 @@ l7_rpc_client_ipmc_add_l2_port_groups (bcmx_lport_t     port,
 *
 *********************************************************************/
 int
-l7_rpc_client_ipmc_delete_l2_port_groups(bcmx_lport_t port,
+l7_rpc_client_ipmc_delete_l2_port_groups(bcm_gport_t  gport,
                                          L7_uint32    *ipmc_index,
                                          L7_uint32    num_groups,
                                          L7_uint32    vlan_id);
@@ -162,7 +162,7 @@ l7_rpc_client_ipmc_delete_l2_port_groups(bcmx_lport_t port,
 *
 * @purpose Add L3 ports to the multicast group.
 *
-* @param   port - BCMX Lport
+* @param   gport - BCM Gport
 * @param   *index - List of IPMC indexes to modify with this call.
 * @param   num_groups - Number of IPMC groups in the *index array.
 * @param   vlan_id - VLAN affected by this call.
@@ -177,7 +177,7 @@ l7_rpc_client_ipmc_delete_l2_port_groups(bcmx_lport_t port,
 *
 *********************************************************************/
 int
-l7_rpc_client_ipmc_add_l3_port_groups (bcmx_lport_t port,
+l7_rpc_client_ipmc_add_l3_port_groups (bcm_gport_t  gport,
                                        L7_uint32    *ipmc_index,
                                        L7_uint32    num_groups,
                                        L7_uint32    vlan_id,
@@ -189,7 +189,7 @@ l7_rpc_client_ipmc_add_l3_port_groups (bcmx_lport_t port,
 *
 * @purpose Delete L3 ports from the multicast group.
 *
-* @param   port - BCMX Lport
+* @param   gport - BCM Gport
 * @param   *index - List of IPMC indexes to modify with this call.
 * @param   num_groups - Number of IPMC groups in the *index array.
 * @param   vlan_id - VLAN affected by this call.
@@ -203,7 +203,7 @@ l7_rpc_client_ipmc_add_l3_port_groups (bcmx_lport_t port,
 *
 *********************************************************************/
 int
-l7_rpc_client_ipmc_delete_l3_port_groups (bcmx_lport_t port,
+l7_rpc_client_ipmc_delete_l3_port_groups (bcm_gport_t  gport,
                                           L7_uint32    *ipmc_index,
                                           L7_uint32    num_groups,
                                           L7_uint32    vlan_id);
@@ -213,7 +213,7 @@ l7_rpc_client_ipmc_delete_l3_port_groups (bcmx_lport_t port,
 *
 * @purpose Add L3 ports to the multicast group.
 *
-* @param   port - BCMX Lport
+* @param   gport - BCM Gport
 * @param   *index - List of IPMC indexes to modify with this call.
 * @param   encap_id - encap_id associated with the port.
 *
@@ -224,7 +224,7 @@ l7_rpc_client_ipmc_delete_l3_port_groups (bcmx_lport_t port,
 *
 *********************************************************************/
 int
-l7_rpc_client_ipmc_egress_port_add (bcmx_lport_t port,
+l7_rpc_client_ipmc_egress_port_add (bcm_gport_t  gport,
                                     L7_uint32    *ipmc_index,
                                     L7_uint32    encap_id);
 
@@ -232,7 +232,7 @@ l7_rpc_client_ipmc_egress_port_add (bcmx_lport_t port,
 *
 * @purpose Delete L3 ports from the multicast group.
 *
-* @param   port - BCMX Lport
+* @param   gport - BCM Gport
 * @param   *index - List of IPMC indexes to modify with this call.
 * @param   encap_id - encap_id associated with the port.
 *
@@ -243,7 +243,7 @@ l7_rpc_client_ipmc_egress_port_add (bcmx_lport_t port,
 *
 *********************************************************************/
 int
-l7_rpc_client_ipmc_egress_port_delete (bcmx_lport_t port,
+l7_rpc_client_ipmc_egress_port_delete (bcm_gport_t  gport,
                                        L7_uint32    *ipmc_index,
                                        L7_uint32    encap_id);
 

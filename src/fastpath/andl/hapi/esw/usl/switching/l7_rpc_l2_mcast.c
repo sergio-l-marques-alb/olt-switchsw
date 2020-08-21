@@ -26,7 +26,6 @@
 #include "bcm/types.h"  // PTin added: compilation fix for SDK 5.10.4
 #include "bcm_int/esw/multicast.h"
 #include "bcm/custom.h"
-#include "bcmx/custom.h"
 
 #include "l7_rpc_l2_mcast.h"
 #include "l7_usl_bcm_port.h"
@@ -314,7 +313,7 @@ int  l7_rpc_client_mcast_update_ports(usl_bcm_mcast_addr_t *mcAddr,
 /*********************************************************************
 * @purpose  RPC client API to add a port to a list of L2 Multicast addresses
 *
-* @param    port              @{(input)} port being operated on
+* @param    gport             @{(input)} port being operated on
 * @param    l2mc_index        @{(input)} array of L2MC indices
 * @param    l2mc_index_count  @{(input)} count of L2MC indices
 *
@@ -322,13 +321,21 @@ int  l7_rpc_client_mcast_update_ports(usl_bcm_mcast_addr_t *mcAddr,
 *
 * @end
 *********************************************************************/
-int l7_rpc_client_mcast_port_update_groups(bcm_gport_t port, int *l2mc_index, int l2mc_index_count, USL_CMD_t updateCmd)
+int l7_rpc_client_mcast_port_update_groups(bcm_gport_t gport, int *l2mc_index, int l2mc_index_count, USL_CMD_t updateCmd)
 {
   int        rv = BCM_E_NONE;
   uint32     argSize;
   uint32     args[BCM_CUSTOM_ARGS_MAX];
   L7_uchar8 *msgBuf = (L7_uchar8 *)args;
   L7_uint32  i;
+  int        bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   argSize = (l2mc_index_count * sizeof(*l2mc_index)) + sizeof(updateCmd);
   if (argSize > sizeof(args))
@@ -345,9 +352,9 @@ int l7_rpc_client_mcast_port_update_groups(bcm_gport_t port, int *l2mc_index, in
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_MCAST_GROUPS_UPDATE, 1+l2mc_index_count, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_MCAST_GROUPS_UPDATE, 1+l2mc_index_count, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_PORT_MCAST_GROUPS_UPDATE, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_PORT_MCAST_GROUPS_UPDATE, args);
   #endif
 
   return rv;

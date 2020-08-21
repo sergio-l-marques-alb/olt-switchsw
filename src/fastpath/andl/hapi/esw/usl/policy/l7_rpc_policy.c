@@ -30,7 +30,6 @@
 
 #include "bcm/error.h"
 #include "bcm/custom.h"
-#include "bcmx/custom.h"
 #include "bcmx/types.h"
 #include "ibde.h"
 #include "zlib.h"
@@ -741,31 +740,39 @@ int l7_rpc_client_policy_remove_all(BROAD_POLICY_t policy)
 * @purpose  Apply a policy to a port
 *
 * @param    policy      @{(input)} policy ID
-* @param    port        @{(input)} port
+* @param    gport       @{(input)} port
 *
 * @returns  Defined by the Broadcom driver
 *
 * @end
 *********************************************************************/
 int l7_rpc_client_policy_port_apply(BROAD_POLICY_t policyId,
-                                    bcmx_lport_t   port)
+                                    bcm_gport_t    gport)
 {
   int                         rv;
   uint32                      args[BCM_CUSTOM_ARGS_MAX];
   BROAD_POLICY_CUSTOM_DATA_t *pData;
+  int                         bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   pData = (BROAD_POLICY_CUSTOM_DATA_t *)args;
   pData->policyCmd   = BROAD_CUSTOM_POLICY_APPLY;
   pData->policyFlags = BROAD_POLICY_FIRST | BROAD_POLICY_LAST;
   pData->policyId    = policyId;
 
-  RPC_DEBUG_PRINT("l7_rpc_client_policy_port_apply: Policy-%d sending BROAD_CUSTOM_POLICY_APPLY port 0x%x\r\n", policyId, port);
+  RPC_DEBUG_PRINT("l7_rpc_client_policy_port_apply: Policy-%d sending BROAD_CUSTOM_POLICY_APPLY gport 0x%x\r\n", policyId, gport);
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_POLICY_SET_HANDLER, sizeof(BROAD_POLICY_CUSTOM_DATA_t)/sizeof(L7_uint32), args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_POLICY_SET_HANDLER, sizeof(BROAD_POLICY_CUSTOM_DATA_t)/sizeof(L7_uint32), args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_POLICY_SET_HANDLER, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_POLICY_SET_HANDLER, args);
   #endif
   if (L7_BCMX_OK(rv) == L7_TRUE)
     rv = BCM_E_NONE;
@@ -777,31 +784,39 @@ int l7_rpc_client_policy_port_apply(BROAD_POLICY_t policyId,
 * @purpose  Remove a policy from a port
 *
 * @param    policy      @{(input)} policy ID
-* @param    port        @{(input)} port
+* @param    gport       @{(input)} port
 *
 * @returns  Defined by the Broadcom driver
 *
 * @end
 *********************************************************************/
 int l7_rpc_client_policy_port_remove(BROAD_POLICY_t policyId,
-                                     bcmx_lport_t   port)
+                                     bcm_gport_t    gport)
 {
   int                         rv;
   uint32                      args[BCM_CUSTOM_ARGS_MAX];
   BROAD_POLICY_CUSTOM_DATA_t *pData;
+  int                         bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   pData = (BROAD_POLICY_CUSTOM_DATA_t *)args;
   pData->policyCmd   = BROAD_CUSTOM_POLICY_REMOVE;
   pData->policyFlags = BROAD_POLICY_FIRST | BROAD_POLICY_LAST;
   pData->policyId    = policyId;
 
-  RPC_DEBUG_PRINT("l7_rpc_client_policy_port_remove: Policy-%d sending BROAD_CUSTOM_POLICY_REMOVE port 0x%x\r\n", policyId, port);
+  RPC_DEBUG_PRINT("l7_rpc_client_policy_port_remove: Policy-%d sending BROAD_CUSTOM_POLICY_REMOVE gport 0x%x\r\n", policyId, gport);
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_POLICY_SET_HANDLER, sizeof(BROAD_POLICY_CUSTOM_DATA_t)/sizeof(L7_uint32), args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_POLICY_SET_HANDLER, sizeof(BROAD_POLICY_CUSTOM_DATA_t)/sizeof(L7_uint32), args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_POLICY_SET_HANDLER, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_POLICY_SET_HANDLER, args);
   #endif
   if (L7_BCMX_OK(rv) == L7_TRUE)
     rv = BCM_E_NONE;
