@@ -1815,7 +1815,7 @@ int usl_bcmx_mcast_port_leave_groups(bcm_gport_t port, int *l2mc_index, int l2mc
 * @end
 *
 *********************************************************************/
-int usl_ip_bcmx_vlan_control_port_set(bcmx_lport_t port,
+int usl_ip_bcmx_vlan_control_port_set(bcm_gport_t port,
                                       bcm_vlan_control_port_t type, int arg)
 {
   int bcm_unit, bcm_port;
@@ -1956,7 +1956,7 @@ int usl_bcmx_vlan_ip4_delete(bcm_ip_t ipaddr, bcm_ip_t netmask)
 * @end
 *
 *********************************************************************/
-int usl_mac_bcmx_vlan_control_port_set(bcmx_lport_t port,
+int usl_mac_bcmx_vlan_control_port_set(bcm_gport_t port,
                                        bcm_vlan_control_port_t type, int arg)
 {
   int bcm_unit, bcm_port;
@@ -2087,7 +2087,7 @@ int usl_bcmx_vlan_mac_delete(bcm_mac_t mac)
 /*********************************************************************
 * @purpose  Delete a port from protected port group 
 *
-* @param    lport                 @{(input)}  port to be removed
+* @param    gport                 @{(input)}  port to be removed
 * @param    groupId               @{(input)}  GroupId of the protected port
 *
 *
@@ -2097,7 +2097,7 @@ int usl_bcmx_vlan_mac_delete(bcm_mac_t mac)
 *
 * @end
 *********************************************************************/
-int usl_bcmx_protected_group_port_remove(bcmx_lport_t lport, L7_uint32 groupId)
+int usl_bcmx_protected_group_port_remove(bcm_gport_t gport, L7_uint32 groupId)
 {
   L7_int32                        rv;
   int                             hwRv= BCM_E_NONE, dbRv = BCM_E_NONE;
@@ -2107,8 +2107,8 @@ int usl_bcmx_protected_group_port_remove(bcmx_lport_t lport, L7_uint32 groupId)
   
   memset(&deleteInfo, 0, sizeof (deleteInfo));
 
-  bcmPort = BCM_GPORT_MODPORT_PORT_GET(lport);
-  modid = BCM_GPORT_MODPORT_MODID_GET(lport);
+  bcmPort = BCM_GPORT_MODPORT_PORT_GET(gport);
+  modid = BCM_GPORT_MODPORT_MODID_GET(gport);
   if (modid < 0 || bcmPort < 0)
   {
     rv = BCM_E_FAIL;
@@ -2147,7 +2147,7 @@ int usl_bcmx_protected_group_port_remove(bcmx_lport_t lport, L7_uint32 groupId)
   if (L7_BCMX_OK(rv) != L7_TRUE)
   {
     USL_LOG_MSG(USL_E_LOG, "Failed to remove port %d from protected group %d, hwRv %d dbRv %d \n", 
-                lport, groupId, hwRv, dbRv);
+                gport, groupId, hwRv, dbRv);
   }
 
   USL_PROTECTED_GROUP_BCMX_LOCK_GIVE();
@@ -2245,7 +2245,7 @@ int usl_bcmx_l2_addr_remove_by_trunk (bcm_trunk_t tgid)
 *
 * @end
 *********************************************************************/
-int usl_bcmx_l2_addr_remove_by_wlan_port (bcmx_lport_t port)
+int usl_bcmx_l2_addr_remove_by_wlan_port (bcm_gport_t port)
 {
   usl_mac_table_wlan_port_flush ((L7_uint32) port);
 
@@ -2253,7 +2253,7 @@ int usl_bcmx_l2_addr_remove_by_wlan_port (bcmx_lport_t port)
 }
 
 /*********************************************************************
-* @purpose  Flush dynamic MAC addresses for specified lport.
+* @purpose  Flush dynamic MAC addresses for specified gport.
 *
 * @param    tgid - BCMX trunk identifier.
 *
@@ -2264,9 +2264,9 @@ int usl_bcmx_l2_addr_remove_by_wlan_port (bcmx_lport_t port)
 *
 * @end
 *********************************************************************/
-int usl_bcmx_l2_addr_remove_by_port (bcmx_lport_t lport)
+int usl_bcmx_l2_addr_remove_by_port (bcm_gport_t gport)
 {
-  usl_mac_table_port_flush (lport);
+  usl_mac_table_port_flush (gport);
 
   return BCM_E_NONE;
 }
@@ -2291,7 +2291,7 @@ int usl_bcmx_l2_addr_remove_by_mac(bcm_mac_t mac)
 }
 
 /*********************************************************************
-* @purpose  Flush dynamic MAC addresses for all lport.
+* @purpose  Flush dynamic MAC addresses for all gport.
 *
 * @param    none.
 *

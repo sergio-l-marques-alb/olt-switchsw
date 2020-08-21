@@ -926,7 +926,7 @@ int usl_db_policy_rule_status_set(USL_DB_TYPE_t dbType, BROAD_POLICY_t policy, B
 *
 * @param    dbType      @{(input)} Type of db
 * @param    policy      @{(input)} policy ID
-* @param    port        @{(input)} port
+* @param    gport       @{(input)} port
 *
 * @returns  Defined by the Broadcom driver
 *
@@ -934,9 +934,9 @@ int usl_db_policy_rule_status_set(USL_DB_TYPE_t dbType, BROAD_POLICY_t policy, B
 *********************************************************************/
 int usl_db_policy_port_apply(USL_DB_TYPE_t  dbType, 
                              BROAD_POLICY_t policyId,
-                             bcmx_lport_t   port)
+                             bcm_gport_t    gport)
 {
-  return usl_portdb_policy_add(dbType, port, policyId);
+  return usl_portdb_policy_add(dbType, gport, policyId);
 }
 
 /*********************************************************************
@@ -944,7 +944,7 @@ int usl_db_policy_port_apply(USL_DB_TYPE_t  dbType,
 *
 * @param    dbType      @{(input)} Type of db
 * @param    policy      @{(input)} policy ID
-* @param    port        @{(input)} port
+* @param    gport       @{(input)} port
 *
 * @returns  Defined by the Broadcom driver
 *
@@ -952,9 +952,9 @@ int usl_db_policy_port_apply(USL_DB_TYPE_t  dbType,
 *********************************************************************/
 int usl_db_policy_port_remove(USL_DB_TYPE_t  dbType, 
                               BROAD_POLICY_t policyId,
-                              bcmx_lport_t   port)
+                              bcm_gport_t    gport)
 {
-  return usl_portdb_policy_remove(dbType, port, policyId);
+  return usl_portdb_policy_remove(dbType, gport, policyId);
 }
 
 /*********************************************************************

@@ -413,14 +413,14 @@ int usl_bcmx_policy_remove_all(BROAD_POLICY_t policy)
 * @purpose  Apply a policy to a port
 *
 * @param    policy      @{(input)} policy ID
-* @param    port        @{(input)} port
+* @param    port        @{(input)} gport
 *
 * @returns  Defined by the Broadcom driver
 *
 * @end
 *********************************************************************/
 int usl_bcmx_policy_port_apply(BROAD_POLICY_t policy,
-                               bcmx_lport_t   port)
+                               bcm_gport_t   port)
 {
   int     rv;
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
@@ -476,14 +476,14 @@ int usl_bcmx_policy_port_apply(BROAD_POLICY_t policy,
 * @purpose  Remove a policy from a port
 *
 * @param    policy      @{(input)} policy ID
-* @param    port        @{(input)} port
+* @param    port        @{(input)} gport
 *
 * @returns  Defined by the Broadcom driver
 *
 * @end
 *********************************************************************/
 int usl_bcmx_policy_port_remove(BROAD_POLICY_t policy,
-                                bcmx_lport_t   port)
+                                bcm_gport_t   port)
 {
   int     rv;
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;

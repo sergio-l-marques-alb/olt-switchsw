@@ -142,7 +142,7 @@ int usl_l7_remove_l2_addr_by_port (void *user_data, shr_avl_datum_t *datum , voi
   L7_uint32             l2entry_port, l2entry_modid, l2entry_vlanid, l2entry_static;
   mac_addr_t            macAddr;
   l2x_entry_t          *l2x_entry;
-  bcmx_lport_t          lport;
+  bcm_gport_t           gport;
 
 
   if ((NULL == extra_data) || (NULL == datum))
@@ -151,13 +151,13 @@ int usl_l7_remove_l2_addr_by_port (void *user_data, shr_avl_datum_t *datum , voi
   /* Initialize */
   l2entry_port = l2entry_modid = l2entry_vlanid = 0;
 
-  lport = *((bcmx_lport_t *)extra_data);
+  gport = *((bcm_gport_t *)extra_data);
   l2x_entry = (l2x_entry_t *) datum;
 
   /* Get the unit, port and modid */
-  unit  = BCMY_GPORT_BCM_UNIT(lport);
-  port  = BCMY_GPORT_BCM_PORT(lport);
-  modid = BCMY_GPORT_MODID (lport);
+  unit  = BCMY_GPORT_BCM_UNIT(gport);
+  port  = BCMY_GPORT_BCM_PORT(gport);
+  modid = BCMY_GPORT_MODID (gport);
 
   /* Now get the entry details */
   l2entry_port = soc_L2Xm_field32_get(unit, l2x_entry, TGID_PORTf);
@@ -300,7 +300,7 @@ int usl_bcmx_l2_addr_remove_by_trunk (bcm_trunk_t tgid, L7_uint32 flags)
 }
 
 /*********************************************************************
-* @purpose  Flush dynamic MAC addresses for specified lport.
+* @purpose  Flush dynamic MAC addresses for specified gport.
 *
 * @param    tgid - BCMX trunk identifier.
 * @param    flags - BCMX flags (BCM_L2_DELETE_*).
@@ -312,7 +312,7 @@ int usl_bcmx_l2_addr_remove_by_trunk (bcm_trunk_t tgid, L7_uint32 flags)
 *
 * @end
 *********************************************************************/
-int usl_bcmx_l2_addr_remove_by_port (bcmx_lport_t lport, L7_uint32 flags)
+int usl_bcmx_l2_addr_remove_by_port (bcm_gport_t gport, L7_uint32 flags)
 {
   int          rc = BCM_E_NONE;
   L7_uint32    unit;
@@ -322,7 +322,7 @@ int usl_bcmx_l2_addr_remove_by_port (bcmx_lport_t lport, L7_uint32 flags)
   bcm_port_t modport; 
 
   /* Get the soc structure for the unit */
-  unit = BCMY_GPORT_BCM_UNIT(lport);
+  unit = BCMY_GPORT_BCM_UNIT(gport);
   soc = SOC_CONTROL (unit);
  
   /* If 5690 then do the manual removal of all the learnt addresses
@@ -330,12 +330,12 @@ int usl_bcmx_l2_addr_remove_by_port (bcmx_lport_t lport, L7_uint32 flags)
   if (SOC_IS_DRACO1(unit))
   {
     sal_mutex_take(soc->arlShadowMutex, -1);
-    shr_avl_traverse (soc->arlShadow, usl_l7_remove_l2_addr_by_port, &lport);
+    shr_avl_traverse (soc->arlShadow, usl_l7_remove_l2_addr_by_port, &gport);
     sal_mutex_give(soc->arlShadowMutex);
   }
   else
   { /* In all other cases call the broadcom call to flush */
-    if (bcmy_gport_to_modid_port(lport, &modid, &modport) == BCMY_E_NONE)
+    if (bcmy_gport_to_modid_port(gport, &modid, &modport) == BCMY_E_NONE)
 	{
 		rc = bcm_l2_addr_delete_by_port(unit, modid, modport, flags);
 	}
@@ -346,7 +346,7 @@ int usl_bcmx_l2_addr_remove_by_port (bcmx_lport_t lport, L7_uint32 flags)
   }
 
   memset((void *)&l2addr_msg, 0, sizeof(l2addr_msg));
-  l2addr_msg.bcmx_lport = lport;
+  l2addr_msg.bcmx_lport = gport;
   l2addr_msg.port_is_lag = L7_FALSE;
   hapiBroadFlushL2LearnModeSet(l2addr_msg, L7_ENABLE);
 
@@ -355,7 +355,7 @@ int usl_bcmx_l2_addr_remove_by_port (bcmx_lport_t lport, L7_uint32 flags)
 }
 
 /*********************************************************************
-* @purpose  Flush dynamic MAC addresses for all lport.
+* @purpose  Flush dynamic MAC addresses for all gport.
 *
 * @param    flags - BCMX flags (BROAD_FLUSH_FLAGS_t).
 *

@@ -80,7 +80,7 @@ int usl_bcmx_ipmc_set_l2_ports(usl_bcm_ipmc_addr_t *ipmcAddress);
 /*********************************************************************
 * @purpose  Set a port in L2 bitmap for a number of groups
 *
-* @param   port        {(input)}  BCMX Lport
+* @param   port        {(input)}  BCM Gport
 * @param   *index      {(input)}  List of IPMC indexes to modify with this call.
 * @param   num_groups  {(input)}  Number of IPMC groups in the *index array.
 * @param   vlan_id     {(input)} VLAN affected by this call.
@@ -95,7 +95,7 @@ int usl_bcmx_ipmc_set_l2_ports(usl_bcm_ipmc_addr_t *ipmcAddress);
 *
 * @end
 *********************************************************************/
-int usl_bcmx_ipmc_add_l2_port_groups (bcmx_lport_t port,
+int usl_bcmx_ipmc_add_l2_port_groups (bcm_gport_t  port,
                                       L7_uint32    *ipmc_index,
                                       L7_uint32    num_groups,
                                       L7_uint32    vlan_id,
@@ -104,7 +104,7 @@ int usl_bcmx_ipmc_add_l2_port_groups (bcmx_lport_t port,
 /*********************************************************************
 * @purpose  Delete a port from L2 bitmap for a number of groups
 *
-* @param   port        {(input)}  BCMX Lport
+* @param   port        {(input)}  BCM Gport
 * @param   *index      {(input)}  List of IPMC indexes to modify with this call.
 * @param   num_groups  {(input)}  Number of IPMC groups in the *index array.
 * @param   vlan_id     {(input)} VLAN affected by this call. 
@@ -118,7 +118,7 @@ int usl_bcmx_ipmc_add_l2_port_groups (bcmx_lport_t port,
 *
 * @end
 *********************************************************************/
-int usl_bcmx_ipmc_delete_l2_port_groups (bcmx_lport_t port,
+int usl_bcmx_ipmc_delete_l2_port_groups (bcm_gport_t  port,
                                          L7_uint32    *ipmc_index,
                                          L7_uint32    num_groups,
                                          L7_uint32    vlan_id,
@@ -128,7 +128,7 @@ int usl_bcmx_ipmc_delete_l2_port_groups (bcmx_lport_t port,
 /*********************************************************************
 * @purpose  Set a port in L3 bitmap for a number of groups
 *
-* @param   port        {(input)}  BCMX Lport
+* @param   port        {(input)}  BCM Gport
 * @param   *index      {(input)}  List of IPMC indexes to modify with this call.
 * @param   num_groups  {(input)}  Number of IPMC groups in the *index array.
 * @param   vlan_id     {(input)} VLAN affected by this call.
@@ -146,7 +146,7 @@ int usl_bcmx_ipmc_delete_l2_port_groups (bcmx_lport_t port,
 * @end
 *********************************************************************/
 int
-usl_bcmx_ipmc_add_l3_port_groups (bcmx_lport_t port,
+usl_bcmx_ipmc_add_l3_port_groups (bcm_gport_t  port,
                                   L7_uint32    *ipmc_index,
                                   L7_uint32    num_groups,
                                   L7_uint32    vlan_id,
@@ -157,7 +157,7 @@ usl_bcmx_ipmc_add_l3_port_groups (bcmx_lport_t port,
 /*********************************************************************
 * @purpose  Remove a port from L3 bitmap for a number of groups
 *
-* @param   port        {(input)}  BCMX Lport
+* @param   port        {(input)}  BCM Gport
 * @param   *index      {(input)}  List of IPMC indexes to modify with this call.
 * @param   num_groups  {(input)}  Number of IPMC groups in the *index array.
 * @param   vlan_id     {(input)} VLAN affected by this call.
@@ -175,7 +175,7 @@ usl_bcmx_ipmc_add_l3_port_groups (bcmx_lport_t port,
 * @end
 *********************************************************************/
 int
-usl_bcmx_ipmc_delete_l3_port_groups (bcmx_lport_t port,
+usl_bcmx_ipmc_delete_l3_port_groups (bcm_gport_t  port,
                                      L7_uint32    *ipmc_index,
                                      L7_uint32    num_groups,
                                      L7_uint32    vlan_id,
