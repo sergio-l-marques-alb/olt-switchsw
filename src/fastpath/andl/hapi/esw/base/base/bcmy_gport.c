@@ -435,6 +435,38 @@ bcm_gport_t bcmy_gport_local_olp_get_next(int unit, bcm_gport_t gport)
 #endif
 
 /**
+ * Return local/mod port associated to this gport
+ * 
+ * @author mruas (04/08/20)
+ * 
+ * @param gport (in)
+ * 
+ * @return int : local port
+ */
+int bcmy_gport_bcm_port_get(bcm_gport_t gport)
+{
+    /* Validate gport */
+    if (!bcmy_gport_is_valid(gport))
+    {
+        return BCMY_INVALID_VAL;
+    }
+
+    /* Check if this is a modport type */
+    if (BCM_GPORT_IS_MODPORT(gport))
+    {
+        return BCM_GPORT_MODPORT_PORT_GET(gport);
+    }
+    else if (BCM_GPORT_IS_LOCAL(gport))
+    {
+        return BCM_GPORT_LOCAL_GET(gport);
+    }
+    else
+    {
+        return BCMY_INVALID_VAL;
+    }
+}
+
+/**
  * Return local port associated to this gport
  * 
  * @author mruas (04/08/20)

@@ -67,7 +67,7 @@ L7_RC_t hapiBroadL2VlanIpSubnetEntryAdd(DAPI_USP_t *usp,
         BCMY_GPORT_LOCAL_ITER(gp_idx, gport)
         {
             /* Convert gport to unit+port */
-            rc = bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port);
+            rc = bcmy_lut_gport_to_unit_port_get(gport, &bcm_unit, &bcm_port);
             if (rc != BCM_E_NONE)
             {
                 PT_LOG_ERR(LOG_CTX_L2, "idx %d, gport=0x%x: Error converting to bcm_unit/port: %d\n",

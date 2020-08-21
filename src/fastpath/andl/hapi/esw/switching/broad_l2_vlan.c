@@ -2575,7 +2575,7 @@ L7_BOOL hapiBroadQvlanVlanExists(L7_uint32 vid)
 *
 * @purpose Set the Ingress Filtering mode
 *
-* @param   lport  - broadcom lport
+* @param   gport  - broadcom gport
 * @param   val    - True, enabled
 *                 - False, disabled
 *
@@ -2585,20 +2585,20 @@ L7_BOOL hapiBroadQvlanVlanExists(L7_uint32 vid)
 * @end
 *
 *********************************************************************/
-L7_RC_t hapiBroadVlanIngressFilterSet(bcmx_lport_t lport, L7_BOOL val)
+L7_RC_t hapiBroadVlanIngressFilterSet(bcm_gport_t gport, L7_BOOL val)
 {
   usl_bcm_port_filter_mode_t mode;
   int rc = BCM_E_NONE;
 
   /* don't allow changes for wlan ports here */
-  if (BCM_GPORT_IS_WLAN_PORT(lport))
+  if (BCM_GPORT_IS_WLAN_PORT(gport))
   {
     return L7_SUCCESS;
   }
 
   mode.flags = BCM_PORT_VLAN_MEMBER_INGRESS;
   mode.setFlags = val;
-  rc = usl_bcmx_port_vlan_member_set(lport, mode);               
+  rc = usl_bcmx_port_vlan_member_set(gport, mode);               
 
   return ((L7_BCMX_OK(rc))?L7_SUCCESS:L7_FAILURE);
 }
@@ -2607,7 +2607,7 @@ L7_RC_t hapiBroadVlanIngressFilterSet(bcmx_lport_t lport, L7_BOOL val)
 *
 * @purpose Set the Egress Filtering mode
 *
-* @param   lport  - broadcom lport
+* @param   gport  - broadcom gport
 * @param   val    - True, enabled
 *                 - False, disabled
 *
@@ -2616,7 +2616,7 @@ L7_RC_t hapiBroadVlanIngressFilterSet(bcmx_lport_t lport, L7_BOOL val)
 * @end
 *
 *********************************************************************/
-L7_RC_t hapiBroadVlanEgressFilterSet(bcmx_lport_t lport, L7_BOOL val, DAPI_t *dapi_g)
+L7_RC_t hapiBroadVlanEgressFilterSet(bcm_gport_t gport, L7_BOOL val, DAPI_t *dapi_g)
 {
   int rv = BCM_E_NONE;
   BROAD_PORT_t   *hapiLagMemberPortPtr;
@@ -2628,9 +2628,9 @@ L7_RC_t hapiBroadVlanEgressFilterSet(bcmx_lport_t lport, L7_BOOL val, DAPI_t *da
   filterMode.flags = BCM_PORT_VLAN_MEMBER_EGRESS;
   filterMode.setFlags = val;
 
-  if (BCM_GPORT_IS_TRUNK(lport))
+  if (BCM_GPORT_IS_TRUNK(gport))
   {
-    if (hapiBroadTgidToUspConvert(BCM_GPORT_TRUNK_GET(lport), 
+    if (hapiBroadTgidToUspConvert(BCM_GPORT_TRUNK_GET(gport), 
                                   &lagUsp, 
                                   dapi_g) == L7_SUCCESS)
     {
@@ -2657,7 +2657,7 @@ L7_RC_t hapiBroadVlanEgressFilterSet(bcmx_lport_t lport, L7_BOOL val, DAPI_t *da
   }
   else
   {
-    rv = usl_bcmx_port_vlan_member_set(lport, filterMode);               
+    rv = usl_bcmx_port_vlan_member_set(gport, filterMode);               
   }
 
   return ((L7_BCMX_OK(rv))?L7_SUCCESS:L7_FAILURE);
@@ -2667,7 +2667,7 @@ L7_RC_t hapiBroadVlanEgressFilterSet(bcmx_lport_t lport, L7_BOOL val, DAPI_t *da
 *
 * @purpose Set the tpid on a port
 *
-* @param   lport  - broadcom lport
+* @param   gport  - broadcom gport
 * @param   val    - True, enabled
 *                 - False, disabled
 *
@@ -2676,7 +2676,7 @@ L7_RC_t hapiBroadVlanEgressFilterSet(bcmx_lport_t lport, L7_BOOL val, DAPI_t *da
 * @end
 *
 *********************************************************************/
-L7_RC_t hapiBroadPortTpidSet(bcmx_lport_t lport, L7_ushort16 val, DAPI_t *dapi_g)
+L7_RC_t hapiBroadPortTpidSet(bcm_gport_t gport, L7_ushort16 val, DAPI_t *dapi_g)
 {
   int rc = BCM_E_NONE;
   DAPI_USP_t lagUsp;
@@ -2684,9 +2684,9 @@ L7_RC_t hapiBroadPortTpidSet(bcmx_lport_t lport, L7_ushort16 val, DAPI_t *dapi_g
   int bcm_unit, bcm_port;
   int i;
 
-  if (BCM_GPORT_IS_TRUNK(lport))
+  if (BCM_GPORT_IS_TRUNK(gport))
   {
-    if (hapiBroadTgidToUspConvert(lport, &lagUsp, dapi_g) == L7_SUCCESS)
+    if (hapiBroadTgidToUspConvert(gport, &lagUsp, dapi_g) == L7_SUCCESS)
     {
       dapiPortPtr = DAPI_PORT_GET(&lagUsp, dapi_g);
 
@@ -2707,7 +2707,7 @@ L7_RC_t hapiBroadPortTpidSet(bcmx_lport_t lport, L7_ushort16 val, DAPI_t *dapi_g
   else
   { 
     /* Convert to bcm_unit/port */
-    if (bcmx_lport_to_unit_port(lport, &bcm_unit, &bcm_port) == BCM_E_NONE)
+    if (bcmy_lut_gport_to_unit_port_get(gport, &bcm_unit, &bcm_port) == BCMY_E_NONE)
     {
       rc = bcm_port_tpid_set(bcm_unit, bcm_port, val);
     }

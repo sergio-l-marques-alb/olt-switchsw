@@ -2876,7 +2876,7 @@ void debug_bcmx_db_print(void)
 {
     int i=0;
     for (i = 0; i < bcmx_lport_max; i++) {
-      if (BCMX_LPORT_VALID(i)) {
+      if (BCMY_GPORT_VALID(i)) {
         sal_printf("\n***********************\n");
         sal_printf("modid = %u \n", _bcmx_port[i].modid);
         sal_printf("unit = %u \n", _bcmx_port[i].bcm_unit);

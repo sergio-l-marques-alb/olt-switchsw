@@ -569,7 +569,12 @@ L7_RC_t ptin_hapi_ptp_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_search_ptp_
         //hapiBroadPolicyDelete(policyId);
         //return L7_FAILURE;
     }
-    lport = bcmx_unit_port_to_lport(0, bcm_port);
+    /* FIXME: Only applied to unit 0 */
+    if (bcmy_lut_unit_port_to_gport_get(0 /*unit*/, bcm_port, &lport) != BCMY_E_NONE)
+    {
+      printf("Error with unit %d, port %d", 0, bcm_port);
+      return L7_FAILURE;
+    }
     if ((rc=hapiBroadPolicyApplyToIface(policyId, lport)) != L7_SUCCESS) {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error applying to lport %u", lport);
       break;
@@ -1017,7 +1022,12 @@ bcmx_lport_t  lport;
           //hapiBroadPolicyDelete(policyId);
           //return L7_FAILURE;
       }
-      lport = bcmx_unit_port_to_lport(0, bcm_port);
+      /* FIXME: Only applied to unit 0 */
+      if (bcmy_lut_unit_port_to_gport_get(0 /*unit*/, bcm_port, &lport) != BCMY_E_NONE)
+      {
+        printf("Error with unit %d, port %d", 0, bcm_port);
+        return L7_FAILURE;
+      }
       if ((rc=hapiBroadPolicyApplyToIface(policyId, lport)) != L7_SUCCESS) {
         PT_LOG_ERR(LOG_CTX_HAPI, "Error applying to lport %u", lport);
         break;

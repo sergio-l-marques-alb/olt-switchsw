@@ -2012,7 +2012,7 @@ int usl_bcmx_port_sample_rate_get(bcmx_lport_t port,
     if (USL_BCMX_CONFIGURE_HW(USL_PORT_DB_ID) == L7_TRUE)
     {
       /* Convert gport to bcm unit/gport */
-      if (bcmx_lport_to_unit_port(port, &bcm_unit, &bcm_port) != BCM_E_NONE)
+      if (bcmy_lut_gport_to_unit_port_get(port, &bcm_unit, &bcm_port) != BCMY_E_NONE)
       {
           return BCM_E_PARAM;
       }

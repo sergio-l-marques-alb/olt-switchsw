@@ -5469,7 +5469,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
   {
     L7_uint8  prio_mask  = 0x7;
     L7_uint8  vlanFormat_value, vlanFormat_mask;
-    //bcmx_lport_t lport;
+    //bcmx_lport_t gport;
     BROAD_POLICY_t      policyId;
     BROAD_POLICY_RULE_t ruleId;
 
@@ -5547,12 +5547,17 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
       rc = hapi_ptin_bcmPort_get(port, &bcm_port);
       if (rc != L7_SUCCESS)  break;
 
-      lport = bcmx_unit_port_to_lport(bcm_unit, bcm_port);
+      /* FIXME: Only applied to unit 0 */
+      if (bcmy_lut_unit_port_to_gport_get(bcm_unit, bcm_port, &gport) != BCMY_E_NONE)
+      {
+        printf("Error with unit %d, port %d", 0, bcm_port);
+        return L7_FAILURE;
+      }
 
-      rc = hapiBroadPolicyApplyToIface(policyId, lport);
+      rc = hapiBroadPolicyApplyToIface(policyId, gport);
       if (rc != L7_SUCCESS)  break;
 
-      PT_LOG_TRACE(LOG_CTX_STARTUP, "Port %u / bcm_port %u / lport 0x%x added to outer->inner prio copy rule", port, bcm_port, lport);
+      PT_LOG_TRACE(LOG_CTX_STARTUP, "Port %u / bcm_port %u / gport 0x%x added to outer->inner prio copy rule", port, bcm_port, gport);
     }
     if (rc != L7_SUCCESS)
     {
@@ -5582,7 +5587,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
      At egressing is important to guarantee PBIT value of outer vlan is null: Multicast GEM of OLTD only deals with pbit=0 */
   {
     /* Multicast services */
-    bcmx_lport_t  lport;
+    bcmx_lport_t  gport;
     //L7_uint32     ip_addr = 0xe0000000, ip_addr_mask=0xf0000000;
     L7_uchar8     macAddr_iptv_value[6] = { 0x01, 0x00, 0x5e, 0x00, 0x00, 0x00 };
     L7_uchar8     macAddr_iptv_mask[6]  = { 0xff, 0xff, 0xff, 0x80, 0x00, 0x00 };
@@ -5663,11 +5668,16 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     {
       if (hapi_ptin_bcmPort_get(port, &bcm_port) == L7_SUCCESS)
       {
-        lport = bcmx_unit_port_to_lport(0, bcm_port);
+        /* FIXME: Only applied to unit 0 */
+        if (bcmy_lut_unit_port_to_gport_get(0 /*unit*/, bcm_port, &gport) != BCMY_E_NONE)
+        {
+          printf("Error with unit %d, port %d", 0, bcm_port);
+          return L7_FAILURE;
+        }
 
         if ((PTIN_SYSTEM_PON_PORTS_MASK >> port) & 1)
         {
-          rc = hapiBroadPolicyApplyToIface(policyId, lport);
+          rc = hapiBroadPolicyApplyToIface(policyId, gport);
           if (rc != L7_SUCCESS)
           {
             PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding port %u: rc=%d", port, rc);
@@ -5676,7 +5686,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
           }
           else
           {
-            PT_LOG_TRACE(LOG_CTX_STARTUP, "Port %u / bcm_port %u / lport 0x%x added to Pbit=0 force rule", port, bcm_port, lport);
+            PT_LOG_TRACE(LOG_CTX_STARTUP, "Port %u / bcm_port %u / gport 0x%x added to Pbit=0 force rule", port, bcm_port, gport);
           }
         }
       }
@@ -6156,7 +6166,7 @@ L7_RC_t teste_case(void)
 
   /* Multicast services */
 //L7_int        port;
-//bcmx_lport_t  lport;
+//bcmx_lport_t  gport;
 //bcm_port_t    bcm_port;
   //L7_uint8      ip_type = BROAD_IP_TYPE_IPV4, ip_type_mask = 0xff;
   L7_uint16     ethertype = 0x0800, ethertype_mask = 0xffff;
@@ -6239,17 +6249,22 @@ L7_RC_t teste_case(void)
   {
     if (hapi_ptin_bcmPort_get(port, &bcm_port) == L7_SUCCESS)
     {
-      lport = bcmx_unit_port_to_lport(0, bcm_port);
+      /* FIXME: Only applied to unit 0 */
+      if (bcmy_lut_unit_port_to_gport_get(0 /*unit*/, bcm_port, &gport) != BCMY_E_NONE)
+      {
+        printf("Error with unit %d, port %d", 0, bcm_port);
+        return L7_FAILURE;
+      }
 
       if ((PTIN_SYSTEM_PON_PORTS_MASK >> port) & 1)
       {
-        if (hapiBroadPolicyApplyToIface(policyId, lport) != L7_SUCCESS)
+        if (hapiBroadPolicyApplyToIface(policyId, gport) != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding port %u", port);
           hapiBroadPolicyDelete(policyId);
           return L7_FAILURE;
         }
-        PT_LOG_TRACE(LOG_CTX_STARTUP, "Port %u / bcm_port %u / lport 0x%x added to Pbit=0 force rule", port, bcm_port, lport);
+        PT_LOG_TRACE(LOG_CTX_STARTUP, "Port %u / bcm_port %u / gport 0x%x added to Pbit=0 force rule", port, bcm_port, gport);
       }
     }
   }
@@ -6268,7 +6283,7 @@ L7_RC_t fp_teste(void)
 
   /* Multicast services */
   L7_int        port;
-  bcmx_lport_t  lport;
+  bcmx_lport_t  gport;
   bcm_port_t    bcm_port;
   L7_uint16     vlanId_value;
   L7_uint16     vlanId_mask;
@@ -6337,17 +6352,22 @@ L7_RC_t fp_teste(void)
   {
     if (hapi_ptin_bcmPort_get(port, &bcm_port) == L7_SUCCESS)
     {
-      lport = bcmx_unit_port_to_lport(0, bcm_port);
+      /* FIXME: Only applied to unit 0 */
+      if (bcmy_lut_unit_port_to_gport_get(0 /*unit*/, bcm_port, &gport) != BCMY_E_NONE)
+      {
+        printf("Error with unit %d, port %d", 0, bcm_port);
+        return L7_FAILURE;
+      }
 
       if ((PTIN_SYSTEM_PON_PORTS_MASK >> port) & 1)
       {
-        if (hapiBroadPolicyApplyToIface(policyId, lport) != L7_SUCCESS)
+        if (hapiBroadPolicyApplyToIface(policyId, gport) != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding port %u", port);
           hapiBroadPolicyDelete(policyId);
           return L7_FAILURE;
         }
-        PT_LOG_TRACE(LOG_CTX_STARTUP, "Port %u / bcm_port %u / lport 0x%x added to Pbit=0 force rule", port, bcm_port, lport);
+        PT_LOG_TRACE(LOG_CTX_STARTUP, "Port %u / bcm_port %u / gport 0x%x added to Pbit=0 force rule", port, bcm_port, gport);
       }
     }
   }
@@ -6367,7 +6387,7 @@ L7_RC_t fp_teste2(L7_int port_in, L7_int port_out, L7_int vlan_add)
 
   /* Multicast services */
   bcm_port_t    bcm_port;
-  bcmx_lport_t  lport;
+  bcmx_lport_t  gport;
 //L7_uint16     vlanId_value;
 //L7_uint16     vlanId_mask;
 
@@ -6460,9 +6480,14 @@ L7_RC_t fp_teste2(L7_int port_in, L7_int port_out, L7_int vlan_add)
   /* Add PON ports */
   if (hapi_ptin_bcmPort_get(port_in, &bcm_port) == L7_SUCCESS)
   {
-    lport = bcmx_unit_port_to_lport(0, bcm_port);
+    /* FIXME: Only applied to unit 0 */
+    if (bcmy_lut_unit_port_to_gport_get(0 /*unit*/, bcm_port, &gport) != BCMY_E_NONE)
+    {
+      printf("Error with unit %d, port %d", 0, bcm_port);
+      return L7_FAILURE;
+    }
 
-    if (hapiBroadPolicyApplyToIface(policyId, lport) != L7_SUCCESS)
+    if (hapiBroadPolicyApplyToIface(policyId, gport) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding port %u", bcm_port);
       hapiBroadPolicyDelete(policyId);

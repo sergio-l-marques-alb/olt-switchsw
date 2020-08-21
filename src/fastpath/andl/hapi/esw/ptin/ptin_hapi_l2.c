@@ -393,9 +393,9 @@ L7_RC_t ptin_hapi_maclimit_inc(bcm_l2_addr_t *bcm_l2_addr)
     return L7_SUCCESS;     
   }
   /* Check if is a physical port */
-  else if(BCMX_LPORT_VALID(bcm_l2_addr->port))
+  else if(BCMY_GPORT_VALID(bcm_l2_addr->port))
   {
-    bcm_port = BCMX_LPORT_BCM_PORT(bcm_l2_addr->port);
+    bcm_port = BCMY_GPORT_BCM_PORT(bcm_l2_addr->port);
     hapi_ptin_port_get(bcm_port, &physical_port);
 
     if(ptin_hapi_l2_enable)
@@ -697,9 +697,9 @@ L7_RC_t ptin_hapi_maclimit_dec(bcm_l2_addr_t *bcm_l2_addr)
     }
   }
   /* Check if is a physical port */ 
-  else if(BCMX_LPORT_VALID(bcm_l2_addr->port))
+  else if(BCMY_GPORT_VALID(bcm_l2_addr->port))
   {
-    bcm_port = BCMX_LPORT_BCM_PORT(bcm_l2_addr->port);
+    bcm_port = BCMY_GPORT_BCM_PORT(bcm_l2_addr->port);
     hapi_ptin_port_get(bcm_port, &physical_port); 
 
     /* Physical port ID is valid?  */

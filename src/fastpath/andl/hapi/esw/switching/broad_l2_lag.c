@@ -1384,7 +1384,7 @@ L7_RC_t hapiBroadLagPortAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
       hapiLagMemberPortPtr = HAPI_PORT_GET(&lagMemberSet[searchEntry].usp,dapi_g);
       bcmTrunkInfo.tm[memberCount] = hapiLagMemberPortPtr->bcm_modid;
 
-      bcmTrunkInfo.tp[memberCount] = BCMX_LPORT_MODPORT(hapiLagMemberPortPtr->bcmx_lport);
+      bcmTrunkInfo.tp[memberCount] = BCMY_GPORT_MODPORT(hapiLagMemberPortPtr->bcmx_lport);
       memberCount++;
     }
   }
@@ -1913,7 +1913,7 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
     {
       hapiLagMemberPortPtr = HAPI_PORT_GET(&lagMemberSet[searchEntry].usp, dapi_g);
       bcmTrunkInfo.tm[memberCount] = hapiLagMemberPortPtr->bcm_modid;
-      bcmTrunkInfo.tp[memberCount] = BCMX_LPORT_MODPORT(hapiLagMemberPortPtr->bcmx_lport);
+      bcmTrunkInfo.tp[memberCount] = BCMY_GPORT_MODPORT(hapiLagMemberPortPtr->bcmx_lport);
 
       memberCount++;
     }

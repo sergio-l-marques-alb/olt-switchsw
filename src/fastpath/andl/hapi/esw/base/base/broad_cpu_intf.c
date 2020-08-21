@@ -1310,7 +1310,7 @@ _bcmy_tx_gplist(bcm_pkt_t *pkt, bcmy_gplist_t *tx_ports,
         int unit, port;
 
         /* Convert gport to unit+port */
-        if (bcmx_lport_to_unit_port(gport, &unit, &port) == BCM_E_NONE &&
+        if (bcmy_lut_gport_to_unit_port_get(gport, &unit, &port) == BCMY_E_NONE &&
             unit == bcm_unit)
         {
           BCM_PBMP_PORT_ADD(pbmp_tx, port);
@@ -1326,7 +1326,7 @@ _bcmy_tx_gplist(bcm_pkt_t *pkt, bcmy_gplist_t *tx_ports,
         int unit, port;
 
         /* Convert gport to unit+port */
-        if (bcmx_lport_to_unit_port(gport, &unit, &port) == BCM_E_NONE &&
+        if (bcmy_lut_gport_to_unit_port_get(gport, &unit, &port) == BCMY_E_NONE &&
             unit == bcm_unit)
         {
           BCM_PBMP_PORT_ADD(pbmp_untagged, port);
@@ -1360,7 +1360,7 @@ _bcmy_tx_uc(bcm_pkt_t *pkt, bcmx_lport_t d_port, uint32 flags)
   BCM_PBMP_CLEAR(pbmp_tx);
 
   /* Convert gport to unit+port */
-  if (bcmx_lport_to_unit_port(d_port, &bcm_unit, &bcm_port) != BCM_E_NONE)
+  if (bcmy_lut_gport_to_unit_port_get(d_port, &bcm_unit, &bcm_port) != BCMY_E_NONE)
   {
     return BCM_E_PARAM;
   }

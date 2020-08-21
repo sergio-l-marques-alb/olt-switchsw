@@ -1488,8 +1488,8 @@ static int hapiBroadMcastHardwareAddEntry(BroadGroupEntryType *entry,DAPI_t *dap
   {
     /* The port is physical; get the proper hardware port info & vlan ID */
     hapiPortPtr = HAPI_PORT_GET(usp,dapi_g);
-    ipmc_info.port_tgid = BCMX_LPORT_MODPORT(hapiPortPtr->bcmx_lport);
-    ipmc_info.mod_id = BCMX_LPORT_MODID(hapiPortPtr->bcmx_lport);
+    ipmc_info.port_tgid = BCMY_GPORT_MODPORT(hapiPortPtr->bcmx_lport);
+    ipmc_info.mod_id    = BCMY_GPORT_MODID(hapiPortPtr->bcmx_lport);
   }
   else /* (L7_TRUE == IS_PORT_TYPE_PHYSICAL(dapiPortPtr)) */
   {
@@ -1519,8 +1519,8 @@ static int hapiBroadMcastHardwareAddEntry(BroadGroupEntryType *entry,DAPI_t *dap
 #endif
     else
     {
-      ipmc_info.port_tgid = BCMX_LPORT_MODPORT(hapiPortPtr->bcmx_lport);
-      ipmc_info.mod_id = BCMX_LPORT_MODID(hapiPortPtr->bcmx_lport);
+      ipmc_info.port_tgid = BCMY_GPORT_MODPORT(hapiPortPtr->bcmx_lport);
+      ipmc_info.mod_id    = BCMY_GPORT_MODID(hapiPortPtr->bcmx_lport);
     }
   } /* (L7_TRUE == IS_PORT_TYPE_PHYSICAL(dapiPortPtr)) */
 
@@ -2225,8 +2225,8 @@ L7_RC_t hapiBroadRoutingIntfMcastAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void 
       memset(&ipmc_info, 0, sizeof(ipmc_info));
       ipmc_info.vid = old_vlan_id;
       hapiBroadL3McastSetIpAddress(&srcAddr, &groupIp, &ipmc_info);
-      ipmc_info.port_tgid = BCMX_LPORT_MODPORT(rpf_lport);
-      ipmc_info.mod_id = BCMX_LPORT_MODID(rpf_lport);
+      ipmc_info.port_tgid = BCMY_GPORT_MODPORT(rpf_lport);
+      ipmc_info.mod_id    = BCMY_GPORT_MODID(rpf_lport);
       ipmc_info.ipmc_index = BroadGroupList[tableIndex].ipmc_index;
 
       /* Delete the exiting entry with (S G V) */
@@ -3910,8 +3910,8 @@ void hapiBroadL3McastAsyncRpfHandle(DAPI_t *dapi_g)
       /* port: specify the source logical port */
       HAPI_L3_MCAST_DEBUG("Setting ts false");
       ipmc.ts = FALSE;
-      ipmc.port_tgid = BCMX_LPORT_MODPORT(hapiPortPtr->bcmx_lport);
-      ipmc.mod_id = BCMX_LPORT_MODID(hapiPortPtr->bcmx_lport);
+      ipmc.port_tgid = BCMY_GPORT_MODPORT(hapiPortPtr->bcmx_lport);
+      ipmc.mod_id    = BCMY_GPORT_MODID(hapiPortPtr->bcmx_lport);
     }
 
     mcast_stats.rpf_handle_count++;

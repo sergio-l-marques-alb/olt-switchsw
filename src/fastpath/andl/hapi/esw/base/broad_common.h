@@ -1128,7 +1128,7 @@ void hapiBroadL2FlushRequest(BROAD_L2ADDR_FLUSH_t flushReq);
 *
 * @purpose Set the Ingress Filtering mode
 *
-* @param   lport  - broadcom lport
+* @param   gport  - broadcom gport
 * @param   val    - True, enabled
 *                 - False, disabled
 *
@@ -1137,13 +1137,13 @@ void hapiBroadL2FlushRequest(BROAD_L2ADDR_FLUSH_t flushReq);
 * @end
 *
 *********************************************************************/
-L7_RC_t hapiBroadVlanIngressFilterSet(bcmx_lport_t lport,L7_BOOL val);
+L7_RC_t hapiBroadVlanIngressFilterSet(bcm_gport_t gport,L7_BOOL val);
 
 /*********************************************************************
 *
 * @purpose Set the Egress Filtering mode
 *
-* @param   lport  - broadcom lport
+* @param   gport  - broadcom gport
 * @param   val    - True, enabled
 *                 - False, disabled
 *
@@ -1152,13 +1152,13 @@ L7_RC_t hapiBroadVlanIngressFilterSet(bcmx_lport_t lport,L7_BOOL val);
 * @end
 *
 *********************************************************************/
-L7_RC_t hapiBroadVlanEgressFilterSet(bcmx_lport_t lport, L7_BOOL val, DAPI_t *dapi_g);
+L7_RC_t hapiBroadVlanEgressFilterSet(bcm_gport_t gport, L7_BOOL val, DAPI_t *dapi_g);
 
 /*********************************************************************
 *
 * @purpose Set the tpid on a port
 *
-* @param   lport  - broadcom lport
+* @param   gport  - broadcom lport
 * @param   val    - True, enabled
 *                 - False, disabled
 *
@@ -1167,7 +1167,7 @@ L7_RC_t hapiBroadVlanEgressFilterSet(bcmx_lport_t lport, L7_BOOL val, DAPI_t *da
 * @end
 *
 *********************************************************************/
-L7_RC_t hapiBroadPortTpidSet(bcmx_lport_t lport, L7_ushort16 val, DAPI_t *dapi_g);
+L7_RC_t hapiBroadPortTpidSet(bcm_gport_t gport, L7_ushort16 val, DAPI_t *dapi_g);
 
 /*********************************************************************
 * @purpose Stub function to point to SDK assert to log error
@@ -1397,7 +1397,7 @@ L7_RC_t hapiBroadControlUnitStatusNotify (DAPI_USP_t *usp, DAPI_CMD_t cmd, void 
 *
 * @purpose Get the Management Cpu Lport
 *
-* @params  lport {(output)} lport for the cpu
+* @params  gport {(output)} gport for the cpu
 *
 * @returns L7_RC_t result
 *
@@ -1405,7 +1405,7 @@ L7_RC_t hapiBroadControlUnitStatusNotify (DAPI_USP_t *usp, DAPI_CMD_t cmd, void 
 * @end
 *
 *********************************************************************/
-int hapiBroadCpuLportGet(bcmx_lport_t *lport);
+int hapiBroadCpuLportGet(bcm_gport_t *gport);
 
 /*********************************************************************
 * @purpose  Setup the cpu hardware cosq rate limits during warm start

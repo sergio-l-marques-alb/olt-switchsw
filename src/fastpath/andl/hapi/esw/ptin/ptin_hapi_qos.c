@@ -844,7 +844,13 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
         /* Add new bitmap */
         BCM_PBMP_ITER(pbmp_result, bcm_port)
         {
-          bcmx_lport = bcmx_unit_port_to_lport(0, bcm_port);
+          /* FIXME: Only applied to unit 0 */
+          if (bcmy_lut_unit_port_to_gport_get(0 /*unit*/, bcm_port, &bcmx_lport) != BCMY_E_NONE)
+          {
+            printf("Error with unit %d, port %d", 0, bcm_port);
+            return L7_FAILURE;
+          }
+
           if (BCM_PBMP_MEMBER(pbm, bcm_port) && !BCM_PBMP_MEMBER(qos_entry->port_bmp, bcm_port))
           {
             if (hapiBroadPolicyApplyToIface(qos_entry->rule[rule].policyId_icap, bcmx_lport) != L7_SUCCESS) 

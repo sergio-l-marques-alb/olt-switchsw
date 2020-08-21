@@ -1821,7 +1821,7 @@ int usl_ip_bcmx_vlan_control_port_set(bcmx_lport_t port,
   int bcm_unit, bcm_port;
 
   /* Convert to bcm_unit/port */
-  if (bcmx_lport_to_unit_port(port, &bcm_unit, &bcm_port) != BCM_E_NONE)
+  if (bcmy_lut_gport_to_unit_port_get(port, &bcm_unit, &bcm_port) != BCMY_E_NONE)
   {
     return BCM_E_PARAM;
   }
@@ -1962,7 +1962,7 @@ int usl_mac_bcmx_vlan_control_port_set(bcmx_lport_t port,
   int bcm_unit, bcm_port;
 
   /* Convert to bcm_unit/port */
-  if (bcmx_lport_to_unit_port(port, &bcm_unit, &bcm_port) != BCM_E_NONE)
+  if (bcmy_lut_gport_to_unit_port_get(port, &bcm_unit, &bcm_port) != BCMY_E_NONE)
   {
     return BCM_E_PARAM;
   }

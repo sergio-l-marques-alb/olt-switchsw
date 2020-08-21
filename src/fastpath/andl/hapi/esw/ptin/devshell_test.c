@@ -463,7 +463,7 @@ int ptin_lookup_counter_clear(L7_int index)
 int ptin_lookup_counter_set(L7_int type, L7_int stage, L7_int index, L7_int port, L7_uint16 outerVlan, L7_uint16 innerVlan)
 {
   bcm_port_t          bcm_port;
-  bcmx_lport_t        lport;
+  bcmx_lport_t        gport;
   BROAD_POLICY_t      policyId;
   BROAD_POLICY_RULE_t ruleId;
   L7_uint8  dmac[]       = {0x00, 0x00, 0xc0, 0x01, 0x01, 0x02};
@@ -483,7 +483,12 @@ int ptin_lookup_counter_set(L7_int type, L7_int stage, L7_int index, L7_int port
     hapiBroadPolicyDelete(policyId);
     return L7_FAILURE;
   }
-  lport = bcmx_unit_port_to_lport(0, bcm_port);
+  /* FIXME: Only applied to unit 0 */
+  if (bcmy_lut_unit_port_to_gport_get(0 /*unit*/, bcm_port, &gport) != BCMY_E_NONE)
+  {
+    printf("Error with unit %d, port %d", 0, bcm_port);
+    return -1;
+  }
 
   ptin_lookup_counter_clear(index);
 
@@ -566,7 +571,7 @@ int ptin_lookup_counter_set(L7_int type, L7_int stage, L7_int index, L7_int port
   if (stage == BROAD_POLICY_STAGE_LOOKUP ||
       stage == BROAD_POLICY_STAGE_INGRESS)
   {
-    rc = hapiBroadPolicyApplyToIface(policyId, lport);
+    rc = hapiBroadPolicyApplyToIface(policyId, gport);
     if (L7_SUCCESS != rc)
     {
       printf("%s(%d) Error\r\n",__FUNCTION__,__LINE__);
@@ -592,7 +597,7 @@ static BROAD_POLICY_t policyId_pvid[PTIN_SYSTEM_N_PORTS]  = {[0 ... PTIN_SYSTEM_
 int ptin_lookup_pvid_set(L7_int port, L7_uint16 outerVlan, L7_uint16 innerVlan, L7_uint8 vlan_format)
 {
   bcm_port_t          bcm_port;
-  bcmx_lport_t        lport;
+  bcmx_lport_t        gport;
   BROAD_POLICY_t      policyId;
   BROAD_POLICY_RULE_t ruleId;
   L7_uint8  mask[]       = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
@@ -620,7 +625,12 @@ int ptin_lookup_pvid_set(L7_int port, L7_uint16 outerVlan, L7_uint16 innerVlan, 
       fflush(stdout);
       return L7_FAILURE;
     }
-    lport = bcmx_unit_port_to_lport(0, bcm_port);
+    /* FIXME: Only applied to unit 0 */
+    if (bcmy_lut_unit_port_to_gport_get(0 /*unit*/, bcm_port, &gport) != BCMY_E_NONE)
+    {
+      printf("Error with unit %d, port %d", 0, bcm_port);
+      return -1;
+    }
 
     hapiBroadPolicyCreate(BROAD_POLICY_TYPE_PORT);
     hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_LOOKUP);
@@ -672,7 +682,7 @@ int ptin_lookup_pvid_set(L7_int port, L7_uint16 outerVlan, L7_uint16 innerVlan, 
       return rc;
     }
 
-    rc = hapiBroadPolicyApplyToIface(policyId, lport);
+    rc = hapiBroadPolicyApplyToIface(policyId, gport);
     if (L7_SUCCESS != rc)
     {
       printf("%s(%d) Error\r\n",__FUNCTION__,__LINE__);
@@ -739,12 +749,17 @@ int ptin_l2_replace_trunk(bcm_trunk_t tgid_old, bcm_trunk_t tgid_new)
 int ptin_link_notify(bcm_port_t bcm_port)
 {
   int link_status;
-  bcmx_lport_t lport;
+  bcmx_lport_t gport;
   bcm_port_info_t info;
   bcm_error_t rv;
 
-  lport = bcmx_unit_port_to_lport(0, bcm_port);
-  if (lport < 0)
+  /* FIXME: Only applied to unit 0 */
+  if (bcmy_lut_unit_port_to_gport_get(0 /*unit*/, bcm_port, &gport) != BCMY_E_NONE)
+  {
+    printf("Error with unit %d, port %d", 0, bcm_port);
+    return -1;
+  }
+  if (gport < 0)
   {
     printf("%s(%d) Invalid bcm_port %d\r\n", __FUNCTION__, __LINE__, bcm_port);
     return -1;
@@ -760,7 +775,7 @@ int ptin_link_notify(bcm_port_t bcm_port)
   info.linkstatus = link_status;
   hapiBroadPortLinkStatusChange(0 /*unit*/, bcm_port, &info);
 
-  printf("%s(%d) Notification sent: lport=0x%08x -> link=%d\r\n", __FUNCTION__, __LINE__, lport, link_status);
+  printf("%s(%d) Notification sent: gport=0x%08x -> link=%d\r\n", __FUNCTION__, __LINE__, gport, link_status);
 
   return 0;
 }

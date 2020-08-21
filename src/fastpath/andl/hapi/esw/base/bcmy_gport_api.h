@@ -40,6 +40,7 @@ typedef enum bcmy_error_e {
 #define BCMY_GPORT_VALID(gport) bcmy_gport_is_valid(gport)
 
 #define BCMY_GPORT_BCM_UNIT(gport)    bcmy_gport_bcm_unit_get(gport)
+#define BCMY_GPORT_BCM_PORT(gport)    bcmy_gport_bcm_port_get(gport)
 #define BCMY_GPORT_MODID(gport)       bcmy_gport_modid_get(gport)
 #define BCMY_GPORT_MODPORT(gport)     bcmy_gport_modport_get(gport)
 #define BCMY_GPORT_LOCAL_PORT(gport)  bcmy_gport_localport_get(gport)
@@ -149,6 +150,17 @@ extern bcm_gport_t bcmy_gport_local_olp_get_first(int unit);
  */
 extern bcm_gport_t bcmy_gport_local_olp_get_next(int unit, bcm_gport_t gport);
 #endif
+
+/**
+ * Return local/mod port associated to this gport
+ * 
+ * @author mruas (04/08/20)
+ * 
+ * @param gport (in)
+ * 
+ * @return int : local port
+ */
+extern int bcmy_gport_bcm_port_get(bcm_gport_t gport);
 
 /**
  * Return local port associated to this gport

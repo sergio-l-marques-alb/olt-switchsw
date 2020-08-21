@@ -6175,14 +6175,14 @@ L7_RC_t hapiBroadIntfCableTest(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
 L7_RC_t hapiBroadSystemDosPingFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, void *data, 
                                             L7_uint32 enableFilter)
 {
-      /* Any Destination Ip */
+  /* Any Destination Ip */
   DAPI_PORT_t          *dapiPortPtr;
   BROAD_PORT_t         *hapiPortPtr;
   DAPI_SYSTEM_CMD_t     *dapiCmd     = (DAPI_SYSTEM_CMD_t*)data;
   static BROAD_POLICY_t pingFlood_id=BROAD_POLICY_INVALID;
   static BROAD_POLICY_RULE_t   rule_id = BROAD_POLICY_RULE_INVALID;
   L7_RC_t               result = L7_SUCCESS;
-  bcmx_lport_t          lport;
+  bcm_gport_t           gport;
   L7_ushort16           ip_ethtype = L7_ETYPE_IP;
   L7_uchar8             icmp_proto[]  = {IP_PROT_ICMP}; 
   L7_uchar8             exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
@@ -6210,7 +6210,7 @@ L7_RC_t hapiBroadSystemDosPingFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, vo
   meterDef.cbs = 128;
  
   /* Get the logical BCMX port */
-  lport  = hapiPortPtr->bcmx_lport;
+  gport  = hapiPortPtr->bcmx_lport;
 
   if(pingFlood_id == BROAD_POLICY_INVALID)
   {
@@ -6219,7 +6219,7 @@ L7_RC_t hapiBroadSystemDosPingFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, vo
       int              bcm_unit;
       bcm_port_t       bcm_port;
       rate = meterDef.cir;
-      if (BCM_E_NONE != bcmx_lport_to_unit_port(lport, &bcm_unit, &bcm_port))
+      if (BCMY_E_NONE != bcmy_lut_gport_to_unit_port_get(gport, &bcm_unit, &bcm_port))
       {
          return L7_FAILURE;
       }
@@ -6470,7 +6470,7 @@ L7_RC_t hapiBroadSystemDosSynAckFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, 
   static BROAD_POLICY_t        synFlood_id = BROAD_POLICY_INVALID;
   static BROAD_POLICY_RULE_t   rule_id = BROAD_POLICY_RULE_INVALID;
   L7_uint32             result = L7_SUCCESS;
-  bcmx_lport_t          lport;
+  bcm_gport_t           gport;
   int                   bcm_unit;
   bcm_port_t            bcm_port;
   L7_uchar8             ip_ethtype[]  = {0x08, 0x00};
@@ -6504,14 +6504,14 @@ L7_RC_t hapiBroadSystemDosSynAckFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, 
   meterDef.cbs = 128;
 
   /* Get the logical BCMX port */
-  lport  = hapiPortPtr->bcmx_lport;
+  gport  = hapiPortPtr->bcmx_lport;
 
   if( synFlood_id  == BROAD_POLICY_INVALID )
   {
     if (enableFilter == L7_ENABLE) 
     {
       rate =  meterDef.cir;
-      if (BCM_E_NONE != bcmx_lport_to_unit_port(lport, &bcm_unit, &bcm_port))
+      if (BCMY_E_NONE != bcmy_lut_gport_to_unit_port_get(gport, &bcm_unit, &bcm_port))
       {  
         return L7_FAILURE;
       }

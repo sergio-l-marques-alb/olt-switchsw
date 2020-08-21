@@ -3369,7 +3369,7 @@ void hapiBroadAddrMacFrameLearn(bcm_pkt_t *bcm_pkt, DAPI_t *dapi_g)
 
     /* Fake out the lport. The lport is used by bcmx to retrieve the souce module.
     */
-    bcm_l2_addr.port  = bcmx_modid_port_to_lport (bcm_pkt->src_mod, 0);
+    BCM_GPORT_MODPORT_SET(bcm_l2_addr.port, bcm_pkt->src_mod, 0);
     bcm_l2_addr.modid = bcm_pkt->src_mod;
   }
   else if (BCM_GPORT_IS_WLAN_PORT(bcm_pkt->src_gport))
@@ -3380,7 +3380,7 @@ void hapiBroadAddrMacFrameLearn(bcm_pkt_t *bcm_pkt, DAPI_t *dapi_g)
   }
   else
   {
-    bcm_l2_addr.port  = bcmx_modid_port_to_lport(bcm_pkt->src_mod, bcm_pkt->src_port);
+    BCM_GPORT_MODPORT_SET(bcm_l2_addr.port, bcm_pkt->src_mod, bcm_pkt->src_port);
     bcm_l2_addr.modid = bcm_pkt->src_mod;
   }
 
@@ -4369,7 +4369,7 @@ void hapiBroadL2AddrFlushTask(DAPI_t *dapi_g, L7_uint32 numArgs)
     {
       if (hapiDot1sDebug & HAPI_BROAD_DOT1S_DEBUG_ENQUEUE)
          printf ("%s : Flushing physical port 0x%x\n", __FUNCTION__, lport);
-      if (BCMX_LPORT_VALID(lport))
+      if (BCMY_GPORT_VALID(lport))
       {
         /* Disable learning on the port */
         l2addr_flush.bcmx_lport = lport;

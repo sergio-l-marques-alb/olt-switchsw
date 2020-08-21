@@ -155,9 +155,9 @@ int usl_l7_remove_l2_addr_by_port (void *user_data, shr_avl_datum_t *datum , voi
   l2x_entry = (l2x_entry_t *) datum;
 
   /* Get the unit, port and modid */
-  unit = BCMX_LPORT_BCM_UNIT(lport);
-  port = BCMX_LPORT_BCM_PORT(lport);
-  modid = BCMX_LPORT_MODID (lport);
+  unit  = BCMY_GPORT_BCM_UNIT(lport);
+  port  = BCMY_GPORT_BCM_PORT(lport);
+  modid = BCMY_GPORT_MODID (lport);
 
   /* Now get the entry details */
   l2entry_port = soc_L2Xm_field32_get(unit, l2x_entry, TGID_PORTf);
@@ -322,7 +322,7 @@ int usl_bcmx_l2_addr_remove_by_port (bcmx_lport_t lport, L7_uint32 flags)
   bcm_port_t modport; 
 
   /* Get the soc structure for the unit */
-  unit = BCMX_LPORT_BCM_UNIT(lport);
+  unit = BCMY_GPORT_BCM_UNIT(lport);
   soc = SOC_CONTROL (unit);
  
   /* If 5690 then do the manual removal of all the learnt addresses
@@ -335,8 +335,14 @@ int usl_bcmx_l2_addr_remove_by_port (bcmx_lport_t lport, L7_uint32 flags)
   }
   else
   { /* In all other cases call the broadcom call to flush */
-    bcmx_lport_to_modid_port(lport, &modid, &modport);
-    rc = bcm_l2_addr_delete_by_port(unit, modid, modport, flags);
+    if (bcmy_gport_to_modid_port(lport, &modid, &modport) == BCMY_E_NONE)
+	{
+		rc = bcm_l2_addr_delete_by_port(unit, modid, modport, flags);
+	}
+	else
+	{
+		rc = BCM_E_PARAM;	
+	}
   }
 
   memset((void *)&l2addr_msg, 0, sizeof(l2addr_msg));
@@ -398,7 +404,7 @@ int usl_bcmx_l2_addr_remove_all (BROAD_FLUSH_FLAGS_t flags)
 		  hapiBroadFlushL2LearnModeSet(l2addr_msg, L7_DISABLE);
 
 		  /* Get the soc structure for the unit */
-		  unit = BCMX_LPORT_BCM_UNIT(gport);
+		  unit = BCMY_GPORT_BCM_UNIT(gport);
 		  soc = SOC_CONTROL (unit);
  
 		 /* If 5690 then do the manual removal of all the learnt addresses
@@ -411,8 +417,14 @@ int usl_bcmx_l2_addr_remove_all (BROAD_FLUSH_FLAGS_t flags)
 		  }
 		  else
 		  { /* In all other cases call the broadcom call to flush */
-			  bcmx_lport_to_modid_port(gport, &modid, &modport);
-			  rc = bcm_l2_addr_delete_by_port(unit, modid, modport, flags);
+			  if (bcmy_gport_to_modid_port(gport, &modid, &modport) == BCMY_E_NONE)
+			  {
+				  rc = bcm_l2_addr_delete_by_port(unit, modid, modport, flags);
+			  }
+			  else
+			  {
+				  rc = BCM_E_PARAM;
+			  }
 		  }
 
 		  /* Re-Enable Learning */
