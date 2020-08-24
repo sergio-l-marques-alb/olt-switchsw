@@ -1,0 +1,3062 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="EGQ_MULTICAST_FIFOS">
+        <OneLineDescription>This register configures unicast and multicast FIFOs.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <!--
+                  Fields from RQP_MULTICAST_FIFOS_FULL_CONFIGr
+                  Multicast FIFO's configuration of full threshold
+                -->
+                <Field Description="When this threshold crossed, TDM packet will be sent to Unicast FIFO with discard                     indication. We should not reach this threshold as TdmFifoAlmostFull threshold will stop the                     traffic in RQP before." Name="TDM_FIFO_FULL" Size="10" Type="UINT"/>
+                <Field Description="When set, RQP will stop reading from FDA Non-TDM path." Name="UNICAST_FIFO_FULL" Size="10" Type="UINT"/>
+                <Field Description="When this threshold crossed, Incoming MCH packet is sent to UC-FIFO and marked as discard packet." Name="MC_HIGH_FIFO_FULL" Size="10" Type="UINT"/>
+                <Field Description="When this threshold crossed, Incoming MCL packet is sent to UC-FIFO and marked as discard packet." Name="MC_LOW_FIFO_FULL" Size="10" Type="UINT"/>
+                <!--
+                  Fields from RQP_MULTICAST_FIFOS_ALMOST_FULL_CONFIGr
+                  Multicast FIFO's configuration of almost full threshold
+                -->
+                <Field Description="When this threshold crossed RQP will stop reading from both TDM and Non-TDM FIFOs." Name="TDM_FIFO_ALMOST_FULL" Size="10" Type="UINT"/>
+                <Field Description="When this threshold crossed, New incoming UC packet is rejected in PRP." Name="UNICAST_FIFO_DISCARD_TH" Size="10" Type="UINT"/>
+                <Field Description="When this threshold crossed, New incoming MCH packet is rejected in PRP, and no transaction                     will be sent to MC FIFOs. However, packets which already started reassembly  in PRP before this event                     set will continue and will be sent to MC FIFOs" Name="MC_HIGH_FIFO_DISCARD_TH" Size="10" Type="UINT"/>
+                <Field Description="When this threshold crossed, New incoming MCH packet is rejected in PRP, and no transaction                     will be sent to MC FIFOs. However, packets which already started reassembly  in PRP before this event                     set will continue and will be sent to MC FIFOs" Name="MC_LOW_FIFO_DISCARD_TH" Size="10" Type="UINT"/>
+                <!--
+                  Fields from RQP_MULTICAST_FIFOS_DEPTHr
+                  EMR block FIFOs depth configuration for each FIFO.
+                -->
+                <Field Description="TDM FIFO depth" Name="TDM_FIFO_DEPTH" Size="10" Type="UINT"/>
+                <Field Description="Unicast FIFO depth" Name="UNICAST_FIFO_DEPTH" Size="10" Type="UINT"/>
+                <Field Description="MC-HP FIFO depth" Name="MC_HIGH_FIFO_DEPTH" Size="10" Type="UINT"/>
+                <Field Description="MC-LP FIFO depth" Name="MC_LOW_FIFO_DEPTH" Size="10" Type="UINT"/>
+     </Result>
+           <TableLabels>J2P_NOTREV ETM EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="TDM_FIFO_FULL">
+                    <Access>
+                        <Register Name="RQP_MULTICAST_FIFOS_FULL_CONFIGr"> 
+                            <HwField Name="TDM_FIFO_FULLf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="UNICAST_FIFO_FULL">
+                    <Access>
+                        <Register Name="RQP_MULTICAST_FIFOS_FULL_CONFIGr"> 
+                            <HwField Name="UNICAST_FIFO_FULLf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MC_HIGH_FIFO_FULL">
+                    <Access>
+                        <Register Name="RQP_MULTICAST_FIFOS_FULL_CONFIGr"> 
+                            <HwField Name="MC_HIGH_FIFO_FULLf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MC_LOW_FIFO_FULL">
+                    <Access>
+                        <Register Name="RQP_MULTICAST_FIFOS_FULL_CONFIGr"> 
+                            <HwField Name="MC_LOW_FIFO_FULLf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TDM_FIFO_ALMOST_FULL">
+                    <Access>
+                        <Register Name="RQP_MULTICAST_FIFOS_ALMOST_FULL_CONFIGr"> 
+                            <HwField Name="TDM_FIFO_ALMOST_FULLf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="UNICAST_FIFO_DISCARD_TH">
+                    <Access>
+                        <Register Name="RQP_MULTICAST_FIFOS_ALMOST_FULL_CONFIGr"> 
+                            <HwField Name="UNICAST_FIFO_DISCARD_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MC_HIGH_FIFO_DISCARD_TH">
+                    <Access>
+                        <Register Name="RQP_MULTICAST_FIFOS_ALMOST_FULL_CONFIGr"> 
+                            <HwField Name="MC_HIGH_FIFO_DISCARD_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MC_LOW_FIFO_DISCARD_TH">
+                    <Access>
+                        <Register Name="RQP_MULTICAST_FIFOS_ALMOST_FULL_CONFIGr"> 
+                            <HwField Name="MC_LOW_FIFO_DISCARD_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TDM_FIFO_DEPTH">
+                    <Access>
+                        <Register Name="RQP_MULTICAST_FIFOS_DEPTHr"> 
+                            <HwField Name="TDM_FIFO_DEPTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="UNICAST_FIFO_DEPTH">
+                    <Access>
+                        <Register Name="RQP_MULTICAST_FIFOS_DEPTHr"> 
+                            <HwField Name="UNICAST_FIFO_DEPTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MC_HIGH_FIFO_DEPTH">
+                    <Access>
+                        <Register Name="RQP_MULTICAST_FIFOS_DEPTHr"> 
+                            <HwField Name="MC_HIGH_FIFO_DEPTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MC_LOW_FIFO_DEPTH">
+                    <Access>
+                        <Register Name="RQP_MULTICAST_FIFOS_DEPTHr"> 
+                            <HwField Name="MC_LOW_FIFO_DEPTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGQ_SHAPER_GLOBAL_CONFIGURATION">
+        <OneLineDescription>This logical table configures general EGQ shaper HW.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <!-- Fields from EPS_QP_MAX_CREDIT_VALUEr  -->
+                <Field Description="The maximum credit balance in bytes per Q-PAIR shaper when the corresponding Q-PAIR is empty." Name="EMPTY_QP_MAX_CREDIT" Size="27" Type="UINT"/>
+                <Field Description="The maximum credit balance in bytes per Q-PAIR shaper when the corresponding Q-PAIR in FC" Name="FC_QP_MAX_CREDIT" Size="27" Type="UINT"/>
+                <!-- Fields from FQP_PQP_AND_FQP_CALENDER_SETTINGr  -->
+                <Field Description="For JR2, If set then enables switch between calender A and calender B in FQP sub-block.For J2C - make the switch" Name="FQP_CALENDAR_SWITCH_EN" Size="1" Type="UINT"/>
+                <Field Description="If un-set then FQP access FqpNifPortMux entries 0-255 (Calendar A), otherwise                     entries 256-511 are used (Calendar B)." Name="FQP_CALENDAR_SET_SEL" Size="1" Type="UINT" Valid="DNX_DATA.egr_queuing.params.fqp_calender_set_select"/>
+                <!-- Fields from EPS_PQP_CALENDAR_SETTINGr  -->
+                <Field Description="If set then enables switch between calendar A and calender B in PQP sub-block." Name="PQP_CALENDAR_SWITCH_EN" Size="1" Type="UINT"/>
+                <Field Description="If un-set then PQP access PqpNifPortMux entries 0-255 (Calender A), otherwise                     entries 256-511 are used (Calender B)." Name="PQP_CALENDAR_SET_SEL" Size="1" Type="UINT"/>
+                <!-- Fields from EPS_PORT_MAX_CREDIT_VALUEr  -->
+                <Field Description="The maximum credit balance in bytes per OTM-Port shaper when the corresponding                     OTM-port is empty." Name="EMPTY_PORT_MAX_CREDIT" Size="29" Type="UINT"/>
+                <!-- Fields from EPS_EGRESS_SHAPER_ENABLE_SETTINGSr  -->
+                <Field Description="If set, then Q-PAIR shapers stop collecting credits when credit balance reaches                     confgiured value and corresponding Q-Pair in flow-control." Name="FC_QP_STOP_COLLECTING_EN" Size="1" Type="UINT"/>
+                <Field Description="If set, then Q-PAIR shapers stop collecting credits when credit balance                     reaches confgiured value and corresponding Q-Pair is empty." Name="EMPTY_QP_STOP_COLLECTING_EN" Size="1" Type="UINT"/>
+                <Field Description="If set, then OTM-Port shapers stop collecting credits when credit balance reaches                     confgiured value and corresponding OTM-Port is empty." Name="EMPTY_PORT_STOP_COLLECTING_EN" Size="1" Type="UINT"/>
+                <Field Description="Number of Q pairs. Used for RR along Qpair credit table A. The actual number                     used by the design is +1 to register value." Name="NUM_OF_QP_SPR_A" Type="QPAIR"/>
+                <Field Description="Number of Q pairs. Used for RR along Qpair credit table B. The actual number                     used by the design is +1 to register value." Name="NUM_OF_QP_SPR_B" Type="QPAIR"/>
+                <Field Description="Number of TCGs. Used for RR along TCG credit table A. The actual number used                     by the design is +1 to register value. " Name="NUM_OF_TCG_SPR_A" Type="QPAIR"/>
+                <Field Description="Number of TCGs. Used for RR along TCG credit table B. The actual number used                     by the design is +1 to register value. " Name="NUM_OF_TCG_SPR_B" Type="QPAIR"/>
+                <Field Description="If set, then the shapers for the channelized interfaces are enabled." Name="INTERFACE_SPR_ENA" Size="1" Type="UINT"/>
+                <Field Description="If set, then the shapers for the egress Q pairs are enabled." Name="QPAIR_SPR_ENA" Size="1" Type="UINT"/>
+                <Field Description="If set, then the shapers for the egress TC groups are enabled." Name="TCG_SPR_ENA" Size="1" Type="UINT"/>
+                <Field Description="If set, then the shapers for the egress OTM ports are enabled." Name="OTM_SPR_ENA" Size="1" Type="UINT"/>
+                <Field Description="If asserted Design start allocating credits to QP shapers." Name="QP_CRDT_TABLE_READ_EN" Size="1" Type="UINT"/>
+                <Field Description="If asserted Design start allocating credits to OTM shapers." Name="OTM_CRDT_TABLE_READ_EN" Size="1" Type="UINT"/>
+                <Field Description="If asserted Design start allocating credits to TCG shapers." Name="TCG_CRDT_TABLE_READ_EN" Size="1" Type="UINT"/>
+                <Field Description="If set, then the OTM shapers set B is selected. Otherwise, shapers set A is selected." Name="OTM_SPR_SET_SEL" Size="1" Type="UINT"/>
+                <Field Description="If set, then the Qpairs shapers set B is selected. Otherwise, shapers set A is selected." Name="QPAIR_SPR_SET_SEL" Size="1" Type="UINT"/>
+                <Field Description="If set, then the TCG shapers set B is selected. Otherwise, shapers set A is selected." Name="TCG_SPR_SET_SEL" Size="1" Type="UINT"/>
+                <Field Description="Calendar Length of calendar A. The actual number used by the design is +1 to register value." Name="CAL_CAL_LENGTH_FOR_OTM_SPR_A" Size="8" Type="UINT"/>
+                <Field Description="Calendar Length of calendar B. The actual number used by the design is +1 to register value." Name="CAL_CAL_LENGTH_FOR_OTM_SPR_B" Size="8" Type="UINT"/>
+
+                <!-- Fields from EPS_EGRESS_CALENDAR_SHAPER_SETTINGS  -->
+                <!-- This section will probably need to be modified for J2C  -->
+                <Field Description="Bit per calendar shaper (For Jr2: per interface). If asserted corresponding shaper is disabled." Name="IFC_SPR_DIS" NofInstances="DNX_DATA.egr_queuing.params.nof_calendars" Size="1" Type="UINT"/>
+                <Field Description="Bit per calendar shaper (For Jr2: per interface). if set corresponding calendar shaper is in                     packet resolution. Make sure all OTM under the corresponding calendar are in the same mode !!!." Name="IFC_SPR_PKT_MODE" NofInstances="DNX_DATA.egr_queuing.params.nof_calendars" Size="1" Type="UINT"/>
+
+                <!-- Fields from EPS_EPS_GENERAL_CFG  -->
+                <Field Description="If set, then ForceOrIgnoreFc register works in  force FC mode, else in Ignore FC mode." Name="FORCE_FC_MODE" Size="1" Type="UINT"/>
+                <Field Description="If asserted choose CIR according to SP to lower TCG, otherwise do RR between all TCGs." Name="CIR_SP_EN" Size="1" Type="UINT"/>
+           </Result>
+           <TableLabels>J2P_NOTREV ETM EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="FC_QP_MAX_CREDIT">
+                    <Access>
+                        <Register Name="EPS_QP_MAX_CREDIT_VALUEr"> 
+                            <HwField Name="FC_QP_MAX_CREDITf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EMPTY_QP_MAX_CREDIT">
+                    <Access>
+                        <Register Name="EPS_QP_MAX_CREDIT_VALUEr"> 
+                            <HwField Name="EMPTY_QP_MAX_CREDITf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="FQP_CALENDAR_SWITCH_EN">
+                    <Access>
+                        <Register Name="FQP_PQP_AND_FQP_CALENDER_SETTINGr"> 
+                            <HwField Name="FQP_CALENDAR_SWITCH_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="FQP_CALENDAR_SWITCH_EN">
+                    <Access>
+                        <Register Name="FQP_FQP_CALENDER_SETTINGr"> 
+                            <HwField Name="FQP_CALENDAR_SWITCH_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>                
+                <Field Name="FQP_CALENDAR_SET_SEL">
+                    <Access>
+                        <Register Name="FQP_PQP_AND_FQP_CALENDER_SETTINGr"> 
+                            <HwField Name="FQP_CALENDAR_SET_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PQP_CALENDAR_SWITCH_EN">
+                    <Access>
+                        <Register Name="EPS_PQP_CALENDAR_SETTINGr"> 
+                            <HwField Name="PQP_CALENDAR_SWITCH_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <!-- Mapping needs to be confimed with HW -->
+                <Field Name="PQP_CALENDAR_SET_SEL" Device="J2P_A0">
+                    <Access>
+                        <Register Name="EPS_PQP_CALENDAR_SETTINGr"> 
+                            <HwField Name="PQP_CALENDAR_SWITCH_FORCEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PQP_CALENDAR_SET_SEL" Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0">
+                    <Access>
+                        <Register Name="EPS_PQP_CALENDAR_SETTINGr"> 
+                            <HwField Name="PQP_CALENDAR_SET_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EMPTY_PORT_MAX_CREDIT">
+                    <Access>
+                        <Register Name="EPS_PORT_MAX_CREDIT_VALUEr"> 
+                            <HwField Name="EMPTY_PORT_MAX_CREDITf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FC_QP_STOP_COLLECTING_EN">
+                    <Access>
+                        <Register Name="EPS_EGRESS_SHAPER_ENABLE_SETTINGSr"> 
+                            <HwField Name="FC_QP_STOP_COLLECTING_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EMPTY_QP_STOP_COLLECTING_EN">
+                    <Access>
+                        <Register Name="EPS_EGRESS_SHAPER_ENABLE_SETTINGSr"> 
+                            <HwField Name="EMPTY_QP_STOP_COLLECTING_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EMPTY_PORT_STOP_COLLECTING_EN">
+                    <Access>
+                        <Register Name="EPS_EGRESS_SHAPER_ENABLE_SETTINGSr"> 
+                            <HwField Name="EMPTY_PORT_STOP_COLLECTING_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="NUM_OF_QP_SPR_A">
+                    <Access>
+                        <Register Name="EPS_EGRESS_SHAPER_ENABLE_SETTINGSr"> 
+                            <HwField Name="NUM_OF_QP_SPR_Af"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="NUM_OF_QP_SPR_B">
+                    <Access>
+                        <Register Name="EPS_EGRESS_SHAPER_ENABLE_SETTINGSr"> 
+                            <HwField Name="NUM_OF_QP_SPR_Bf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="NUM_OF_TCG_SPR_A">
+                    <Access>
+                        <Register Name="EPS_EGRESS_SHAPER_ENABLE_SETTINGSr"> 
+                            <HwField Name="NUM_OF_TCG_SPR_Af"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="NUM_OF_TCG_SPR_B">
+                    <Access>
+                        <Register Name="EPS_EGRESS_SHAPER_ENABLE_SETTINGSr"> 
+                            <HwField Name="NUM_OF_TCG_SPR_Bf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="INTERFACE_SPR_ENA">
+                    <Access>
+                        <Register Name="EPS_EGRESS_SHAPER_ENABLE_SETTINGSr"> 
+                            <HwField Name="INTERFACE_SPR_ENAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="QPAIR_SPR_ENA">
+                    <Access>
+                        <Register Name="EPS_EGRESS_SHAPER_ENABLE_SETTINGSr"> 
+                            <HwField Name="QPAIR_SPR_ENAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TCG_SPR_ENA">
+                    <Access>
+                        <Register Name="EPS_EGRESS_SHAPER_ENABLE_SETTINGSr"> 
+                            <HwField Name="TCG_SPR_ENAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OTM_SPR_ENA">
+                    <Access>
+                        <Register Name="EPS_EGRESS_SHAPER_ENABLE_SETTINGSr"> 
+                            <HwField Name="OTM_SPR_ENAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="QP_CRDT_TABLE_READ_EN">
+                    <Access>
+                        <Register Name="EPS_EGRESS_SHAPER_ENABLE_SETTINGSr"> 
+                            <HwField Name="QP_CRDT_TABLE_READ_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OTM_CRDT_TABLE_READ_EN">
+                    <Access>
+                        <Register Name="EPS_EGRESS_SHAPER_ENABLE_SETTINGSr"> 
+                            <HwField Name="OTM_CRDT_TABLE_READ_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TCG_CRDT_TABLE_READ_EN">
+                    <Access>
+                        <Register Name="EPS_EGRESS_SHAPER_ENABLE_SETTINGSr"> 
+                            <HwField Name="TCG_CRDT_TABLE_READ_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TCG_SPR_SET_SEL">
+                    <Access>
+                        <Register Name="EPS_EGRESS_SHAPER_ENABLE_SETTINGSr"> 
+                            <HwField Name="TCG_SPR_SET_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="QPAIR_SPR_SET_SEL">
+                    <Access>
+                        <Register Name="EPS_EGRESS_SHAPER_ENABLE_SETTINGSr"> 
+                            <HwField Name="QPAIR_SPR_SET_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OTM_SPR_SET_SEL">
+                    <Access>
+                        <Register Name="EPS_EGRESS_SHAPER_ENABLE_SETTINGSr"> 
+                            <HwField Name="OTM_SPR_SET_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CAL_CAL_LENGTH_FOR_OTM_SPR_A">
+                    <Access>
+                        <Register Name="EPS_EGRESS_SHAPER_ENABLE_SETTINGSr"> 
+                            <HwField Name="CAL_CAL_LENGTH_FOR_OTM_SPR_Af"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CAL_CAL_LENGTH_FOR_OTM_SPR_B">
+                    <Access>
+                        <Register Name="EPS_EGRESS_SHAPER_ENABLE_SETTINGSr"> 
+                            <HwField Name="CAL_CAL_LENGTH_FOR_OTM_SPR_Bf"/>
+                        </Register>
+                    </Access>
+                </Field>
+
+                <Field Name="IFC_SPR_DIS">
+                    <Access instanceIndex="ALL">
+                        <Register Name="EPS_EGRESS_CALENDAR_SHAPER_SETTINGSr"> 
+                            <HwField Name="IFC_SPR_DISf"/>
+                            <DataOffset Formula="1*#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IFC_SPR_PKT_MODE">
+                    <Access instanceIndex="ALL">
+                        <Register Name="EPS_EGRESS_CALENDAR_SHAPER_SETTINGSr"> 
+                            <HwField Name="IFC_SPR_PKT_MODEf"/>
+                            <DataOffset Formula="1*#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                </Field>
+
+                <Field Name="FORCE_FC_MODE">
+                    <Access>
+                        <Register Name="EPS_EPS_GENERAL_CFGr"> 
+                            <HwField Name="FORCE_FC_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CIR_SP_EN">
+                    <Access>
+                        <Register Name="EPS_EPS_GENERAL_CFGr"> 
+                            <HwField Name="CIR_SP_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGQ_GLOBAL_CONFIGURATION">
+        <OneLineDescription>This logical table configures general EGQ HW.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <!-- Fields from RQP_PRS_CONFIGURATIONr  -->
+                <Field Name="PRD_ALMOST_FULL_TH" Description="Prs fifo TH which after will result in backpressure to the fabric" Size="9" Type="UINT" Valid="DNX_DATA.fabric.general.is_supported"/>
+                <Field Name="PRS_FIFO_ALMOST_FULL_TH" Description="Threshod to indicate that the PDM is almost full, will stop traffic from the fabric" Size="7" Type="UINT" Valid="DNX_DATA.egr_queuing.reassembly.prs"/>
+                <Field Name="PRS_FIFO_ALMOST_FULL_2_TH" Description="Threshod to indicate that the Rxi fifo is almost full, will stop traffic from the fabric" Size="7" Type="UINT" Valid="DNX_DATA.egr_queuing.reassembly.prs"/>
+                <!-- Fields from PQP_INVALID_OTMr  -->
+                <Field Name="INVALID_OTM_ENA" Description="If set, and received packet from ERPP with OTM value equals to InvalidOtmNum register then the packet will be sent to delete FIFO." Size="1" Type="UINT"/>
+                <Field Name="INVALID_OTM_NUMBER" Description="Invalid OTM value that is directed to delete FIFO." Size="DNX_DATA.port.general.pp_port_bits_size" Type="UINT"/>
+                <!-- Fields from FQP_INIT_FQP_TXIr  -->
+                <Field Name="EGQ_NIF_CREDIT_SIZE" Description="Number of credits to initialize egress interface when the corresponded bit in CreditInit is asserted." Size="13" Type="UINT"/>
+                <!-- Fields from FQP_FQP_TXQ_CONFIGURATIONr  -->
+                <Field Name="TXQ_IREADY_TH" Description="Define TXQ treshold in PDs, when Q is above this treshold FQP block relevant interface in EPS. Relevant if interface has TDM traffic (TxqTdmIrdySel == 0)" Size="6" Type="UINT"/>
+                <Field Name="TXQ_TDM_IREADY_TH" Description="Define TXQ treshold in PDs, when Q is above this treshold FQP block relevant interface in EPS. Relevant if interface has TDM traffic (TxqTdmIrdySel == 1)" Size="6" Type="UINT"/>
+                <Field Name="RQP_ECC_ERR" Description="RQP configuration to solve ECC error" Size="16" Type="UINT"/>
+           </Result>
+           <TableLabels>J2P_NOTREV ETM EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="PRD_ALMOST_FULL_TH">
+                    <Access>
+                        <Register Name="RQP_PRS_CONFIGURATIONr"> 
+                            <HwField Name="PRD_ALMOST_FULL_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PRS_FIFO_ALMOST_FULL_TH">
+                    <Access>
+                        <Register Name="RQP_PRS_CONFIGURATIONr">
+                            <HwField Name="PRS_FIFO_ALMOST_FULL_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PRS_FIFO_ALMOST_FULL_2_TH">
+                    <Access>
+                        <Register Name="RQP_PRS_CONFIGURATIONr">
+                            <HwField Name="PRS_FIFO_ALMOST_FULL_2_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="INVALID_OTM_ENA">
+                    <Access>
+                        <Register Name="PQP_INVALID_OTMr"> 
+                            <HwField Name="INVALID_OTM_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="INVALID_OTM_NUMBER">
+                    <Access>
+                        <Register Name="PQP_INVALID_OTMr"> 
+                            <HwField Name="INVALID_OTM_NUMf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TXQ_IREADY_TH">
+                    <Access>
+                        <Register Name="FQP_FQP_TXQ_CONFIGURATIONr"> 
+                            <HwField Name="TXQ_IREADY_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TXQ_TDM_IREADY_TH">
+                    <Access>
+                        <Register Name="FQP_FQP_TXQ_CONFIGURATIONr"> 
+                            <HwField Name="TXQ_TDM_IREADY_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EGQ_NIF_CREDIT_SIZE">
+                    <Access>
+                        <Register Name="FQP_INIT_FQP_TXIr"> 
+                            <HwField Name="CREDIT_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RQP_ECC_ERR">
+                    <Access>
+                        <Register Name="RQP_RESERVED_MTCPr">
+                            <HwField Name="ITEM_37_52f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGQ_SHAPER_RCY_MIRR_CONFIGURATION">
+        <OneLineDescription>These registers configure the traffic shaper and recycling.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <!-- Fields from EPRE_HP_MIRR_TRAFFIC_SHAPER_CONFIGURATIONr  -->
+                <Field Description="Number of bandwidth credits, in units of 1/256th byte, to allocate every core                     clock cycle. 8 lsb are fraction and 8 msb are integer. The amount of credits per cycle is                     RcyRate15:8 + RcyRate7:0/256. If core-clock runs at 1.2Ghz, this corresponds to the number                     of 1/256th bytes to allocate every 833.33psec. For a bandwidth of 10Gbps, we need 1.04167                     credits per cycle. meaning this register needs to be configured to 267 or 0x10B." Name="HP_MIRR_RATE" Size="17" Type="UINT"/>
+                <Field Description="This field configures the shaper maximal burst." Name="HP_MIRR_MAX_BURST" Size="16" Type="UINT"/>
+                <!-- Fields from EPRE_RECYLED_TRAFFIC_SHAPER_CONFIGURATIONr  -->
+                <Field Description="Number of bandwidth credits, in units of 1/256th byte, to allocate every core clock                     cycle. 8 lsb are fraction and 8 msb are integer. The amount of credits per cycle is                     RcyRate15:8 + RcyRate7:0/256. If core-clock runs at 1.2Ghz, this corresponds to the number                     of 1/256th bytes to allocate every 833.33psec. For a bandwidth of 10Gbps, we need 1.04167 credits                     per cycle. meaning this register needs to be configured to 267 or 0x10B." Name="RCY_RATE" Size="17" Type="UINT"/>
+                <Field Description="This field configures the shaper maximal burst." Name="RCY_MAX_BURST" Size="16" Type="UINT"/>
+                <!-- Fields from EPRE_IRE_RECYCLE_ARBITER_CONFIGURATION  -->
+                <Field Description="Recycled traffic WFQ weight" Name="RCY_WEIGHT" Size="8" Type="UINT"/>
+                <Field Description="high priority mirror WFQ weight" Name="HP_MIRR_WEIGHT" Size="8" Type="UINT"/>
+                <Field Description="Recycled traffic EIR shapers enable/disable" Name="RCY_WFQ_DIS" Type="BOOL"/>
+                <Field Description="Mirrored traffic EIR shapers enable/disable" Name="HP_MIRR_WFQ_DIS" Type="BOOL"/>
+           </Result>
+           <TableLabels>J2P_NOTREV ETM EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="HP_MIRR_RATE">
+                    <Access>
+                        <Register Name="EPRE_HP_MIRR_TRAFFIC_SHAPER_CONFIGURATIONr"> 
+                            <HwField Name="HP_MIRR_RATEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HP_MIRR_MAX_BURST">
+                    <Access>
+                        <Register Name="EPRE_HP_MIRR_TRAFFIC_SHAPER_CONFIGURATIONr"> 
+                            <HwField Name="HP_MIRR_MAX_BURSTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RCY_RATE">
+                    <Access>
+                        <Register Name="EPRE_RECYLED_TRAFFIC_SHAPER_CONFIGURATIONr"> 
+                            <HwField Name="RCY_RATEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RCY_MAX_BURST">
+                    <Access>
+                        <Register Name="EPRE_RECYLED_TRAFFIC_SHAPER_CONFIGURATIONr"> 
+                            <HwField Name="RCY_MAX_BURSTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RCY_WEIGHT">
+                    <Access>
+                        <Register Name="EPRE_IRE_RECYCLE_ARBITER_CONFIGURATIONr"> 
+                            <HwField Name="RCY_WEIGHTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HP_MIRR_WEIGHT">
+                    <Access>
+                        <Register Name="EPRE_IRE_RECYCLE_ARBITER_CONFIGURATIONr"> 
+                            <HwField Name="HP_MIRR_WEIGHTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RCY_WFQ_DIS">
+                    <Access>
+                        <Register Name="EPRE_IRE_RECYCLE_ARBITER_CONFIGURATIONr"> 
+                            <HwField Name="RCY_WFQ_DISf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HP_MIRR_WFQ_DIS">
+                    <Access>
+                        <Register Name="EPRE_IRE_RECYCLE_ARBITER_CONFIGURATIONr"> 
+                            <HwField Name="HP_MIRR_WFQ_DISf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGQ_TCG_ATTRIBUTES"> 
+        <OneLineDescription>A table containing all 'TC group' shaping attributes which have 'tcg_index' as key (same size as qpair)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TCG_INDEX"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <!--
+                  Fields from EPS_TCG_CFGm and EPS_TCG_CFG_2m
+                  First : Configuration per Q pair (0-255)
+                  Second: Configuration per Q pair (256-511)
+                -->
+                <Field Description="Total number of Q-Pairs in EGQ is 1024. Every 8 Q-Pairs are connected to Port-Scheduler Eelement.                     In each Scheduler-Element, 8 Q-Pairs may form up to 8 traffic classes groups (TCGs). Each TCG is assigned                     a CIR and EIR. This register determines whether each TCG is connected to EIR or not." Name="WFQ_TCG_DIS" Size="1" Type="UINT"/>
+                <Field Description="If set corresponding TCG shaper is in packet resolution." Name="TCG_SPR_PKT_MODE" Size="1" Type="UINT"/>
+                <Field Description="If set then the corresponding TCG shaper is disabled (gets auto credit                     and no need to insert it to the calendar)." Name="TCG_SPR_DIS" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ETM EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="WFQ_TCG_DIS">
+                    <Access>
+                        <KeyCondition Field="TCG_INDEX" Type="BIGGER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_TCG_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(TCG_INDEX)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="WFQ_TCG_DISf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="TCG_INDEX" Type="EQUAL_TO" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_TCG_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(TCG_INDEX)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="WFQ_TCG_DISf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="TCG_INDEX" Type="LOWER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_TCG_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(TCG_INDEX)"/>                        
+                            <HwField Name="WFQ_TCG_DISf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TCG_SPR_DIS">
+                    <Access>
+                        <KeyCondition Field="TCG_INDEX" Type="BIGGER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_TCG_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(TCG_INDEX)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="TCG_SPR_DISf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="TCG_INDEX" Type="EQUAL_TO" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_TCG_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(TCG_INDEX)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="TCG_SPR_DISf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="TCG_INDEX" Type="LOWER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_TCG_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(TCG_INDEX)"/>                        
+                            <HwField Name="TCG_SPR_DISf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TCG_SPR_PKT_MODE">
+                    <Access>
+                        <KeyCondition Field="TCG_INDEX" Type="BIGGER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_TCG_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(TCG_INDEX)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="TCG_SPR_PKT_MODEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="TCG_INDEX" Type="EQUAL_TO" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_TCG_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(TCG_INDEX)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="TCG_SPR_PKT_MODEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="TCG_INDEX" Type="LOWER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_TCG_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(TCG_INDEX)"/>                        
+                            <HwField Name="TCG_SPR_PKT_MODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGQ_SHAPER_OTM_SHAPER_LENGTH"> 
+        <OneLineDescription>A table containing configuration parameters per calendar</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CALENDAR_ID"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <!-- Fields from EPS_OTM_SHAPER_LENGTH  -->
+                <Field Description="This parameter specifies the higher bound of the OTM range under the corresponding calendar.                      Should be configured according to number of ports under the corresponding calendar and port offset of previous calendar.                      For example :                      Calendar 0 - RR from 0 to PortOffsetHighA0                      Calendar 1 - RR from PortOffsetHighA0 +1 to PortOffsetHighA1                      Calendar 2 - RR from PortOffsetHighA1 +1 to PortOffsetHighA2" Name="PORT_OFFSET_HIGH_A" Size="DNX_DATA.egr_queuing.params.nof_bits_in_chan_arb_calendar_size" Type="UINT"/>
+                <Field Description="This parameter specifies the higher bound of the OTM range under the corresponding calendar.                      Should be configured according to number of ports under the corresponding calendar and port offset of previous calendar.                      For example :                      Calendar 0 - RR from 0 to PortOffsetHighB0                      Calendar 1 - RR from PortOffsetHighB0 +1 to PortOffsetHighB1                      Calendar 2 - RR from PortOffsetHighB1 +1 to PortOffsetHighB2" Name="PORT_OFFSET_HIGH_B" Size="DNX_DATA.egr_queuing.params.nof_bits_in_chan_arb_calendar_size" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ETM EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="PORT_OFFSET_HIGH_A">
+                    <Access>
+                        <Memory Name="EPS_OTM_SHAPER_LENGTHm">
+                            <EntryOffset Formula="#KEY_VALUE(CALENDAR_ID)"/>                        
+                            <HwField Name="PORT_OFFSET_HIGH_Af"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PORT_OFFSET_HIGH_B">
+                    <Access>
+                        <Memory Name="EPS_OTM_SHAPER_LENGTHm">
+                            <EntryOffset Formula="#KEY_VALUE(CALENDAR_ID)"/>                        
+                            <HwField Name="PORT_OFFSET_HIGH_Bf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGQ_SHAPER_OTM_CALENDAR_CRDT_TABLE"> 
+        <OneLineDescription>A table containing configuration parameters per OTM calendar and calendar set</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <!-- Due to HW issue, this table cannot be tested for J2A0 (only cmodel will work). However, it can for J2B0  -->
+        <Maturity Device="JR2_A0" Level="HIGH_SKIP_DEVICE"/>
+        <Maturity Device="JR2_B0" Level="HIGH"/>
+        <Maturity Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Index of calendar pair. Note that 'nof_calendars' stands for the number of calendar pairs." Name="CALENDAR_ID"/>
+                <Field Description="Identifier of calendar within calendar pair ('0' or '1')." Name="CALENDAR_SET" Size="1" Type="UINT"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <!-- Fields from EPS_OTM_CALENDAR_CRDT_TABLEm  -->
+                <Field Description="How many credits to add to port." Name="OTM_CAL_CRDT_TO_ADD" Size="23" Type="UINT"/>
+                <Field Description="Max credit to accumulate in units of bytes." Name="OTM_CAL_MAX_BURST" Size="29" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ETM EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="OTM_CAL_CRDT_TO_ADD">
+                    <Access>
+                        <Memory Name="EPS_OTM_CALENDAR_CRDT_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(CALENDAR_ID)+#KEY_VALUE(CALENDAR_SET)*dnx_data_egr_queuing.params.nof_calendars_get(unit)"/>                        
+                            <HwField Name="OTM_CAL_CRDT_TO_ADDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OTM_CAL_MAX_BURST">
+                    <Access>
+                        <Memory Name="EPS_OTM_CALENDAR_CRDT_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(CALENDAR_ID)+#KEY_VALUE(CALENDAR_SET)*dnx_data_egr_queuing.params.nof_calendars_get(unit)"/>                        
+                            <HwField Name="OTM_CAL_MAX_BURSTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGQ_PQP_NIF_CAL"> 
+        <OneLineDescription>A table containing 'interface' per 'slot' in a calendar</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Slot within this calendar" Name="SLOT_ID" Size="DNX_DATA.egr_queuing.params.nof_bits_in_nif_cal_len_pqp" Type="UINT"/>
+                <Field Name="CORE_ID"/>
+                <Field Description="Indicates which half of the table to use. '0' stands for 'lower half'.                     Only one half is in use at one time." Name="SET_SELECT" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <!-- Fields from EPS_PQP_NIF_PORT_MUXm  -->
+                <Field Description="the decoding is as following: CMIC 0, SAT 1, OAM 2, OLP 3, RCY 4, Eventor 5, 6-63 NIF " Name="PQP_NIF_PORT_MUX" Size="DNX_DATA.egr_queuing.params.nof_bits_in_egr_interface" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ETM EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="PQP_NIF_PORT_MUX">
+                    <Access>
+                        <Memory Name="EPS_PQP_NIF_PORT_MUXm">
+                            <EntryOffset Formula="dnx_data_egr_queuing.params.nif_cal_len_pqp_get(unit)*#KEY_VALUE(SET_SELECT)+#KEY_VALUE(SLOT_ID)"/>                        
+                            <HwField Name="PQP_NIF_PORT_MUXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGQ_FQP_NIF_CAL"> 
+        <OneLineDescription>A table containing 'interface' per 'slot' in a calendar</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Slot within this calendar" Name="SLOT_ID" Size="DNX_DATA.egr_queuing.params.nof_bits_in_nif_cal_len_fqp" Type="UINT"/>
+                <Field Name="CORE_ID"/>
+                <Field Description="Indicates which half of the table to use. '0' stands for 'lower half'.                     Only one half is in use at one time." Name="SET_SELECT" Size="1" Type="UINT" Valid="DNX_DATA.egr_queuing.params.fqp_calender_set_select"/>
+            </Key>
+            <Result>
+                <!-- Fields from FQP_FQP_NIF_PORT_MUXm  -->
+                <Field Description="NIF port number." Name="FQP_NIF_PORT_MUX" Size="DNX_DATA.egr_queuing.params.nof_bits_in_egr_interface" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ETM EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0" Name="FQP_NIF_PORT_MUX">
+                    <Access>
+                        <Memory Name="FQP_FQP_NIF_PORT_MUXm">
+                            <EntryOffset Formula="dnx_data_egr_queuing.params.nif_cal_len_fqp_get(unit)*#KEY_VALUE(SET_SELECT)+#KEY_VALUE(SLOT_ID)"/>                        
+                            <HwField Name="FQP_NIF_PORT_MUXf"/>
+                        </Memory>
+                    </Access>
+                </Field>            
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="FQP_NIF_PORT_MUX">
+                    <Access>
+                        <Memory Name="FQP_FQP_NIF_PORT_MUXm">
+                            <EntryOffset Formula="#KEY_VALUE(SLOT_ID)"/>                        
+                            <HwField Name="FQP_NIF_PORT_MUXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGQ_SHAPER_CAL_CAL_CALENDAR"> 
+        <OneLineDescription>A table containing 'calendar index' per 'slot' in a calendar</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <!-- Due to HW issue, this table cannot be tested for J2A0 (only cmodel will work). However, it can for J2B0/J2C  -->
+        <Maturity Device="JR2_A0" Level="HIGH_SKIP_DEVICE"/>
+        <Maturity Device="JR2_B0" Level="HIGH"/>
+        <Maturity Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Slot within this calendar" Name="CAL_SLOT_ID" Size="DNX_DATA.egr_queuing.params.nof_bits_in_cal_cal_len" Type="UINT"/>
+                <Field Name="CORE_ID"/>
+                <Field Description="Indicates which half of the table to use. '0' stands for 'lower half'.                     Only one half is in use at one time." Name="SET_SELECT" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <!-- Fields from EPS_CAL_CAL_INDX_MUXm  -->
+                <Field Description="Calendar Indx" Name="CAL_INDX" Type="CALENDAR_ID"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ETM EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CAL_INDX">
+                    <Access>
+                        <Memory Name="EPS_CAL_CAL_INDX_MUXm">
+                            <EntryOffset Formula="dnx_data_egr_queuing.params.cal_cal_len_get(unit)*#KEY_VALUE(SET_SELECT)+#KEY_VALUE(CAL_SLOT_ID)"/>
+                            <HwField Name="CAL_INDXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGQ_SHAPING_OTM_ATTRIBUTES"> 
+        <OneLineDescription>A table containing all 'egress OTM port' shaping attributes which have 'qpair' as key</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="QPAIR"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <!-- Fields from PQP_OTM_ATTRIBUTES_TABLE_DEQm  -->
+                <Field Description="For RCY interface there are two reserved interface                     IDs. This field maps each OTM port to one of the RCY TXQs. If set the the packet is sent to second                     RCY TXQ, else to first RCY TXQ." Name="RCY_TXQ_NUM" Size="1" Type="UINT"/>
+                <Field Description="Credit Adjust value for both EPS elements and shapers." Name="CR_ADJUST_VALUE" Size="7" Type="UINT"/>
+                <!--
+                  Fields from EPS_OTM_CFGm and EPS_OTM_CFG_2m
+                  First : Configuration per Q pair (0-255)
+                  Second: Configuration per Q pair (256-511)
+                -->
+                <Field Description="If asserted Reduce minimum gap serving same OTM when it is almost empty" Name="PORT_ALMOST_EMPTY_DELAY" Size="1" Type="UINT" Valid="DNX_DATA.egr_queuing.params.almost_empty_delay"/>
+                <Field Description="If asserted, SP is done before WFQ. Relevant for 2P port only." Name="SP_OVER_WFQ_2P_PORT" Size="1" Type="UINT"/>
+                <Field Description="If set then the corresponding OTM shaper is disabled (gets auto credit and no need to insert it to the calendar)." Name="OTM_SPR_DIS" Size="1" Type="UINT"/>
+                <Field Description="If set corresponding OTM shaper is in packet resolution." Name="OTM_SPR_PKT_MODE" Size="1" Type="UINT"/>
+                <Field Description="Must be configurred according to OtmHpCrdtTable/OtmLpCrdtTable OtmIndex field !!!" Name="OTM_CAL_SPR_INDX" Type="CALENDAR_ID"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ETM EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="RCY_TXQ_NUM">
+                    <Access>
+                        <Memory Name="PQP_OTM_ATTRIBUTES_TABLE_DEQm">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)"/>                        
+                            <HwField Name="RCY_TXQ_NUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CR_ADJUST_VALUE">
+                    <Access>
+                        <Memory Name="PQP_OTM_ATTRIBUTES_TABLE_DEQm">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)"/>                        
+                            <HwField Name="CR_ADJUST_VALUEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PORT_ALMOST_EMPTY_DELAY">
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="BIGGER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_OTM_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="PORT_ALMOST_EMPTY_DELAYf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="EQUAL_TO" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_OTM_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="PORT_ALMOST_EMPTY_DELAYf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="LOWER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_OTM_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)"/>                        
+                            <HwField Name="PORT_ALMOST_EMPTY_DELAYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="OTM_CAL_SPR_INDX">
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="BIGGER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_OTM_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="OTM_CAL_SPR_INDXf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="EQUAL_TO" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_OTM_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="OTM_CAL_SPR_INDXf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="LOWER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_OTM_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)"/>                        
+                            <HwField Name="OTM_CAL_SPR_INDXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="OTM_CAL_SPR_INDX">
+                    <Access>
+                        <Memory Name="EPS_MAP_OTM_TO_CAL_INDXm">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)"/>                        
+                            <HwField Name="CAL_INDXf"/>
+                        </Memory>
+                    </Access>
+                </Field>                
+                <Field Name="SP_OVER_WFQ_2P_PORT">
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="BIGGER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_OTM_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="OTM_2P_BCM_88640_MODEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="EQUAL_TO" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_OTM_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="OTM_2P_BCM_88640_MODEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="LOWER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_OTM_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)"/>                        
+                            <HwField Name="OTM_2P_BCM_88640_MODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OTM_SPR_DIS">
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="BIGGER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_OTM_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="OTM_SPR_DISf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="EQUAL_TO" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_OTM_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="OTM_SPR_DISf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="LOWER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_OTM_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)"/>                        
+                            <HwField Name="OTM_SPR_DISf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OTM_SPR_PKT_MODE">
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="BIGGER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_OTM_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="OTM_SPR_PKT_MODEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="EQUAL_TO" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_OTM_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="OTM_SPR_PKT_MODEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="LOWER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_OTM_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)"/>                        
+                            <HwField Name="OTM_SPR_PKT_MODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGQ_SHAPING_TCG_WEIGHTS"> 
+        <OneLineDescription>A table of 64 entries, one entry per Port Scheduler. Defines the weights of the 8 traffic class groups (TCG).</OneLineDescription>
+        <!--
+          The table consist of 64 entries, one entry per Port Scheduler (group of 8 Q-Pairs). Defines the weights of the
+          8 traffic class groups (TCG) connected to this scheduler. Enables WFQ and SP relation between the 8 TCGs.
+          Weight of 0 for a class indicates that this class has SP over the other classes. When all have equal weights,
+          this implies simple RR. Maximum weight difference is 255:1. the lower the rate the higher the bandwidth. 
+          Rate Calculation: 
+            TCG(i) rate = (WFQ Total Rate) / (TCG(i) weight * (1/Weight0 + 1/Weight1 + ... + 1/Weight7))
+        -->
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PORT_SCHEDULER"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <!-- Fields from EPS_DWM_8Pm  -->
+                <Field Description="Array whose index is a single TCG. Each element indicates the weight assigned to this TCG." Name="WEIGHT_OF_TCG" NofInstances="DNX_DATA.egr_queuing.params.nof_tcg" Size="DNX_DATA.egr_queuing.params.nof_bits_in_tcg_weight" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ETM EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="WEIGHT_OF_TCG">
+                    <Access instanceIndex="0">
+                        <Memory Name="EPS_DWM_8Pm">
+                            <EntryOffset Formula="#KEY_VALUE(PORT_SCHEDULER)"/>                        
+                            <HwField Name="WEIGHT_0f"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Memory Name="EPS_DWM_8Pm">
+                            <EntryOffset Formula="#KEY_VALUE(PORT_SCHEDULER)"/>                        
+                            <HwField Name="WEIGHT_1f"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Memory Name="EPS_DWM_8Pm">
+                            <EntryOffset Formula="#KEY_VALUE(PORT_SCHEDULER)"/>                        
+                            <HwField Name="WEIGHT_2f"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Memory Name="EPS_DWM_8Pm">
+                            <EntryOffset Formula="#KEY_VALUE(PORT_SCHEDULER)"/>                        
+                            <HwField Name="WEIGHT_3f"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Memory Name="EPS_DWM_8Pm">
+                            <EntryOffset Formula="#KEY_VALUE(PORT_SCHEDULER)"/>                        
+                            <HwField Name="WEIGHT_4f"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Memory Name="EPS_DWM_8Pm">
+                            <EntryOffset Formula="#KEY_VALUE(PORT_SCHEDULER)"/>                        
+                            <HwField Name="WEIGHT_5f"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Memory Name="EPS_DWM_8Pm">
+                            <EntryOffset Formula="#KEY_VALUE(PORT_SCHEDULER)"/>                        
+                            <HwField Name="WEIGHT_6f"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="7">
+                        <Memory Name="EPS_DWM_8Pm">
+                            <EntryOffset Formula="#KEY_VALUE(PORT_SCHEDULER)"/>                        
+                            <HwField Name="WEIGHT_7f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGQ_SHAPING_QPAIR_TCG_MAP"> 
+        <OneLineDescription>A table of 64 entries containing Mapping each priority (Q-pair) to TCG.
+           One entry per Port Scheduler (a queue group of 8 Q-Pairs).</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PORT_SCHEDULER"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <!-- Fields from EPS_EPS_PRIO_MAPm  -->
+                <Field Description="Array whose index is a single priority. Each element indicates to which SP scheduler (TCG) it is mapped." Name="PRIO_MAP_ELEMENT" NofInstances="DNX_DATA.egr_queuing.params.nof_egr_q_prio" Size="DNX_DATA.egr_queuing.params.nof_bits_in_nof_tcg" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ETM EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="PRIO_MAP_ELEMENT">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="EPS_EPS_PRIO_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(PORT_SCHEDULER)"/>                        
+                            <HwField Name="EPS_PRIO_MAPf"/>
+                            <DataOffset Formula="dnx_data_egr_queuing.params.nof_bits_in_nof_tcg_get(unit)*#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGQ_SHAPING_PS_MODE"> 
+        <OneLineDescription>A table of 64 entries containing priority mode per QPAIR group (PS).
+           One entry (two bits) per Port Scheduler (a queue group of 8 Q-Pairs).</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PORT_SCHEDULER"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <!-- Fields from EPS_PS_MODEr  -->
+                <Field Description="The ETM maintains 1024 queues. These queues are organized into 64 groups of 16 queues each.                     Every two queues form a queue-pair. Each queue-pair contains one UC and one MC queue.                      Each queue group is configured as either:                        One Eight-Priority ETM-Port (8P-Port 2'h3)   up to 128 such ports                        Two Four-Priority ETM-Port (4P-Port 2'h2)   up to 256 such ports                        Four Two-Priority ETM-Ports (2P-Port 2'h1)  up to 256 such ports                        Eight One-Priority ETM-Ports (1P-Port 2'h0)  up to 256 such ports." Name="PS_MODE" Size="2" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ETM EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="PS_MODE">
+                    <Access>
+                        <Register Name="EPS_PS_MODEr"> 
+                            <HwField Name="PS_MODEf"/>
+                            <DataOffset Formula="#KEY_VALUE(PORT_SCHEDULER)*2"/>                        
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGQ_SHAPING_TCG_CREDIT_TABLE"> 
+        <OneLineDescription>A table containing all 'TCG_CREDIT_TABLE' fields which have 'double calendar' as key</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TCG_CALENDAR"/>
+                <Field Description="Identifier of calendar within calendar pair ('0' or '1')." Name="CALENDAR_SET" Size="1" Type="UINT"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <!-- Fields from EPS_TCG_CREDIT_TABLEm  -->
+                <Field Description="How many credits to add to TCG." Name="TCG_CRDT_TO_ADD" Size="26" Type="UINT"/>
+                <Field Description="Max credit to accumulate in units of bytes." Name="TCG_MAX_BURST" Size="27" Type="UINT"/>
+                <Field Description="TCG to add credits to." Name="TCG_INDX" Type="TCG_INDEX"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ETM EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="TCG_CRDT_TO_ADD">
+                    <Access>
+                        <Memory Name="EPS_TCG_CREDIT_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(TCG_CALENDAR)+#KEY_VALUE(CALENDAR_SET)*dnx_data_egr_queuing.params.tcg_calendar_size_get(unit)"/>                        
+                            <HwField Name="TCG_CRDT_TO_ADDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TCG_MAX_BURST">
+                    <Access>
+                        <Memory Name="EPS_TCG_CREDIT_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(TCG_CALENDAR)+#KEY_VALUE(CALENDAR_SET)*dnx_data_egr_queuing.params.tcg_calendar_size_get(unit)"/>                        
+                            <HwField Name="TCG_MAX_BURSTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TCG_INDX">
+                    <Access>
+                        <Memory Name="EPS_TCG_CREDIT_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(TCG_CALENDAR)+#KEY_VALUE(CALENDAR_SET)*dnx_data_egr_queuing.params.tcg_calendar_size_get(unit)"/>                        
+                            <HwField Name="TCG_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGQ_SHAPING_QP_CREDIT_TABLE"> 
+        <OneLineDescription>A table containing all 'QP_CREDIT_TABLE' fields which have 'double calendar' as key</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PORT_PRIO_CALENDAR"/>
+                <Field Description="Identifier of calendar within calendar pair ('0' or '1')." Name="CALENDAR_SET" Size="1" Type="UINT"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <!-- Fields from EPS_QP_CREDIT_TABLEm  -->
+                <Field Description="How many credits to add to Q-Pair." Name="QPAIR_CRDT_TO_ADD" Size="26" Type="UINT"/>
+                <Field Description="Max credit to accumulate in units of bytes." Name="QPAIR_MAX_BURST" Size="27" Type="UINT"/>
+                <Field Description="Q-Pair to add credits to." Name="QPAIR_INDEX" Type="QPAIR"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ETM EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="QPAIR_CRDT_TO_ADD">
+                    <Access>
+                        <Memory Name="EPS_QP_CREDIT_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PORT_PRIO_CALENDAR)+#KEY_VALUE(CALENDAR_SET)*dnx_data_egr_queuing.params.port_prio_calendar_size_get(unit)"/>                        
+                            <HwField Name="QPAIR_CRDT_TO_ADDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="QPAIR_MAX_BURST">
+                    <Access>
+                        <Memory Name="EPS_QP_CREDIT_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PORT_PRIO_CALENDAR)+#KEY_VALUE(CALENDAR_SET)*dnx_data_egr_queuing.params.port_prio_calendar_size_get(unit)"/>                        
+                            <HwField Name="QPAIR_MAX_BURSTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="QPAIR_INDEX">
+                    <Access>
+                        <Memory Name="EPS_QP_CREDIT_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PORT_PRIO_CALENDAR)+#KEY_VALUE(CALENDAR_SET)*dnx_data_egr_queuing.params.port_prio_calendar_size_get(unit)"/>                        
+                            <HwField Name="QPAIR_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGQ_SHAPING_OTM_CRDT_TABLE"> 
+        <OneLineDescription>A table containing all 'OTM_HP_CRDT_TABLE'/'OTM_LP_CRDT_TABLE' fields which have 'double calendar' as key</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CHAN_ARB_CALENDAR"/>
+                <Field Description="Identifier of calendar within calendar pair ('0' or '1')." Name="CALENDAR_SET" Size="1" Type="UINT"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <!-- Fields from EPS_OTM_HP_CRDT_TABLEm  -->
+                <!--
+                  Since we are using 'encoding' below (multiplying the value, that is loaded into
+                  LP (Low Priority) table, by '2') then we need to specify 'max value' here
+                  so that the encoded value itself is still within range.
+                -->
+                <Field Description="How many credits to add to port. For HP and LP tables." MaxValue="0x07FFFFFF" Name="OTM_CRDT_TO_ADD" Type="UINT"/>
+                <Field Description="Max credit to accumulate in units of bytes. For HP and LP tables." MaxValue="0x0FFFFFFF" Name="OTM_MAX_BURST" Type="UINT"/>
+                <Field Description="OTM index to add credits to. For HP and LP tables." Name="OTM_INDEX" Type="QPAIR"/>
+                <!--
+                  Fields from EPS_OTM_LP_CRDT_TABLEm: Handled together with handling of EPS_OTM_HP_CRDT_TABLEm
+                  "OTM_LP_CRDT_TO_ADD", "OTM_LP_MAX_BURST", "OTM_LP_INDEX"
+                -->
+            </Result>
+            <TableLabels>J2P_NOTREV ETM EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="OTM_CRDT_TO_ADD">
+                    <!-- For ths field, access both HP table and LP table! LP gets twice as much as HP  -->
+                    <!--
+                      Apparently, when one of the accesses is encoded then all need to be
+                      encoded, even if the encoding is "multiply by '1'"
+                    -->
+                    <Access EncodeType="MULTIPLY" EncodeValue="1" Size="28">
+                        <Memory Name="EPS_OTM_HP_CRDT_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(CHAN_ARB_CALENDAR)+#KEY_VALUE(CALENDAR_SET)*dnx_data_egr_queuing.params.chan_arb_calendar_size_get(unit)"/>                        
+                            <HwField Name="OTM_CRDT_TO_ADDf"/>
+                        </Memory>
+                    </Access>
+                    <Access EncodeType="MULTIPLY" EncodeValue="2" Size="28">
+                        <Memory Name="EPS_OTM_LP_CRDT_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(CHAN_ARB_CALENDAR)+#KEY_VALUE(CALENDAR_SET)*dnx_data_egr_queuing.params.chan_arb_calendar_size_get(unit)"/>                        
+                            <HwField Name="OTM_CRDT_TO_ADDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OTM_MAX_BURST">
+                    <!-- For ths field, access both HP table and LP table! LP gets twice as much as HP  -->
+                    <Access EncodeType="MULTIPLY" EncodeValue="1" Size="29">
+                        <Memory Name="EPS_OTM_HP_CRDT_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(CHAN_ARB_CALENDAR)+#KEY_VALUE(CALENDAR_SET)*dnx_data_egr_queuing.params.chan_arb_calendar_size_get(unit)"/>                        
+                            <HwField Name="OTM_MAX_BURSTf"/>
+                        </Memory>
+                    </Access>
+                    <Access EncodeType="MULTIPLY" EncodeValue="2" Size="29">
+                        <Memory Name="EPS_OTM_LP_CRDT_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(CHAN_ARB_CALENDAR)+#KEY_VALUE(CALENDAR_SET)*dnx_data_egr_queuing.params.chan_arb_calendar_size_get(unit)"/>                        
+                            <HwField Name="OTM_MAX_BURSTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OTM_INDEX">
+                    <!-- For ths field, access both HP table and LP table! LP gets the same as HP  -->
+                    <Access>
+                        <Memory Name="EPS_OTM_HP_CRDT_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(CHAN_ARB_CALENDAR)+#KEY_VALUE(CALENDAR_SET)*dnx_data_egr_queuing.params.chan_arb_calendar_size_get(unit)"/>                        
+                            <HwField Name="OTM_INDEXf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="EPS_OTM_LP_CRDT_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(CHAN_ARB_CALENDAR)+#KEY_VALUE(CALENDAR_SET)*dnx_data_egr_queuing.params.chan_arb_calendar_size_get(unit)"/>                        
+                            <HwField Name="OTM_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGQ_QPAIR_ATTRIBUTES"> 
+        <OneLineDescription>A table containing all 'egress queue' attributes which have 'qpair' as key</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="QPAIR"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <!-- Fields from EPS_DWMm
+                  The table contains 512 entries, one entry per Q-Pair. Each entry defines the weights of the UC
+                  and MC queues connected to this Q-Pair. Weight of 0 for one queue indicates that this qyeye has
+                  SP over the other. When both have equal weights, this implies simple RR. Maximum weight
+                  difference is 255:1. 
+                  Rate Calculation: 
+                    UC rate = (Q-Pair rate) * (MC weight) / (UC weight + MC weight)  
+                    MC rate = (Q-Pair rate) * (UC weight) / (UC weight + MC weight)
+                -->
+                <Field Description="UC queue weight in the WFQ scheduler. The lower the weight, the higher the bandwidth." Name="UC_OR_UC_LOW_QUEUE_WEIGHT" Size="8" Type="UINT"/>
+                <Field Description="MC queue weight in the WFQ scheduler. The lower the weight the higher the bandwidth." Name="MC_OR_MC_LOW_QUEUE_WEIGHT" Size="8" Type="UINT"/>
+                <!--
+                  Fields from EPS_QP_CFGm or EPS_QP_CFG_2
+                  First : Configuration per Q pair (0-255)
+                  Second: Configuration per Q pair (256-511)
+                -->
+                <Field Description="If asserted Reduce minimum gap serving same Q when it is almost empty                          Msb MC, LSB UC." Name="Q_ALMOST_EMPTY_DELAY" Size="2" Type="UINT" Valid="DNX_DATA.egr_queuing.params.almost_empty_delay"/>
+                <Field Description="If asserted corresponding QP is considering as HP during IFC and OTM scheduling." Name="QP_IS_HP" Size="1" Type="UINT"/>
+                <Field Description="Q is TDM." Name="QP_IS_TDM" Size="1" Type="UINT" Valid="DNX_DATA.tdm.params.is_supported"/>
+                <Field Description="If set then the corresponding Q-Pair shaper is disabled (gets auto credit and no                     need to insert it to the calendar)." Name="QPAIR_SPR_DIS" Size="1" Type="UINT"/>
+                <Field Description="If ForceFcMode asserted, asserting this bit force flow controll on the corresponding QP.                      If ForceFcMode is de-asserted, de-asserting this bit ignore flow controll from the corresponding QP." Name="FORCE_OR_IGNORE_FC" Size="1" Type="UINT"/>
+                <Field Description="Egress IFC corresponding QP seats under. Relevant for TDM bypass." Name="MAP_QP_TO_IFC" Type="EGQ_IF"/>
+                <Field Description="if set corresponding QP shaper is in packet resolution." Name="QP_SPR_PKT_MODE" Size="1" Type="UINT"/>
+                <!-- Fields from EPNI_ALIGNER_QP_TO_CMIC_MAPm  -->
+                <Field Description="CPU COS." Name="CPU_COS" Size="6" Type="UINT"/>
+                <Field Description="Source port." Name="SRC_PORT" Size="#log2_round_up(DNX_DATA.port.general.nof_tm_ports)" Type="UINT"/>
+                <!-- Fields from EPNI_ALIGNER_QP_TO_CHANNEL_MAPm  -->
+                <Field Description="output channel." Name="CHANNEL" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ETM EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="UC_OR_UC_LOW_QUEUE_WEIGHT">
+                    <Access>
+                        <Memory Name="EPS_DWMm">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)"/>                        
+                            <HwField Name="UC_OR_UC_LOW_QUEUE_WEIGHTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MC_OR_MC_LOW_QUEUE_WEIGHT">
+                    <Access>
+                        <Memory Name="EPS_DWMm">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)"/>                        
+                            <HwField Name="MC_OR_MC_LOW_QUEUE_WEIGHTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="Q_ALMOST_EMPTY_DELAY">
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="BIGGER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_QP_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="Q_ALMOST_EMPTY_DELAYf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="EQUAL_TO" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_QP_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="Q_ALMOST_EMPTY_DELAYf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="LOWER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_QP_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)"/>                        
+                            <HwField Name="Q_ALMOST_EMPTY_DELAYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="QP_IS_HP">
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="BIGGER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_QP_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="QP_IS_HPf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="EQUAL_TO" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_QP_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="QP_IS_HPf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="LOWER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_QP_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)"/>                        
+                            <HwField Name="QP_IS_HPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="QPAIR_SPR_DIS">
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="BIGGER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_QP_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="QPAIR_SPR_DISf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="EQUAL_TO" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_QP_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="QPAIR_SPR_DISf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="LOWER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_QP_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)"/>                        
+                            <HwField Name="QPAIR_SPR_DISf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0" Name="QPAIR_SPR_DIS">
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="BIGGER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Register Name="EPS_QPAIR_SPR_DIS_2r">
+                            <HwField Name="QPAIR_SPR_DIS_2f"/>
+                            <DataOffset Formula="#KEY_VALUE(QPAIR)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>
+                        </Register>                     
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="EQUAL_TO" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Register Name="EPS_QPAIR_SPR_DIS_2r">
+                            <HwField Name="QPAIR_SPR_DIS_2f"/>
+                            <DataOffset Formula="#KEY_VALUE(QPAIR)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>
+                        </Register>                     
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="LOWER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Register Name="EPS_QPAIR_SPR_DIS_1r">
+                            <HwField Name="QPAIR_SPR_DIS_1f"/>
+                            <DataOffset Formula="#KEY_VALUE(QPAIR)"/>
+                        </Register>                     
+                    </Access>
+                </Field>
+                <Field Device="Q2A_A0 Q2A_B0 J2P_A0" Name="QPAIR_SPR_DIS">
+                    <Access>
+                        <Register Name="EPS_QPAIR_SPR_DIS_1r">
+                            <HwField Name="QPAIR_SPR_DIS_1f"/>
+                            <DataOffset Formula="#KEY_VALUE(QPAIR)"/>
+                        </Register>                     
+                    </Access>
+                </Field>                                                
+                <Field Name="FORCE_OR_IGNORE_FC">
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="BIGGER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_QP_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="FORCE_OR_IGNORE_FCf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="EQUAL_TO" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_QP_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="FORCE_OR_IGNORE_FCf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="LOWER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_QP_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)"/>                        
+                            <HwField Name="FORCE_OR_IGNORE_FCf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="QP_IS_TDM">
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="BIGGER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_QP_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="QP_IS_TDMf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="EQUAL_TO" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_QP_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="QP_IS_TDMf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="LOWER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_QP_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)"/>                        
+                            <HwField Name="QP_IS_TDMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="QP_SPR_PKT_MODE">
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="BIGGER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_QP_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="QP_SPR_PKT_MODEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="EQUAL_TO" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_QP_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="QP_SPR_PKT_MODEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="LOWER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_QP_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)"/>                        
+                            <HwField Name="QP_SPR_PKT_MODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAP_QP_TO_IFC">
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="BIGGER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_QP_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="MAP_QP_TO_IFCf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="EQUAL_TO" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_QP_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)-dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/2"/>                        
+                            <HwField Name="MAP_QP_TO_IFCf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="QPAIR" Type="LOWER_THAN" Value="DNX_DATA.egr_queuing.params.nof_q_pairs/2"/>
+                        <Memory Name="EPS_QP_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)"/>                        
+                            <HwField Name="MAP_QP_TO_IFCf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CPU_COS">
+                    <Access>
+                        <Memory Name="EPNI_ALIGNER_QP_TO_CMIC_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)"/>                        
+                            <HwField Name="CPU_COSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SRC_PORT">
+                    <Access>
+                        <Memory Name="EPNI_ALIGNER_QP_TO_CMIC_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)"/>                        
+                            <HwField Name="SRC_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CHANNEL">
+                    <Access>
+                        <Memory Name="EPNI_ALIGNER_QP_TO_CHANNEL_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)"/>                        
+                            <HwField Name="CHANNELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="EGQ_CHANNELIZED_INTERFACE_ATTRIBUTES"> 
+        <OneLineDescription>A table containing all 'egress queue' attributes which have 'interface' as key</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="EGQ_CH_IF"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                 <Field Description="Dtermines whether its channelized or non-chennlized." Name="IFC_IS_CHANNELIZED" Size="1" Type="UINT"/>
+                <Field Description="Bitmap of 64 bits, represnts the Port Schedulers which belong to the corresponding interface." Name="MAP_PS_TO_IFC" NofInstances="DNX_DATA.egr_queuing.params.nof_port_schedulers" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ETM EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0" Name="IFC_IS_CHANNELIZED">
+                   <Access>
+                        <KeyCondition Field="EGQ_CH_IF" Type="BIGGER_THAN" Value="31"/>
+                        <Memory Name="EPS_IFC_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_CH_IF)-32"/>                        
+                            <HwField Name="IFC_IS_CHANNELIZEDf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="EGQ_CH_IF" Type="LOWER_THAN" Value="32"/>
+                        <Memory Name="EPS_IFC_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_CH_IF)"/>
+                            <HwField Name="IFC_IS_CHANNELIZEDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="IFC_IS_CHANNELIZED">
+                    <Access>
+                        <Register Name="EPS_IFC_IS_CHANNELIZEDr">
+                            <HwField Name="IFC_IS_CHANNELIZEDf"/>
+                            <DataOffset Formula="#KEY_VALUE(EGQ_CH_IF)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="MAP_PS_TO_IFC">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="EPS_MAP_PS_TO_IFCm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_CH_IF)"/>
+                            <HwField Name="MAP_PS_TO_IFCf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="MAP_PS_TO_IFC">
+                    <Access instanceIndex="ALL">
+                        <KeyCondition Field="EGQ_CH_IF" Type="BIGGER_THAN" Value="31"/>
+                        <Memory Name="EPS_IFC_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_CH_IF)-32"/>                        
+                            <HwField Name="MAP_PS_TO_IFCf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="ALL">
+                        <KeyCondition Field="EGQ_CH_IF" Type="LOWER_THAN" Value="32"/>
+                        <Memory Name="EPS_IFC_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_CH_IF)"/>
+                            <HwField Name="MAP_PS_TO_IFCf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGQ_INTERFACE_REG_ATTRIBUTES"> 
+        <OneLineDescription>A table containing all 'egress queue' register attributes which have 'interface' as key</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="EGQ_IF"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <!-- Fields from FQP_INIT_FQP_TXIr  -->
+                <Field Description="Writing to this register initializes the FQP txi logic corresponded to specified EGQ interface." Name="INIT_FQP_TXI_BIT" Size="1" Type="UINT"/>
+                <Field Description="Writing to this register initializes the FQP credit balance (txi) corresponded to EGQ interface with value according to CreditSize." Name="CREDIT_INIT_BIT" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ETM EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="INIT_FQP_TXI_BIT">
+                    <Access>
+                        <Register Name="FQP_INIT_FQP_TXIr"> 
+                            <HwField Name="INIT_FQP_TXIf"/>
+                            <DataOffset Formula="#KEY_VALUE(EGQ_IF)"/>                        
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CREDIT_INIT_BIT">
+                    <Access>
+                        <Register Name="FQP_INIT_FQP_TXIr"> 
+                            <HwField Name="CREDIT_INITf"/>
+                            <DataOffset Formula="#KEY_VALUE(EGQ_IF)"/>                        
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGQ_INTERFACE_ATTRIBUTES"> 
+        <OneLineDescription>A table containing all 'egress queue' attributes which have 'interface' as key</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="EGQ_IF"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <!-- Fields from EPNI_IFC_2_NIF_PORT_MAPm  -->
+                <Field Description="Port macro number" Name="PM_NUM" Size="5" Type="UINT" Valid="!DNX_DATA.esb.general.esb_support"/>
+                <Field Description="port number internal to the port macro" Name="PM_INTERNAL_PORT" Size="4" Type="UINT" Valid="!DNX_DATA.esb.general.esb_support"/>
+                <Field Description="Nif port number (debug)" Name="NIF_PORT_NUM" Size="6" Type="UINT" Valid="!DNX_DATA.esb.general.esb_support"/>
+                <!--
+                  Fields from FQP_PER_IFC_CFGm
+                  Per EGQ interface configuration in FQP. The FQP (Transmit queues) block maintains
+                  a queue per interface  (124 NIF ports, Cmic, OLP, OAM and RCY).
+                -->
+                <Field Description="Each queue stores PDs and returns flow control to the EPS according to both its fill                     level in PD and virtual fill level in bytes to read. This register defines the fill level in                     bytes threshold per queue. If threshold is crossed, then the corresponding queue assert flow                     control to the EPS. the threshold units in 32Bytes." Name="TXQ_MAX_BYTES_TH" Size="10" Type="UINT" Valid="1-DNX_DATA.egr_queuing.params.if_attributes_profile_exist"/>
+                <Field Description="Define credit balance threshold below which interface is not eligible                      If credit balance of an interface is higher than configured threshold then the corresponding                     interface is eligible to be chosen by the ETS." Name="TXI_IRDY_TH" Size="13" Type="UINT" Valid="1-DNX_DATA.egr_queuing.params.if_attributes_profile_exist"/>
+                <Field Description="If asserted allow FQP to go to HP context in middle of packet.                      Can be asserted only for Ilkn and RCY." Name="INTRLV_NOT_PKT_BOUND" Size="1" Type="UINT"/>
+                <Field Description="If asserted corresponding interface is looking on TxqTdmIreadyTh to define Q irdy." Name="TXQ_TDM_IRDY_SEL" Size="1" Type="UINT" Valid="1-DNX_DATA.egr_queuing.params.if_attributes_profile_exist"/>
+                <!--
+                  Fields from EPS_IFC_CFGm and EPS_IFC_CFG_2m
+                  First : Configuration per IFC port (0-31)
+                  Second: Configuration per IFC port (32-63)
+                -->
+                <Field Description="Select AE min gap when interface All Qs under interface are AE but interface is not AE" Name="IFC_AE_SEL" Size="2" Type="UINT"/>
+                <Field Description="Define minimum gap between consecutive access to same interface if serving HP Q." Name="MIN_GAP_HP" Size="DNX_DATA.egr_queuing.params.if_min_gap_priority_size" Type="UINT"/>
+                <Field Description="Define minimum gap between consecutive access to same interface if serving LP Q." Name="MIN_GAP_LP" Size="DNX_DATA.egr_queuing.params.if_min_gap_priority_size" Type="UINT"/>
+                <Field Description="If asserted Packet HP and TDM ports of the corresponding interface will share the same TXQ." Name="TDM_HP_SHARE_TXQ" Size="1" Type="UINT"/>
+                <Field Description="If asserted correspondig interface participate in egress scheduling." Name="IFC_IS_ACTIVE" Size="1" Type="UINT"/>
+                <Field Description="Map IFC to OTM port if IfcIsChannelized == 0." Name="NON_CH_IFC_BASE_QUEUE_PAIR" Type="QPAIR"/>
+                <Field Description="mark the ifc as belong to special sub calendar" Name="IFC_PART_OF_SUB_CALENDAR" Type="BOOL"/>
+                <Field Description="FQP interface profile id" Name="FQP_PROFILE_ID" Size="5" Type="UINT" Valid="DNX_DATA.egr_queuing.params.if_attributes_profile_exist"/>
+                <Field Description="Define the minimal gap between consecutive commands to the same egress interface" Name="MIN_GAP" Size="5" Type="UINT" Valid="1-DNX_DATA.egr_queuing.params.if_attributes_profile_exist"/>
+                <Field Description="allow FQP to serve certain interface consecutively" Name="ALLOW_CONS_SEL" Type="BOOL" Valid="1-DNX_DATA.egr_queuing.params.if_attributes_profile_exist"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ETM EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="PM_NUM">
+                    <Access>
+                        <Memory Name="EPNI_IFC_2_NIF_PORT_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)"/>
+                            <HwField Name="PM_NUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PM_INTERNAL_PORT">
+                    <Access>
+                        <Memory Name="EPNI_IFC_2_NIF_PORT_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)"/>
+                            <HwField Name="PM_INTERNAL_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NIF_PORT_NUM">
+                    <Access>
+                        <Memory Name="EPNI_IFC_2_NIF_PORT_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)"/>                        
+                            <HwField Name="NIF_PORT_NUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TXQ_MAX_BYTES_TH">
+                    <Access>
+                        <Memory Name="FQP_PER_IFC_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)"/>                        
+                            <HwField Name="TXQ_MAX_BYTES_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TXI_IRDY_TH">
+                    <Access>
+                        <Memory Name="FQP_PER_IFC_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)"/>                        
+                            <HwField Name="TXI_IRDY_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INTRLV_NOT_PKT_BOUND">
+                    <Access>
+                        <Memory Name="FQP_PER_IFC_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)"/>                        
+                            <HwField Name="INTRLV_NOT_PKT_BOUNDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TXQ_TDM_IRDY_SEL">
+                    <Access>
+                        <Memory Name="FQP_PER_IFC_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)"/>                        
+                            <HwField Name="TXQ_TDM_IRDY_SELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="MIN_GAP_LP">
+                   <Access>
+                        <KeyCondition Field="EGQ_IF" Type="BIGGER_THAN" Value="31"/>
+                        <Memory Name="EPS_IFC_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)-32"/>                        
+                            <HwField Name="MIN_GAP_LPf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="EGQ_IF" Type="LOWER_THAN" Value="32"/>
+                        <Memory Name="EPS_IFC_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)"/>                        
+                            <HwField Name="MIN_GAP_LPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="MIN_GAP_LP">
+                   <Access>
+                        <KeyCondition Field="EGQ_IF" Type="BIGGER_THAN" Value="63"/>
+                        <Memory Name="EPS_IFC_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)-64"/>                        
+                            <HwField Name="MIN_GAP_LPf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="EGQ_IF" Type="LOWER_THAN" Value="64"/>
+                        <Memory Name="EPS_IFC_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)"/>                        
+                            <HwField Name="MIN_GAP_LPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="MIN_GAP_HP">
+                   <Access>
+                        <KeyCondition Field="EGQ_IF" Type="BIGGER_THAN" Value="31"/>
+                        <Memory Name="EPS_IFC_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)-32"/>                        
+                            <HwField Name="MIN_GAP_HPf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="EGQ_IF" Type="LOWER_THAN" Value="32"/>
+                        <Memory Name="EPS_IFC_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)"/>                        
+                            <HwField Name="MIN_GAP_HPf"/>
+                        </Memory>
+                    </Access>
+                </Field>                
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="MIN_GAP_HP">
+                   <Access>
+                        <KeyCondition Field="EGQ_IF" Type="BIGGER_THAN" Value="63"/>
+                        <Memory Name="EPS_IFC_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)-64"/>                        
+                            <HwField Name="MIN_GAP_HPf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="EGQ_IF" Type="LOWER_THAN" Value="64"/>
+                        <Memory Name="EPS_IFC_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)"/>                        
+                            <HwField Name="MIN_GAP_HPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="IFC_AE_SEL">
+                   <Access>
+                        <KeyCondition Field="EGQ_IF" Type="BIGGER_THAN" Value="31"/>
+                        <Memory Name="EPS_IFC_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)-32"/>                        
+                            <HwField Name="IFC_AE_SELf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="EGQ_IF" Type="LOWER_THAN" Value="32"/>
+                        <Memory Name="EPS_IFC_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)"/>
+                            <HwField Name="IFC_AE_SELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="IFC_AE_SEL">
+                   <Access>
+                        <KeyCondition Field="EGQ_IF" Type="BIGGER_THAN" Value="63"/>
+                        <Memory Name="EPS_IFC_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)-64"/>                        
+                            <HwField Name="IFC_AE_SELf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="EGQ_IF" Type="LOWER_THAN" Value="64"/>
+                        <Memory Name="EPS_IFC_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)"/>
+                            <HwField Name="IFC_AE_SELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="TDM_HP_SHARE_TXQ">
+                   <Access>
+                        <KeyCondition Field="EGQ_IF" Type="BIGGER_THAN" Value="31"/>
+                        <Memory Name="EPS_IFC_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)-32"/>                        
+                            <HwField Name="TDM_HP_SHARE_TXQf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="EGQ_IF" Type="LOWER_THAN" Value="32"/>
+                        <Memory Name="EPS_IFC_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)"/>                        
+                            <HwField Name="TDM_HP_SHARE_TXQf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="TDM_HP_SHARE_TXQ">
+                   <Access>
+                        <KeyCondition Field="EGQ_IF" Type="BIGGER_THAN" Value="63"/>
+                        <Memory Name="EPS_IFC_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)-64"/>                        
+                            <HwField Name="TDM_HP_SHARE_TXQf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="EGQ_IF" Type="LOWER_THAN" Value="64"/>
+                        <Memory Name="EPS_IFC_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)"/>                        
+                            <HwField Name="TDM_HP_SHARE_TXQf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="IFC_IS_ACTIVE">
+                   <Access>
+                        <KeyCondition Field="EGQ_IF" Type="BIGGER_THAN" Value="31"/>
+                        <Memory Name="EPS_IFC_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)-32"/>                        
+                            <HwField Name="IFC_IS_ACTIVEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="EGQ_IF" Type="LOWER_THAN" Value="32"/>
+                        <Memory Name="EPS_IFC_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)"/>                        
+                            <HwField Name="IFC_IS_ACTIVEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="IFC_IS_ACTIVE">
+                   <Access>
+                        <KeyCondition Field="EGQ_IF" Type="BIGGER_THAN" Value="63"/>
+                        <Memory Name="EPS_IFC_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)-64"/>                        
+                            <HwField Name="IFC_IS_ACTIVEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="EGQ_IF" Type="LOWER_THAN" Value="64"/>
+                        <Memory Name="EPS_IFC_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)"/>                        
+                            <HwField Name="IFC_IS_ACTIVEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="NON_CH_IFC_BASE_QUEUE_PAIR">
+                   <Access>
+                        <KeyCondition Field="EGQ_IF" Type="BIGGER_THAN" Value="31"/>
+                        <Memory Name="EPS_IFC_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)-32"/>                        
+                            <HwField Name="NONCH_IFC_OTM_PORTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="EGQ_IF" Type="LOWER_THAN" Value="32"/>
+                        <Memory Name="EPS_IFC_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)"/>
+                            <HwField Name="NONCH_IFC_OTM_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="NON_CH_IFC_BASE_QUEUE_PAIR">
+                   <Access>
+                        <KeyCondition Field="EGQ_IF" Type="BIGGER_THAN" Value="64"/>
+                        <Memory Name="EPS_IFC_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)-64"/>                        
+                            <HwField Name="NONCH_IFC_OTM_PORTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="EGQ_IF" Type="EQUAL_TO" Value="64"/>
+                        <Memory Name="EPS_IFC_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)-64"/>                        
+                            <HwField Name="NONCH_IFC_OTM_PORTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="EGQ_IF" Type="LOWER_THAN" Value="64"/>
+                        <Memory Name="EPS_IFC_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)"/>
+                            <HwField Name="NONCH_IFC_OTM_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="IFC_PART_OF_SUB_CALENDAR">
+                   <Access>
+                        <KeyCondition Field="EGQ_IF" Type="BIGGER_THAN" Value="31"/>
+                        <Memory Name="EPS_IFC_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)-32"/>                        
+                            <HwField Name="IF_IS_1_Gf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="EGQ_IF" Type="LOWER_THAN" Value="32"/>
+                        <Memory Name="EPS_IFC_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)"/>                        
+                            <HwField Name="IF_IS_1_Gf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="IFC_PART_OF_SUB_CALENDAR">
+                   <Access>
+                        <KeyCondition Field="EGQ_IF" Type="BIGGER_THAN" Value="63"/>
+                        <Memory Name="EPS_IFC_CFG_2m">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)-64"/>
+                            <HwField Name="IF_IS_1_Gf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="EGQ_IF" Type="LOWER_THAN" Value="64"/>
+                        <Memory Name="EPS_IFC_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)"/>
+                            <HwField Name="IF_IS_1_Gf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FQP_PROFILE_ID">
+                    <Access>
+                        <Memory Name="FQP_PER_IFC_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)"/>
+                            <HwField Name="IF_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MIN_GAP">
+                    <Access>
+                        <Memory Name="FQP_PER_IFC_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)"/>                        
+                            <HwField Name="MIN_GAPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ALLOW_CONS_SEL">
+                    <Access>
+                        <Memory Name="FQP_PER_IFC_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)"/>                        
+                            <HwField Name="ALLOW_CONS_SELf"/>
+                        </Memory>
+                    </Access>
+                </Field>				
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGQ_FQP_PROFILE_ATTRIBUTES" Valid="DNX_DATA.egr_queuing.params.if_attributes_profile_exist">
+        <OneLineDescription>A table containing egress FQP attributes which have are handled by FQP profile</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PROFILE_INDEX" Size="5" Type="UINT"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Each queue stores PDs and returns flow control to the EPS according to both its fill                     level in PD and virtual fill level in bytes to read. This register defines the fill level in                     bytes threshold per queue. If threshold is crossed, then the corresponding queue assert flow                     control to the EPS. the threshold units in 32Bytes." Name="TXQ_MAX_BYTES_TH" Size="10" Type="UINT"/>
+                <Field Description="Define credit balance threshold below which interface is not eligible                      If credit balance of an interface is higher than configured threshold then the corresponding                     interface is eligible to be chosen by the ETS." Name="TXI_IRDY_TH" Size="13" Type="UINT"/>
+                <Field Description="If asserted corresponding interface is looking on TxqTdmIreadyTh to define Q irdy." Name="TXQ_TDM_IRDY_SEL" Size="1" Type="UINT" Valid="DNX_DATA.egr_queuing.params.txq_tdm_irdy_sel_exist"/>
+               <Field Description="mark the ifc as belong to special sub calendar" Name="IFC_PART_OF_SUB_CALENDAR" Type="BOOL"/>
+               <Field Description="Define the minimal gap between consecutive commands to the same egress interface" Name="MIN_GAP" Size="5" Type="UINT"/>
+               <Field Description="allow FQP to serve certain interface consecutively" Name="ALLOW_CONS_SEL" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ETM EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="TXQ_MAX_BYTES_TH">
+                    <Access>
+                        <Memory Name="FQP_IFC_PROFILE_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="TXQ_MAX_BYTES_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TXI_IRDY_TH">
+                    <Access>
+                        <Memory Name="FQP_IFC_PROFILE_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="TXI_IRDY_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TXQ_TDM_IRDY_SEL">
+                    <Access>
+                        <Memory Name="FQP_IFC_PROFILE_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="TXQ_TDM_IRDY_SELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MIN_GAP">
+                    <Access>
+                        <Memory Name="FQP_IFC_PROFILE_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="MIN_GAPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ALLOW_CONS_SEL">
+                    <Access>
+                        <Memory Name="FQP_IFC_PROFILE_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="ALLOW_CONS_SELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IFC_PART_OF_SUB_CALENDAR">
+                    <Access>
+                        <Memory Name="FQP_IFC_PROFILE_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_INDEX)"/>
+                            <HwField Name="IF_IS_10Gf"/>
+                        </Memory>
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGQ_TC_DP_MAP"> 
+        <OneLineDescription>A table containing mapping of Port-COS-Map-Profile, Egress-MC, SYS-TC,SYS-DP to Egress-TC, CGM-MC-DP</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="SYS_TC" Type="TC"/>
+                <Field Name="SYS_DP" Type="DP"/>
+                <Field Name="IS_EGRESS_MC" Type="BOOL"/>
+                <Field Name="MAP_PROFILE" Size="4" Type="UINT"/>
+                <!--
+                  Construction of entry index (10 bits), into table, is as follows (LS bits on right):
+                  MAP_PROFILE | IS_EGRESS_MC |  SYS_TC  | SYS_DP
+                    4 bits    |   1 bit      |  3 bits  | 2 bits
+                -->
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <!-- Fields from PQP_TC_DP_MAPm
+                  Lookup table used to map Port-COS-Map-Profile(4), Egress-MC(1), SYS-TC(3),SYS-DP(2) to
+                  the following parameters: Egress-TC(3) and CGM-MC-DP(2). 
+                  The Egress-TC + Base-Queue-Num determines the final queue number the packet will be
+                  enqueued to it.
+                -->
+                <Field Description="Egress TC of a packet determines the queue number of the enqueue action. The                     Egress TC range must be according to the OTM-Port mode as follows:                      1. If the OTM-Port is 1P, then Egress-TC must be 0.                      2. If the OTM-Port is 2P, then Egress-TC must be in range 0-1                      3. If the OTM-Port is 8P, then Egress-TC must be in rang 0-7." Name="EGRESS_TC" Type="TC"/>
+                <Field Description="This parameter defines for which DP the incoming packet is belong. Each DP has different drop thresholds in CGM." Name="CGM_MC_DP" Type="DP"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ETM EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="EGRESS_TC">
+                    <Access>
+                        <Memory Name="PQP_TC_DP_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(SYS_DP)+#KEY_VALUE(SYS_TC)*4+#KEY_VALUE(IS_EGRESS_MC)*32+#KEY_VALUE(MAP_PROFILE)*64"/>                        
+                            <HwField Name="EGRESS_TCf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CGM_MC_DP">
+                    <Access>
+                        <Memory Name="PQP_TC_DP_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(SYS_DP)+#KEY_VALUE(SYS_TC)*4+#KEY_VALUE(IS_EGRESS_MC)*32+#KEY_VALUE(MAP_PROFILE)*64"/>                        
+                            <HwField Name="CGM_MC_DPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGQ_TM_PORT_ATTRIBUTES"> 
+        <OneLineDescription>A table containing all 'egress queue' attributes which have 'tm_port' as key</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TM_PORT"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <!-- Fields from PQP_OTM_ATTRIBUTES_TABLE_ENQm  -->
+                <Field Description="Indicate the Qpair base number." Name="QPAIR_BASE" Type="QPAIR"/>
+                <Field Description="Indicate the interface number to be used by CGM (Congestion Management )" Name="CGM_INTERFACE" Type="EGQ_IF"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ETM EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="QPAIR_BASE">
+                    <Access>
+                        <Memory Name="PQP_OTM_ATTRIBUTES_TABLE_ENQm">
+                            <EntryOffset Formula="#KEY_VALUE(TM_PORT)"/>                        
+                            <HwField Name="QPAIR_BASEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CGM_INTERFACE">
+                    <Access>
+                        <Memory Name="PQP_OTM_ATTRIBUTES_TABLE_ENQm">
+                            <EntryOffset Formula="#KEY_VALUE(TM_PORT)"/>                        
+                            <HwField Name="CGM_INTERFACEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGQ_PQP_COUNTER">
+        <OneLineDescription>Configure the programmable counter in PQP block</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="ENQ_QP" Size="DNX_DATA.egr_queuing.params.nof_bits_in_q_pair" Type="UINT"/>
+                <Field Name="ENQ_OTM" Size="#log2_round_up(DNX_DATA.port.general.nof_tm_ports)" Type="UINT"/>
+                <Field Name="ENQ_EGQ_IF" Size="DNX_DATA.egr_queuing.params.nof_bits_in_egr_interface" Type="UINT"/>
+                <Field Name="ENQ_COUNT_BY_QP" Type="BOOL"/>
+                <Field Name="ENQ_COUNT_BY_OTM" Type="BOOL"/>
+                <Field Name="ENQ_COUNT_BY_IF" Type="BOOL"/>
+                <Field Name="ENQ_PACKET_COUNTER" Permission="READONLY" Size="33" Type="ARRAY32"/>
+                <Field Name="ENQ_BYTES_COUNTER" Permission="READONLY" Size="47" Type="ARRAY32"/>
+                <Field Name="DEQ_QP" Size="DNX_DATA.egr_queuing.params.nof_bits_in_q_pair" Type="UINT"/>
+                <!-- base qpair (mapped to this OTM port) is requested to set to DEQ_OTM due to HW design-->
+                <Field Name="DEQ_OTM" Size="DNX_DATA.egr_queuing.params.nof_bits_in_q_pair" Type="UINT"/>
+                <Field Name="DEQ_EGQ_IF" Size="DNX_DATA.egr_queuing.params.nof_bits_in_egr_interface" Type="UINT"/>
+                <Field Name="DEQ_COUNT_BY_QP" Type="BOOL"/>
+                <Field Name="DEQ_COUNT_BY_OTM" Type="BOOL"/>
+                <Field Name="DEQ_COUNT_BY_IF" Type="BOOL"/>                
+                <Field Name="DEQ_UNICAST_PACKET_COUNTER" Permission="READONLY" Size="33" Type="ARRAY32"/>
+                <Field Name="DEQ_MULTICAST_PACKET_COUNTER" Permission="READONLY" Size="33" Type="ARRAY32"/>
+                <Field Name="DEQ_DISCARD_UNICAST_PACKET_COUNTER" Permission="READONLY" Size="33" Type="ARRAY32"/>
+                <Field Name="DEQ_DISCARD_MULTICAST_PACKET_COUNTER" Permission="READONLY" Size="33" Type="ARRAY32"/>
+                <Field Name="DEQ_UNICAST_BYTES_COUNTER" Permission="READONLY" Size="47" Type="ARRAY32"/>
+                <Field Name="DEQ_MULTICAST_BYTES_COUNTER" Permission="READONLY" Size="47" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ETM EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="ENQ_QP">
+                    <Access>
+                        <Register Name="PQP_ENQ_COUNTERS_CONFIGr">
+                            <HwField Name="ENQ_COUNT_SPECIFIC_QP_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ENQ_OTM">
+                    <Access>
+                        <Register Name="PQP_ENQ_COUNTERS_CONFIGr">
+                            <HwField Name="ENQ_COUNT_SPECIFIC_OTM_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ENQ_EGQ_IF">
+                    <Access>
+                        <Register Name="PQP_ENQ_COUNTERS_CONFIGr">
+                            <HwField Name="ENQ_COUNT_SPECIFIC_IFC_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ENQ_COUNT_BY_QP">
+                    <Access>
+                        <Register Name="PQP_ENQ_COUNTERS_CONFIGr">
+                            <HwField Name="ENQ_COUNT_SPECIFIC_QP_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ENQ_COUNT_BY_OTM">
+                    <Access>
+                        <Register Name="PQP_ENQ_COUNTERS_CONFIGr">
+                            <HwField Name="ENQ_COUNT_SPECIFIC_OTM_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ENQ_COUNT_BY_IF">
+                    <Access>
+                        <Register Name="PQP_ENQ_COUNTERS_CONFIGr">
+                            <HwField Name="ENQ_COUNT_SPECIFIC_IFC_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ENQ_PACKET_COUNTER">
+                    <Access>
+                        <Register Name="PQP_PQP_ENQ_PACKET_COUNTERr">
+                            <HwField Name="PQP_ENQ_PACKET_COUNTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ENQ_BYTES_COUNTER">
+                    <Access>
+                        <Register Name="PQP_PQP_ENQ_BYTES_COUNTERr">
+                            <HwField Name="PQP_ENQ_BYTES_COUNTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DEQ_QP">
+                    <Access>
+                        <Register Name="PQP_DEQ_COUNTERS_CONFIGr">
+                            <HwField Name="COUNT_SPECIFIC_QP_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DEQ_OTM">
+                    <Access>
+                        <Register Name="PQP_DEQ_COUNTERS_CONFIGr">
+                            <HwField Name="COUNT_SPECIFIC_OTM_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DEQ_EGQ_IF">
+                    <Access>
+                        <Register Name="PQP_DEQ_COUNTERS_CONFIGr">
+                            <HwField Name="COUNT_SPECIFIC_IFC_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DEQ_COUNT_BY_QP">
+                    <Access>
+                        <Register Name="PQP_DEQ_COUNTERS_CONFIGr">
+                            <HwField Name="COUNT_SPECIFIC_QP_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DEQ_COUNT_BY_OTM">
+                    <Access>
+                        <Register Name="PQP_DEQ_COUNTERS_CONFIGr">
+                            <HwField Name="COUNT_SPECIFIC_OTM_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DEQ_COUNT_BY_IF">
+                    <Access>
+                        <Register Name="PQP_DEQ_COUNTERS_CONFIGr">
+                            <HwField Name="COUNT_SPECIFIC_IFC_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DEQ_UNICAST_PACKET_COUNTER">
+                    <Access>
+                        <Register Name="PQP_PQP_UNICAST_PACKET_COUNTERr">
+                            <HwField Name="PQP_UNICAST_PACKET_COUNTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DEQ_MULTICAST_PACKET_COUNTER">
+                    <Access>
+                        <Register Name="PQP_PQP_MULTICAST_PACKET_COUNTERr">
+                            <HwField Name="PQP_MULTICAST_PACKET_COUNTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DEQ_DISCARD_UNICAST_PACKET_COUNTER">
+                    <Access>
+                        <Register Name="PQP_PQP_DISCARD_UNICAST_PACKET_COUNTERr">
+                            <HwField Name="PQP_DISCARD_UNICAST_PACKET_COUNTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DEQ_DISCARD_MULTICAST_PACKET_COUNTER">
+                    <Access>
+                        <Register Name="PQP_PQP_DISCARD_MULTICAST_PACKET_COUNTERr">
+                            <HwField Name="PQP_DISCARD_MULTICAST_PACKET_COUNTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DEQ_UNICAST_BYTES_COUNTER">
+                    <Access>
+                        <Register Name="PQP_PQP_UNICAST_BYTES_COUNTERr">
+                            <HwField Name="PQP_UNICAST_BYTES_COUNTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DEQ_MULTICAST_BYTES_COUNTER">
+                    <Access>
+                        <Register Name="PQP_PQP_MULTICAST_BYTES_COUNTERr">
+                            <HwField Name="PQP_MULTICAST_BYTES_COUNTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGQ_RQP_COUNTER">
+        <OneLineDescription>Configure the programmable counter in RQP block</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="EMR_UNICAST_PACKET_COUNTER" Permission="READONLY" Size="33" Type="ARRAY32"/>
+                <Field Name="EMR_MC_HIGH_PACKET_COUNTER" Permission="READONLY" Size="33" Type="ARRAY32"/>
+                <Field Name="EMR_MC_LOW_PACKET_COUNTER" Permission="READONLY" Size="33" Type="ARRAY32"/>
+                <Field Name="EMR_DISCARDS_PACKET_COUNTER" Permission="READONLY" Size="33" Type="ARRAY32"/>
+                <Field Name="EMR_TDM_PACKET_COUNTER" Permission="READONLY" Size="33" Type="ARRAY32" Valid="DNX_DATA.tdm.params.is_supported"/>                
+                <Field Name="CDC_FABRIC_PACKET_CNT" Permission="READONLY" Size="32" Type="UINT" Valid="DNX_DATA.egr_queuing.params.non_j2b0_counters_are_valid*DNX_DATA.fabric.general.is_supported"/>
+                <Field Name="CDC_IPT_PACKET_CNT" Permission="READONLY" Size="32" Type="UINT" Valid="DNX_DATA.egr_queuing.params.non_j2b0_counters_are_valid*DNX_DATA.fabric.general.is_supported"/>
+                <Field Name="PRP_PACKET_IN_CNT" Permission="READONLY" Size="64" Type="ARRAY32"/>
+                <Field Name="PRP_PACKET_GOOD_UC_CNT" Permission="READONLY" Size="64" Type="ARRAY32"/>
+                <Field Name="PRP_PACKET_GOOD_MC_CNT" Permission="READONLY" Size="64" Type="ARRAY32"/>
+                <Field Name="PRP_PACKET_GOOD_TDM_CNT" Permission="READONLY" Size="64" Type="ARRAY32" Valid="DNX_DATA.tdm.params.is_supported"/>
+                <Field Name="PRP_PACKET_DISCARD_UC_CNT" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Name="PRP_PACKET_DISCARD_MC_CNT" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Name="PRP_PACKET_DISCARD_TDM_CNT" Permission="READONLY" Size="32" Type="UINT" Valid="DNX_DATA.tdm.params.is_supported"/>
+                <Field Name="PRP_SOP_DISCARD_UC_CNT" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Name="PRP_SOP_DISCARD_MC_CNT" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Name="PRP_SOP_DISCARD_TDM_CNT" Permission="READONLY" Size="32" Type="UINT" Valid="DNX_DATA.tdm.params.is_supported"/>
+                <Field Name="PRP_TDM_BYPASS_PACKET_CNT" Permission="READONLY" Size="32" Type="UINT" Valid="DNX_DATA.tdm.params.is_supported"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ETM EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="EMR_UNICAST_PACKET_COUNTER">
+                    <Access>
+                        <Register Name="RQP_EMR_UNICAST_PACKET_COUNTERr">
+                            <HwField Name="EMR_UNICAST_PACKET_COUNTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EMR_MC_HIGH_PACKET_COUNTER">
+                    <Access>
+                        <Register Name="RQP_EMR_MC_HIGH_PACKET_COUNTERr">
+                            <HwField Name="EMR_MC_HIGH_PACKET_COUNTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EMR_MC_LOW_PACKET_COUNTER">
+                    <Access>
+                        <Register Name="RQP_EMR_MC_LOW_PACKET_COUNTERr">
+                            <HwField Name="EMR_MC_LOW_PACKET_COUNTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EMR_DISCARDS_PACKET_COUNTER">
+                    <Access>
+                        <Register Name="RQP_EMR_DISCARDS_PACKET_COUNTERr">
+                            <HwField Name="EMR_DISCARDS_PACKET_COUNTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0" Name="EMR_TDM_PACKET_COUNTER">
+                    <Access>
+                        <Register Name="RQP_EMR_TDM_PACKET_COUNTERr">
+                            <HwField Name="EMR_TDM_PACKET_COUNTERf"/>
+                        </Register>
+                    </Access>
+                </Field>       
+                <Field Device="JR2_A0 J2C_A0 J2P_A0" Name="CDC_FABRIC_PACKET_CNT">
+                    <Access>
+                        <Register Name="RQP_CELL_DECODER_DEBUG_COUNTERSr">
+                            <HwField Name="CDC_FABRIC_PACKET_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 J2C_A0 J2P_A0" Name="CDC_IPT_PACKET_CNT">
+                    <Access>
+                        <Register Name="RQP_CELL_DECODER_DEBUG_COUNTERSr">
+                            <HwField Name="CDC_IPT_PACKET_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PRP_PACKET_IN_CNT">
+                    <Access>
+                        <Register Name="RQP_PRP_DEBUG_COUNTERSr">
+                            <HwField Name="PRP_PACKET_IN_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PRP_PACKET_GOOD_UC_CNT">
+                    <Access>
+                        <Register Name="RQP_PRP_DEBUG_COUNTERSr">
+                            <HwField Name="PRP_PACKET_GOOD_UC_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PRP_PACKET_GOOD_MC_CNT">
+                    <Access>
+                        <Register Name="RQP_PRP_DEBUG_COUNTERSr">
+                            <HwField Name="PRP_PACKET_GOOD_MC_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="PRP_PACKET_GOOD_TDM_CNT">
+                    <Access>
+                        <Register Name="RQP_PRP_DEBUG_COUNTERSr">
+                            <HwField Name="PRP_PACKET_GOOD_TDM_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PRP_PACKET_DISCARD_UC_CNT">
+                    <Access>
+                        <Register Name="RQP_PRP_DEBUG_COUNTERSr">
+                            <HwField Name="PRP_PACKET_DISCARD_UC_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PRP_PACKET_DISCARD_MC_CNT">
+                    <Access>
+                        <Register Name="RQP_PRP_DEBUG_COUNTERSr">
+                            <HwField Name="PRP_PACKET_DISCARD_MC_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="PRP_PACKET_DISCARD_TDM_CNT">
+                    <Access>
+                        <Register Name="RQP_PRP_DEBUG_COUNTERSr">
+                            <HwField Name="PRP_PACKET_DISCARD_TDM_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PRP_SOP_DISCARD_UC_CNT">
+                    <Access>
+                        <Register Name="RQP_PRP_DEBUG_COUNTERSr">
+                            <HwField Name="PRP_SOP_DISCARD_UC_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PRP_SOP_DISCARD_MC_CNT">
+                    <Access>
+                        <Register Name="RQP_PRP_DEBUG_COUNTERSr">
+                            <HwField Name="PRP_SOP_DISCARD_MC_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="PRP_SOP_DISCARD_TDM_CNT">
+                    <Access>
+                        <Register Name="RQP_PRP_DEBUG_COUNTERSr">
+                            <HwField Name="PRP_SOP_DISCARD_TDM_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="PRP_TDM_BYPASS_PACKET_CNT">
+                    <Access>
+                        <Register Name="RQP_PRP_DEBUG_COUNTERSr">
+                            <HwField Name="PRP_TDM_BYPASS_PACKET_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGQ_EPNI_COUNTER">
+        <OneLineDescription>Configure the programmable counter in EPNI block</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="COUNT_BYTES" Type="BOOL"/>
+                <Field Name="Q_VAL" Size="DNX_DATA.egr_queuing.params.nof_bits_in_q_pair" Type="UINT"/>
+                <Field Name="Q_MASK" Size="DNX_DATA.egr_queuing.params.nof_bits_in_q_pair" Type="UINT"/>
+                <Field Name="IF_VAL" Size="DNX_DATA.egr_queuing.params.nof_bits_in_egr_interface" Type="UINT"/>
+                <Field Name="IF_MASK" Size="DNX_DATA.egr_queuing.params.nof_bits_in_egr_interface" Type="UINT"/>
+                <Field Name="MIRR_PRIO_VAL" Size="2" Type="UINT"/>
+                <Field Name="MIRR_PRIO_MASK" Size="2" Type="UINT"/>
+                <Field Name="MIRR_ADD_ORIG_HEADER_VAL" Size="1" Type="UINT"/>
+                <Field Name="MIRR_ADD_ORIG_HEADER_MASK" Size="1" Type="UINT"/>
+                <Field Name="Q_CNT" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Name="IFC_CNT" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Name="MIRR_CNT" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Name="DISC_CNT" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Name="FRWD_DISC_CNT" Permission="READONLY" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ETM EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="COUNT_BYTES">
+                    <Access>
+                        <Register Name="EPNI_EPNI_CNT_CFGr">
+                            <HwField Name="COUNT_BYTESf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="Q_VAL">
+                    <Access>
+                        <Register Name="EPNI_EPNI_CNT_CFGr">
+                            <HwField Name="Q_TO_CHECK_BWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="Q_MASK">
+                    <Access>
+                        <Register Name="EPNI_EPNI_CNT_CFGr">
+                            <HwField Name="MASK_Q_TO_CHECK_BWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IF_VAL">
+                    <Access>
+                        <Register Name="EPNI_EPNI_CNT_CFGr">
+                            <HwField Name="IFC_TO_CHECK_BWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IF_MASK">
+                    <Access>
+                        <Register Name="EPNI_EPNI_CNT_CFGr">
+                            <HwField Name="MASK_IFC_TO_CHECK_BWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MIRR_PRIO_VAL">
+                    <Access>
+                        <Register Name="EPNI_EPNI_CNT_CFGr">
+                            <HwField Name="MIRR_PRIO_TO_CHECK_BWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MIRR_PRIO_MASK">
+                    <Access>
+                        <Register Name="EPNI_EPNI_CNT_CFGr">
+                            <HwField Name="MASK_MIRR_PRIO_TO_CHECK_BWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MIRR_ADD_ORIG_HEADER_VAL">
+                    <Access>
+                        <Register Name="EPNI_EPNI_CNT_CFGr">
+                            <HwField Name="MIRR_ADD_ORIG_HEADER_TO_CHECK_BWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MIRR_ADD_ORIG_HEADER_MASK">
+                    <Access>
+                        <Register Name="EPNI_EPNI_CNT_CFGr">
+                            <HwField Name="MASK_ADD_ORIG_HEADER_TO_CHECK_BWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="Q_CNT">
+                    <Access>
+                        <Register Name="EPNI_EPNI_Q_CNTr">
+                            <HwField Name="EPNI_Q_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IFC_CNT">
+                    <Access>
+                        <Register Name="EPNI_EPNI_IFC_CNTr">
+                            <HwField Name="EPNI_IFC_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MIRR_CNT">
+                    <Access>
+                        <Register Name="EPNI_EPNI_MIRR_CNTr">
+                            <HwField Name="EPNI_MIRR_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DISC_CNT">
+                    <Access>
+                        <Register Name="EPNI_EPNI_DISC_CNTr">
+                            <HwField Name="EPNI_DISC_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FRWD_DISC_CNT">
+                    <Access>
+                        <Register Name="EPNI_EPNI_FRWD_DISC_CNTr">
+                            <HwField Name="EPNI_FRWD_DISC_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>   
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="EGQ_RATE_MEASUREMENT_IF_CONFIG" Valid="DNX_DATA.egr_queuing.rate_measurement.is_supported"> 
+        <OneLineDescription>Egress rate measurement configuration per EGQ interface id</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="EGQ_IF"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="number of bytes per 0.1%  of port rate" Name="RATE_PROMILE" Size="24" Type="UINT"/>
+                <Field Description="represent the number of times the counter is updated" Name="GRANULARITY" Size="3" Type="UINT"/>
+                <Field Description="Compensation for NIF changes in packet size" Name="COMPENSATION_ABS" Size="5" Type="UINT"/>
+                <Field Description="Set the sign for compensation value. if set, compensation is negative" Name="COMPENSATION_SIGN" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="COMPENSATION_ABS">
+                    <Access>
+                        <Memory Name="FQP_PHANTOM_QS_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)"/>                        
+                            <HwField Name="NIF_DC_COMPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="COMPENSATION_SIGN">
+                    <Access>
+                        <Memory Name="FQP_PHANTOM_QS_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)"/>                        
+                            <HwField Name="NIF_DC_COMPf"/>
+                            <DataOffset Formula="5"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RATE_PROMILE">
+                    <Access>
+                        <Memory Name="FQP_PHANTOM_QS_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)"/>                        
+                            <HwField Name="PORT_PROMILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="GRANULARITY">
+                    <Access>
+                        <Memory Name="FQP_PHANTOM_QS_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_IF)"/>                        
+                            <HwField Name="PORT_GRANULARITYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="EGQ_RATE_MEASUREMENT_GLOBAL" Valid="DNX_DATA.egr_queuing.rate_measurement.is_supported"> 
+        <OneLineDescription>Egress rate measurement global configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Interval [clocks] for egress rate measurement" Name="INTERVAL" Size="27" Type="UINT"/>
+                <Field Description="When calculating the rate in a given interval, it's possible to give the previous interval measured rate a weight according to the following scheme:                     W=0: Rate = Current-Rate                       W=1: Rate = 1/2xCurrent-Rate + 1/2xPrev-Rate                         W=2: Rate = 1/4xCurrent-Rate + 3/4xPrev-Rate                       W=3: Rate = 1/8xCurrent-Rate + 7/8xPrev-Rate" Name="RATE_WEIGHT" Type="EGRESS_RATE_WEIGHT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="INTERVAL">
+                    <Access>
+                        <Register Name="FQP_PHANTOM_QS_CFGr">
+                            <HwField Name="PHANTOM_SAMPLING_INTERVALf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RATE_WEIGHT">
+                    <Access>
+                        <Register Name="FQP_PHANTOM_QS_CFGr">
+                            <HwField Name="PHANTOM_RATE_WEIGHTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="EGQ_RATE_MEASUREMENT_COUNTER" Valid="DNX_DATA.egr_queuing.rate_measurement.is_supported"> 
+        <OneLineDescription>Select EGQ IF to get its rate measurement</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Select EGQ IF to get its rate." Name="EGQ_IF"/>
+                <Field Description="rate for the specified EGQ IF. in promile units" Name="PROMILE_RATE" Permission="READONLY" Size="10" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="EGQ_IF">
+                    <Access>
+                        <Register Name="FQP_PHANTOM_QS_DEBUGr">
+                            <HwField Name="PHANTOM_IFC_NUMf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PROMILE_RATE">
+                    <Access>
+                        <Register Name="FQP_PHANTOM_QS_DEBUGr">
+                            <HwField Name="PHANTOM_RATEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    
+    <AppDB Name="EGQ_PHANTOM_QUEUES_IF_CONFIG" Valid="DNX_DATA.egr_queuing.rate_measurement.is_supported"> 
+        <OneLineDescription>Egress phantom queues configuration per EGQ interface id</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="EGQ_IF"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Enable phantom queues for the EGQ if" Name="ENABLE_PHANTOM_QUEUE" Type="BOOL_INV"/>
+                <Field Description="threshold profile the EGQ IF is mapped to." Name="THRESHOLD_PROFILE" Size="2" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="ENABLE_PHANTOM_QUEUE">
+                    <Access>
+                        <Register Name="FQP_PHANTOM_QS_PER_IFC_DISABLEr">
+                            <DataOffset Formula="#KEY_VALUE(EGQ_IF)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="THRESHOLD_PROFILE">
+                    <Access>
+                        <Register Name="FQP_PHANTOM_QS_PER_IFC_PROFILEr">
+                            <DataOffset Formula="#KEY_VALUE(EGQ_IF)*2"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="EGQ_PHANTOM_QUEUES_THRESHOLDS" Valid="DNX_DATA.egr_queuing.rate_measurement.is_supported"> 
+        <OneLineDescription>Egress phantom queues configuration per EGQ interface id</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Description="threshold profile the EGQ IF is mapped to." Name="THRESHOLD_PROFILE" Size="2" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="threshold value (in promile)." Name="THRESHOLD_VALUE" Size="10" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="THRESHOLD_VALUE">
+                    <Access>
+                        <Register Name="FQP_PHANTOM_QS_CFGr">
+                            <DataOffset Formula="27+#KEY_VALUE(THRESHOLD_PROFILE)*10"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="EGQ_PHANTOM_QUEUES_GLOBAL_CONFIGURATION" Valid="DNX_DATA.egr_queuing.rate_measurement.is_supported"> 
+        <OneLineDescription>Egress phantom queues configuration per EGQ interface id</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="If set, phantom queues congestion indication can set FTMH CNI bit." Name="ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="ETPPC_CFG_PHANTOM_QUEUES_ENABLEr">
+                            <HwField Name="CFG_PHANTOM_QUEUES_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="EGQ_PQP_ALMOST_EMPTY"> 
+        <OneLineDescription>Egress phantom queues configuration per EGQ interface id</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="QUEUE_ALMOST_EMPTY_TH" Size="5" Type="UINT"/>                
+                <Field Name="PORT_ALMOST_EMPTY_TH" Size="5" Type="UINT"/>
+                <Field Name="IFC_ALMOST_EMPTY_TH" Size="5" Type="UINT"/>                
+            </Result>
+            <TableLabels>J2P_NOTREV EGQ</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="QUEUE_ALMOST_EMPTY_TH">
+                    <Access>
+                        <Register Name="PQP_REG_0108r">
+                            <HwField Name="FIELD_0_4f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PORT_ALMOST_EMPTY_TH">
+                    <Access>
+                        <Register Name="PQP_REG_0108r">
+                            <HwField Name="FIELD_5_9f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IFC_ALMOST_EMPTY_TH">
+                    <Access>
+                        <Register Name="PQP_REG_0108r">
+                            <HwField Name="FIELD_10_14f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2P_A0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="QUEUE_ALMOST_EMPTY_TH">
+                    <Access>
+                        <Register Name="PQP_REG_010Br">
+                            <HwField Name="FIELD_0_4f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PORT_ALMOST_EMPTY_TH">
+                    <Access>
+                        <Register Name="PQP_REG_010Br">
+                            <HwField Name="FIELD_5_9f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IFC_ALMOST_EMPTY_TH">
+                    <Access>
+                        <Register Name="PQP_REG_010Br">
+                            <HwField Name="FIELD_10_14f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

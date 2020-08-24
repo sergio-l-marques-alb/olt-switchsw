@@ -1,0 +1,108 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="sat" bsl_flag="BSL_LS_BCMDNX_SAT">
+    <sub_module name="general" doc="SAT general data">
+
+        <features>
+        </features>
+
+        <defines>
+             <define labels="j2p_notrev" name="granularity" doc="granularity (64kbits per sec)"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="generator" doc="SAT gtf data"> 
+
+        <features>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="nof_evc_ids" doc="Number of EVC IDs"></define>
+            <define labels="j2p_notrev" name="nof_gtf_ids" doc="Number of GTF IDs"></define>
+            <define labels="j2p_notrev" name="gtf_pkt_header_max_length" doc="SAT GTF packet header max length"></define>
+            <define labels="j2p_notrev" name="gtf_pkt_length_max_patn" doc="SAT GTF packet length max pattern"></define>
+            <define labels="j2p_notrev" name="gtf_max_seq_period" doc="SAT GTF max sequence period"></define>
+            <define labels="j2p_notrev" name="gtf_stamp_max_inc_step" doc="SAT GTF stamp max increment step"></define>
+            <define labels="j2p_notrev" name="gtf_stamp_max_inc_period" doc="SAT GTF stamp max increment period"></define>
+            <define labels="j2p_notrev" name="gtf_bw_max_value" doc="GTF bandwidth max value"></define>
+            <define labels="j2p_notrev" name="gtf_rate_max" doc="GTF max rate"></define>
+            <define labels="j2p_notrev" name="gtf_pps_rate_max" doc="GTF max pps rate"></define>
+            <define labels="j2p_notrev" name="gtf_pkt_header_entries" doc="Gtf packet header entries"></define>
+            <define labels="j2p_notrev" name="gtf_pkt_header_length" doc="gtf packet header length"></define>
+            <define labels="j2p_notrev" name="gtf_pkt_len_patten_size" doc="Packet length pattern size"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+    <sub_module name="collector" doc="SAT ctf data">
+
+        <features>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="nof_ctf_ids" doc="Number of CTF IDs"></define>
+            <define labels="j2p_notrev" name="nof_oam_ids" doc="Number of OAM IDs"></define>
+            <define labels="j2p_notrev" name="mef_payload_offset" doc="SAT MEF payload offset"></define>
+            <define labels="j2p_notrev" name="mef_seq_num_offset" doc="SAT MEF seq num offset"></define>
+            <define labels="j2p_notrev" name="mef_time_stamp_offset" doc="SAT MEF time stamp offset"></define>
+            <define labels="j2p_notrev" name="mef_crc_byte_offset" doc="SAT MEF crc byte offset"></define>
+            <define labels="j2p_notrev" name="y1731_payload_offset" doc="SAT Y1731 payload offset"></define>
+            <define labels="j2p_notrev" name="y1731_seq_num_offset" doc="SAT Y1731 seq num offset"></define>
+            <define labels="j2p_notrev" name="y1731_time_stamp_offset" doc="SAT Y1731 time stamp offset"></define>
+            <define labels="j2p_notrev" name="y1731_crc_byte_offset" doc="SAT Y1731 crc byte offset"></define>
+            <define labels="j2p_notrev" name="ctf_bins_limit_entries" doc="ctf bins limit entries" ></define>
+            <define labels="j2p_notrev" name="trap_id_entries" doc="Trap id entries" ></define>
+            <define labels="j2p_notrev" name="trap_data_entries" doc="Trap data entries"></define>
+
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+    <sub_module name="rx_flow_param" doc="SAT rx flow param">
+        <features>
+           <feature labels="j2p_notrev" name="natural_id" doc="indicate if the rx flow param table index is natural id or odd/even id"></feature>
+           <feature labels="j2p_notrev" name="odd_even_id" doc="indicate if the rx flow param table index is natural id or odd/even id"></feature>
+           <feature labels="j2p_notrev" name="twamp_mode" doc="indicate if TWAMP modei enable."></feature>
+           <feature labels="j2p_notrev" name="twamp_rx_time_stamp" doc="indicate if TWAMP RX time stamp enable."></feature>
+        </features>
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+        <sub_module name="tx_flow_param" doc="SAT tx param">
+        <features>
+           <feature labels="j2p_notrev" name="seq_number_wrap_around" doc=" SEQ number wrap-around "></feature>
+        </features>
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+    
+</device_data>
+
+
+
+

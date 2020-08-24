@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+
+<!-- This XML file is for 88822 SKU Dynamic DNX DATA -->
+<device_data>
+    <module name="device">
+        <sub_module name="general">
+            <features>
+            </features>
+            
+            <defines>
+            </defines > 
+        
+            <numerics>
+                <numeric name="device_id" value="0x8822"></numeric> 
+            </numerics>
+
+            <tables>
+            </tables>
+        </sub_module>
+    </module>
+
+
+</device_data>

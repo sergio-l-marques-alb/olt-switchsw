@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0" module="dbal">
+    <includes>
+        <include>soc/dnx/dbal/dbal.h</include>
+    </includes>
+
+    <sub_module name="diag">
+        <tables>
+            <table name="loggerInfo">
+                <value name="file_name" default="NULL">
+                    <property name="custom_feature" method="suffix_str" suffix="logger_file_name">
+                        <doc>
+                          Dbal logger output file, if NULL log will not dump to file
+                        </doc>
+                    </property>
+                </value>
+            </table>
+        </tables> 
+    </sub_module>
+
+    <sub_module name="db_init">
+        <features>
+             <feature name="invalid_feature_example" value="1"></feature>
+        </features>
+    </sub_module>
+
+    <sub_module name="table">
+        <defines>
+            <define name = "nof_dynamic_tables"                         value="100"></define>
+        </defines>
+        <defines>
+            <define name = "nof_dynamic_xml_tables"                         value="100"></define>
+        </defines>        
+        <defines>
+            <define name = "nof_dynamic_tables_labels"                  value="10"></define>
+        </defines>
+        <defines>
+            <define name = "nof_dynamic_tables_key_fields"              value="35"></define>
+        </defines>
+        <defines>
+            <define name = "nof_dynamic_tables_result_fields"           value="50"></define>
+        </defines>
+        <defines>
+            <define name = "nof_dynamic_tables_multi_result_types"      value="1"></define>
+        </defines>
+        <defines>
+            <define name = "nof_dynamic_tables_ppmc_multi_result_types" value="20"></define>
+        </defines>
+        
+        <numerics>
+             <numeric name = "nof_dynamic_and_static_tables"            value="DBAL_NOF_TABLES+100"></numeric>
+        </numerics>
+    </sub_module>
+    
+    <sub_module name="hw_ent">
+        <numerics>
+            <numeric name = "nof_direct_maps"                         value="DBAL_NOF_TABLES * DBAL_MAX_NUMBER_OF_HW_ELEMENTS"></numeric>
+            <numeric name = "nof_groups_maps"                         value="DBAL_NOF_TABLES * DBAL_MAX_NUMBER_OF_HW_ELEMENTS"></numeric>
+        </numerics>        
+
+    </sub_module>
+</device_data>

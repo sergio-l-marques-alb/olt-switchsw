@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+
+<device_data lib="dnx_data" module="multicast" bsl_flag="BSL_LS_BCMDNX_MULTICAST">
+    <includes>
+    </includes>
+    <sub_module name="params" doc="values for different multicast groups">
+        <numerics>
+            <numeric labels="j2p_notrev" name="max_ing_mc_groups" signed="1" doc="maximum ingress multicast groups id"></numeric>
+            <numeric labels="j2p_notrev" name="max_egr_mc_groups" signed="1" doc="maximum egress multicast groups id"></numeric>
+            <numeric labels="j2p_notrev" name="nof_ing_mc_bitmaps" doc="number of multicast bitmap groups ids"></numeric>
+            <numeric labels="j2p_notrev" name="nof_egr_mc_bitmaps" doc="number of multicast bitmap groups ids"></numeric>
+            <numeric labels="j2p_notrev" name="mcdb_allocation_method" doc="The method of mcdb allocation"></numeric>
+            <numeric labels="j2p_notrev" name="nof_mcdb_entries_bits" doc="number of multicast entries in bits"></numeric>
+
+        </numerics>
+        <defines>
+            <define labels="j2p_notrev" name="mcdb_block_size" doc="number of multicast entries in block"></define>
+            <define labels="j2p_notrev" name="nof_mcdb_entries" doc="number of multicast entries"></define>
+        </defines>
+    </sub_module>
+</device_data>
+
+
+
+
+

@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL GPM SW state:
+    This xml contains the sw staate logical DB for the DBAL.
+    ******************************************************
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../sw_state_schema.xsd">
+
+    <AppDB Name="OAM_ENDPOINT_INFO_SW">
+        <OneLineDescription>sw state info for existing OAM endpoints</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="OAM_ENDPOINT_ID"/>
+            </Key>
+            <Result>
+                <Field Name="OAM_ENDPOINT_SW_STATE_FLAGS" Size="32" Description="Convergence of all flags of the endpoint (FLAGS,FLAGS2,OPCODE_FLAGS,LM_FLAGS)- defined in field_types_definition.xml"/>
+                <Field Name="TYPE" Type="UINT" Size="8" Description="Endpoint type (ETH / MPLS / PWE)- as defined in bcm_oam_endpoint_type_t"/>
+                <Field Name="OAM_GROUP_ID" Size="32" Description="Endpoint group ID"/>
+                <Field Name="MDL" Size="3" Description="Endpoint MDL"/>
+                <Field Name="GPORT" Size="32" Description="Endpoint Gport"/>
+                <Field Name="LM_COUNTER_BASE_IDX" Type="COUNTER_BASE" Description="Endpoint counter pointer"/>
+                <Field Name="LM_COUNTER_IF" Type="COUNTER_IF" Description="Endpoint counter interface"/>
+                <Field Name="MPLS_OUT_GPORT" Type="GPORT" Size="32" Description="Endpoint out Gport for MPLS MEPs"/>
+                <Field Name="SERVER_TRAP" Type="UINT" Size="32" Description="Local trap for server configuration"/>
+                <Field Name="TCAM_INDEX" Type="UINT" Size="8" Description="Index of the server trap TCAM entry"/>
+                <Field Name="EXTRA_DATA_INDEX" Type="UINT" Size="16" Description="Index of extra data header entry"/>
+                <Field Name="EXTRA_DATA_LENGTH" Type="UINT" Size="8" Description="Number of extra data entries"/>
+                <Field Name="RX_SIGNAL" Type="UINT" Size="1" Description="Rx Signal Degradation expectation(for MPLS Section mode only)"/>
+                <Field Name="TX_SIGNAL" Type="UINT" Size="1" Description="Tx Signal Degradation(for MPLS Section mode only)"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <TableProperties Size="PHYDB.IOEM1"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="OAM_LIF_INFO_SW">
+        <OneLineDescription>sw state info for existing OAM LIFs</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="OAM_LIF" Size="22"/>
+                <Field Name="IS_INGRESS" Type="BOOL" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="MP_PROFILE" Size="4" Description="Action profile-defines action set for OAM-LIF"/>
+                <Field Name="OAM_ENDPOINT_ID" NofInstances="8" Description="Endpoint ID of a MEP with level n"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <TableProperties Size="PHYDB.IOEM1"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+     
+    <AppDB Name="OAM_GROUP_INFO_SW">
+        <OneLineDescription>sw state info for existing OAM groups</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="EM">
+            <Key>
+                 <Field Name="OAM_GROUP_ID" Size="32"/>
+            </Key>
+            <Result>
+                <Field Name="FLAGS" Type="UINT" Size="32" Description="OAM group Flags- BCM_OAM_GROUP_XXX"/>
+                <Field Name="NAME" Type="OAM_MAID" Size="384" Description="MAID"/>
+                <Field Name="RX_NAME" Type="OAM_MAID" Size="384" Description="Remote MAID relevant only for asymmetric sessions - BCM_OAM_GROUP_RX_NAME flag is set"/>
+                <Field Name="RX_CRC" Type="UINT" Size="16" Description="16 bit CRC used for MAID verification"/>
+                <Field Name="GROUP_NAME_INDEX" Type="UINT" Size="32" Description="Index of entry of group maid name in MEP DB table"/>
+             </Result>
+             <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>            
+            <TableProperties Size="PHYDB.IOEM1"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OAM_REMOTE_ENDPOINT_INFO_SW">
+        <OneLineDescription>sw state info for existing remote OAM endpoints</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="RMEP_INDEX"/>
+            </Key>
+            <Result>
+                <Field Name="RMEP_ID" Type="UINT" Size="16" Description="MEP ID in the packet from remote"/>
+                <Field Name="OAM_ID" Description="LOCAL MEP ID associated with the remote endpoint"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <TableProperties Size="DNX_DATA.oam.oamp.oamp_nof_scan_rmep_db_entries"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OAM_MEP_TST_TX_INFO_SW">
+        <OneLineDescription>sw state info for mep tst tx info</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="OAM_ENDPOINT_ID"/>
+            </Key>
+            <Result>
+                <Field Name="TST_TX_SW_STATE_FLAGS"  Type="UINT" Size="32" Description="Convergence of all flags of the lb/tst"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <TableProperties Size="DNX_DATA.oam.oamp.oamp_nof_scan_rmep_db_entries"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OAM_MEP_TST_GTF_INFO_SW">
+        <OneLineDescription>sw state info for mep tst tx gtf info</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="TX_FLOW_ID" Type="UINT" Size="6"/>
+            </Key>
+            <Result>
+                <Field Name="GTF_INFO_FLAGS" Type="UINT" Size="32" Description="flags of the lb/tst"/>
+                <Field Name="LB_TST_MEP_ID" Type="UINT" Size="16" Description="Endpoint ID of Local MEP"/>
+                <Field Name="LB_TLV_NUM" Type="UINT" Size="32" Description="Tlv for lb tst"/>
+                <Field Name="TLV_TYPE" Type="UINT" Size="32" Description="tlv type"/>
+                <Field Name="TLV_LENGTH" Type="UINT" Size="32" Description="tlv length"/>
+                <Field Name="TLV_PATTERN" Type="UINT" Size="32" Description="tlv pattern"/>
+                <Field Name="PKT_PRI" Type="UINT" Size="32" Description="Optional priority value to be set on Ethernet outer/sole VLAN tag PDP and DEI fields"/>
+                <Field Name="INNER_PKT_PRI" Type="UINT" Size="32" Description="Optional priority value to be set on Ethernet inner VLAN tag PDP and DEI fields"/>
+                <Field Name="INT_PRI" Type="UINT" Size="32" Description="Optional priority fields on ITMH header"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <TableProperties Size="DNX_DATA.sat.generator.nof_gtf_ids"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OAM_MEP_TST_CTF_INFO_SW">
+        <OneLineDescription>sw state info for mep tst tx ctf info</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="RX_FLOW_ID" Type="UINT" Size="8"/>
+            </Key>
+            <Result>
+                <Field Name="CTF_INFO_FLAGS" Type="UINT" Size="32" Description="flags of the lb/tst"/>
+                <Field Name="LB_TST_MEP_ID" Type="UINT" Size="16" Description="Endpoint ID of Local MEP"/>
+                <Field Name="TC"     Description="Class of service of identifier"/>
+                <Field Name="COLOR" Type="UINT"  Description="Color of identifier"/>
+                <Field Name="TRAP_ID" Type="UINT" Size="32" Description="Trap_id of identifier"/>
+                <Field Name="SESSION_MAP_FLAG" Type="UINT" Size="32" Description="Session map flag"/>
+                <Field Name="CTF_SESSION_ID" Type="UINT" Size="32" Description="SAT Session id"/>
+                <Field Name="LB_TLV_NUM" Type="UINT" Size="32" Description="Tlv for lb tst"/>
+                <Field Name="TLV_TYPE" Type="UINT" Size="32" Description="tlv type"/>
+                <Field Name="TLV_LENGTH" Type="UINT" Size="32" Description="tlv length"/>
+                <Field Name="TLV_PATTERN" Type="UINT" Size="32" Description="tlv pattern"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <TableProperties Size="DNX_DATA.sat.collector.nof_ctf_ids"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OAMP_PE_PROFILE_SW">
+        <OneLineDescription>sw state info connecting MEP_PE_PROFILE to their alternate naming</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="MEP_PE_PROFILE_SW"/>
+            </Key>
+            <Result>
+                <Field Name="MEP_PE_PROFILE"/>
+                <Field Name="VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OAMP_PE_PROGRAM_SW_HW2ENUM">
+        <OneLineDescription>sw state info connecting PROGRAM allocated id to enum</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OAMP_PE_PROGRAM"/>
+            </Key>
+            <Result>
+                <Field Name="OAMP_PE_PROGRAM_ENUM"/>
+                <Field Name="VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OAMP_PE_PROGRAM_SW_ENUM2HW">
+        <OneLineDescription>sw state info connecting PROGRAM enum to allocated id</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OAMP_PE_PROGRAM_ENUM"/>
+            </Key>
+            <Result>
+                <Field Name="OAMP_PE_PROGRAM"/>
+                <Field Name="VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OAMP_PE_TCAM_SW">
+        <OneLineDescription>sw state info connecting TCAM allocated id to enum</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="OAMP_PE_PROG_TCAM_ID" Type="UINT" Size="6"/>
+            </Key>
+            <Result>
+                <Field Name="OAMP_PE_PROG_TCAM_ENUM"/>
+                <Field Name="VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <TableProperties Size="64"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OAM_LIF_ACC_MP_PROFILE_INFO_SW">
+        <OneLineDescription>sw state bitmap for accelerated lm profile indication</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="IS_INGRESS" Type="BOOL" Size="1"/>
+                <Field Name="MP_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="LM_MODE" Description="Single-Ended or Dual-Ended LM profile indication"/>
+                <Field Name="DM_MODE" Description="DM 1588 or NTP time format indication"/>
+                <Field Name="IS_OAM_SECTION" Description="OAM Section indication"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OAM_LIF_NON_ACC_MP_PROFILE_INFO_SW">
+        <OneLineDescription>sw state bitmap for non-accelereated slm profile indication</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="IS_INGRESS" Type="BOOL" Size="1"/>
+                <Field Name="MP_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="LM_MODE" Description="LM or SLM profile indication"/>
+                <Field Name="DM_MODE" Description="DM 1588 or NTP time format indication"/>
+                <Field Name="IS_OAM_SECTION" Description="OAM Section indication"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OAM_ERROR_CODE_FROM_TRAP_ID_SW">
+        <OneLineDescription>sw state trap ID lookup by error code</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                 <Field Name="TRAP_ID" Description="User provided trap ID" Size="9" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="OAMP_ERROR_TYPE"/>
+                <Field Name="IS_PROTECTION" Description="If true, error code is irrelevant" Type="BOOL"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

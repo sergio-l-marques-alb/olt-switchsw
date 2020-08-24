@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2c_a0" module="lif">
+    <sub_module name="global_lif">
+        <features>
+            <feature name="prevent_tunnel_update_rif" value="1"></feature>
+        </features>
+       <defines>
+            <define name="glem_rif_optimization_enabled" value="1"></define>
+            <define name="wa_null_lif" value="0"></define>
+        </defines > 
+
+        <numerics>
+             <numeric name="egress_in_lif_null_value" value="0x0">
+                <property name="system_headers_mode" method="direct_map">
+                    <map name="0" value="0x0"></map>
+                    <map name="1" value="0x0"></map>
+                    <doc>IN_LIF null value in egress stage</doc>
+                </property>
+            </numeric>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>

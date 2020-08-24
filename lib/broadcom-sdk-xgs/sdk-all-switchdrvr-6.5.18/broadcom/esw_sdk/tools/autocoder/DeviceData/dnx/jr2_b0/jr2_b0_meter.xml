@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_b0"  module="meter">
+
+    <sub_module name="diag">
+        <features>
+            <feature name="rate_measurements_support" value="0"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+</device_data>
+

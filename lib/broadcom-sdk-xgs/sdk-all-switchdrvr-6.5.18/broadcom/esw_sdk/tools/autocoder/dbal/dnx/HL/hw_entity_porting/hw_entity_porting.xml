@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    this file represents how to modify registers and memories between devices
+-->
+
+<HwMapping xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="hw_entity_porting.xsd">
+
+<!-- J2B0 mappings -->
+    <!-- FIXME: SDK-156382 -->
+    <Mapping Type="MEM" Device="JR2_B0">
+        <OneLineDescription>dummy porting</OneLineDescription>
+        <Memories>
+            <Memory Name="INVALIDm" MapTo="INVALIDm"/>
+        </Memories>
+    </Mapping>
+
+<!-- J2C and Q2A mappings -->
+
+    <Mapping Type="MEM" Device="J2C_A0 Q2A_A0 Q2A_B0">
+        <OneLineDescription>mapping for JR2 memories to J2C/Q2A</OneLineDescription>
+        <Memories>
+            <Memory Name="IPPA_MAP_PORT_TO_MEMBERSHIP_IF_VECm" MapTo="IPPA_MAP_PORT_TO_MEMBERSHIP_IF_1m"/>
+	    <Memory Name="IPPF_MAP_PORT_TO_MEMBERSHIP_IF_VECm" MapTo="IPPF_MAP_PORT_TO_MEMBERSHIP_IFm"/>
+	    <Memory Name="IPPA_VLAN_MEMBERSHIP_IF_ATTRm" MapTo="IPPA_VLAN_MEMBERSHIP_IF_ATTR_1m"/>
+	    <Memory Name="IPPA_VD_TO_VLAN_CLASSIFICATION_PROFILEm" MapTo="IPPA_VD_TO_VLAN_CLASSIFICATION_PROFILE_1m"/>
+	    <Memory Name="ERPP_PER_PORT_TABLEm" MapTo="ERPP_PER_PP_PORT_TABLEm"/>
+        </Memories>
+    </Mapping>
+<!-- Q2A mappings -->
+    <Mapping Type="MEM" Device="Q2A_A0 Q2A_B0">
+        <OneLineDescription>Mapping for JR2 memories to Q2A</OneLineDescription>
+        <Memories>
+            <Memory Name="MTM_MCDB_FORMAT_J_2C_BIER_EGR_INFOm" MapTo="MTM_MCDB_FORMAT_J_2_C_BIER_EGR_INFOm"/>
+            <Memory Name="MTM_MCDB_FORMAT_J_2C_TDMm" MapTo="MTM_MCDB_FORMAT_J_2_C_TDMm"/>
+            <Memory Name="MTM_MCDB_FORMAT_J_2C_BITMAPm" MapTo="MTM_MCDB_FORMAT_J_2_C_BITMAPm"/>
+            <Memory Name="CFC_NIF_PFC_MAPm" MapTo="CFC_NIF_ETH_RX_PFC_MAPm"/>
+            <Memory Name="CFC_ILKN_PP_RX_4_CALm" MapTo="CFC_PP_RX_4_CALm"/>
+            <Memory Name="CGM_MEMBER_TO_DSP_MAPPINGm" MapTo="CGM_LAG_MAPPINGm"/>
+        </Memories>
+    </Mapping>
+    <Mapping Type="REG" Device="Q2A_A0 Q2A_B0"> 
+        <OneLineDescription>Mapping for JR2 registers to Q2A </OneLineDescription>
+        <Registers>
+            <Register Name="IPPD_IN_LIF_PROFILE_MAPr" MapTo="IPPD_JR_2_TO_JR_IN_LIF_PROFILE_MAPr"/>
+        </Registers>
+    </Mapping>
+
+<!-- JR2P mappings -->
+    <Mapping Type="MEM" Device="J2P_A0">
+        <OneLineDescription>Mapping for JR2 memories to JR2P</OneLineDescription>
+        <Memories>
+            <Memory Name="CFC_NIF_PFC_MAPm" MapTo="CFC_NIF_ETH_RX_PFC_MAPm"/>
+            <Memory Name="CFC_ILKN_PP_RX_4_CALm" MapTo="CFC_PP_RX_4_CALm"/>
+        </Memories>
+    </Mapping>
+</HwMapping>
+
+   

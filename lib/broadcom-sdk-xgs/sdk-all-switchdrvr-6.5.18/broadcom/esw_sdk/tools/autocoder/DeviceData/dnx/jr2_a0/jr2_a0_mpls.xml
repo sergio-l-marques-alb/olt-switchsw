@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="mpls">
+
+    <sub_module name="general">
+        
+        <features>
+             <feature name="mpls_term_1_or_2_labels"  value="0"></feature>
+             <feature name="mpls_ioam_d_flag_stamping"  value="0"></feature>
+        </features>
+        
+        <defines>
+            <define name= "nof_mpls_termination_profiles"            value="8"></define>
+            <define name= "nof_mpls_push_profiles"                   value="7"></define>
+            <define name="nof_bits_mpls_label"              value="20"></define>
+            <define name="log_nof_mpls_range_elements"      value="3"></define>
+            <define name="nof_mpls_range_elements"          value="1 &lt;&lt; DATA(mpls, general, log_nof_mpls_range_elements)"></define>
+            <define name="mpls_special_label_encap_handling"                 value="1"></define>
+            <define name="mpls_control_word_supported"                 value="1"></define>
+            <define name="mpls_second_stage_parser_handling"                 value="1"></define>
+            <define name="mpls_control_word_flag_bits_lsb"                 value="4"></define>
+            <define name="fhei_mps_type_nof_bits"                 value="6"></define>
+        </defines>
+
+        <numerics>
+             <numeric name="nof_php_gport_lif" value="0">
+                <property name="system_headers_mode" method="direct_map">
+                    <map name="0" value="128"></map>
+                    <map name="1" value="0"></map>
+                    <doc>NULL</doc><!--  not required - soc property already defined by a different data -->
+<!--                     
+                            The number of global lifs depends on the system headers mode.
+                            0x0 - Jericho-mode - PHP use dedicated LIF range(256 entries)
+                            0x1 - Jericho2-mode - PHP use general LIF range
+                            Default: 0x1.
+-->
+                </property>
+            </numeric>
+        </numerics>
+
+        
+        
+        <tables>
+        </tables>
+         
+    </sub_module>
+</device_data>
+
+
+

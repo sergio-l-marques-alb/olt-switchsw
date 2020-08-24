@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="FIELD_IPMF1_LAST_KEY_INFO">
+        <OneLineDescription>This table provides 160 bit information per key for the last packet.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="4" Name="FIELD_KEY"/>
+            </Key>
+            <Result>
+                <Field Name="LAST_KEY" Permission="READONLY" Size="160" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="LAST_KEY">
+                    <Access>
+                        <KeyCondition Enum="A" Field="FIELD_KEY" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_DBG_LAST_KEY_Ar">
+                            <HwField Name="DBG_LAST_KEY_Af"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="B" Field="FIELD_KEY" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_DBG_LAST_KEY_Br">
+                            <HwField Name="DBG_LAST_KEY_Bf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="C" Field="FIELD_KEY" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_DBG_LAST_KEY_Cr">
+                            <HwField Name="DBG_LAST_KEY_Cf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="D" Field="FIELD_KEY" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_DBG_LAST_KEY_Dr">
+                            <HwField Name="DBG_LAST_KEY_Df"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="E" Field="FIELD_KEY" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_DBG_LAST_KEY_Er">
+                            <HwField Name="DBG_LAST_KEY_Ef"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="FIELD_IPMF2_LAST_KEY_INFO">
+        <OneLineDescription>This table provides 160 bit information per key for the last packet.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MinValue="5" Name="FIELD_KEY"/>
+            </Key>
+            <Result>
+                <Field Name="LAST_KEY" Permission="READONLY" Size="160" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="LAST_KEY">
+                    <Access>
+                        <KeyCondition Enum="F" Field="FIELD_KEY" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_DBG_LAST_KEY_Fr">
+                            <HwField Name="DBG_LAST_KEY_Ff"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="G" Field="FIELD_KEY" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_DBG_LAST_KEY_Gr">
+                            <HwField Name="DBG_LAST_KEY_Gf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="H" Field="FIELD_KEY" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_DBG_LAST_KEY_Hr">
+                            <HwField Name="DBG_LAST_KEY_Hf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="I" Field="FIELD_KEY" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_DBG_LAST_KEY_Ir">
+                            <HwField Name="DBG_LAST_KEY_If"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="J" Field="FIELD_KEY" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_DBG_LAST_KEY_Jr">
+                            <HwField Name="DBG_LAST_KEY_Jf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="FIELD_IPMF3_LAST_KEY_INFO">
+        <OneLineDescription>This table provides 160 bit information per key for the last packet.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="2" Name="FIELD_KEY"/>
+            </Key>
+            <Result>
+                <Field Name="LAST_KEY" Permission="READONLY" Size="160" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="LAST_KEY">
+                    <Access>
+                        <KeyCondition Enum="A" Field="FIELD_KEY" Type="EQUAL_TO"/>
+                        <Register Name="IPPD_DBG_LAST_KEY_Ar">
+                            <HwField Name="DBG_LAST_KEY_Af"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="B" Field="FIELD_KEY" Type="EQUAL_TO"/>
+                        <Register Name="IPPD_DBG_LAST_KEY_Br">
+                            <HwField Name="DBG_LAST_KEY_Bf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="C" Field="FIELD_KEY" Type="EQUAL_TO"/>
+                        <Register Name="IPPD_DBG_LAST_KEY_Cr">
+                            <HwField Name="DBG_LAST_KEY_Cf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FIELD_IPMF2_INITIAL_KEY_CONSTRUCT">
+        <OneLineDescription>This table maps program to initial key for IPMF2.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FIELD_PMF_CTX_ID"/>
+                <Field Name="FIELD_KEY_UPDATE"/>
+            </Key>
+            <Result>
+                <Field Name="KEY_LSB" Type="BOOL"/>
+                <Field Name="KEY_MSB" Type="BOOL"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="KEY_LSB">
+                    <Access>
+                        <KeyCondition Enum="F" Field="FIELD_KEY_UPDATE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPC_PMF_INITIAL_KEY_PASS_2m">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <HwField Name="INITIAL_KEY_F_LSBf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="G" Field="FIELD_KEY_UPDATE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPC_PMF_INITIAL_KEY_PASS_2m">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <HwField Name="INITIAL_KEY_G_LSBf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="H" Field="FIELD_KEY_UPDATE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPC_PMF_INITIAL_KEY_PASS_2m">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <HwField Name="INITIAL_KEY_H_LSBf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="I" Field="FIELD_KEY_UPDATE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPC_PMF_INITIAL_KEY_PASS_2m">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <HwField Name="INITIAL_KEY_I_LSBf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="J" Field="FIELD_KEY_UPDATE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPC_PMF_INITIAL_KEY_PASS_2m">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <HwField Name="INITIAL_KEY_J_LSBf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="KEY_MSB">
+                    <Access>
+                        <KeyCondition Enum="F" Field="FIELD_KEY_UPDATE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPC_PMF_INITIAL_KEY_PASS_2m">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <HwField Name="INITIAL_KEY_F_MSBf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="G" Field="FIELD_KEY_UPDATE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPC_PMF_INITIAL_KEY_PASS_2m">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <HwField Name="INITIAL_KEY_G_MSBf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="H" Field="FIELD_KEY_UPDATE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPC_PMF_INITIAL_KEY_PASS_2m">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <HwField Name="INITIAL_KEY_H_MSBf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="I" Field="FIELD_KEY_UPDATE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPC_PMF_INITIAL_KEY_PASS_2m">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <HwField Name="INITIAL_KEY_I_MSBf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="J" Field="FIELD_KEY_UPDATE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPC_PMF_INITIAL_KEY_PASS_2m">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <HwField Name="INITIAL_KEY_J_MSBf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FIELD_IPMF1_LOOKUP_ENABLER">
+        <OneLineDescription>This table provides lookup enabler per conext per lookup type.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FIELD_PMF_CTX_ID"/>
+                <Field Name="PMF_LOOKUP_TYPE"/>
+            </Key>
+            <Result>
+                <Field Name="ENABLE" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <KeyCondition Enum="TCAM_0" Field="PMF_LOOKUP_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_PER_CONTEXT_LOOKUP_VALID_PASS_1r">
+                            <DataOffset Formula="4*#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TCAM_1" Field="PMF_LOOKUP_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_PER_CONTEXT_LOOKUP_VALID_PASS_1r">
+                            <DataOffset Formula="4*#KEY_VALUE(FIELD_PMF_CTX_ID)+1"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TCAM_2" Field="PMF_LOOKUP_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_PER_CONTEXT_LOOKUP_VALID_PASS_1r">
+                            <DataOffset Formula="4*#KEY_VALUE(FIELD_PMF_CTX_ID)+2"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TCAM_3" Field="PMF_LOOKUP_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_PER_CONTEXT_LOOKUP_VALID_PASS_1r">
+                            <DataOffset Formula="4*#KEY_VALUE(FIELD_PMF_CTX_ID)+3"/>
+                        </Register>
+                    </Access>     
+                    <Access>
+                        <KeyCondition Enum="EXEM" Field="PMF_LOOKUP_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_PER_CONTEXT_LOOKUP_VALID_PASS_1r">
+                            <DataOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)+256"/>
+                        </Register>
+                    </Access>   
+                    <Access>
+                        <KeyCondition Enum="DIRECT" Field="PMF_LOOKUP_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_PER_CONTEXT_LOOKUP_VALID_PASS_1r">
+                            <DataOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)+320"/>
+                        </Register>
+                    </Access> 
+                    <Access>
+                        <KeyCondition Enum="STATE_TABLE" Field="PMF_LOOKUP_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_PER_CONTEXT_LOOKUP_VALID_PASS_1r">
+                            <DataOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)+384"/>
+                        </Register>
+                    </Access>  
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FIELD_IPMF2_LOOKUP_ENABLER">
+        <OneLineDescription>This table provides lookup enabler per conext per lookup type.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FIELD_PMF_CTX_ID"/>
+                <Field Name="PMF_LOOKUP_TYPE"/>
+            </Key>
+            <Result>
+                <Field Name="ENABLE" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <KeyCondition Enum="TCAM_0" Field="PMF_LOOKUP_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_PER_CONTEXT_LOOKUP_VALID_PASS_2r">
+                            <DataOffset Formula="4*#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TCAM_1" Field="PMF_LOOKUP_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_PER_CONTEXT_LOOKUP_VALID_PASS_2r">
+                            <DataOffset Formula="4*#KEY_VALUE(FIELD_PMF_CTX_ID)+1"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TCAM_2" Field="PMF_LOOKUP_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_PER_CONTEXT_LOOKUP_VALID_PASS_2r">
+                            <DataOffset Formula="4*#KEY_VALUE(FIELD_PMF_CTX_ID)+2"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TCAM_3" Field="PMF_LOOKUP_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_PER_CONTEXT_LOOKUP_VALID_PASS_2r">
+                            <DataOffset Formula="4*#KEY_VALUE(FIELD_PMF_CTX_ID)+3"/>
+                        </Register>
+                    </Access>     
+                    <Access>
+                        <KeyCondition Enum="EXEM" Field="PMF_LOOKUP_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_PER_CONTEXT_LOOKUP_VALID_PASS_2r">
+                            <DataOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)+256"/>
+                        </Register>
+                    </Access>   
+                    <Access>
+                        <KeyCondition Enum="DIRECT" Field="PMF_LOOKUP_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_PER_CONTEXT_LOOKUP_VALID_PASS_2r">
+                            <DataOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)+320"/>
+                        </Register>
+                    </Access> 
+                    <Access>
+                        <KeyCondition Enum="STATE_TABLE" Field="PMF_LOOKUP_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_PER_CONTEXT_LOOKUP_VALID_PASS_2r">
+                            <DataOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)+384"/>
+                        </Register>
+                    </Access>  
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FIELD_IPMF3_LOOKUP_ENABLER">
+        <OneLineDescription>This table provides lookup enabler per conext per lookup type.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FIELD_PMF_CTX_ID"/>
+                <Field MaxValue="3" Name="PMF_LOOKUP_TYPE"/>
+            </Key>
+            <Result>
+                <Field Name="ENABLE" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <KeyCondition Enum="TCAM_0" Field="PMF_LOOKUP_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="IPPD_PER_CONTEXT_LOOKUP_VALIDr">
+                            <DataOffset Formula="2*#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TCAM_1" Field="PMF_LOOKUP_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="IPPD_PER_CONTEXT_LOOKUP_VALIDr">
+                            <DataOffset Formula="2*#KEY_VALUE(FIELD_PMF_CTX_ID)+1"/>
+                        </Register>
+                    </Access>    
+                    <Access>
+                        <KeyCondition Enum="EXEM" Field="PMF_LOOKUP_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="IPPD_PER_CONTEXT_LOOKUP_VALIDr">
+                            <DataOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)+128"/>
+                        </Register>
+                    </Access>   
+                    <Access>
+                        <KeyCondition Enum="DIRECT" Field="PMF_LOOKUP_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="IPPD_PER_CONTEXT_LOOKUP_VALIDr">
+                            <DataOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)+192"/>
+                        </Register>
+                    </Access>  
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

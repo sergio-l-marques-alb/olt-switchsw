@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2c_a0"  module="ingress_cs">
+    
+    <sub_module name="hw_workarounds">
+        <features>
+            <feature name="disable_ecc_fix_en_before_read_write" value="0"></feature>
+        </features>
+    </sub_module>
+
+    <sub_module name="parser">
+        <features>
+            <feature name="parsing_context_map_enable" value="1"></feature>
+        </features>
+    </sub_module>    
+    
+</device_data>

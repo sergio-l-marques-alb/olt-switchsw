@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL GPM SW state:
+    This xml contains the sw state logical DB for the DBAL.
+    ******************************************************
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../sw_state_schema.xsd">
+
+    <AppDB Name="QOS_PROFIILE_SW_INFO">
+        <OneLineDescription>sw state info for existing QOS profile infor</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="QOS_PROFILE"/>
+                <Field Name="QOS_INGRESS_APP_TYPE"/>
+            </Key>
+            <Result>
+                <Field Name="QOS_PROFILE_NAME_SPACE" Description="Which name space Ingress QOS profile is working in "/>
+            </Result>
+            <TableLabels>QOS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <TableProperties Size="DNX_DATA.qos.qos.nof_ingress_profiles"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>
+

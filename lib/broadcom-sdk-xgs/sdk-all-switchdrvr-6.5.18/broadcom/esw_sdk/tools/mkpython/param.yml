@@ -1,0 +1,6 @@
+blacklist:
+  - fcoe
+  - ipmc
+  - cpri
+  - srv6
+  - fcmap

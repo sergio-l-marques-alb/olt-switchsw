@@ -1,0 +1,143 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="trap">
+    <includes>
+        <include>bcm_int/dnx/rx/rx_trap.h</include>
+    </includes>
+    <sub_module name="ingress">
+
+        <numerics>
+            <numeric name="protocol_traps_init_mode" value="DNX_RX_TRAP_PROTOCOL_MODE_IN_LIF">
+                <property name="protocol_traps_mode" method="direct_map">
+                    <map name="IN_LIF" value="DNX_RX_TRAP_PROTOCOL_MODE_IN_LIF"></map>
+                    <map name="IN_PORT" value="DNX_RX_TRAP_PROTOCOL_MODE_IN_PORT"></map>
+                    <doc>
+                        Set the initialization property of the protocol trap indexing,
+                        they can be done per:
+                            IN_LIF - Trap profiling address is the IN-LIF
+                            IN_PORT - Trap profiling address is the IN-PORT
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+        
+        <features>
+            <feature name="ndp_trap_en" value="0"></feature>
+            <feature name="trap_in_lif_profile_mapping" value="0"></feature>
+            <feature name="svtag_trap_en" value="0"></feature>
+            <feature name="oam_offset_actions" value="0"></feature>
+            <feature name="snoop_code_clear_action" value="0"></feature>
+            <feature name="mirror_code_clear_action" value="0"></feature>
+            <feature name="stat_sampling_code_clear_action" value="0"></feature>
+        </features>
+
+        <defines> 
+            <define name="protocol_traps_lif_profile_starting_offset" value="0"></define>
+            <define name="nof_predefeind_traps" value="256"></define>
+            <define name="nof_user_defined_traps" value="224"></define>
+            <define name="nof_1588_traps" value="8"></define>
+            <define name="nof_entries_action_table" value="512"></define>
+            <define name="nof_protocol_trap_profiles" value="4"></define>
+            <define name="nof_recycle_cmds" value="16"></define>
+            <define name="nof_programmable_traps" value="8"></define>
+            <define name="nof_lif_traps" value="8"></define>
+            <define name="nof_icmp_compressed_types" value="32"></define>
+            <define name="nof_stat_objs" value="10"></define>
+            <define name="max_nof_stat_objs_to_overwrite" value="2"></define>
+            <define name="nof_error_code_profiles" value="0"></define>  
+            <define name="nof_sci_profiles" value="0"></define>
+            <define name="nof_error_codes" value="0"></define>  
+            <define name="nof_scis" value="0"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+
+   <sub_module name="erpp">
+
+        <features>
+            <feature name="unknown_da_trap_en" value="0"></feature>
+            <feature name="glem_not_found_trap" value="1"></feature>
+            <feature name="ip_4_6_l4_traps_enabled" value="0"></feature>
+        </features>
+        
+        <defines>
+            <define name="nof_erpp_app_traps" value="19"></define>
+            <define name="nof_erpp_forward_profiles" value="8"></define>
+            <define name="nof_erpp_user_configurable_profiles" value="7"></define>
+            <define name="nof_erpp_snif_profiles" value="4"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="etpp">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="nof_etpp_app_traps" value="11"></define>
+            <define name="nof_etpp_user_configurable_profiles" value="4"></define>
+            <define name="nof_etpp_trap_profiles" value="7"></define>
+            <define name="nof_etpp_oam_traps" value="6"></define>
+            <define name="nof_etpp_snif_profiles" value="9"></define>
+            <define name="nof_mtu_profiles" value="8"></define>
+            <define name="nof_etpp_lif_traps" value="4"></define>
+            <define name="max_mtu_value" value="12287"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="strength">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="max_strength" value="15"></define>
+            <define name="max_snp_strength" value="7"></define>
+            <define name="max_ingress_to_egress_compressed_strength" value="7"></define>
+        </defines>
+
+        <numerics>
+            <numeric name="default_trap_strength" value="4">
+                <property name="default_trap_strength" method="range" range_min="0" range_max="15">
+                    <doc>
+                        Default trap strength used when drop / trap packets to CPU.
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="default_snoop_strength" value="1">
+                <property name="default_snoop_strength" method="range" range_min="0" range_max="7">
+                    <doc>
+                        Default snoop strength used when drop / trap packets to CPU.
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+
+</device_data>
+
+
+

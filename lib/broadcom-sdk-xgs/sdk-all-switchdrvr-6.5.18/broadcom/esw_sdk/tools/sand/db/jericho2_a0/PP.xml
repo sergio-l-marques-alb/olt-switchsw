@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<top device="jericho2_a0">
+    <block-list>
+        <block name="IRPP" debug-signals="DebugSignals-IRPP.xml">
+            <stage adapter="InNetworkAdapter"/>
+            <stage name="NIF" adapter="Ire0" status="global"/>
+            <stage name="PRT"/>
+            <stage name="IParser" adapter="ipp_prsr0" status="previous"/>
+            <stage name="LLR" adapter="Llr"/>
+            <stage name="VTT1" adapter="Vta"/>
+            <stage name="VTT2" adapter="Vtb"/>
+            <stage name="VTT3" adapter="Vtc"/>
+            <stage name="VTT4" adapter="Vtd"/>
+            <stage name="VTT5" adapter="Vte"/>
+            <stage name="FWD1" adapter="Flpa"/>
+            <stage name="FWD2" adapter="Flpb"/>
+            <stage name="IPMF1" adapter="Pmfa"/>
+            <stage name="IPMF2" adapter="skip"/>
+            <stage name="FER" adapter="Fer"/>
+            <stage name="IPMF3" adapter="Pmfb"/>
+            <stage name="LBP" adapter="ipp_lbp_top0"/>
+            <stage name="ITMR" adapter="itm"/>
+            <stage name="ITM"/>
+            <stage adapter="olp"/>
+            <stage adapter="oamp"/>
+        </block>
+        <block name="ITPP" debug-signals="DebugSignals-ITPP.xml">
+            <stage name="ITPP" adapter="itppa0"/>
+        </block>
+        <block name="ERPP" debug-signals="DebugSignals-ERPP.xml">
+            <stage name="Fabric" adapter="erep"/>
+            <stage name="ERParser" adapter="ErppPrsr"/>
+            <stage name="PRP" adapter="erpp_prp0"/>
+            <stage name="Filter" adapter="erpp_filter0"/>
+            <stage name="EPMF" adapter="erpp_pmf0"/>
+            <stage name="ETMR" adapter="erpp_tm0"/>
+            <stage name="ETM" adapter="etm"/>
+        </block>
+        <block name="ETPP" debug-signals="DebugSignals-ETPP.xml">
+            <stage name="Applet" adapter="etpp_applet"/>
+            <stage name="ETParser" adapter="EtppPrsr"/>
+            <stage name="PRP2" adapter="Prp"/>
+            <stage name="Term" adapter="Term"/>
+            <stage name="FWD" adapter="Fwd"/>
+            <stage name="Enc1" adapter="Enc1"/>
+            <stage name="Enc2" adapter="Enc2"/>
+            <stage name="Enc3" adapter="Enc3"/>
+            <stage name="Enc4" adapter="Enc4"/>
+            <stage name="Enc5" adapter="Enc5"/>
+            <stage name="Trap" adapter="Trap"/>
+            <stage name="BTC" adapter="Btc"/>
+            <stage name="Aligner" adapter="aligner0"/>
+            <stage name="EPNI" adapter="epni0"/>
+            <stage name="NIF"/>
+        </block>
+    </block-list>
+</top>

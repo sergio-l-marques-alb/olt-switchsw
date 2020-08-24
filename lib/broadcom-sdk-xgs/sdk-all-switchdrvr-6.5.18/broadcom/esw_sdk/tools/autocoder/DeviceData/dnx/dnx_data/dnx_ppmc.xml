@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+
+<device_data lib="dnx_data" module="ppmc" bsl_flag="BSL_LS_BCMDNX_PPMC">
+    <includes>
+    </includes>
+    <sub_module name="param" doc="default values for the PPMC table actions">
+        <defines>
+            <define name="max_mc_replication_id" doc="Maximum value of multicast replication in the PPMC table"></define>
+            <define name="min_mc_replication_id" doc="Minimum value of multicast replication in the PPMC table"></define>
+        </defines>
+    </sub_module>
+</device_data>

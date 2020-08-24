@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="TERM_ETPS_TYPE_MAP" Valid="DNX_DATA.dev_init.context.context_selection_profile">
+        <OneLineDescription>Map ETPS Type to Profile for Forwarding Context Selection</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TERM_ETPS_TYPE" Type="ETPS_TYPE"/>
+            </Key>
+            <Result>
+                <Field Description="ETPS Type Profile Value" Name="TERM_ETPS_TYPE_PROFILE" Size="6" Type="HEXA"/>
+               </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TERM_ETPS_TYPE_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPC_FORWARDING_ETPS_TYPE_PROFILEm">
+                            <HwField Name="FORWARDING_ETPS_TYPE_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FWD_ETPS_TYPE_MAP" Valid="DNX_DATA.dev_init.context.context_selection_profile">
+        <OneLineDescription>Map ETPS Type to Profile for Encapsulation1 Context Selection</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FWD_ETPS_TYPE" Type="ETPS_TYPE"/>
+            </Key>
+            <Result>
+                <Field Description="ETPS Type Profile Value" Name="FWD_ETPS_TYPE_PROFILE" Size="6" Type="HEXA"/>
+               </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FWD_ETPS_TYPE_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPC_ENC_1_ETPS_TYPE_PROFILEm">
+                            <HwField Name="ENC_1_ETPS_TYPE_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+
+    <AppDB Name="ENCAP_1_ETPS_TYPE_MAP" Valid="DNX_DATA.dev_init.context.context_selection_profile">
+        <OneLineDescription>Map ETPS Type to Profile for Encapsulation2 Context Selection</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ENCAP_1_ETPS_TYPE" Type="ETPS_TYPE"/>
+            </Key>
+            <Result>
+                <Field Description="ETPS Type Profile Value" Name="ENCAP_1_ETPS_TYPE_PROFILE" Size="6" Type="HEXA"/>
+               </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENCAP_1_ETPS_TYPE_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPC_ENC_2_ETPS_TYPE_PROFILEm">
+                            <HwField Name="ENC_2_ETPS_TYPE_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ENCAP_2_ETPS_TYPE_MAP" Valid="DNX_DATA.dev_init.context.context_selection_profile">
+        <OneLineDescription>Map ETPS Type to Profile for Encapsulation3 Context Selection</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ENCAP_2_ETPS_TYPE" Type="ETPS_TYPE"/>
+            </Key>
+            <Result>
+                <Field Description="ETPS Type Profile Value" Name="ENCAP_2_ETPS_TYPE_PROFILE" Size="6" Type="HEXA"/>
+               </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENCAP_2_ETPS_TYPE_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPB_ENC_3_ETPS_TYPE_PROFILEm">
+                            <HwField Name="ENC_3_ETPS_TYPE_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ENCAP_3_ETPS_TYPE_MAP" Valid="DNX_DATA.dev_init.context.context_selection_profile">
+        <OneLineDescription>Map ETPS Type to Profile for Encapsulation4 Context Selection</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ENCAP_3_ETPS_TYPE" Type="ETPS_TYPE"/>
+            </Key>
+            <Result>
+                <Field Description="ETPS Type Profile Value" Name="ENCAP_3_ETPS_TYPE_PROFILE" Size="6" Type="HEXA"/>
+               </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENCAP_3_ETPS_TYPE_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPB_ENC_4_ETPS_TYPE_PROFILEm">
+                            <HwField Name="ENC_4_ETPS_TYPE_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ENCAP_4_ETPS_TYPE_MAP" Valid="DNX_DATA.dev_init.context.context_selection_profile">
+        <OneLineDescription>Map ETPS Type to Profile for Encapsulation5 Context Selection</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ENCAP_4_ETPS_TYPE" Type="ETPS_TYPE"/>
+            </Key>
+            <Result>
+                <Field Description="ETPS Type Profile Value" Name="ENCAP_4_ETPS_TYPE_PROFILE" Size="6" Type="HEXA"/>
+               </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENCAP_4_ETPS_TYPE_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPB_ENC_5_ETPS_TYPE_PROFILEm">
+                            <HwField Name="ENC_5_ETPS_TYPE_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

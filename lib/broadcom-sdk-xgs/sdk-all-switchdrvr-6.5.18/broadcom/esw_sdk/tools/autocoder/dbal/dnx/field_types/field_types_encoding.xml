@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<!--
+    ******************************************************
+    DBAL Fields Types DB:
+    This xml contains the fields types DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+    According to:d88547d
+    DB Rules:
+    *********
+-->
+
+<FieldTypesDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="field_types_schema.xsd">
+
+
+<!-- In this file only encoding enums are defined. the encoding enums are used to encode result types or parent fields according to the HW values. 
+     those fields are used mainly as reference fields. -->
+<FieldType Name="DESTINATION_ENCODING" Size="5" Print="ENUM">
+        <OneLineDescription>how the HW encode each destination type</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="PORT_ID" Description="encoding value for POrt ID in destination"/>
+                <EnumVal Name="MC_ID" Description="encoding value for MC_ID in destination "/>
+                <EnumVal Name="FLOW_ID" Description="encoding value for FLOW_ID in destination"/>
+                <EnumVal Name="LAG_ID" Description="encoding value for LAG_ID in destination"/>
+                <EnumVal Name="INGRESS_TRAP_DEST" Description="encoding value for INGRESS_TRAP_DEST in destination"/>
+                <EnumVal Name="FEC" Description="encoding value for FEC in destination"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="PORT_ID" Value="24"/>
+                <EnumVal Name="MC_ID" Value="3"/>
+                <EnumVal Name="FLOW_ID" Value="2"/>
+                <EnumVal Name="LAG_ID" Value="25"/>
+                <EnumVal Name="INGRESS_TRAP_DEST" Value="15"/>
+                <EnumVal Name="FEC" Value="0"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+<FieldType Name="DESTINATION_JR1_ENCODING" Size="5" Print="ENUM">
+        <OneLineDescription>how the HW encode each destination type for Jericho 1 format </OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="PORT_ID" Description="encoding value for POrt ID in destination"/>
+                <EnumVal Name="MC_ID_JR1" Description="encoding value for MC_ID in destination "/>
+                <EnumVal Name="FLOW_ID_JR1" Description="encoding value for FLOW_ID in destination"/>
+                <EnumVal Name="LAG_ID" Description="encoding value for LAG_ID in destination"/>
+                <EnumVal Name="FEC_JR1" Description="encoding value for FEC in destination"/>
+                <EnumVal Name="INGRESS_TRAP_DEST_JR1" Description="encoding value for INGRESS_TRAP_DEST in destination"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="PORT_ID" Value="2"/>
+                <EnumVal Name="MC_ID_JR1" Value="2"/>
+                <EnumVal Name="FLOW_ID_JR1" Value="3"/>
+                <EnumVal Name="LAG_ID" Value="3"/>
+                <EnumVal Name="FEC_JR1" Value="1"/>
+                <EnumVal Name="INGRESS_TRAP_DEST_JR1" Value="0"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="INLIF_ENCODING" Size="5" Print="ENUM">
+        <OneLineDescription>how the HW encode each LIF type</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="AC_P2P" Description="encoding for LIF with type AC P2P"/>
+                <EnumVal Name="AC_MP" Description="encoding for LIF with type AC MP "/>
+                <EnumVal Name="AC_P2P_LARGE" Description="encoding for LIF with type AC P2P_LARGE"/>
+                <EnumVal Name="AC_MP_LARGE" Description="encoding for LIF with type AC MP_LARGE"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="AC_P2P" Value="3"/>
+                <EnumVal Name="AC_MP" Value="2"/>
+                <EnumVal Name="AC_P2P_LARGE" Value="1"/>
+                <EnumVal Name="AC_MP_LARGE" Value="0"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    
+    
+    <FieldType Name="FWD_DEST_ENCODING" Size="5" Print="ENUM">
+        <OneLineDescription>how the HW encode each destination type</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="INVALID" Description="Invalid encoding value"/>
+                <EnumVal Name="OUTLIF" Description="encoding for dest + outlif"/>
+                <EnumVal Name="EEI" Description="encoding for dest "/>
+                <EnumVal Name="OUTLIF_STAT" Description="encoding for dest"/>
+                <EnumVal Name="EEI_STAT" Description="encoding for dest"/>
+                <EnumVal Name="DESTINATION" Description="encoding for dest"/>
+                <EnumVal Name="DESTINATION_STAT" Description="encoding for dest"/>
+                <EnumVal Name="DOUBLE_OUTLIF" Description="encoding for dest"/>                
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="INVALID" Value="0"/>
+                <EnumVal Name="OUTLIF" Value="5"/>
+                <EnumVal Name="EEI" Value="3"/>
+                <EnumVal Name="OUTLIF_STAT" Value="6"/>
+                <EnumVal Name="EEI_STAT" Value="4"/>
+                <EnumVal Name="DESTINATION" Value="1"/>
+                <EnumVal Name="DESTINATION_STAT" Value="2"/>
+                <EnumVal Name="DOUBLE_OUTLIF" Value="7"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    
+    
+    <FieldType Name="SUPER_FEC_ENCODING" Size="5" Print="ENUM">
+        <OneLineDescription>how the HW encode super FEC types</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NO_PROTECTION" Description="Invalid encoding value"/>
+                <EnumVal Name="NO_PROTECTION_W_STAT" Description="encoding for dest + outlif"/>
+                <EnumVal Name="W_PROTECTION" Description="encoding for dest "/>
+                <EnumVal Name="W_PROTECTION_W_STAT" Description="encoding for dest"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="NO_PROTECTION" Value="0"/>
+                <EnumVal Name="NO_PROTECTION_W_STAT" Value="1"/>
+                <EnumVal Name="W_PROTECTION" Value="2"/>
+                <EnumVal Name="W_PROTECTION_W_STAT" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="FODO_ENCODING" Size="8" Print="ENUM">
+        <OneLineDescription>how the HW encode FODO types</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="VSI" Description="VSI"/>
+                <EnumVal Name="VRF" Description="VRF"/>
+                <EnumVal Name="BIER_MPLS" Description="BIER_MPLS"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="VSI" Value="0"/>
+                <EnumVal Name="VRF" Value="3"/>
+                <EnumVal Name="BIER_MPLS" Value="191"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+</FieldTypesDbCatalog>
+

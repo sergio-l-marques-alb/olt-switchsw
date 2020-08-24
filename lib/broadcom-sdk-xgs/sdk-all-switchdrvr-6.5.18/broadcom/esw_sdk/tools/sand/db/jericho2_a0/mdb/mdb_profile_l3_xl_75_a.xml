@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    ******************************************************
+    MDB "l3_xl_75_a" Profile HW Resources Allocation:
+    This xml contains the MDB HW allocation to the different MDB tables.
+    The data is loaded to the device during init process.
+    ******************************************************
+
+-->
+<opt>
+  <ads_1 bucket_width="120">
+    <physical_map addr="0" cluster0_idx="2" dh="dha6" />
+    <physical_map addr="2" cluster0_idx="3" dh="dha6" />
+  </ads_1>
+  <ads_2 bucket_width="120">
+    <physical_map addr="0" cluster0_idx="3" dh="dha11" />
+  </ads_2>
+  <eedb_1 bucket_width="120">
+    <physical_map addr="0" cluster0_idx="6" dh="dha6" />
+    <physical_map addr="2" cluster0_idx="7" dh="dhb4" />
+  </eedb_1>
+  <eedb_2 bucket_width="120">
+    <physical_map addr="4" cluster0_idx="2" dh="dha9" />
+  </eedb_2>
+  <eedb_3 bucket_width="120">
+    <physical_map addr="6" cluster0_idx="3" dh="dha1" />
+  </eedb_3>
+  <eedb_4 bucket_width="120">
+    <physical_map addr="8" cluster0_idx="2" dh="dha1" />
+  </eedb_4>
+  <eoem_0 bucket_width="120">
+    <physical_map addr="0" cluster0_idx="4" dh="dhb6" />
+    <physical_map addr="0" cluster0_idx="5" dh="dhb6" />
+  </eoem_0>
+  <eoem_1 bucket_width="120">
+    <physical_map addr="0" cluster0_idx="2" dh="dhb6" />
+    <physical_map addr="0" cluster0_idx="3" dh="dhb6" />
+  </eoem_1>
+  <esem bucket_width="120">
+    <physical_map addr="0" cluster0_idx="6" dh="dha0" />
+    <physical_map addr="0" cluster0_idx="5" dh="dha6" />
+  </esem>
+  <evsi bucket_width="120">
+    <physical_map addr="0" cluster0_idx="6" dh="dhb1" />
+  </evsi>
+  <exem_1 bucket_width="120" />
+  <exem_2 bucket_width="120" />
+  <exem_3 bucket_width="120" />
+  <exem_4 bucket_width="240" />
+  <fec_1 bucket_width="240">
+    <physical_map addr="0" cluster0_idx="0" dh="dha0" />
+    <physical_map addr="2" cluster0_idx="2" dh="dha0" />
+  </fec_1>
+  <fec_2 bucket_width="240">
+    <physical_map addr="4" cluster0_idx="0" dh="dha5" />
+    <physical_map addr="6" cluster0_idx="2" dh="dha5" />
+  </fec_2>
+  <fec_3 bucket_width="240">
+    <physical_map addr="8" cluster0_idx="4" dh="dha5" />
+    <physical_map addr="10" cluster0_idx="0" dh="dha11" />
+  </fec_3>
+  <glem_0 bucket_width="120">
+    <physical_map addr="0" cluster0_idx="7" dh="dha5" />
+    <physical_map addr="0" cluster0_idx="7" dh="dha10" />
+  </glem_0>
+  <glem_1 bucket_width="120">
+    <physical_map addr="0" cluster0_idx="5" dh="dha0" />
+    <physical_map addr="0" cluster0_idx="2" dh="dha11" />
+  </glem_1>
+  <inlif_1 bucket_width="240">
+    <physical_map addr="0" cluster0_idx="0" dh="dha1" />
+    <physical_map addr="2" cluster0_idx="4" dh="dhb1" />
+  </inlif_1>
+  <inlif_2 bucket_width="240">
+    <physical_map addr="0" cluster0_idx="2" dh="dha2" />
+  </inlif_2>
+  <inlif_3 bucket_width="240">
+    <physical_map addr="0" cluster0_idx="0" dh="dha9" />
+  </inlif_3>
+  <ioem_0 bucket_width="120">
+    <physical_map addr="0" cluster0_idx="2" dh="dhb4" />
+    <physical_map addr="0" cluster0_idx="3" dh="dhb4" />
+  </ioem_0>
+  <ioem_1 bucket_width="120">
+    <physical_map addr="0" cluster0_idx="6" dh="dhb4" />
+    <physical_map addr="0" cluster0_idx="7" dh="dhb6" />
+  </ioem_1>
+  <isem_1 bucket_width="120">
+    <physical_map addr="0" cluster0_idx="0" dh="dhb4" />
+    <physical_map addr="0" cluster0_idx="1" dh="dhb4" />
+    <physical_map addr="0" cluster0_idx="6" dh="dhb6" />
+  </isem_1>
+  <isem_2 bucket_width="120">
+    <physical_map addr="0" cluster0_idx="6" dh="dha5" />
+    <physical_map addr="0" cluster0_idx="4" dh="dha6" />
+    <physical_map addr="0" cluster0_idx="6" dh="dha10" />
+  </isem_2>
+  <isem_3 bucket_width="120">
+    <physical_map addr="0" cluster0_idx="4" dh="dha10" />
+    <physical_map addr="0" cluster0_idx="5" dh="dha10" />
+    <physical_map addr="0" cluster0_idx="0" dh="dhb6" />
+    <physical_map addr="0" cluster0_idx="1" dh="dhb6" />
+  </isem_3>
+  <ivsi bucket_width="240">
+    <physical_map addr="0" cluster0_idx="4" dh="dhb3" />
+    <physical_map addr="1" cluster0_idx="6" dh="dhb3" />
+  </ivsi>
+  <lem bucket_width="240">
+    <physical_map addr="0" cluster0_idx="0" dh="dha2" />
+    <physical_map addr="0" cluster0_idx="0" dh="dha6" />
+    <physical_map addr="0" cluster0_idx="0" dh="dha10" />
+    <physical_map addr="2" cluster0_idx="2" dh="dha10" />
+  </lem>
+  <map bucket_width="120" />
+  <mc_id bucket_width="120">
+    <physical_map addr="0" cluster0_idx="5" dh="dhb4" />
+    <physical_map addr="0" cluster0_idx="4" dh="dhb5" />
+  </mc_id>
+  <rmep bucket_width="120">
+    <physical_map addr="0" cluster0_idx="4" dh="dha0" />
+    <physical_map addr="0" cluster0_idx="4" dh="dhb4" />
+  </rmep>
+  <kaps_1 bucket_width="480" cfg="1">
+    <physical_map addr="0" cluster0_idx="0" dh="dha3" shared="0" />
+    <physical_map addr="0" cluster0_idx="0" dh="dha4" shared="0" />
+    <physical_map addr="0" cluster0_idx="0" dh="dha7" shared="0" />
+    <physical_map addr="0" cluster0_idx="0" dh="dha8" shared="0" />
+    <physical_map addr="0" cluster0_idx="0" dh="dhb0" shared="1" />
+    <physical_map addr="1" cluster0_idx="4" dh="dhb0" shared="1" />
+    <physical_map addr="0" cluster0_idx="0" dh="dhb7" shared="1" />
+    <physical_map addr="1" cluster0_idx="4" dh="dhb7" shared="1" />
+  </kaps_1>
+  <kaps_2 bucket_width="480" cfg="1">
+    <physical_map addr="0" cluster0_idx="0" dh="dhb1" shared="0" />
+    <physical_map addr="0" cluster0_idx="0" dh="dhb2" shared="0" />
+    <physical_map addr="0" cluster0_idx="4" dh="dhb2" shared="0" />
+    <physical_map addr="0" cluster0_idx="0" dh="dhb3" shared="0" />
+    <physical_map addr="0" cluster0_idx="0" dh="dhb5" shared="0" />
+  </kaps_2>
+  <kaps_1 bucket_width="480" cfg="2">
+    <physical_map addr="0" cluster0_idx="0" dh="dha3" shared="0" />
+    <physical_map addr="0" cluster0_idx="0" dh="dha4" shared="0" />
+    <physical_map addr="0" cluster0_idx="0" dh="dha7" shared="0" />
+    <physical_map addr="0" cluster0_idx="0" dh="dha8" shared="0" />
+    <physical_map addr="0" cluster0_idx="0" dh="dhb7" shared="1" />
+    <physical_map addr="1" cluster0_idx="4" dh="dhb7" shared="1" />
+  </kaps_1>
+  <kaps_2 bucket_width="480" cfg="2">
+    <physical_map addr="0" cluster0_idx="0" dh="dhb0" shared="1" />
+    <physical_map addr="0" cluster0_idx="4" dh="dhb0" shared="1" />
+    <physical_map addr="0" cluster0_idx="0" dh="dhb1" shared="0" />
+    <physical_map addr="0" cluster0_idx="0" dh="dhb2" shared="0" />
+    <physical_map addr="0" cluster0_idx="4" dh="dhb2" shared="0" />
+    <physical_map addr="0" cluster0_idx="0" dh="dhb3" shared="0" />
+    <physical_map addr="0" cluster0_idx="0" dh="dhb5" shared="0" />
+  </kaps_2>
+  <kaps_1 bucket_width="480" cfg="3">
+    <physical_map addr="0" cluster0_idx="0" dh="dha3" shared="0" />
+    <physical_map addr="0" cluster0_idx="0" dh="dha4" shared="0" />
+    <physical_map addr="0" cluster0_idx="0" dh="dha7" shared="0" />
+    <physical_map addr="0" cluster0_idx="0" dh="dha8" shared="0" />
+  </kaps_1>
+  <kaps_2 bucket_width="480" cfg="3">
+    <physical_map addr="0" cluster0_idx="0" dh="dhb0" shared="1" />
+    <physical_map addr="0" cluster0_idx="4" dh="dhb0" shared="1" />
+    <physical_map addr="0" cluster0_idx="0" dh="dhb1" shared="0" />
+    <physical_map addr="0" cluster0_idx="0" dh="dhb2" shared="0" />
+    <physical_map addr="0" cluster0_idx="4" dh="dhb2" shared="0" />
+    <physical_map addr="0" cluster0_idx="0" dh="dhb3" shared="0" />
+    <physical_map addr="0" cluster0_idx="0" dh="dhb5" shared="0" />
+    <physical_map addr="0" cluster0_idx="0" dh="dhb7" shared="1" />
+    <physical_map addr="0" cluster0_idx="4" dh="dhb7" shared="1" />
+  </kaps_2>
+  <eedb_resources>EEDB addresses are set dynamically.</eedb_resources>
+</opt>

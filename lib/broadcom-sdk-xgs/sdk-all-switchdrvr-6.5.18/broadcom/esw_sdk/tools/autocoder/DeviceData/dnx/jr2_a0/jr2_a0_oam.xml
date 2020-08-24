@@ -1,0 +1,436 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="oam">
+
+    <sub_module name="general">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="oam_nof_non_acc_action_profiles" value="16"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_acc_action_profiles" value="16"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_bits_non_acc_action_profiles" value="4"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_bits_acc_action_profiles" value="4"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_bits_oam_lif_db_key_base_ingress" value="22"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_bits_oam_lif_db_key_base_egress" value="20"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_endpoints" value="8*DATA(oam,general,oam_nof_entries_oam_lif_db)"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_oamp_meps" value="65536"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_entries_oam_lif_db" value="4096"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_groups" value="DATA(oam,general,oam_nof_endpoints)"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_bits_counter_base" value="20"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_punt_error_codes" value="18"></define>
+        </defines>        
+        <defines>
+            <define name="oam_nof_priority_map_profiles" value="4"></define>
+        </defines>        
+        <defines>
+            <define name="oam_force_interface_for_meps_without_counter" value="1"></define>
+        </defines>        
+        <defines>
+            <define name="oam_my_cfm_mac_by_range" value="0"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_pemla_channel_types" value="6"></define>
+        </defines>
+        <defines>
+            <define name="oam_mdb_rmep_db_profile_limitation" value="1024*256"></define>
+        </defines>
+        <defines>
+            <define name="oam_lm_read_index_field_exists" value="0"></define>
+        </defines>
+        <defines>
+            <define name="oam_lm_read_per_sub_enable_field_exists" value="0"></define>
+        </defines>
+        <defines>
+            <define name="oam_lm_read_per_sub_disable_field_exists" value="1"></define>
+        </defines>
+        <defines>
+            <define name="oam_identification_appdb_1_field_exists" value="0"></define>
+        </defines>
+        <defines>
+            <define name="oam_ntp_freq_control_word" value="0x44b83"></define>
+        </defines>
+        <defines>
+            <define name="oam_ntp_time_freq_control" value="0x44b82fa1"></define>
+        </defines>
+        <defines>
+            <define name="oam_IEEE_1588_time_freq_control" value="0x10000000"></define>
+        </defines>
+        <defines>
+            <define name="oam_nse_nco_freq_control" value="0x10000000"></define>
+        </defines>
+        <defines>
+            <define name="oam_tod_config_in_eci" value="1"></define>
+        </defines>
+        <numerics>
+        </numerics>
+        <tables>                       
+        </tables>
+         
+    </sub_module>
+
+    <sub_module name="oamp">
+        
+        <features>
+        </features>
+        <defines>
+            <define name="nof_mep_db_entry_banks" value="12"></define>
+        </defines>
+        <defines>
+            <define name="nof_mep_db_entries_per_bank" value="2048"></define>
+        </defines>
+        <defines>
+            <define name="nof_mep_db_entries" value="DATA(oam,oamp,nof_mep_db_entry_banks)*DATA(oam,oamp,nof_mep_db_entries_per_bank)"></define>
+        </defines>
+        <defines>
+            <define name="max_nof_mep_id" value="DATA(oam,oamp,nof_mep_db_entry_banks)*DATA(oam,oamp,nof_mep_db_entries_per_bank)*DATA(oam,oamp,mep_db_nof_sub_entries)"></define>
+        </defines>
+        <defines>
+            <define name="max_value_of_mep_id" value="DATA(oam,oamp,max_nof_mep_id)-1"></define>
+        </defines>
+        <defines>
+            <define name="max_nof_endpoint_id" value="8*DATA(oam,oamp,nof_mep_db_entries_per_bank)*DATA(oam,oamp,mep_db_nof_sub_entries)"></define>
+        </defines>
+        <defines>
+            <define name="nof_umc" value="8*1024"></define>
+        </defines>
+        <defines>
+            <define name="mep_id_nof_bits" value="16"></define>
+        </defines>
+        <defines>
+            <define name="nof_mep_db_entry_banks_for_endpoints" value="8"></define>
+        </defines>
+        <defines>
+            <define name="nof_mep_db_endpoint_entries" value="DATA(oam,oamp,nof_mep_db_entry_banks_for_endpoints)*DATA(oam,oamp,nof_mep_db_entries_per_bank)"></define>
+        </defines>
+        <defines>
+            <define name="mep_db_da_is_mc_for_short_entries_support" value="0"></define>
+        </defines>
+        <defines>
+            <define name="scan_rate_bank_exist" value="0"></define>
+        </defines>
+        <defines>
+            <define name="nof_icc_profiles" value="15"></define>
+        </defines>
+        <defines>
+            <define name="local_port_2_system_port_size" value="512"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_sa_mac_profiles" value="2"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_da_mac_msb_profiles" value="8"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_da_mac_lsb_profiles" value="128"></define>
+        </defines>
+        <defines>
+            <define name="oam_nof_tpid_profiles" value="4"></define>
+        </defines>
+        <defines>
+            <define name="oamp_pe_default_instruction_index" value="0"></define>
+        </defines>
+        <defines>
+            <define name="oamp_pe_max_nof_instructions" value="4096"></define>
+        </defines>
+        <defines>
+            <define name="oamp_pe_nof_fem_bits" value="16"></define>
+        </defines>
+        <defines>
+            <define name="mep_db_sub_entry_size" value="54"></define>
+        </defines>
+        <defines>
+            <define name="mep_db_nof_sub_entries" value="4"></define>
+        </defines>
+        <defines>
+            <define name="mep_db_full_entry_size" value="DATA(oam,oamp,mep_db_sub_entry_size)*DATA(oam,oamp,mep_db_nof_sub_entries)"></define>
+        </defines>
+        <defines>
+            <define name="rmep_db_entries_nof_bits" value="16"></define>
+        </defines>
+        <defines>
+            <define name="rmep_db_rmep_index_nof_bits" value="16"></define>
+        </defines>
+        <defines>
+            <define name="mep_pe_profile_nof_bits" value="6"></define>
+        </defines>
+        <defines>
+            <define name="rmep_max_self_contained" value="32*1024"></define>
+        </defines>
+        <defines>
+            <define name="rmep_sys_clocks" value="10"></define>
+        </defines>
+        <defines>
+            <define name="mep_sys_clocks" value="40"></define>
+        </defines>
+        <defines>
+            <define name="mep_db_version_limitation" value="1"></define>
+        </defines>
+        <defines>
+            <define name="oamp_mep_db_threshold_version_limitation" value="1"></define>
+        </defines>
+        <defines>
+            <define name="rmep_db_non_zero_lifetime_units_limitation" value="1"></define>
+        </defines>
+        <defines>
+            <define name="crc_calculation_supported" value="0"></define>
+        </defines>
+        <defines>
+            <define name="lmm_dmm_supported" value="0"></define>
+        </defines>
+        <defines>
+            <define name="modified_mep_db_structure" value="0"></define>
+        </defines>        
+        <defines>
+            <define name="local_port_2_system_port_bits" value="9"></define>
+        </defines>
+        <defines>
+            <define name="mdb_nof_access_ids" value="8"></define>
+        </defines>
+        <defines>
+            <define name="bfd_mpls_short_mdb_reserved_bits" value="12-DATA(oam,oamp,local_port_2_system_port_bits)"></define>
+        </defines>
+        <defines>
+            <define name="bfd_m_hop_short_mdb_reserved_bits" value="12-DATA(oam,oamp,local_port_2_system_port_bits)"></define>
+        </defines>
+        <defines>
+            <define name="bfd_pwe_short_mdb_reserved_bits" value="11-DATA(oam,oamp,local_port_2_system_port_bits)"></define>
+        </defines>
+        <defines>
+            <define name="ccm_eth_offload_mdb_reserved_bits" value="15-DATA(oam,oamp,local_port_2_system_port_bits)"></define>
+        </defines>
+        <defines>
+            <define name="bfd_1_hop_short_mdb_reserved_bits" value="11-DATA(oam,oamp,local_port_2_system_port_bits)"></define>
+        </defines>
+        <defines>
+            <define name="ccm_mpls_tp_pwe_offload_mdb_reserved_bits" value="15-DATA(oam,oamp,local_port_2_system_port_bits)"></define>
+        </defines>
+        <defines>
+            <define name="slm_supported" value="0"></define>
+        </defines>  
+        <!--
+            Forwarding physical destination identical to
+                destination but only 20bit due to HW issue so less encoding
+                are available
+        -->
+        <defines>
+            <define name="punt_packet_itmh_destination_full_encoding_supported" value="0"></define>
+        </defines>
+        <defines>
+            <define name="punt_packet_destination_size" value="20"></define>
+        </defines>
+        <defines>
+        <define name="core_nof_bits" value="1"></define>
+        </defines>         
+        <defines>
+            <define name="punt_packet_pph_ttl_supported" value="0"></define>
+        </defines>
+        <defines>
+            <define name="intr_oamp_pending_event"  value="923"></define>
+        </defines>
+        <defines>
+            <define name="intr_oamp_stat_pending_event"  value="924"></define>
+        </defines>
+        <defines>
+            <define name="nof_jumbo_dm_tlv_entries" value="256"></define>
+        </defines> 
+        <defines>
+            <define name="mdb_tx_rate_lsb_field_present" value="0"></define>
+        </defines>
+        <defines>
+            <define name="mdb_reserved_field_size_calculation" value="0"></define>
+        </defines>
+        <numerics>
+            <numeric name="oamp_nof_scan_rmep_db_entries" value="64*1024-1">
+                <property name="num_of_scan_rmep_db_entries" official="false" method="range" range_min="0" range_max="64*1024-1">
+                    <doc>
+                         Configure the number of RMEP DB entries to be scanned.
+                         Default: 64K-1(all entries are scanned)
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="oamp_mep_full_entry_threshold" value="0">
+                <property name="oamp_mep_db_full_entry_threshold" method="range" range_min="0" range_max="64*1024">
+                    <doc>
+                         Configure the mep db full entry threshold.
+                         MEP IDs up to and including the theshold will be utilized by 1/4 entries
+                         MEP IDs above the theshold will be utilized by full entries
+                         Default: 0
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="oamp_rmep_full_entry_threshold" value="0*1024">
+                <property name="oamp_rmep_db_full_entry_threshold" method="range" range_min="0" range_max="64*1024">
+                    <doc>
+                         Configure the rmep db full entry threshold.
+                         RMEP IDs up to and including the theshold will be utilized by 1/2 entries
+                         RMEP IDs above the theshold will be utilized by full entries
+                         Default: 0
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="mep_db_jr1_mode" value="0">
+                <property name="system_headers_mode" method="direct_map">
+                    <map name="0" value="1"></map>
+                    <map name="1" value="0"></map>
+                    <doc>NULL</doc><!--  not required - soc property already defined by a different data -->
+<!--                     
+                            In case that MEP_DB should be organized according JR1 mode:
+                            Example: Egress down mep injection in JR1 mode we store Out_Lif in Gen MEM and
+                            have Counter used by pipeline.
+                            0x1 - Jericho-mode.
+                            0x0 - Jericho2-mode.
+                            Default: 0.
+-->
+                </property>
+            </numeric>
+            <numeric name= "oamp_fifo_dma_event_interface_enable" value="0">
+                <property name="oamp_fifo_dma_event_interface_enable" method="range" range_min="0" range_max="1">
+                    <doc>
+                        Enables OAMP DMA event interrupts interface.
+                        Default: 0
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name= "oamp_fifo_dma_event_interface_buffer_size" value="0">
+                <property name="oamp_fifo_dma_event_interface_buffer_size" method="range" range_min="80" range_max="413200">
+                    <doc>
+                        Configure the size of OAMP event interrupts host memory in bytes.
+                        The valid range of memory size is 80-413200 bytes.
+                        Default: 0
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="oamp_fifo_dma_event_interface_timeout" value="0">
+                <property name="oamp_fifo_dma_event_interface_timeout" method="range" range_min="0" range_max="65535">
+                    <doc>
+                        Configures the OAMP fifo dma timeout in microseconds.
+                        The valid range is 0-65535.
+                        Default: 0
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="oamp_fifo_dma_event_interface_threshold" value="32">
+                <property name="oamp_fifo_dma_event_interface_threshold" method="range" range_min="1" range_max="16384">
+                    <doc>
+                        Configures the OAMP fifo dma threshold.
+                        The valid range is 1-16384.
+                        Default: 32
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name= "oamp_fifo_dma_report_interface_enable" value="0">
+                <property name="oamp_fifo_dma_report_interface_enable" method="range" range_min="0" range_max="1">
+                    <doc>
+                        Enables OAMP DMA statistic interrupts interface.
+                        Default: 0
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name= "oamp_fifo_dma_report_interface_buffer_size" value="0">
+                <property name="oamp_fifo_dma_report_interface_buffer_size" method="range" range_min="80" range_max="413200">
+                    <doc>
+                        Configure the size of OAMP statistic interrupts host memory in bytes.
+                        The valid range of memory size is 80-413200 bytes.
+                        Default: 0
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="oamp_fifo_dma_report_interface_timeout" value="0">
+                <property name="oamp_fifo_dma_report_interface_timeout" method="range" range_min="0" range_max="65535">
+                    <doc>
+                        Configures the OAMP fifo dma report timeout in microseconds.
+                        The valid range is 0-65535.
+                        Default: 0
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="oamp_fifo_dma_report_interface_threshold" value="32">
+                <property name="oamp_fifo_dma_report_interface_threshold" method="range" range_min="1" range_max="16384">
+                    <doc>
+                        Configures the OAMP fifo dma report threshold.
+                        The valid range is 1-16384.
+                        Default: 32
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="server_destination_msb_bits" value="14">
+                <property name="system_headers_mode" method="direct_map">
+                    <map name="0" value="11"></map>
+                    <map name="1" value="14"></map>
+                    <doc>Different field lengths for regular and inter-op mode</doc>
+                </property>
+            </numeric>
+            <numeric name="server_destination_lsb_bits" value="7">
+                <property name="system_headers_mode" method="direct_map">
+                    <map name="0" value="8"></map>
+                    <map name="1" value="7"></map>
+                    <doc>Different field lengths for regular and inter-op mode</doc>
+                </property>
+            </numeric>
+        </numerics>
+        <tables>                       
+        </tables>
+    </sub_module>
+    
+    <sub_module name="property">
+        <numerics>
+            <numeric name="oam_injected_over_lsp_cnt" value="0">
+                 <property name="custom_feature" method="suffix_enable" suffix="oam_injected_over_lsp_cnt">
+                     <doc>
+                        Default is 0.
+                        Used for Count injected CCM packet over LSP
+                     </doc>
+                 </property>
+            </numeric>
+        </numerics>
+    </sub_module>
+
+    <sub_module name="hw_bug" doc="OAM related Hw bugs">
+
+        <features>
+            <feature name="oam_offset_supported" value="0"></feature>
+            <feature name="oam_statistics_supported" value="0"></feature>
+            <feature name="lm_read_index_limitation" value="1"></feature>
+            <feature name="oamp_scanner_limitation" value="1"></feature>
+            <feature name="oamp_tx_rate_limitation" value="1"></feature>
+            <feature name="oamp_protection_rmep_id_limitation" value="1"></feature>
+            <feature name="oamp_generic_response_supported" value="0"></feature>
+            <feature name="oamp_txm_bank_limitation" value="1"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>
+
+
+

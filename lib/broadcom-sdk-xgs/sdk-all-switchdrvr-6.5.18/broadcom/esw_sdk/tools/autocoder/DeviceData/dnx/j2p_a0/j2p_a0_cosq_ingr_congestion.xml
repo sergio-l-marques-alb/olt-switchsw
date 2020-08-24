@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2p_a0"  module="ingr_congestion">
+
+    <includes>
+    </includes>
+
+    <sub_module name="info" doc="Ingress congestion info">
+        <features>
+             <feature name="latency_based_admission" value="1"></feature>
+        </features>
+    </sub_module>
+
+    <sub_module name="vsq" doc="VSQ info">
+        <features>
+        </features>
+        <defines>
+            <!-- FIXME SDK-187423 . NOT sure what is this value for J2P   -->
+            <define name="non_nif_vsq_f_nof" value="0"></define>
+        </defines>
+    </sub_module>
+</device_data>
+
+
+

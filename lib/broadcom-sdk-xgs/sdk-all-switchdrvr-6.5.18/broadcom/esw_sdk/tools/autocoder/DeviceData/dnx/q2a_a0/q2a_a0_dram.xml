@@ -1,0 +1,624 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0" module="dram">
+    <includes>
+        <include>bcm_int/dnx/dram/gddr6/gddr6.h</include>
+    </includes>
+
+    <sub_module name="hbm">
+        <features>
+            <feature name="is_supported" value="0"></feature>
+            <feature name="is_delete_bdb_supported" value="1"></feature>
+        </features>
+    </sub_module>
+
+    <sub_module name="buffers" doc="information regarding BDs and BDBs">
+        <features>
+            <feature name="quarantine_buffers_if_tdu_corrected_errors" value="0"></feature>
+            <feature name="quarantine_buffers_if_tdu_errors" value="0"></feature> <!-- This feature is unavailble in Q2A_A0 - should be available in Q2A_B0 -->
+        </features>
+
+        <numerics>
+        </numerics>
+
+        <defines>
+            <define name="nof_bdbs" value="64*1024"></define> <!-- 64K BDBs -->
+        </defines>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="gddr6" doc="gddr6 definition">
+        <features>
+            <feature name="is_supported" value="1"></feature>
+            <feature name="allow_disable_read_crc" value="0"></feature> <!-- This feature is unavailble in Q2A_A0 - meaning in Q2A_A0 we have to work with read crc enabled -->
+            <feature name="interleaved_refresh_cycles" value="0"></feature> <!-- This feature is unavailble in Q2A_A0 - should be available in Q2A_B0 -->
+            <feature name="dynamic_calibration" value="1" init_only="1"></feature>
+        </features>
+        <defines>
+            <define name="nof_ca_bits" value="11"></define>
+            <define name="bytes_per_channel" value="2"></define>
+            <define name="training_fifo_depth" value="6"></define>
+        </defines>
+        <numerics>
+            <numeric name="refresh_mechanism_enable" value="1">
+                <property name="refresh_mechanism_enable" method="enable" official="false">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="bist_enable" value="1">
+                <property name="bist_enable" method="suffix_only_enable" suffix="dram">
+                    <doc>
+                        bist_enable_dram= 0|1 enable or disable dram bist operation
+                    </doc>
+                </property>
+            </numeric>
+
+            <numeric name="write_recovery" value="19">
+                <property name="ext_ram_write_recovery" method="range" range_min="0" range_max="15" official="false">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes
+                        GDDR6 write recovery (RD) in tCK units
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="cabi" value="1">
+                <property name="ext_ram_cabi" method="enable" official="false">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purpose
+                        ext_ram_cabi = 0|1 1:on,0:off
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="dram_mode" value="1">
+                <property name="ext_ram_dram_mode" method="enable" official="false">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purpose
+                        ext_ram_dram_mode = 0|1  1: 2channels mode, 0: PC mode
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="cal_termination" value="0">
+                <property name="ext_ram_cal_termination" method="range" range_min="0" range_max="3" official="false">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purpose
+                        ext_ram_cal_termination CAL Termination, according JEDEC 0:disable,1:60 ohm,2:120 ohm,3:reserved
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="cah_termination" value="0">
+                <property name="ext_ram_cah_termination" method="range" range_min="0" range_max="3" official="false">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purpose
+                        ext_ram_cal_termination CAH Termination, according JEDEC 0:disable,1:60 ohm,2:120 ohm,3:240 ohm
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="command_pipe_extra_delay" value="1"></numeric>
+            <numeric name="use_11bits_ca" value="0">
+                <property name="ext_ram_use_11bits_ca" method="enable" official="false">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purpose
+                        ext_ram_use_11bits_ca = 0|1
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="ck_odt" value="0"></numeric>
+            <numeric name="dynamic_calibration_period" value="700000">
+                <property name="ext_ram_dynamic_calibration_period" method="range" range_min="0" range_max="1000000" official="false">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purpose
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+        <tables>
+            <table name="refresh_intervals">
+                <value name="trefiab" default="-1">
+                    <property name="ext_ram_t_abref_in_ns" method="custom" official="false">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            For more info regarding this timing parameter check JEDEC
+                        </doc>
+                    </property>
+                </value>
+                <value name="trefiab_acc" default="3900">
+                    <property name="ext_ram_t_abref_acc_in_ns" method="range" range_min="0" range_max="8191" official="false">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            For more info regarding this timing parameter check JEDEC
+                        </doc>
+                    </property>
+                </value>
+                <value name="trefisb" default="-1">
+                    <property name="ext_ram_t_refi_sb_in_ns" method="custom" official="false">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            For more info regarding this timing parameter check JEDEC
+                        </doc>
+                    </property>
+                </value>
+            </table>
+            <table name="dq_map">
+                <key name="dram_index" size="DATA(dram, general_info, max_nof_drams)"></key>
+                <key name="byte" size="2*DATA(dram, general_info, nof_channels)"></key>
+                <value name="dq_map" default="0"></value>
+                    <property name="ext_ram_dq_swap" method="custom">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            value can be changed per board
+                        </doc>
+                    </property>
+            </table>
+            <table name="dq_channel_swap">
+                <key name="dram_index" size="DATA(dram, general_info, max_nof_drams)"></key>
+                <value name="dq_channel_swap" default="0"></value>
+                    <property name="ext_ram_channel_swap_en" method="custom" official="false">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            value can be changed per board
+                        </doc>
+                    </property>
+            </table>
+            <table name="dq_byte_map">
+                <key name="dram_index" size="DATA(dram, general_info, max_nof_drams)"></key>
+                <key name="byte" size="DATA(dram, general_info, nof_channels)"></key>
+                <value name="dq_byte_map" default="0"></value>
+                    <property name="ext_ram_dq_swap" method="custom">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            value can be changed per board
+                        </doc>
+                    </property>
+            </table>
+            <table name="ca_map">
+                <key name="dram_index" size="DATA(dram, general_info, max_nof_drams)"></key>
+                <key name="channel" size="DATA(dram, general_info, nof_channels)"></key>
+                <value name="ca_map" default="0"></value>
+                    <property name="ext_ram_addr_bank_swap" method="custom">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            value can be changed per board
+                        </doc>
+                    </property>
+            </table>
+            <table name="cadt_byte_map" init_only="1">
+                <key name="dram_index" size="2"></key>
+                <key name="channel" size="DATA(dram, general_info, nof_channels)"></key>
+                <value name="cadt_byte_map" default="0">
+                <entries>
+                    <entry dram_index="0" channel="0" cadt_byte_map="1"></entry>
+                    <entry dram_index="0" channel="1" cadt_byte_map="0"></entry>
+                    <entry dram_index="1" channel="0" cadt_byte_map="0"></entry>
+                    <entry dram_index="1" channel="1" cadt_byte_map="1"></entry>
+                </entries>
+                </value>
+            </table>
+
+            <table name="channel_regs" mode="sequential">
+                <!-- key size must change if entries changed -->
+                <key name="index"></key>
+                <value name="reg" default="INVALIDr"></value>
+                <entries>
+                    <entry reg="DCC_HBM_CONFIGr"></entry>
+                    <entry reg="DCC_HBM_MODE_REGISTERSr"></entry>
+                    <entry reg="DCC_DRAM_MODE_REGISTER_MANAGER_CONFIGr"></entry>
+                    <entry reg="DCC_DATA_SOURCE_CONFIGr"></entry>
+                    <entry reg="DCC_RDR_ASYNC_FIFO_CONFIGr"></entry>
+                    <entry reg="DCC_REQ_ARB_ASYNC_FIFO_CONFIGr"></entry>
+                    <entry reg="DCC_WPBQ_CONFIGr"></entry>
+                    <entry reg="DCC_RPBQ_CONFIGr"></entry>
+                    <entry reg="DCC_DRAM_GENERAL_TIMINGSr"></entry>
+                    <entry reg="DCC_HBM_COLUMN_ACCESS_TIMINGSr"></entry>
+                    <entry reg="DCC_HBM_ROW_ACCESS_TIMINGSr"></entry>
+                    <entry reg="DCC_DRAM_TRAINING_GENERAL_TIMINGSr"></entry>
+                    <entry reg="DCC_HBM_REFRESH_TIMINGSr"></entry>
+                    <entry reg="DCC_DRAM_REFRESH_INTERVALSr"></entry>
+                    <entry reg="DCC_TRAINING_CADT_CONFIGr"></entry>
+                    <entry reg="DCC_TRAINING_BIST_COMMAND_CONFIGr"></entry>
+                    <entry reg="DCC_HW_DYNAMIC_CALIBRATION_CONFIGr"></entry>
+                    <entry reg="DCC_COMMON_DYNAMIC_CALIBRATION_CONFIGr"></entry>
+                    <entry reg="DCC_CDR_WRAPAROUND_UPDATE_CONFIGr"></entry>
+                    <entry reg="DCC_BIST_DATA_CONFIGr"></entry>
+                    <entry reg="DCC_BIST_COMMAND_CONFIGr"></entry>
+                    <entry reg="DCC_BIST_ADDR_CONFIGr"></entry>
+                    <entry reg="DCC_TSM_CONFIGr"></entry>
+                    <entry reg="DCC_TSM_READ_WRITE_SWITCH_CONFIGr"></entry>
+                    <entry reg="DCC_PIPELINES_CONFIGr"></entry>
+                    <entry reg="DCC_PIPELINES_BANK_REMAPPINGr"></entry>
+                    <entry reg="DCC_HBM_CPU_CONTROLr"></entry>
+                    <entry reg="DCC_CA_BIT_MAPr"></entry>
+                    <entry reg="DCC_DQ_BIT_MAPr"></entry>    
+                </entries>                
+            </table>
+
+            <table name="controller_regs" mode="sequential">
+                <!-- key size must change if entries changed -->
+                <key name="index"></key>
+                <value name="reg" default="INVALIDr"></value>
+                <entries>
+                    <entry reg="DPC_DRAM_PLL_CONFIGr"></entry>
+                    <entry reg="DPC_DRAM_RESET_CONTROLr"></entry>
+                    <entry reg="DPC_DRAM_PHY_CONTROLr"></entry>
+                    <entry reg="TDU_WRITE_REQUEST_PATH_CONFIGr"></entry>
+                    <entry reg="TDU_READ_REQUEST_PATH_CONFIGr"></entry>
+                    <entry reg="TDU_READ_DATA_PATH_CONFIGr"></entry>
+                    <entry reg="TDU_ADDRESS_TRANSLATION_MATRIXr"></entry>
+                    <entry reg="TDU_DRAM_BLOCKED_CONFIGr"></entry>
+                    <entry reg="TDU_ADDRESS_TRANSLATION_CONFIGr"></entry>
+                </entries>
+            </table>
+
+            <table name="channel_interrupt_regs" mode="sequential">
+                <!-- key size must change if entries changed -->
+                <key name="index"></key>
+                <value name="reg" default="INVALIDr"></value>
+                <entries>
+                    <entry reg="DCC_INTERRUPT_REGISTERr"></entry>
+                    <entry reg="DCC_ECC_INTERRUPT_REGISTERr"></entry>
+                    <entry reg="DCC_DSI_INTERRUPT_REGISTERr"></entry>
+                    <entry reg="DCC_RDR_INTERRUPT_REGISTERr"></entry>
+                    <entry reg="DCC_PIPELINES_INTERRUPT_REGISTERr"></entry>
+                    <entry reg="DCC_BIST_INTERRUPT_REGISTERr"></entry>
+                </entries>
+            </table>
+
+            <table name="controller_interrupt_regs" mode="sequential">
+                <!-- key size must change if entries changed -->
+                <key name="index"></key>
+                <value name="reg" default="INVALIDr"></value>
+                <entries>
+                    <entry reg="DPC_INTERRUPT_REGISTERr"></entry>
+                    <entry reg="DPC_ECC_INTERRUPT_REGISTERr"></entry>
+                </entries>
+            </table>
+
+            <table name="channel_debug_regs" mode="sequential">
+                <!-- key size must change if entries changed -->
+                <key name="index"></key>
+                <value name="reg" default="INVALIDr"></value>
+                <value name="reassuring_str" default="NULL"></value>                
+                <entries>
+                    <entry reg="DCC_DRAM_ERR_COUNTERSr" reassuring_str="DRAM error counters are cleared"></entry>
+                    <entry reg="DCC_BIST_ERR_COUNTERSr" reassuring_str="DRAM BIST error counters are cleared"></entry>
+                    <entry reg="DCC_PIPELINES_DEBUGr" reassuring_str="Pipeline debug info is cleared"></entry>
+                </entries>
+            </table>
+
+            <table name="channel_counter_regs" mode="sequential">
+                <!-- key size must change if entries changed -->
+                <key name="index"></key>
+                <value name="reg" default="INVALIDr"></value>
+                <entries>
+                    <entry reg="DCC_TSM_DEBUGr"></entry>
+                    <entry reg="DCC_DRAM_COMMAND_COUNTERSr"></entry>
+                </entries>
+            </table>
+
+            <table name="channel_type_regs" mode="sequential">
+                <!-- key size must change if entries changed -->
+                <key name="index"></key>
+                <value name="reg" default="INVALIDr"></value>
+                <value name="type" default="DNX_HBMC_NOF_DIAG_REG_TYPES"></value>
+                <entries>
+                    <entry reg="DCC_WPBQ_STATUSr" type="DNX_HBMC_DIAG_REG_HISTOGRAM_32_8"></entry>
+                    <entry reg="DCC_RPBQ_STATUSr" type="DNX_HBMC_DIAG_REG_HISTOGRAM_32_8"></entry>
+                </entries>
+            </table>
+
+            <table name="controller_info_regs" doc="per contorller list of info registers" mode="sequential">
+                <!-- key size must change if entries changed -->
+                <key name="index"></key>
+                <value name="reg" default="INVALIDr"></value>
+                <entries>
+                    <entry reg="DPC_DRAM_PLL_STATUSr"></entry>
+                    <entry reg="DCC_WDB_STATUSr"></entry>
+                    <entry reg="DCC_BIST_STATUSr"></entry>
+                    <entry reg="DCC_DYNAMIC_CALIBRATION_STATUSr"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+    <sub_module name="general_info">
+        <defines>
+            <define name="max_nof_drams" value="2"></define>
+            <define name="nof_channels" value="2"></define>
+            <define name="mr_mask" value="0xfff"></define>
+            <define name="nof_mrs" value="16"></define>
+            <define name="phy_address_mask" value="0xfff"></define>
+        </defines>
+        <numerics>
+            <numeric name="tune_mode_on_init" value="DNX_GDDR6_RESTORE_TUNE_PARAMETERS_OR_RUN_TUNE">
+                <property name="dram_phy_tune_mode_on_init" method="direct_map">
+                    <map name="RESTORE_TUNE_PARAMETERS_FROM_SOC_PROPERTIES" value="DNX_GDDR6_RESTORE_TUNE_PARAMETERS"></map>
+                    <map name="RUN_TUNE" value="DNX_GDDR6_RUN_TUNE"></map>
+                    <map name="RESTORE_TUNE_PARAMETERS_OR_RUN_TUNE" value="DNX_GDDR6_RESTORE_TUNE_PARAMETERS_OR_RUN_TUNE"></map>
+                    <map name="SKIP_TUNE" value="DNX_GDDR6_SKIP_TUNE"></map>
+                    <doc>
+                        Configure tuning mode on init phase, default value tune from soc property
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="frequency" value="900">
+                <property name="ext_ram_freq" method="range" range_min="500" range_max="1400">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes 
+                        dram Frequency in MHZ
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="buffer_size" value="4096">
+            </numeric>
+            <numeric name="command_address_parity" value="1">
+                <property name="ext_ram_command_address_parity" method="enable">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes 
+                        0 - Command/address parity disabled 
+                        1 - Command/address parity enabled
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="dq_write_parity" value="1">
+                <property name="ext_ram_dq_write_parity" official="false" method="enable">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes 
+                        0 - DQ write parity disabled 
+                        1 - DQ write parity enabled
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="dq_read_parity" value="1">
+                <property name="ext_ram_dq_read_parity" official="false" method="enable">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes 
+                        0 - DQ read parity disabled 
+                        1 - DQ read parity enabled
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="dbi_read" value="1">
+                <property name="ext_ram_read_dbi" method="enable">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes
+                        0 - Read DBIac disabled 
+                        1 - Read DBIac enabled
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="dbi_write" value="1">
+                <property name="ext_ram_write_dbi" method="enable">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes
+                        0 - Write DBIac disabled 
+                        1 - Write DBIac enabled
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="write_latency" value="-1">
+                <property name="ext_ram_write_latency" method="custom">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes
+                        dram write latency (WR) in tCK units
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="read_latency" value="-1">
+                <property name="ext_ram_read_latency" method="custom">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes
+                        dram read latency (RD) in tCK units
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="parity_latency" value="2">
+                <property name="ext_ram_parity_latency" method="range" range_min="0" range_max="3">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes
+                        DQ Parity latency (PL) in tCK units
+                    </doc>
+                </property>
+            </numeric>  
+            <numeric name="command_parity_latency" value="5">
+                <property name="ext_ram_cmd_par_latency" method="range" range_min="0" range_max="8">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes
+                        command parity latency
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="crc_write_latency" value="-1">
+                <property name="ext_ram_t_crc_wr_latency" method="custom">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes
+                        GDDR6 crc write latency (WR) in tCK units
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="crc_read_latency" value="-1">
+                <property name="ext_ram_t_crc_rd_latency" method="custom">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes
+                        GDDR6 crc read latency (RD) in tCK units
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="crc_write" value="1">
+                <property name="ext_ram_write_crc" method="enable">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes
+                        GDDR6 write crc 0:enable, 1:disable
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="crc_read" value="1">
+                <property name="ext_ram_read_crc" method="range" range_min="1" range_max="1"> <!-- Q2A_A0 has to operate with read_crc -->
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes
+                        GDDR6 read crc 0:enable, 1:disable
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="device_size" value="8">
+                <property name="ext_ram_device_size" method="range" range_min="0" range_max="64" official="false">
+                    <doc>
+                        This is dram device size for each dram die, the unit is Gb.
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+        <tables>
+            <table name="mr_defaults">
+                <key name="index" size="DATA(dram, general_info, nof_mrs)"></key>
+                <value name="value" default="0"></value>
+                <entries>
+                    <entry index="0" value="0xF7F"></entry>
+                    <entry index="1" value="0x300"></entry>  
+                    <entry index="3" value="0x800"></entry>
+                    <entry index="4" value="0x1DF"></entry>
+                    <entry index="5" value="0x3C0"></entry>
+                </entries>
+            </table> 
+            <table name="dram_info">
+                <value name="dram_type" default="SHMOO_G6PHY16_DRAM_TYPE_GDDR6"></value>
+                <value name="dram_bitmap" default="0x3">
+                    <property name="ext_ram_enabled_bitmap" method="range" range_min="0x0" range_max="0x3">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            A bitmap that indicates which GDDR6 drams are used.
+                        </doc>
+                    </property>
+                </value>
+                <value name="nof_columns" default="64">
+                    <property name="ext_ram_columns" method="range" range_min="0" range_max="65536">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            Number of columns in the dram
+                        </doc>
+                    </property>
+                </value>
+                <value name="nof_rows" default="16384">
+                    <property name="ext_ram_rows" method="range" range_min="0" range_max="1048576">
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                            Number of rows in the dram
+                        </doc>
+                    </property>
+                </value>
+                <value name="nof_banks" default="16">
+                </value>
+                <value name="data_rate" default="DATA(dram, general_info, frequency) * 8"></value>
+                <!-- FIXME SDK-177192, need confirm with Guy -->
+                <value name="ref_clock" default="100"></value>
+                <value name="ctl_type" default="SHMOO_G6PHY16_CTL_TYPE_1">
+                    <property name="ext_ram_ctl_type" method="direct_map" official="false">
+                        <map name="SHMOO_G6PHY16_CTL_TYPE_1" value="SHMOO_G6PHY16_CTL_TYPE_1"></map>
+                        <map name="SHMOO_G6PHY16_CTL_TYPE_RSVP" value="SHMOO_G6PHY16_CTL_TYPE_RSVP"></map>
+                        <doc>
+                            This is an internal soc property that should be used only for debug purposes
+                        </doc>
+                    </property>
+                </value>
+            </table>
+            <table name="timing_params" doc="timing parameters">
+                <value name="twr" default="-1"></value>
+                <value name="trp" default="-1"></value>
+                <value name="trtps" default="-1"></value>
+                <value name="trtpl" default="-1"></value>
+                <value name="trrds" default="-1"></value>
+                <value name="trrdl" default="-1"></value>
+                <value name="tfaw" default="-1"></value>
+                <value name="trcdwr" default="-1"></value>
+                <value name="trcdrd" default="-1"></value>
+                <value name="tras" default="-1"></value>
+                <value name="trc" default="-1"></value>
+                <value name="twtrl" default="-1"></value>
+                <value name="twtrs" default="-1"></value>
+                <value name="trtw" default="-1"></value>
+                <!-- tccdr not used in GDDR6 -->
+                <value name="tccdr" default="-1"></value>
+                <value name="tccds" default="-1"></value>
+                <value name="tccdl" default="-1"></value>
+                <value name="trrefd" default="12"></value>
+                <value name="trfcsb" default="63"></value>
+                <value name="trfc" default="-1"></value>
+                <!-- tmrd not defined in GDDR6 -->
+                <value name="tmrd" default="-1"></value>
+                <value name="tmod" default="10"></value>
+                <!-- below for GDDR6 training timing -->
+                <value name="twtrtr" default="-1"></value>
+                <value name="twrwtr" default="-1"></value>
+                <value name="treftr" default="-1"></value>
+                <value name="trdtlt" default="-1"></value>
+                <value name="trcdwtr" default="-1"></value>
+                <value name="trcdrtr" default="-1"></value>
+                <value name="trcdltr" default="-1"></value>
+                <value name="tltrtr" default="-1"></value>
+                <value name="tltltr" default="-1"></value>
+                <property name="ext_ram_t_wr, ext_ram_t_rp, ext_ram_t_rtp_s, ext_ram_t_rtp_l, ext_ram_t_rrd_s, ext_ram_t_rrd_l, ext_ram_t_faw, ext_ram_t_rcd_wr, ext_ram_t_rcd_rd, ext_ram_t_ras, ext_ram_t_rc, ext_ram_t_wtr_l, ext_ram_t_wtr_s, ext_ram_t_rtw, ext_ram_t_ccd_s, ext_ram_t_ccd_l,ext_ram_t_rrefd, ext_ram_t_rfcsb, ext_ram_t_rfc, ext_ram_t_mod, ext_ram_t_wtrtr, ext_ram_t_wrwtr, ext_ram_t_reftr, ext_ram_t_rdtlt, ext_ram_t_rcdwtr, ext_ram_t_rcdrtr, ext_ram_t_rcdltr, ext_ram_t_ltrtr, ext_ram_t_ltltr" method="custom" official="false">
+                    <doc>
+                        This is an internal soc property that should be used only for debug purposes
+                        For more info regarding this timing parameter check JEDEC
+                    </doc>
+                </property>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="address_translation">
+        <numerics>
+        </numerics>
+
+        <defines>
+            <define name="matrix_column_size" value="30"></define>
+            <define name="physical_address_transaction_size" value="32"></define>
+            <define name="nof_atms" value="2"></define>
+        </defines>
+
+        <tables>
+            <table name="matrix_configuration" doc="address translation matrix(ATM) configuration options">
+                <key name="matrix_option" size="DATA(dram,address_translation,nof_atms)"></key>
+                <value name="logical_to_physical" default="0"></value>
+                <entries>
+                    <entry matrix_option="DNX_GDDR6_SINGLE_DRAM_ATM" logical_to_physical="0x800000, 0x21, 0x800000, 0x4, 0x4008, 0x41, 0x8008, 0x10004, 0x20002,  0x11, 0x80, 0x100, 0x200, 0x400, 0x800, 0x1000, 0x2000, 0x1, 0x2, 0x400000, 0x8, 0, 0, 0, 0, 0, 0x80000, 0x200000, 0x40000, 0"></entry>
+                    <entry matrix_option="DNX_GDDR6_2_DRAMS_ATM" logical_to_physical="0x800000, 0x21, 0x200002, 0x400004, 0x4008, 0x41, 0x8008, 0x10004, 0x20002, 0x11, 0x80, 0x100, 0x200, 0x400, 0x800, 0x1000, 0x2000, 0x1, 0x2, 0x4, 0x8, 0, 0, 0, 0, 0, 0x80000, 0x100000, 0x40000, 0"></entry>
+                </entries>
+            </table>
+            <table name="interrupt_regs">
+                <key name="index" size="2"></key>
+                <value name="reg" default="INVALIDr"></value>
+                <entries>
+                    <entry index="0" reg="TDU_INTERRUPT_REGISTERr"></entry>
+                    <entry index="1" reg="TDU_ECC_INTERRUPT_REGISTERr"></entry>
+                </entries>
+            </table>
+            <table name="counter_regs">
+                <key name="index" size="10"></key>
+                <value name="reg" default="INVALIDr"></value>
+                <entries>
+                    <entry index="0" reg="TDU_WRITE_REQUEST_PATH_COUNTERSr"></entry>
+                    <entry index="1" reg="TDU_WRITE_REQUEST_PER_CHANNEL_COUNTr"></entry>
+                    <entry index="2" reg="TDU_WRITE_REQUEST_PER_BANK_COUNTr"></entry>
+                    <entry index="3" reg="TDU_WRITE_REQUEST_PER_LOGICAL_ADDRESS_BIT_COUNTr"></entry>
+                    <entry index="4" reg="TDU_READ_REQUEST_PATH_COUNTERSr"></entry>
+                    <entry index="5" reg="TDU_READ_REQUEST_PER_CHANNEL_COUNTr"></entry>
+                    <entry index="6" reg="TDU_READ_REQUEST_PER_BANK_COUNTr"></entry>
+                    <entry index="7" reg="TDU_READ_REQUEST_PER_LOGICAL_ADDRESS_BIT_COUNTr"></entry>
+                    <entry index="8" reg="TDU_READ_DATA_PATH_COUNTERSr"></entry>
+                    <entry index="9" reg="TDU_DRAM_BLOCKED_STATUSr"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+    <sub_module name="dram_block">
+        <defines>
+            <define name="leaky_bucket_window_size" value="4096"></define>
+        </defines>
+        <features>
+            <feature name="average_read_inflights_leaky_bucket"></feature>
+            <feature name="write_minus_read_leaky_bucket_disable"></feature>
+            <feature name="write_plus_read_leaky_bucket_disable"></feature>
+        </features>
+    </sub_module>
+</device_data>

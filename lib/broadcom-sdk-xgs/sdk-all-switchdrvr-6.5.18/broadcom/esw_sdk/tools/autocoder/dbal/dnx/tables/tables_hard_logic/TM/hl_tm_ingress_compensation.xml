@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="INGRESS_COMPENSATION_PER_VOQ">
+        <OneLineDescription>This table sets delta value per target queue</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="compensation profile" Name="COMPENSATION_PROFILE" Size="5" Type="UINT"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="HEADER_DELTA" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="HEADER_DELTA">
+                    <Access>
+                        <Memory Name="CGM_VOQ_HEADER_COMPENSATIONm">
+                            <HwField Name="VOQ_HEADER_DELTAf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="INGRESS_COMPENSATION_VOQ_TO_CREDIT_CLASS_PROFILE_MAP">
+        <OneLineDescription>This table contains the mapping from VOQ to credit class profile. the credit class profile is used to set compensation.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VOQ"/>
+            </Key>
+            <Result>
+                <Field Description="compensation profile" Name="COMPENSATION_PROFILE" Size="5" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="COMPENSATION_PROFILE">
+                    <Access>
+                        <Memory Name="CGM_VOQ_PROFILESm">
+                            <EntryOffset Formula="#KEY_VALUE(VOQ)/4"/>
+                            <DataOffset Formula="#KEY_VALUE(VOQ)%4*13+6"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="COMPENSATION_PROFILE">
+                    <Access>
+                        <Memory Name="CGM_VOQ_PROFILESm">
+                            <EntryOffset Formula="#KEY_VALUE(VOQ)/4"/>
+                            <DataOffset Formula="#KEY_VALUE(VOQ)%4*11+6"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_COMPENSATION_PER_HEADER_APPEND_PTR">
+        <OneLineDescription>This table sets delta value per header append pointer</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="header append pointer" Name="HEADER_APPEND_PTR" Size="8" Type="UINT"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="HEADER_DELTA" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="HEADER_DELTA">
+                    <Access>
+                        <Memory Name="CGM_HAPMm">
+                            <HwField Name="HEADER_APPEND_DELTAf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_COMPENSATION_PER_IN_PORT">
+        <OneLineDescription>This table sets In-PP-Port Header-Compensation-Profile delta value</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PP_PORT"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="HEADER_DELTA" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="HEADER_DELTA">
+                    <Access>
+                        <Memory Name="CGM_IPP_HEADER_COMPENSATIONm">
+                            <HwField Name="IPP_HEADER_DELTAf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_COMPENSATION_SCHEDULER_ENABLERS">
+        <OneLineDescription>This table enables different Schduler compensation components </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="credit request profile" Name="CR_PROFILE_ID" Size="5" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="TRUNCATE_ENABLE" Type="BOOL"/>
+                <Field Name="VOQ_ENABLE" Type="BOOL"/>
+                <Field Name="IRPP_ENABLE" Type="BOOL"/>
+                <Field Name="IN_PORT_ENABLE" Type="BOOL"/>
+                <Field Name="HDR_APPEND_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+<!--
+According to CGM design doc:
+ bit 0 - Header-Truncate delta 
+ bit 1 - IRPP header delta 
+ bit 2 - VOQ header delta 
+ bit 3 - If reset, mask In-PP-Port header delta 
+ bit 4 - If reset, mask Header-Append delta"
+-->
+                <Field Name="TRUNCATE_ENABLE">
+                    <Access>
+                        <Memory Name="CGM_SCH_HCMm">
+                             <HwField Name="MASKf"/>
+                             <DataOffset Formula="0"/>
+                         </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VOQ_ENABLE">
+                    <Access>
+                        <Memory Name="CGM_SCH_HCMm">
+                             <HwField Name="MASKf"/>
+                             <DataOffset Formula="2"/>
+                         </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IRPP_ENABLE">
+                    <Access>
+                        <Memory Name="CGM_SCH_HCMm">
+                             <HwField Name="MASKf"/>
+                             <DataOffset Formula="1"/>
+                         </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IN_PORT_ENABLE">
+                    <Access>
+                        <Memory Name="CGM_SCH_HCMm">
+                             <HwField Name="MASKf"/>
+                             <DataOffset Formula="3"/>
+                         </Memory>
+                    </Access>
+                </Field>
+                <Field Name="HDR_APPEND_ENABLE">
+                    <Access>
+                        <Memory Name="CGM_SCH_HCMm">
+                             <HwField Name="MASKf"/>
+                             <DataOffset Formula="4"/>
+                         </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_COMPENSATION_DELTA_SIGNS">
+        <OneLineDescription>Configure negate for automatic compensation components </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Configure negate for automatic compensation components " Name="ITPP_DELTA_NEG" Type="BOOL"/>
+                <Field Description="Configure negate for automatic compensation components " Name="IRPP_DELTA_NEG" Type="BOOL"/>
+                <Field Description="Configure negate for PP editing automatic compensation component" Name="NWK_HEADER_TRUNCATE_SIZE_NEG" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0" Name="ITPP_DELTA_NEG">
+                    <Access>
+                        <Register Name="CGM_AUTO_DOC_NAME_35r">
+                             <HwField Name="AUTO_DOC_NAME_39f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0" Name="ITPP_DELTA_NEG">
+                    <Access>
+                        <Register Name="CGM_AUTO_DOC_NAME_34r">
+                             <HwField Name="AUTO_DOC_NAME_38f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="Q2A_A0 Q2A_B0" Name="ITPP_DELTA_NEG">
+                    <Access>
+                        <Register Name="CGM_REG_0316r">
+                             <HwField Name="FIELD_3_3f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="IRPP_DELTA_NEG">
+                    <Access>
+                        <Register Name="CGM_AUTO_DOC_NAME_35r">
+                             <HwField Name="AUTO_DOC_NAME_40f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0" Name="IRPP_DELTA_NEG">
+                    <Access>
+                        <Register Name="CGM_AUTO_DOC_NAME_34r">
+                             <HwField Name="AUTO_DOC_NAME_39f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="Q2A_A0 Q2A_B0" Name="IRPP_DELTA_NEG">
+                    <Access>
+                        <Register Name="CGM_REG_0316r">
+                             <HwField Name="FIELD_4_4f"/>
+                        </Register>
+                    </Access>
+                </Field>
+               <Field Device="JR2_A0 JR2_B0" Name="NWK_HEADER_TRUNCATE_SIZE_NEG">
+                    <Access>
+                        <Register Name="CGM_AUTO_DOC_NAME_35r">
+                             <DataOffset Formula="2"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0" Name="NWK_HEADER_TRUNCATE_SIZE_NEG">
+                    <Access>
+                        <Register Name="CGM_AUTO_DOC_NAME_34r">
+                             <HwField Name="AUTO_DOC_NAME_37f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="Q2A_A0 Q2A_B0" Name="NWK_HEADER_TRUNCATE_SIZE_NEG">
+                    <Access>
+                        <Register Name="CGM_REG_0316r">
+                             <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

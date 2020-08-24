@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_b0" module="headers">
+    <includes>
+    </includes>
+    <sub_module name="general" doc="General attribute">
+        <features>
+            <feature name="fwd_header_offset_calc_with_egress_pars_idx" value="1">
+            </feature>
+        </features>
+    </sub_module>
+    <sub_module name="hw_bug" doc="Bugs related to system header construction">
+        <features>
+            <feature name="unknown_address"                               value="1"></feature>
+        </features>
+    </sub_module>
+</device_data>

@@ -1,0 +1,337 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="sch" bsl_flag="BSL_LS_BCMDNX_COSQ">
+
+    <includes>
+        <include>bcm_int/dnx/cosq/scheduler/scheduler.h</include>
+        <include>soc/dnx/dbal/dbal.h</include>
+     </includes>
+
+    <sub_module name="general" doc="e2e scheduler general information">
+        
+        <features>
+            <feature labels="j2p_notrev" name="lag_scheduler_supported" doc="Is LAG scheduler supported"></feature>
+        </features>
+        
+        <defines>
+            <define labels="j2p_notrev" name="nof_slow_profiles" doc="Number of slow profiles"></define>
+            <define labels="j2p_notrev" name="nof_slow_levels" doc="Number of slow levels"></define>
+            <define labels="j2p_notrev" name="cycles_per_credit_token" doc="Number of of cycles between credit tokens of the same flow"></define>
+            <define labels="j2p_notrev" name="nof_fmq_class" doc="Number of FMQ class"></define>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="port_priority_propagation_enable" doc="Enable ports to be created with port priority propagation"></numeric>
+        </numerics>
+
+        <tables>
+            <table labels="j2p_notrev" name="low_rate_factor_to_dbal_enum" doc="mapping low rate factor to dbal enum">
+                <key name="low_rate_factor" doc="low rate factor"></key>
+                <value name="dbal_enum" type="dbal_enum_value_field_low_rate_factor_e" doc="low rate factor dbal enum"></value>
+                <value name="valid" type="int" doc="is factor valid"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="dbal_enum_to_low_rate_factor" doc="mapping dbal enum to low rate factor">
+                <key name="dbal_enum" doc="low rate factor dbal enum"></key>
+                <value name="low_rate_factor" type="int" doc="low rate factor"></value>
+            </table>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="ps" doc="e2e port scheduler (PS) information">
+        <defines>
+            <define labels="j2p_notrev" name="min_priority_for_tcg" doc="Minimal port priority supporting tcg"></define>
+            <define labels="j2p_notrev" name="max_nof_tcg" doc="Maximal number of TCGs in a port scheduler"></define>
+            <define labels="j2p_notrev" name="nof_hrs_in_ps" doc="Number of HRs in port scheduler"></define>
+            <define labels="j2p_notrev" name="max_tcg_weight" doc="Maximal TCG EIR weight"></define>
+            <define labels="j2p_notrev" name="tc_tcg_calendar_access_period" doc="Access period of TC/TCG calendars"></define>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="max_port_rate_mbps" doc="maximal rate an port can drive (in MBits/sec)"></numeric>
+            <numeric labels="j2p_notrev" name="max_burst" doc="Maximal burst of TC/TCG port shapers"></numeric>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+
+     <sub_module name="flow" doc="e2e scheduler information">
+        
+        <features>
+            <feature labels="j2p_notrev" name="cl_fq_cl_fq_quartet" doc="Is Cl-FQ-Cl-FQ quartet supported"></feature>
+        </features>
+        
+        <defines>
+            <define labels="j2p_notrev" name="nof_hr" doc="Number of HR elements per core"></define>
+            <define labels="j2p_notrev" name="nof_cl" doc="Number of CL elements per core"></define>
+
+            <define labels="j2p_notrev" name="nof_se" doc="Number of scheduling elements per core"></define>
+
+            <define labels="j2p_notrev" name="nof_flows" doc="Number of flows per core"></define>
+            <define labels="j2p_notrev" name="region_size" doc="Number of flows in a region"></define>
+            <define labels="j2p_notrev" name="nof_regions" doc="Number of regions in a core"></define>
+            <define labels="j2p_notrev" name="nof_hr_regions" doc="Number of hr regions in a core"></define>
+            <define labels="j2p_notrev" name="nof_connectors_only_regions" doc="Number of connectors-only regions per core"></define>
+            <define labels="j2p_notrev" name="flow_in_region_mask" doc="mask for flows in region"></define>
+
+
+            <define labels="j2p_notrev" name="min_connector_bundle_size" doc="minimal number of connectors in bundle"></define>
+            
+            <define labels="j2p_notrev" name="conn_idx_interdig_flow" doc="first connector index in an interdigitated flow"></define>
+
+            <define labels="j2p_notrev" name="shaper_flipflops_nof"
+                    doc="number of Flip-Flops in flow shaper implementation in HW.
+                    if exp greater than (shaper_flipflops_nof - nof_manthissa_bits)) then mantissa[exp-(shaper_flipflops_nof-nof_mantissa_bits)-1: 0] == 0">
+            </define>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="erp_hr" doc="HR id of first ERP HR"></numeric>
+            <numeric labels="j2p_notrev" name="reserved_hr" doc="reserved HR allocated for returned credits in LAG scheduling"></numeric>
+            <numeric labels="j2p_notrev" name="max_se" doc="Maximal Scheduling element id"></numeric>
+            <numeric labels="j2p_notrev" name="max_flow" doc="Maximal flow id"></numeric>
+            <numeric labels="j2p_notrev" name="first_hr_region" doc="First HR region"></numeric>
+            <numeric labels="j2p_notrev" name="first_se_flow_id" doc="Flow ID of first scheduling element"></numeric>
+
+            <numeric labels="j2p_notrev" name="hr_se_id_min" doc="min hr se id"></numeric>
+            <numeric labels="j2p_notrev" name="hr_se_id_max" doc="max hr se id"></numeric>
+
+            <numeric labels="j2p_notrev" name="default_credit_source_se_id" doc="SE ID of default credit source. used to mark unattached flow"></numeric>
+
+            <numeric labels="j2p_notrev" name="runtime_performance_optimize_enable_sched_allocation" doc="enable flow properties access optimization"></numeric>
+        </numerics>        
+        
+        <tables>
+            <table labels="j2p_notrev" name="region_type" doc="flow region type">
+                <key name="core" doc="see table doc"></key>
+                <key name="region" doc="see table doc"></key>
+                <value name="type" type="uint32" doc="see table doc"></value>
+                <value name="propagation_direction" type="uint32" doc="see table doc"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="nof_remote_cores" doc="flow region type">
+                <key name="core" doc="see table doc"></key>
+                <key name="region" doc="see table doc"></key>
+                <value name="val" type="uint32" doc="see table doc"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="cl_num_to_quartet_offset" doc="mapping CL number to quartet index">
+                <key name="cl_num" doc="number of CL in the quartet"></key>
+                <value name="quartet_offset" type="int" doc="quartet offset"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="quartet_offset_to_cl_num" doc="mapping quartet index to CL number">
+                <key name="quartet_offset"  doc="quartet offset"></key>
+                <value name="cl_num" type="int" doc="number of CL in the quartet"></value>
+            </table>
+
+        </tables>
+    </sub_module>
+
+    <sub_module name="se" doc="scheduler elements information">
+
+        <features>
+        </features>
+        
+        <defines>
+            <define labels="j2p_notrev" name="default_cos" doc="default parameter of credit source COS. Used for FQ"></define>
+            <define labels="j2p_notrev" name="nof_color_group" doc="number of colors (groups)"></define>
+            <define labels="j2p_notrev" name="max_hr_weight" doc="maximal weight in HR WFQ"></define>
+            <define labels="j2p_notrev" name="cl_class_profile_nof" doc="number of profiles for CL class"></define>
+        </defines>
+
+        <numerics>
+        </numerics>        
+        
+        <tables>
+        </tables>
+    </sub_module>
+
+
+    <sub_module name="interface" doc="e2e interface information">
+        
+        <features>
+            <feature labels="j2p_notrev" name="non_channelized_calendar" doc="Is not channelized calender supported"></feature>
+        </features>
+        
+        <defines>
+            <define labels="j2p_notrev" name="nof_big_calendars" doc="Number of big calendars per core"></define>
+            <define labels="j2p_notrev" name="nof_channelized_calendars" doc="Number of channelized calendars per core (both big and regular)"></define>
+            <define labels="j2p_notrev" name="big_calendar_size" doc="Size of big calendar"></define>
+            <define labels="j2p_notrev" name="nof_sch_interfaces" doc="Number of sch interfaces per core"></define>
+            <define labels="j2p_notrev" name="cal_speed_resolution" doc="Resolution of interface calendar processing speed"></define>
+            <define labels="j2p_notrev" name="reserved" doc="Reserved SCH interface to disable interface level FC in case of LAG scheduling"></define>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="max_if_rate_mbps" doc="maximal rate an interface can drive (in MBits/sec)"></numeric>
+        </numerics>        
+        
+        <tables>
+            <table labels="j2p_notrev" name="shaper_resolution" doc="shaper resolution for channelized/non channelized interface">
+                <key name="channelized" doc="is interface channelized"></key>
+                <value name="resolution" type="uint32" doc="Resolution of interface shaper"></value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="device" doc="DRM information" >
+        
+        <defines>
+            <define labels="j2p_notrev" name="drm_resolution" doc="resolution of DRM rate"></define>
+        </defines>
+
+        <features>
+            <feature labels="j2p_notrev" name="shared_drm" doc="is shared DRM supported" ></feature>
+        </features>
+
+    </sub_module>
+
+
+    <sub_module name="sch_alloc" doc="e2e scheduler allocation defines">
+        
+        <features>
+        </features>
+        
+        <defines>
+        
+            <define labels="j2p_notrev" name="tag_aggregate_se_2" doc="2 SE aggregate tag"></define>
+            <define labels="j2p_notrev" name="tag_aggregate_se_4" doc="4 SE aggregate tag"></define>
+            <define labels="j2p_notrev" name="tag_aggregate_se_8" doc="8 SE aggregate tag"></define>
+            <define labels="j2p_notrev" name="shared_shaper_max_tag_value" doc="max tag value for shared shaper"></define>
+            
+            <define labels="j2p_notrev" name="tag_size_aggregate_se" doc="tag size for SE aggregate"></define>
+            <define labels="j2p_notrev" name="tag_size_con" doc="tag size for connectors - modid"></define>
+            <define labels="j2p_notrev" name="type_con_reg_start" doc="start of the connectors only region"></define>
+            <define labels="j2p_notrev" name="alloc_invalid_flow" doc="invalid flow define"></define>
+            <define labels="j2p_notrev" name="dealloc_flow_ids" doc="max number of flows to deallocate"></define>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="type_con_reg_end" doc="end of the connectors only region"></numeric>
+            <numeric labels="j2p_notrev" name="type_hr_reg_start" doc="searching start of the HR region"></numeric>
+        </numerics>        
+        
+        <tables>
+
+            <table labels="j2p_notrev" name="region" doc="content of quartet in each region type">
+                <key name="region_type" doc="region type"></key>
+                <value name="flow_type" type="dnx_sch_element_se_type_e[4]" doc="list of elements in quartet"></value>
+                <value name="odd_even_mode" type="dnx_scheduler_region_odd_even_mode_t" doc="Odd/even mode"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="connector" doc="allocation info for VOQ connectors">
+                <key name="composite" doc="is composite connector"></key>
+                <key name="interdigitated" doc="is interdigitated"></key>
+                <value name="alignment" type="uint32" doc="alignment requirement"></value>
+                <value name="pattern" type="uint32" doc="allocation pattern"></value>
+                <value name="pattern_size" type="uint32" doc="size of allocation pattern" ></value>
+                <value name="nof_in_pattern" type="uint32" doc="number of elements in allocation pattern"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="se_per_region_type" doc="allocation info for scheduling elements per region type">
+                <key name="flow_type" doc="type of element"></key>
+                <key name="region_type" doc="type of region"></key>
+                <value name="valid" type="uint32" doc="is the entry valid. In case the entry is not valid, the data is taken from se table"></value>
+                <value name="alignment"  type="uint32" doc="alignment requirement"></value>
+                <value name="pattern" type="uint32" doc="allocation pattern"></value>
+                <value name="pattern_size" type="uint32" doc="size of allocation pattern" ></value>
+                <value name="nof_offsets" type="uint32" doc="size offset array"></value>
+                <value name="offset" type="uint32[4]" doc="list of offsets"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="se" doc="allocation info for scheduling elements">
+                <key name="flow_type" doc="type of element"></key>
+                <value name="alignment"  type="uint32" doc="alignment requirement"></value>
+                <value name="pattern" type="uint32" doc="allocation pattern"></value>
+                <value name="pattern_size" type="uint32" doc="size of allocation pattern" ></value>
+                <value name="nof_offsets" type="uint32" doc="size offset array"></value>
+                <value name="offset" type="uint32[4]" doc="list of offsets"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="composite_se_per_region_type" doc="allocation info for composite scheduling elements per region type">
+                <key name="flow_type" doc="type of element"></key>
+                <key name="region_type" doc="type of region"></key>
+                <value name="valid" type="uint32" doc="is the entry valid. In case the entry is not valid, the data is taken from composite_se table"></value>
+                <value name="alignment"  type="uint32" doc="alignment requirement"></value>
+                <value name="pattern" type="uint32" doc="allocation pattern"></value>
+                <value name="pattern_size" type="uint32" doc="size of allocation pattern" ></value>
+            </table>
+
+            <table labels="j2p_notrev" name="composite_se" doc="allocation info for composite scheduling elements">
+                <key name="flow_type" doc="type of element"></key>
+                <key name="odd_even_mode" doc="odd or even region"></key>
+                <value name="alignment"  type="uint32" doc="alignment requirement"></value>
+                <value name="pattern" type="uint32" doc="allocation pattern"></value>
+                <value name="pattern_size" type="uint32" doc="size of allocation pattern" ></value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="dbal"  doc="e2e scheduler dbal defines">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <!-- Scheduler Enable -->
+            <define labels="j2p_notrev" name="scheduler_enable_grouping_factor" doc="size of group of sched elements sharing the same HW field "></define>
+            <define labels="j2p_notrev" name="scheduler_enable_dbal_mult_factor" doc="DBAL multiplication factor"></define>
+
+            <!-- flow ID -->
+            <define labels="j2p_notrev" name="flow_bits" doc="Number of bits in flow id"></define>
+
+            <!-- SE ID -->
+            <define labels="j2p_notrev" name="se_bits" doc="Number of bits in Scheduling element id"></define>
+
+            <!-- CL ID -->
+            <define labels="j2p_notrev" name="cl_bits" doc="Number of bits in CL id"></define>
+
+            <!-- HR ID -->
+            <define labels="j2p_notrev" name="hr_bits" doc="Number of bits in HR id"></define>
+
+            <!-- interface ID -->
+            <define labels="j2p_notrev" name="interface_bits" doc="Number of bits in interface id"></define>
+
+            <define labels="j2p_notrev" name="calendar_bits" doc="Number of bits in calendar id"></define>
+
+            <define labels="j2p_notrev" name="flow_shaper_mant_bits" doc="Number of bits in flow shaper mantissa"></define>
+
+            <define labels="j2p_notrev" name="ps_shaper_quanta_bits" doc="number of bits in PS shaper quanta"></define>
+            <define labels="j2p_notrev" name="ps_shaper_max_burst_bits" doc="number of bits in PS shaper max burst"></define>
+
+            <define labels="j2p_notrev" name="drm_nof_links_max" doc="maximal value of number of links for DRM table"></define>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="scheduler_enable_key_size" doc="size in bits of key in scheduler enable DBAL table"></numeric>
+
+            <numeric labels="j2p_notrev" name="flow_id_pair_key_size" doc="size in bits of half flow id"></numeric>
+            <numeric labels="j2p_notrev" name="flow_id_pair_max" doc="max value of half flow id"></numeric>
+
+            <!-- PS ID -->
+            <numeric labels="j2p_notrev"  name="ps_bits" doc="Number of bits in PS id"></numeric>
+
+            <numeric labels="j2p_notrev" name="flow_shaper_descr_bits" doc="Number of bits in flow shaper descriptor for one flow"></numeric>
+            <numeric labels="j2p_notrev" name="ps_shaper_bits"         doc="number of bits in PS shaper"></numeric>
+        </numerics>        
+        
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="hw_workarounds" doc="All devices workarounds">
+        <features>
+            <feature labels="j2p_notrev" name="dlm"
+                doc="Set couple of DLM registers to their MAX value due to hardware bug(HWJERICHO2-2480).">
+            </feature>
+        </features>
+    </sub_module>
+    
+</device_data>
+
+
+
+

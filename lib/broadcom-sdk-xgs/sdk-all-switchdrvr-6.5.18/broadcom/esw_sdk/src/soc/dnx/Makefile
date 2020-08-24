@@ -1,0 +1,80 @@
+#
+# $Id: Makefile,v 1.4 Broadcom SDK $
+# $Copyright: (c) 2019 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+
+include ${SDK}/make/Make.config
+
+CFGFLAGS += -std=gnu99
+#
+# If this is compilation for SLK-ALL then optimize for code
+# size. This is added to temporarily overcome the code size
+# issue on SLK compiler.
+#
+ifeq ($(findstring OPTIMIZE_CODE,$(MAKE_CUSTOM_SLK_ALL)),OPTIMIZE_CODE)
+CFGFLAGS += -Os
+endif
+
+export CFGFLAGS
+
+subdirs =	adapter	\
+			dbal	\
+			dnx_data\
+			drv	\
+			field/tcam_access	\
+			mdb	\
+			pemladrv	\
+			pll \
+			swstate	\
+			kbp  \
+			linkctrl  \
+			utils  \
+			arr  \
+            synce \
+			intr \
+			intr/auto_generated
+
+#jericho2 dnx PEMLA compilation
+ifeq ($(PEMLA_BUILD),1)
+PEMLA_Q2AB0_PATH=${SDK}/tools/dnx/pemla/qumran2a_bo
+PEMLA_Q2AA0_PATH=${SDK}/tools/dnx/pemla/qumran2a_a0
+PEMLA_PATH=${SDK}/tools/dnx/pemla/jericho2_a0
+PEMLA_B0_PATH=${SDK}/tools/dnx/pemla/jericho2_b0
+PEMLA_J2CA0_PATH=${SDK}/tools/dnx/pemla/jericho2c_a0
+PEMLA_J2PA0_PATH=${SDK}/tools/dnx/pemla/jericho2p_a0
+ifneq ($(REAL_SDK),)
+PEMLA_Q2AB0_PATH=${REAL_SDK}/tools/dnx/pemla/qumran2a_b0
+PEMLA_Q2AA0_PATH=${REAL_SDK}/tools/dnx/pemla/qumran2a_a0
+PEMLA_PATH=${REAL_SDK}/tools/dnx/pemla/jericho2_a0
+PEMLA_B0_PATH=${REAL_SDK}/tools/dnx/pemla/jericho2_b0
+PEMLA_J2CA0_PATH=${REAL_SDK}/tools/dnx/pemla/jericho2c_a0
+PEMLA_J2PA0_PATH=${REAL_SDK}/tools/dnx/pemla/jericho2p_a0
+endif
+#Build ucode if pemla folder exists
+ifneq ($(wildcard $(PEMLA_PATH)),)
+subdirs += $(PEMLA_PATH)
+endif
+ifneq ($(wildcard $(PEMLA_B0_PATH)),)
+subdirs += $(PEMLA_B0_PATH)
+endif
+ifneq ($(wildcard $(PEMLA_J2CA0_PATH)),)
+subdirs += $(PEMLA_J2CA0_PATH)
+endif
+ifneq ($(wildcard $(PEMLA_Q2AB0_PATH)),)
+subdirs += $(PEMLA_Q2AB0_PATH)
+endif
+ifneq ($(wildcard $(PEMLA_Q2AA0_PATH)),)
+subdirs += $(PEMLA_Q2AA0_PATH)
+endif
+ifneq ($(wildcard $(PEMLA_J2PA0_PATH)),)
+subdirs += $(PEMLA_J2PA0_PATH)
+endif
+endif
+
+INCDIR += -I${SDK}/include/shared
+
+lib = libsoc_dnx
+
+include ${SDK}/make/Make.lib
+include ${SDK}/make/Make.subdirs

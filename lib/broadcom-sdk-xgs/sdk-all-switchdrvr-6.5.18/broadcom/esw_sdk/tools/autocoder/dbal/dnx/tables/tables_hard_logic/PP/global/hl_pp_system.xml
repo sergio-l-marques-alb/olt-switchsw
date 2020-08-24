@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="SYSTEM_GLOBAL_TOD_CFG">
+        <OneLineDescription>Global System Configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="TOD_FORMAT"/>
+            </Result>
+            <TableLabels>SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TOD_FORMAT">
+                    <Access>
+                        <Register Name="ECI_FAP_GLOBAL_GENERAL_CFG_3r">
+                            <HwField Name="TOD_MODEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_TIMER_CONFIGr">
+                            <HwField Name="CMIC_TOD_MODEf"/>
+                        </Register>
+                    </Access>
+                    
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

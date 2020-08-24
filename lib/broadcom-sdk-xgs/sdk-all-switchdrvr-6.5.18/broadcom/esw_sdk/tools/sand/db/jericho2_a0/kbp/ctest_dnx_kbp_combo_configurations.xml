@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CtestKbpComboRoot xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+<GroupList>
+    <Group Name="Example combo test group" Valid="FALSE">
+        <!--
+        Group
+        Name - specifies the name of the group
+        Valid - specifies if the group needs to be created (TRUE by default)
+        -->
+        <Description>
+            Example KBP group.
+            Contains 1 regular qualifier, 1 shared qualifier (VRF in relation to IPv4 UC) and 1 range qualifier.
+        </Description>
+        <KeyFields>
+            <!--
+            LookupKeys
+            Name - specifies the lookup field name for the key
+            BitSize - specifies the size of the lookup field in bits
+            IsRanged - specifies whether the lookup field is range field
+            -->
+            <Field Name="VRF" BitSize="16"/>
+            <Field Name="QUALIFIER" BitSize="32"/>
+            <Field Name="RANGE_INDEX" BitSize="16" IsRanged="TRUE"/> <!-- IsRanged treated as "FALSE" by default -->
+        </KeyFields>
+        <ResultFields>
+            <!--
+            Results
+            Name - specifies the field name of the result
+            BitSize - specifies the size of the result field in bits
+            IsValid - specifies whether the result field has is_valid indication (+1 bit)
+            -->
+            <Field Name="DESTINATION_PORT" BitSize="8" IsValid="TRUE"/> <!-- IsValid treated as "FALSE" by default -->
+            <Field Name="ACTION" BitSize="32"/>
+        </ResultFields>
+    </Group>
+    
+    <Group Name="Basic semantic group">
+        <Description>
+            A group used for performing semantic ACL entry validation.
+        </Description>
+        <KeyFields>
+            <Field Name="QUALIFIER" BitSize="32"/>
+            <Field Name="IPV4_DIP" BitSize="32"/>
+            <Field Name="VRF" BitSize="16"/>
+        </KeyFields>
+        <ResultFields>
+            <Field Name="ACTION" BitSize="32"/>
+        </ResultFields>
+    </Group>
+    
+    <Group Name="Ranges semantic group">
+        <Description>
+            A group used for performing semantic ACL entry validation with range fields
+        </Description>
+        <KeyFields>
+            <Field Name="IPV4_DIP" BitSize="32"/>
+            <Field Name="RANGE_INDEX" BitSize="16" IsRanged="TRUE"/>
+            <Field Name="RANGE_THRESHOLD" BitSize="16" IsRanged="TRUE"/>
+            <Field Name="RANDOM_RANGE" BitSize="16" IsRanged="TRUE"/>
+        </KeyFields>
+        <ResultFields>
+            <Field Name="ACTION" BitSize="32"/>
+        </ResultFields>
+    </Group>
+    
+    <Group Name="Overlay semantic group 0">
+        <Description>
+            A group used for performing master key overlay fields validation
+        </Description>
+        <KeyFields>
+            <Field Name="IPV4_DIP" BitSize="32"/>
+            <Field Name="DPORT" BitSize="16" IsRanged="TRUE"/>
+            <Field Name="TWO_THIRDS_QUALIFIER" BitSize="16"/>
+        </KeyFields>
+        <ResultFields>
+            <Field Name="ACTION" BitSize="32"/>
+        </ResultFields>
+    </Group>
+    
+    <Group Name="Overlay semantic group 1">
+        <Description>
+            A group used for performing master key overlay fields validation
+        </Description>
+        <KeyFields>
+            <Field Name="IPV4_DIP" BitSize="32"/>
+            <Field Name="QUALIFIER" BitSize="24"/>
+            <Field Name="DPORT_LSB" BitSize="8"/>
+        </KeyFields>
+        <ResultFields>
+            <Field Name="ACTION" BitSize="32"/>
+        </ResultFields>
+    </Group>
+</GroupList>
+
+<Entries>
+    <Entry ID="0" Table="Example combo test group" Priority="10" AccessID="2">
+        <KeyFields>
+            <Field Name="VRF" Value="1234"/>
+            <Field Name="QUALIFIER" Value="0x12345678"/>
+            <Field Name="RANGE_INDEX" Value="3456"/>
+        </KeyFields>
+        <ResultFields>
+            <Field Name="DESTINATION_PORT" Value="88"/>
+            <Field Name="ACTION" Value="8888"/>
+        </ResultFields>
+    </Entry>
+    
+    <Entry ID="1" Table="Example combo test group" Priority="12" AccessID="3">
+        <KeyFields>
+            <Field Name="RANGE_INDEX" Min="1234" Max="5678"/>
+            <Field Name="QUALIFIER" Value="0x12345678" Mask="0xFFFF0000"/>
+        </KeyFields>
+        <ResultFields>
+            <Field Name="DESTINATION_PORT" Value="99"/>
+            <Field Name="ACTION" Value="9999"/>
+        </ResultFields>
+    </Entry>
+    
+    <Entry ID="2" Table="Example combo test group" Priority="14" AccessID="6">
+        <KeyFields>
+            <Field Name="VRF" Value="4321"/>
+            <Field Name="QUALIFIER" Value="0x12345678" Mask="0xFFFFFF00"/>
+        </KeyFields>
+        <ResultFields>
+            <Field Name="DESTINATION_PORT" Value="99"/>
+            <Field Name="ACTION" Value="9999"/>
+        </ResultFields>
+    </Entry>
+    
+    <Entry ID="3" Table="KBP_IPV4_UNICAST_PRIVATE_LPM_FORWARD">
+        <KeyFields>
+            <Field Name="VRF" Value="1234"/>
+            <Field Name="IPV4" Value="0x11111111" Mask="0xFFFFFFE0"/>
+        </KeyFields>
+        <ResultFields>
+            <Field Name="RESULT_TYPE" Value="FWD_DEST_W_DEFAULT"/> 
+            <Field Name="DESTINATION" Value="222"/> 
+            <Field Name="IS_DEFAULT" Value="TRUE"/> 
+        </ResultFields>
+    </Entry>
+    
+    <Entry ID="4" Table="Basic semantic group" Priority="92" AccessID="1">
+        <KeyFields>
+            <Field Name="QUALIFIER" Value="0x12345678"/>
+            <Field Name="IPV4_DIP" Value="0x9abcdef0"/>
+            <Field Name="VRF" Value="abc"/>
+        </KeyFields>
+        <ResultFields>
+            <Field Name="ACTION" Value="0x87654321"/> 
+        </ResultFields>
+    </Entry>
+    
+    <Entry ID="5" Table="Ranges semantic group" Priority="92" AccessID="1">
+        <KeyFields>
+            <Field Name="IPV4_DIP" Value="0x9abcdef0"/>
+            <Field Name="RANGE_INDEX" Min="0x1111" Max="0x1111"/>
+            <Field Name="RANGE_THRESHOLD" Min="0x2222" Max="0x3333"/>
+            <Field Name="RANDOM_RANGE" Value="0x4444"/>
+        </KeyFields>
+        <ResultFields>
+            <Field Name="ACTION" Value="0x87654321"/> 
+        </ResultFields>
+    </Entry>
+</Entries>
+
+<NewOpcodes>
+    <!--
+    Opcode
+    Name - specifies the opcode name;
+    SourceOpcode - specifies the opcode, which will be used as base;
+    Update - specifies whether the opcode will be copied from the source opcode (FALSE) or the source opcode will be updated (TRUE)
+    Valid - specifies if the opcode needs to be created (TRUE by default)
+    -->
+    <Opcode Name="Example combo test opcode" SourceOpcode="IPV4_UNICAST_PRIVATE_W_UC_RPF" Update="FALSE" Valid="FALSE">
+        <!-- Master key fields will be copied from the lookup tables -->
+        <Lookups>
+            <!--
+            Lookup
+            Group - specifies the group name on which the opcode will perform lookup
+            ResultIndex - specifies the result index of the lookup
+            ResultOffset - specifies the result location of the lookup in the KBP result buffer in bits (offset from the MSB)
+            -->
+            <Lookup Group="Example combo test group" ResultIndex="3" ResultOffset="112"/>
+        </Lookups>
+        <OverlayFields>
+            <!--
+            OverlayFields - empty when no overlay fields are used
+            Name - specifies the overlay field name
+            BitSize - specifies the size of the overlay field in bits
+            Offset - specifies the location of the overlay field in the KBP result buffer in bits (offset from the MSB)
+            -->
+            <Field Name="DPORT_LSB" BitSize="8" Offset="40"/>
+            <Field Name="TWO_THIRDS_QUALIFIER" BitSize="16" Offset="56"/>
+        </OverlayFields>
+    </Opcode>
+    <Opcode Name="Semantic opcode" SourceOpcode="IPV4_UNICAST_PRIVATE_W_UC_RPF">
+        <Lookups>
+            <Lookup Group="Basic semantic group" ResultIndex="2" ResultOffset="96"/>
+            <Lookup Group="Ranges semantic group" ResultIndex="3" ResultOffset="128"/>
+        </Lookups>
+        <OverlayFields></OverlayFields>
+    </Opcode>
+    <Opcode Name="Overlay fields opcode" SourceOpcode="NOP" Update="TRUE">
+        <OverlayFields>
+            <Field Name="DPORT_LSB" BitSize="8" Offset="40"/>
+            <Field Name="TWO_THIRDS_QUALIFIER" BitSize="16" Offset="56"/>
+        </OverlayFields>
+        <Lookups>
+            <Lookup Group="Overlay semantic group 0" ResultIndex="0" ResultOffset="0"/>
+            <Lookup Group="Overlay semantic group 1" ResultIndex="1" ResultOffset="32"/>
+        </Lookups>
+    </Opcode>
+</NewOpcodes>
+
+<Searches>
+    <Search ID="0" Opcode="Example combo test opcode">
+        <KeyFields> <!-- Key fields, with which the search is performed -->
+            <Field Name="VRF" Value="1234"/>
+            <Field Name="QUALIFIER" Value="0x12345679"/>
+            <Field Name="RANGE_INDEX" Value="4321"/>
+            <Field Name="IPV4_DIP" Value="0x11111111"/>
+            <Field Name="IPV4_SIP" Value="0x20202020"/>
+        </KeyFields>
+        <ExpectedResults HitBits="0x90"> <!-- Expected HitBits in raw format, expected result fields and their values per hit -->
+            <Result HitBit="0">
+                 <Field Name="DESTINATION" Value="222"/>
+                 <Field Name="IS_DEFAULT" Value="TRUE"/>
+            </Result>
+            <Result HitBit="3">
+                <Field Name="ACTION" Value="9999"/>
+            </Result>
+        </ExpectedResults>
+    </Search>
+    
+    <Search ID="1" Opcode="Example combo test opcode">
+        <KeyFields> <!-- Key fields, with which the search is performed -->
+            <Field Name="VRF" Value="1234"/>
+            <Field Name="QUALIFIER" Value="0x12345678"/>
+            <Field Name="RANGE_INDEX" Value="3456"/>
+            <Field Name="IPV4_DIP" Value="0x20202020"/>
+            <Field Name="IPV4_SIP" Value="0x10101010"/>
+        </KeyFields>
+        <ExpectedResults HitBits="0x10"> <!-- Expected HitBits, result fields and their values -->
+            <Result HitBit="0">
+                <Field Name="DESTINATION_PORT" Value="88"/>
+            </Result>
+        </ExpectedResults>
+    </Search>
+</Searches>
+    
+<TestCases>
+    <TestCase Name="Example combo test case" Valid="FALSE"> <!-- No defaults; if "FALSE" don't run -->
+        <Description>
+            Example test case for validating the implementation of the environment.
+        </Description>
+        <ExecutionSteps> <!-- Test scenario execution -->
+            <Step Action="ADD" EntryID="0"/>
+            <Step Action="ADD" EntryID="1"/>
+            <Step Action="ADD" EntryID="2"/>
+            <Step Action="ADD" EntryID="3"/>
+            <Step Action="SEARCH" SearchID="0"/>
+            <Step Action="SEARCH" SearchID="1"/>
+            <Step Action="DELETE" EntryID="2"/>
+            <Step Action="SEARCH" SearchID="1"/>
+            <Step Action="DELETE" EntryID="1"/>
+            <Step Action="SEARCH" SearchID="0"/>
+            <Step Action="DELETE" EntryID="3"/>
+        </ExecutionSteps>    
+    </TestCase>
+
+    <TestCase Name="Basic semantic" Valid="TRUE">
+        <Description>
+            Basic test for semantic validation of ACL entry.
+            Add the entry, validate key and result fields, delete the entry and validate it is not found. 
+        </Description>
+        <ExecutionSteps>
+            <Step Action="ADD" EntryID="4"/>
+            <Step Action="GET" EntryID="4" Expectation="FOUND"/>
+            <Step Action="GET" EntryID="4" Expectation="VALIDATE"/>
+            <Step Action="DELETE" EntryID="4"/>
+            <Step Action="GET" EntryID="4" Expectation="NOT_FOUND"/>
+        </ExecutionSteps>
+    </TestCase>
+
+    <TestCase Name="Ranges semantic" Valid="TRUE">
+        <Description>
+            Basic test for semantic validation of ACL entry with ranges.
+            Add the entry, validate key and result fields, delete the entry and validate it is not found. 
+        </Description>
+        <ExecutionSteps>
+            <Step Action="ADD" EntryID="5"/>
+            <Step Action="GET" EntryID="5" Expectation="FOUND"/>
+            <Step Action="GET" EntryID="5" Expectation="VALIDATE"/>
+            <Step Action="DELETE" EntryID="5"/>
+            <Step Action="GET" EntryID="5" Expectation="NOT_FOUND"/>
+        </ExecutionSteps>
+    </TestCase>
+</TestCases>
+
+</CtestKbpComboRoot>

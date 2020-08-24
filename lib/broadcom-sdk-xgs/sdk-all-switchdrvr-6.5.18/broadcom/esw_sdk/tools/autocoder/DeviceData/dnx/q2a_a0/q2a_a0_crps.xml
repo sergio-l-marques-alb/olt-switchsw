@@ -1,0 +1,102 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0"  module="crps">
+
+    <sub_module name="engine">
+        <features>
+            <feature name="valid_address_admission_is_supported" value="1"></feature>
+            <feature name="last_input_command_is_supported" value="1"></feature>
+        </features>
+
+        <defines>
+            <define name="nof_engines" value="14"></define>
+            <define name="nof_mid_engines" value="6"></define>
+            <define name="nof_big_engines" value="4"></define>
+            <define name="nof_databases" value="14"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+             <table name="engines_info" >
+                <key name="engine_id" size="14"></key>
+                <value name="nof_counters" default="4096"></value>
+                <value name="meter_shared" default="0"></value>
+                <entries>
+                    <entry engine_id="0" nof_counters="4096" meter_shared="1"></entry>
+                    <entry engine_id="1" nof_counters="4096" meter_shared="1"></entry>
+                    <entry engine_id="2" nof_counters="4096"></entry>
+                    <entry engine_id="3" nof_counters="4096"></entry>
+                    <entry engine_id="4" nof_counters="8192"></entry>
+                    <entry engine_id="5" nof_counters="8192"></entry>
+                    <entry engine_id="6" nof_counters="8192"></entry>
+                    <entry engine_id="7" nof_counters="8192"></entry>
+                    <entry engine_id="8" nof_counters="8192"></entry>
+                    <entry engine_id="9" nof_counters="8192"></entry>
+                    <entry engine_id="10" nof_counters="16384" meter_shared="1"></entry>
+                    <entry engine_id="11" nof_counters="16384" meter_shared="1"></entry>
+                    <entry engine_id="12" nof_counters="16384" meter_shared="1"></entry>
+                    <entry engine_id="13" nof_counters="16384" meter_shared="1"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+    <sub_module name="eviction" >       
+        <defines>
+            <define name="seq_address_nof_bits" value="16"></define>
+        </defines>
+        <features>
+            <feature name="conditional_action_is_supported" value="1"></feature>
+        </features>
+        <numerics>   
+        </numerics>
+        
+        <tables>
+            <table name="condional_action_valid">
+                <key name="action_idx" size="5"></key>
+                <value name="valid" default="0"></value>                
+                <entries>
+                    <entry action_idx="0" valid="1"></entry> <!--BCM_STAT_EVICTION_CONDIONAL_ACTION_EVICT_COUNTER-->
+                    <entry action_idx="1" valid="1"></entry> <!--BCM_STAT_EVICTION_CONDIONAL_ACTION_RESET_COUNTER-->
+                    <entry action_idx="2" valid="0"></entry> <!--BCM_STAT_EVICTION_CONDIONAL_ACTION_EVICT_TIME-->
+                    <entry action_idx="3" valid="0"></entry> <!--BCM_STAT_EVICTION_CONDIONAL_ACTION_INTERRUPT-->
+                    <entry action_idx="4" valid="1"></entry> <!--BCM_STAT_EVICTION_CONDIONAL_ACTION_NO_EVICTION-->
+                </entries>              
+            </table>           
+        </tables>
+    </sub_module>  
+    <sub_module name="expansion">
+        <features>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+            <table name="itm_types">
+                <value name="valid_types" 
+                default="bcmStatExpansionTypeTmDropReason, bcmStatExpansionTypeDispositionIsDrop, bcmStatExpansionTypeTrafficClass, 
+                bcmStatExpansionTypeDropPrecedenceMeterResolved, bcmStatExpansionTypeTmLastCopy, bcmStatExpansionTypeMax"></value>
+                <value name="total_nof_bits" default="10"></value>               
+                <value name="drop_reason_offset" default="0"></value>
+                <value name="disposition_offset" default="3"></value>
+                <value name="tc_offset" default="4"></value>
+                <value name="final_dp_offset" default="7"></value>
+                <value name="last_copy_offset" default="9"></value>
+            </table>
+            <table name="itpp_types">
+                <value name="valid_types" 
+                default="bcmStatExpansionTypeLatencyBin, bcmStatExpansionTypeTrafficClass, bcmStatExpansionTypeLatencyFlowProfile, 
+                bcmStatExpansionTypeSystemMultiCast, bcmStatExpansionTypeMax"></value>
+                <value name="total_nof_bits" default="12"></value>              
+                <value name="latency_bin_offset" default="0"></value>
+                <value name="tc_offset" default="3"></value>
+                <value name="latency_profile_offset" default="6"></value> 
+                <value name="mc_offset" default="11"></value>
+            </table>        
+        </tables>
+    </sub_module>
+</device_data>

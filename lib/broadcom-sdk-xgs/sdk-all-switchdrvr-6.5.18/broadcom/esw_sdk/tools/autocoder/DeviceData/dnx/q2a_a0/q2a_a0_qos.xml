@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0"  module="qos">
+
+    <sub_module name="qos">
+         <features>
+            <feature name="ecn_L4S"                   value="1"></feature>
+         </features>
+
+         <defines>
+            <define name = "ecn_bits_width"           value = "3"></define>
+         </defines>
+
+         <numerics>
+         </numerics>
+
+         <tables>
+         </tables>
+
+    </sub_module>
+
+
+    <sub_module name="hw_bug" doc="qos related HW bugs">
+        <features>
+        <feature name="egress_remark_or_keep_enabler" value="1"></feature>
+        <feature name="fwd_eve_pcp_diff_encap"        value="0"></feature>
+        <feature name="phb_rm_ffc_extend"             value="1"></feature>
+        </features>
+
+        <defines>
+            <define name = "phb_rm_ffc_bits_width"    value = "23"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+</device_data>

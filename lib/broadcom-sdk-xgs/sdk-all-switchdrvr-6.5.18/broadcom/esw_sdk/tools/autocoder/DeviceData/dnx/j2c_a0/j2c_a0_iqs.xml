@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2c_a0"  module="iqs">
+
+    <includes>
+    </includes>
+
+    <sub_module name="credit">
+        
+        <features>
+            <feature name="watchdog_fixed_period" value="0"></feature>
+            <feature name="fmq_shp_zero_rate_allowed" value="0"></feature>
+            <feature name="dram_delete_fix_hw" value="1"></feature>
+        </features>
+        
+    </sub_module>
+
+    <sub_module name="deq_default">
+        <features>
+            <feature name="dqcq_fc_to_dram" value="1"></feature>
+        </features>
+        
+        <defines>
+        </defines>
+        
+        <numerics>
+        </numerics>
+        
+        <tables>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="dqcq">
+        <features>
+            <feature name="8_priorities" value="1"></feature>
+        </features>
+        
+        <defines>
+            <define name="max_nof_contexts" value="4"></define> <!-- 4 contexts in Mesh: Local, Dev_id0/1/2, 3 contexts in Clos: Local0,UC,MC-->
+            <define name="nof_priorities" value="8"></define>
+        </defines>
+        
+        <numerics>
+        </numerics>
+        
+        <tables>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="dbal">
+        <features>
+        </features>
+        
+        <defines>
+            <define name="ipt_counters_nof_bits" value="32"></define>
+        </defines>
+        
+        <numerics>
+        </numerics>
+        
+        <tables>
+        </tables>
+    </sub_module>
+
+</device_data>
+
+
+

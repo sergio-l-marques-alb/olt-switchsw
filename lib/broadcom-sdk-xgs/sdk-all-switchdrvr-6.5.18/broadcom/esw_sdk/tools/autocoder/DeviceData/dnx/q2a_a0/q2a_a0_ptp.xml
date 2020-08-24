@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0" module="ptp">
+    <sub_module name="general">
+        <features>
+            <feature name="has_trap_code_offset" value="1"></feature>
+        </features>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>

@@ -1,0 +1,2684 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="EGRESS_ETPP_TERM_CONTEXT_PROPERTIES">
+        <OneLineDescription>Egress Termination Context Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TERM_CONTEXT_ID"/>
+            </Key>
+            <Result>
+                <Field Description="If true, EXEM Access is being Enabled" Name="EXEM_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSD Access is being Enabled" Name="VSD_ENABLE" Type="BOOL"/>
+                <Field Description="If true, ESEM Access is being Enabled" Name="ESEM_ENABLE" Type="BOOL"/>
+                <Field Description="If true, OAM DB Access is being Enabled" Name="OAM_DB_ACC_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LM CRPS Access is being Enabled" Name="LM_CRPS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Metering Access is being Enabled" Name="METERING_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Context action trap Configuration Protection is being Enabled" Name="STACK_ACTION_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Protection Configuration is being Enabled" Name="PROTECTION_ENABLE"/>
+                <Field Description="If true, OAM Extension processing is being Enabled " Name="OAM_EXT_PROCESSING_ENABLE" Type="BOOL"/>
+                <Field Description="If true, OAM Trap is being Enabled" Name="OAM_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Tail Editing is being Enabled" Name="TAIL_EDITING_ENABLE" Type="BOOL" Valid="DNX_DATA.dev_init.general.tail_editing_enable"/>
+                <Field Description="If true, Tail Append Editing is being Enabled" Name="TAIL_EDITING_APPEND_ENABLE" Type="BOOL" Valid="DNX_DATA.dev_init.general.tail_editing_append_enable"/>
+                <Field Description="If true, Tail Truncate Editing is being Enabled" Name="TAIL_EDITING_TRUNCATE_ENABLE" Type="BOOL" Valid="DNX_DATA.dev_init.general.tail_editing_truncate_enable"/>
+                <Field Description="If true, 1588 is being Enabled" Name="IEEE_1588_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Latency measure is being Enabled" Name="LATENCY_ENABLE" Type="BOOL"/>
+                <Field Description="If true, PHP is being Enabled" Name="PHP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, FWD Plus 1 Remarking is being Enabled" Name="FWD_PLUS_1_REMARK_ENABLE" Type="BOOL"/>
+                <Field Description="If true, ETPS Build is being Enabled" Name="BUILD_STACK_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Candidate Header is being Enabled" Name="CANDIDATE_ENABLE" Type="BOOL"/>
+                <Field Name="PACKET_SIZE_COMPENSATION" Valid="DNX_DATA.dev_init.general.packet_size_compensation_term"/>
+                <Field Name="CURRENT_PACKET_SIZE_COMPENSATION" Valid="DNX_DATA.dev_init.general.current_packet_size_compensation_term"/>
+                <Field Name="NOF_ETPS_TO_SHIFT"/>
+               </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="EXEM_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_TERMINATION_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="EXEM_ENf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSD_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_TERMINATION_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="VSD_ENf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ESEM_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_TERMINATION_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="ESEM_ENf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_DB_ACC_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_TERMINATION_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="OAM_DB_ACC_ENf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LM_CRPS_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_TERMINATION_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LM_CRPS_ENf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="METERING_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_TERMINATION_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="METERING_ENf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="STACK_ACTION_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_TERMINATION_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="STACK_ACTION_TRAP_ENf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PROTECTION_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_TERMINATION_CONTEXT_ENABLERSm"> 
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PROTECTION_ENf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_EXT_PROCESSING_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_TERMINATION_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="OAM_EXT_PROCESSING_ENf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_TERMINATION_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="OAM_TRAP_ENf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0" Name="TAIL_EDITING_ENABLE"> 
+                    <Access>
+                        <Memory Name="ETPPC_TERMINATION_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="TAIL_EDITING_ENf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="TAIL_EDITING_APPEND_ENABLE"> 
+                    <Access>
+                        <Memory Name="ETPPC_TERMINATION_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="TAIL_EDITING_APPEND_ENf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="TAIL_EDITING_TRUNCATE_ENABLE"> 
+                    <Access>
+                        <Memory Name="ETPPC_TERMINATION_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="TAIL_EDITING_TRUNCATE_ENf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IEEE_1588_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_TERMINATION_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IEEE_1588_ENf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LATENCY_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_TERMINATION_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LATENCY_ENf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PHP_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_TERMINATION_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PHP_ENf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_PLUS_1_REMARK_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_TERMINATION_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FWD_PLUS_1_REMARK_ENf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="BUILD_STACK_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_TERMINATION_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="BUILD_STACKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CANDIDATE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_TERMINATION_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CANDIDATE_ENf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0" Name="PACKET_SIZE_COMPENSATION">
+                    <Access>
+                        <Memory Name="ETPPC_TERMINATION_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PACKET_SIZE_COMPENSATIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="CURRENT_PACKET_SIZE_COMPENSATION">
+                    <Access>
+                        <Memory Name="ETPPC_TERMINATION_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CURRENT_PACKET_SIZE_COMPENSATIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_ETPS_TO_SHIFT">
+                    <Access>
+                        <Memory Name="ETPPC_TERMINATION_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="NOF_ETPS_TO_SHIFTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_ETPP_FWD_CONTEXT_PROPERTIES">
+        <OneLineDescription>Egress Termination Context Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FWD_CONTEXT_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Enable-Disable TTL decrement" Name="UPDATE_TTL_ENABLE" Type="BOOL"/>
+                <Field Description="Enable-Disable QoS and DP update (enable- use qos_variable, disable- use initial_qos_and_dp)" Name="UPDATE_QOS_AND_DP_ENABLE" Type="BOOL"/>
+                <Field Description="Indicates whether to edit the forwarding or not" Name="FORWARDING_EDITING_ENABLE" Type="BOOL"/>
+                <Field Description="Enable-Disable STP stack update" Name="PUSH_STP_ENABLE" Type="BOOL"/>
+                <Field Description="Enable-Disable OutbandMirror stack update" Name="PUSH_OUTBOUND_MIRROR_ENABLE" Type="BOOL"/>
+                <Field Description="Enable-Disable Membership stack update" Name="PUSH_VLAN_MEMBERSHIP_ENABLE" Type="BOOL"/>
+                <Field Description="Enable-Disable Statistics stack update" Name="PUSH_STATISTICS_ENABLE" Type="BOOL"/>
+                <Field Description="VSD usage identifier" Name="VSD_ENABLE" Type="BOOL"/>
+                <Field Description="Enable-Disable for Using Etps TOS in FWD stage" Name="USE_ETPS_TOS" Type="BOOL"/>
+                <Field Description="Enable-Disable forward_domain signal update (enable- use ETPS.ToS.forward_domain (arr_output), disable- keep original value)" Name="FODO_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="Enable-Disable MTU Trap" Name="UPDATE_MTU_ENABLE" Type="BOOL"/>
+                <Field Name="PACKET_SIZE_COMPENSATION"/>
+                <Field Name="NOF_ETPS_TO_SHIFT"/>
+                <Field Name="FORWARDING_CANDIDATE_HEADER" Type="ETPP_FORWARDING_CANDIDATE_HEADER"/>
+               </Result>
+            <TableLabels>L2 L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="UPDATE_TTL_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_FORWARDING_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="UPDATE_TTL_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="UPDATE_QOS_AND_DP_ENABLE"> 
+                    <Access>
+                        <Memory Name="ETPPC_FORWARDING_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="UPDATE_QOS_AND_DP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FORWARDING_EDITING_ENABLE"> 
+                    <Access>
+                        <Memory Name="ETPPC_FORWARDING_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FORWARDING_EDITING_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FORWARDING_CANDIDATE_HEADER"> 
+                    <Access>
+                        <Memory Name="ETPPC_FORWARDING_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CANDIDATE_HEADER_SELECTORf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PUSH_STP_ENABLE"> 
+                    <Access>
+                        <Memory Name="ETPPC_FORWARDING_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PUSH_STP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PUSH_OUTBOUND_MIRROR_ENABLE"> 
+                    <Access>
+                        <Memory Name="ETPPC_FORWARDING_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PUSH_OUTBOUND_MIRROR_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PUSH_VLAN_MEMBERSHIP_ENABLE"> 
+                    <Access>
+                        <Memory Name="ETPPC_FORWARDING_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PUSH_VLAN_MEMBERSHIP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PUSH_STATISTICS_ENABLE"> 
+                    <Access>
+                        <Memory Name="ETPPC_FORWARDING_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PUSH_STATISTICS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSD_ENABLE"> 
+                    <Access>
+                        <Memory Name="ETPPC_FORWARDING_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="USE_VSDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="USE_ETPS_TOS"> 
+                    <Access>
+                        <Memory Name="ETPPC_FORWARDING_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="USE_ETPSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FODO_UPDATE_ENABLE"> 
+                    <Access>
+                        <Memory Name="ETPPC_FORWARDING_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FORWARDING_DOMAIN_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="UPDATE_MTU_ENABLE"> 
+                    <Access>
+                        <Memory Name="ETPPC_FORWARDING_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="UPDATE_MTU_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PACKET_SIZE_COMPENSATION"> 
+                    <Access>
+                        <Memory Name="ETPPC_FORWARDING_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PACKET_SIZE_COMPENSATIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_ETPS_TO_SHIFT"> 
+                    <Access>
+                        <Memory Name="ETPPC_FORWARDING_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="NOF_ETPS_TO_SHIFTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_ETPP_ENCAP_1_CONTEXT_PROPERTIES">
+        <OneLineDescription>Egress Encap 1 Stage Context Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ENCAP_1_CONTEXT_ID"/>
+            </Key>
+            <Result>
+                <Field Description="If true, QOS Inheritance is being Enabled" Name="QOS_INHERITANCE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, TTL Inheritance is being Enabled" Name="TTL_INHERITANCE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Statistics Object Generation is being Enabled" Name="STATISTICS_OBJECT_GENERATION_ENABLE" Type="BOOL"/>
+                <Field Description="If true, STP State Stack Update is being Enabled" Name="STP_STATE_STACK_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VLAN Membership Stack Update is being Enabled" Name="VLAN_MEMBERSHIP_STACK_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Outbound Mirror Stack Update is being Enabled" Name="OUTBOUND_MIRROR_STACK_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Update Current Packet Size is being Enabled" Name="UPDATE_CURRENT_PACKET_SIZE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, MTU Filter is being Enabled" Name="MTU_FILTER_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Push First Destination is being Enabled" Name="PUSH_FIRST_DESTINATION_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSD Data is being Enabled" Name="VSD_DATA_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Update Current Protocol Type is being Enabled" Name="UPDATE_CURRENT_PROTOCOL_TYPE_ENABLE" Type="BOOL"/>
+                <Field Name="ETPP_ENCAPSULATION_MAIN_HEADER_TYPE"/>
+                <Field Name="QOS_VAR_TYPE"/>
+                <Field Name="CTX_ADDITIONAL_HEADER_PROFILE"/>
+                <Field Name="NOF_ENTRIES_IN_LAYER"/>
+                <Field Name="CURRENT_NEXT_PROTOCOL_NAME_SPACE"/>
+                <Field Name="CURRENT_LAYER_TYPE" Type="LAYER_TYPES"/>
+                <Field Name="MAIN_HEADER_SIZE_IN_BYTES"/>
+                <Field Name="REMARK_PROFILE_INDEX"/>
+                <Field Name="VLAN_MEMBERSHIP_PROFILE_INDEX"/>
+                <Field Name="IPV4_FLAGS"/>
+                <Field Name="PACKET_SIZE_COMPENSATION"/>
+                <Field Name="NOF_ENTRIES_TO_SHIFT"/>
+                <Field Name="SOURCE_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="TTL_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="NWK_QOS_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="QOS_MODEL_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="TTL_MODEL_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="FORWARD_DOMAIN_NETWORK_NAME_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="VLAN_EDIT_PROFILE_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="DUAL_HOMING_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="LIF_ADDITIONAL_HEADERS_PROFILE_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="MTU_PROFILE_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="SVTAG_INDEX" Size="1" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+            </Result> 
+            <TableLabels>L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/> 
+            <FieldMapping>
+                <Field Name="QOS_INHERITANCE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="QOS_INHERITANCE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_INHERITANCE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="TTL_INHERITANCE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="STATISTICS_OBJECT_GENERATION_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="STATISTICS_OBJECT_GENERATION_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="STP_STATE_STACK_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="STP_STATE_STACK_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_MEMBERSHIP_STACK_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="VLAN_MEMBERSHIP_STACK_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUTBOUND_MIRROR_STACK_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="OUTBOUND_MIRROR_STACK_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="UPDATE_CURRENT_PACKET_SIZE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="UPDATE_CURRENT_PACKET_SIZE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MTU_FILTER_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MTU_FILTER_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_ENTRIES_IN_LAYER">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="NOF_ENTRIES_IN_LAYERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PUSH_FIRST_DESTINATION_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PUSH_FIRST_DESTINATIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CURRENT_NEXT_PROTOCOL_NAME_SPACE">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CURRENT_NEXT_PROTOCOL_NAME_SPACEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSD_DATA_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="VSD_DATA_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ETPP_ENCAPSULATION_MAIN_HEADER_TYPE">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MAIN_HEADER_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="QOS_VAR_TYPE">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="QOS_VAR_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CTX_ADDITIONAL_HEADER_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="ADDITIONAL_HEADERS_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="UPDATE_CURRENT_PROTOCOL_TYPE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="UPDATE_CURRENT_PROTOCOL_TYPE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CURRENT_LAYER_TYPE">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CURRENT_PROTOCOL_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAIN_HEADER_SIZE_IN_BYTES">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MAIN_HEADER_SIZE_IN_BYTESf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REMARK_PROFILE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="REMARK_PROFILE_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_MEMBERSHIP_PROFILE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="VLAN_MEMBERSHIP_PROFILE_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV4_FLAGS">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IPV4_FLAGSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PACKET_SIZE_COMPENSATION">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PACKET_SIZE_COMPENSATIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_ENTRIES_TO_SHIFT">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="NOF_ENTRIES_TO_SHIFTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SOURCE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <HwField Name="SOURCE_IDX_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_INDEX">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <HwField Name="TTL_IDX_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NWK_QOS_INDEX">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <HwField Name="NWK_QOS_IDX_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="QOS_MODEL_INDEX">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <HwField Name="QOS_MODEL_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_MODEL_INDEX">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <HwField Name="TTL_MODEL_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FORWARD_DOMAIN_NETWORK_NAME_INDEX">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <HwField Name="FORWARD_DOMAIN_NETWORK_NAME_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_EDIT_PROFILE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <HwField Name="VLAN_EDIT_PROFILE_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DUAL_HOMING_INDEX">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <HwField Name="DUAL_HOMING_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_ADDITIONAL_HEADERS_PROFILE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <HwField Name="LIF_ADDITIONAL_HEADERS_PROFILE_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MTU_PROFILE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <HwField Name="MTU_PROFILE_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SVTAG_INDEX">
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_ENABLERSm">
+                            <HwField Name="SVTAG_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_ETPP_ENCAP_2_CONTEXT_PROPERTIES">
+        <OneLineDescription>Egress Encap 2 Stage Context Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ENCAP_2_CONTEXT_ID"/>
+            </Key>
+            <Result>
+                <Field Description="If true, QOS Inheritance is being Enabled" Name="QOS_INHERITANCE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, TTL Inheritance is being Enabled" Name="TTL_INHERITANCE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Statistics Object Generation is being Enabled" Name="STATISTICS_OBJECT_GENERATION_ENABLE" Type="BOOL"/>
+                <Field Description="If true, STP State Stack Update is being Enabled" Name="STP_STATE_STACK_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VLAN Membership Stack Update is being Enabled" Name="VLAN_MEMBERSHIP_STACK_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Outbound Mirror Stack Update is being Enabled" Name="OUTBOUND_MIRROR_STACK_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Update Current Packet Size is being Enabled" Name="UPDATE_CURRENT_PACKET_SIZE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, MTU Filter is being Enabled" Name="MTU_FILTER_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Push First Destination is being Enabled" Name="PUSH_FIRST_DESTINATION_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSD Data is being Enabled" Name="VSD_DATA_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Update Current Protocol Type is being Enabled" Name="UPDATE_CURRENT_PROTOCOL_TYPE_ENABLE" Type="BOOL"/>
+                <Field Name="ETPP_ENCAPSULATION_MAIN_HEADER_TYPE"/>
+                <Field Name="QOS_VAR_TYPE"/>
+                <Field Name="CTX_ADDITIONAL_HEADER_PROFILE"/>
+                <Field Name="NOF_ENTRIES_IN_LAYER"/>
+                <Field Name="CURRENT_NEXT_PROTOCOL_NAME_SPACE"/>
+                <Field Name="CURRENT_LAYER_TYPE" Type="LAYER_TYPES"/>
+                <Field Name="MAIN_HEADER_SIZE_IN_BYTES"/>
+                <Field Name="REMARK_PROFILE_INDEX"/>
+                <Field Name="VLAN_MEMBERSHIP_PROFILE_INDEX"/>
+                <Field Name="IPV4_FLAGS"/>
+                <Field Name="PACKET_SIZE_COMPENSATION"/>
+                <Field Name="NOF_ENTRIES_TO_SHIFT"/>
+                <Field Name="SOURCE_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="TTL_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="NWK_QOS_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="QOS_MODEL_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="TTL_MODEL_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="FORWARD_DOMAIN_NETWORK_NAME_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="VLAN_EDIT_PROFILE_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="DUAL_HOMING_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="LIF_ADDITIONAL_HEADERS_PROFILE_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="MTU_PROFILE_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="SVTAG_INDEX" Size="1" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+            </Result> 
+            <TableLabels>L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/> 
+            <FieldMapping>
+                <Field Name="QOS_INHERITANCE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="QOS_INHERITANCE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_INHERITANCE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="TTL_INHERITANCE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="STATISTICS_OBJECT_GENERATION_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="STATISTICS_OBJECT_GENERATION_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="STP_STATE_STACK_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="STP_STATE_STACK_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_MEMBERSHIP_STACK_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="VLAN_MEMBERSHIP_STACK_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUTBOUND_MIRROR_STACK_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="OUTBOUND_MIRROR_STACK_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="UPDATE_CURRENT_PACKET_SIZE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="UPDATE_CURRENT_PACKET_SIZE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MTU_FILTER_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MTU_FILTER_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_ENTRIES_IN_LAYER">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="NOF_ENTRIES_IN_LAYERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PUSH_FIRST_DESTINATION_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PUSH_FIRST_DESTINATIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CURRENT_NEXT_PROTOCOL_NAME_SPACE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CURRENT_NEXT_PROTOCOL_NAME_SPACEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSD_DATA_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="VSD_DATA_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ETPP_ENCAPSULATION_MAIN_HEADER_TYPE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MAIN_HEADER_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="QOS_VAR_TYPE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="QOS_VAR_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CTX_ADDITIONAL_HEADER_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="ADDITIONAL_HEADERS_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="UPDATE_CURRENT_PROTOCOL_TYPE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="UPDATE_CURRENT_PROTOCOL_TYPE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CURRENT_LAYER_TYPE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CURRENT_PROTOCOL_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAIN_HEADER_SIZE_IN_BYTES">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MAIN_HEADER_SIZE_IN_BYTESf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REMARK_PROFILE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="REMARK_PROFILE_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_MEMBERSHIP_PROFILE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="VLAN_MEMBERSHIP_PROFILE_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV4_FLAGS">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IPV4_FLAGSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PACKET_SIZE_COMPENSATION">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PACKET_SIZE_COMPENSATIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_ENTRIES_TO_SHIFT">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="NOF_ENTRIES_TO_SHIFTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SOURCE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <HwField Name="SOURCE_IDX_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <HwField Name="TTL_IDX_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NWK_QOS_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <HwField Name="NWK_QOS_IDX_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="QOS_MODEL_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <HwField Name="QOS_MODEL_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_MODEL_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <HwField Name="TTL_MODEL_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FORWARD_DOMAIN_NETWORK_NAME_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <HwField Name="FORWARD_DOMAIN_NETWORK_NAME_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_EDIT_PROFILE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <HwField Name="VLAN_EDIT_PROFILE_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DUAL_HOMING_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <HwField Name="DUAL_HOMING_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_ADDITIONAL_HEADERS_PROFILE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <HwField Name="LIF_ADDITIONAL_HEADERS_PROFILE_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MTU_PROFILE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <HwField Name="MTU_PROFILE_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SVTAG_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_2_CONTEXT_ENABLERSm">
+                            <HwField Name="SVTAG_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_ETPP_ENCAP_3_CONTEXT_PROPERTIES">
+        <OneLineDescription>Egress Encap 3 Stage Context Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ENCAP_3_CONTEXT_ID"/>
+            </Key>
+            <Result>
+                <Field Description="If true, QOS Inheritance is being Enabled" Name="QOS_INHERITANCE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, TTL Inheritance is being Enabled" Name="TTL_INHERITANCE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Statistics Object Generation is being Enabled" Name="STATISTICS_OBJECT_GENERATION_ENABLE" Type="BOOL"/>
+                <Field Description="If true, STP State Stack Update is being Enabled" Name="STP_STATE_STACK_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VLAN Membership Stack Update is being Enabled" Name="VLAN_MEMBERSHIP_STACK_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Outbound Mirror Stack Update is being Enabled" Name="OUTBOUND_MIRROR_STACK_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Update Current Packet Size is being Enabled" Name="UPDATE_CURRENT_PACKET_SIZE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, MTU Filter is being Enabled" Name="MTU_FILTER_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Push First Destination is being Enabled" Name="PUSH_FIRST_DESTINATION_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSD Data is being Enabled" Name="VSD_DATA_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Update Current Protocol Type is being Enabled" Name="UPDATE_CURRENT_PROTOCOL_TYPE_ENABLE" Type="BOOL"/>
+                <Field Name="ETPP_ENCAPSULATION_MAIN_HEADER_TYPE"/>
+                <Field Name="QOS_VAR_TYPE"/>
+                <Field Name="CTX_ADDITIONAL_HEADER_PROFILE"/>
+                <Field Name="NOF_ENTRIES_IN_LAYER"/>
+                <Field Name="CURRENT_NEXT_PROTOCOL_NAME_SPACE"/>
+                <Field Name="CURRENT_LAYER_TYPE" Type="LAYER_TYPES"/>
+                <Field Name="MAIN_HEADER_SIZE_IN_BYTES"/>
+                <Field Name="REMARK_PROFILE_INDEX"/>
+                <Field Name="VLAN_MEMBERSHIP_PROFILE_INDEX"/>
+                <Field Name="IPV4_FLAGS"/>
+                <Field Name="PACKET_SIZE_COMPENSATION"/>
+                <Field Name="NOF_ENTRIES_TO_SHIFT"/>
+                <Field Name="SOURCE_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="TTL_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="NWK_QOS_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="QOS_MODEL_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="TTL_MODEL_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="FORWARD_DOMAIN_NETWORK_NAME_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="VLAN_EDIT_PROFILE_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="DUAL_HOMING_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="LIF_ADDITIONAL_HEADERS_PROFILE_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="MTU_PROFILE_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="SVTAG_INDEX" Size="1" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+            </Result> 
+            <TableLabels>L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/> 
+            <FieldMapping>
+                <Field Name="QOS_INHERITANCE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="QOS_INHERITANCE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_INHERITANCE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="TTL_INHERITANCE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="STATISTICS_OBJECT_GENERATION_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="STATISTICS_OBJECT_GENERATION_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="STP_STATE_STACK_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="STP_STATE_STACK_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_MEMBERSHIP_STACK_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="VLAN_MEMBERSHIP_STACK_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUTBOUND_MIRROR_STACK_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="OUTBOUND_MIRROR_STACK_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="UPDATE_CURRENT_PACKET_SIZE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="UPDATE_CURRENT_PACKET_SIZE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MTU_FILTER_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MTU_FILTER_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_ENTRIES_IN_LAYER">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="NOF_ENTRIES_IN_LAYERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PUSH_FIRST_DESTINATION_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PUSH_FIRST_DESTINATIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CURRENT_NEXT_PROTOCOL_NAME_SPACE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CURRENT_NEXT_PROTOCOL_NAME_SPACEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSD_DATA_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="VSD_DATA_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ETPP_ENCAPSULATION_MAIN_HEADER_TYPE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MAIN_HEADER_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="QOS_VAR_TYPE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="QOS_VAR_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CTX_ADDITIONAL_HEADER_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="ADDITIONAL_HEADERS_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="UPDATE_CURRENT_PROTOCOL_TYPE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="UPDATE_CURRENT_PROTOCOL_TYPE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CURRENT_LAYER_TYPE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CURRENT_PROTOCOL_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAIN_HEADER_SIZE_IN_BYTES">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MAIN_HEADER_SIZE_IN_BYTESf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REMARK_PROFILE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="REMARK_PROFILE_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_MEMBERSHIP_PROFILE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="VLAN_MEMBERSHIP_PROFILE_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV4_FLAGS">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IPV4_FLAGSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PACKET_SIZE_COMPENSATION">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PACKET_SIZE_COMPENSATIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_ENTRIES_TO_SHIFT">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="NOF_ENTRIES_TO_SHIFTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SOURCE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <HwField Name="SOURCE_IDX_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <HwField Name="TTL_IDX_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NWK_QOS_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <HwField Name="NWK_QOS_IDX_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="QOS_MODEL_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <HwField Name="QOS_MODEL_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_MODEL_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <HwField Name="TTL_MODEL_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FORWARD_DOMAIN_NETWORK_NAME_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <HwField Name="FORWARD_DOMAIN_NETWORK_NAME_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_EDIT_PROFILE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <HwField Name="VLAN_EDIT_PROFILE_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DUAL_HOMING_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <HwField Name="DUAL_HOMING_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_ADDITIONAL_HEADERS_PROFILE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <HwField Name="LIF_ADDITIONAL_HEADERS_PROFILE_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MTU_PROFILE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <HwField Name="MTU_PROFILE_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SVTAG_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_ENABLERSm">
+                            <HwField Name="SVTAG_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_ETPP_ENCAP_4_CONTEXT_PROPERTIES">
+        <OneLineDescription>Egress Encap 4 Stage Context Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ENCAP_4_CONTEXT_ID"/>
+            </Key>
+            <Result>
+                <Field Description="If true, QOS Inheritance is being Enabled" Name="QOS_INHERITANCE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, TTL Inheritance is being Enabled" Name="TTL_INHERITANCE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Statistics Object Generation is being Enabled" Name="STATISTICS_OBJECT_GENERATION_ENABLE" Type="BOOL"/>
+                <Field Description="If true, STP State Stack Update is being Enabled" Name="STP_STATE_STACK_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VLAN Membership Stack Update is being Enabled" Name="VLAN_MEMBERSHIP_STACK_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Outbound Mirror Stack Update is being Enabled" Name="OUTBOUND_MIRROR_STACK_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Update Current Packet Size is being Enabled" Name="UPDATE_CURRENT_PACKET_SIZE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, MTU Filter is being Enabled" Name="MTU_FILTER_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Push First Destination is being Enabled" Name="PUSH_FIRST_DESTINATION_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSD Data is being Enabled" Name="VSD_DATA_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Update Current Protocol Type is being Enabled" Name="UPDATE_CURRENT_PROTOCOL_TYPE_ENABLE" Type="BOOL"/>
+                <Field Name="ETPP_ENCAPSULATION_MAIN_HEADER_TYPE"/>
+                <Field Name="QOS_VAR_TYPE"/>
+                <Field Name="CTX_ADDITIONAL_HEADER_PROFILE"/>
+                <Field Name="NOF_ENTRIES_IN_LAYER"/>
+                <Field Name="CURRENT_NEXT_PROTOCOL_NAME_SPACE"/>
+                <Field Name="CURRENT_LAYER_TYPE" Type="LAYER_TYPES"/>
+                <Field Name="MAIN_HEADER_SIZE_IN_BYTES"/>
+                <Field Name="REMARK_PROFILE_INDEX"/>
+                <Field Name="VLAN_MEMBERSHIP_PROFILE_INDEX"/>
+                <Field Name="IPV4_FLAGS"/>
+                <Field Name="PACKET_SIZE_COMPENSATION"/>
+                <Field Name="NOF_ENTRIES_TO_SHIFT"/>
+                <Field Name="SOURCE_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="TTL_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="NWK_QOS_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="QOS_MODEL_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="TTL_MODEL_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="FORWARD_DOMAIN_NETWORK_NAME_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="VLAN_EDIT_PROFILE_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="DUAL_HOMING_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="LIF_ADDITIONAL_HEADERS_PROFILE_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="MTU_PROFILE_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="SVTAG_INDEX" Size="1" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+            </Result> 
+            <TableLabels>L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/> 
+            <FieldMapping>
+                <Field Name="QOS_INHERITANCE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="QOS_INHERITANCE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_INHERITANCE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="TTL_INHERITANCE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="STATISTICS_OBJECT_GENERATION_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="STATISTICS_OBJECT_GENERATION_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="STP_STATE_STACK_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="STP_STATE_STACK_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_MEMBERSHIP_STACK_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="VLAN_MEMBERSHIP_STACK_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUTBOUND_MIRROR_STACK_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="OUTBOUND_MIRROR_STACK_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="UPDATE_CURRENT_PACKET_SIZE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="UPDATE_CURRENT_PACKET_SIZE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MTU_FILTER_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MTU_FILTER_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_ENTRIES_IN_LAYER">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="NOF_ENTRIES_IN_LAYERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PUSH_FIRST_DESTINATION_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PUSH_FIRST_DESTINATIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CURRENT_NEXT_PROTOCOL_NAME_SPACE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CURRENT_NEXT_PROTOCOL_NAME_SPACEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSD_DATA_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="VSD_DATA_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ETPP_ENCAPSULATION_MAIN_HEADER_TYPE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MAIN_HEADER_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="QOS_VAR_TYPE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="QOS_VAR_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CTX_ADDITIONAL_HEADER_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="ADDITIONAL_HEADERS_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="UPDATE_CURRENT_PROTOCOL_TYPE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="UPDATE_CURRENT_PROTOCOL_TYPE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CURRENT_LAYER_TYPE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CURRENT_PROTOCOL_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAIN_HEADER_SIZE_IN_BYTES">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MAIN_HEADER_SIZE_IN_BYTESf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REMARK_PROFILE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="REMARK_PROFILE_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_MEMBERSHIP_PROFILE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="VLAN_MEMBERSHIP_PROFILE_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV4_FLAGS">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IPV4_FLAGSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PACKET_SIZE_COMPENSATION">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PACKET_SIZE_COMPENSATIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_ENTRIES_TO_SHIFT">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="NOF_ENTRIES_TO_SHIFTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SOURCE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <HwField Name="SOURCE_IDX_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <HwField Name="TTL_IDX_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NWK_QOS_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <HwField Name="NWK_QOS_IDX_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="QOS_MODEL_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <HwField Name="QOS_MODEL_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_MODEL_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <HwField Name="TTL_MODEL_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FORWARD_DOMAIN_NETWORK_NAME_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <HwField Name="FORWARD_DOMAIN_NETWORK_NAME_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_EDIT_PROFILE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <HwField Name="VLAN_EDIT_PROFILE_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DUAL_HOMING_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <HwField Name="DUAL_HOMING_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_ADDITIONAL_HEADERS_PROFILE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <HwField Name="LIF_ADDITIONAL_HEADERS_PROFILE_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MTU_PROFILE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <HwField Name="MTU_PROFILE_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SVTAG_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_ENABLERSm">
+                            <HwField Name="SVTAG_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_ETPP_ENCAP_5_CONTEXT_PROPERTIES">
+        <OneLineDescription>Egress Encap 5 Stage Context Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ENCAP_5_CONTEXT_ID"/>
+            </Key>
+            <Result>
+                <Field Description="If true, QOS Inheritance is being Enabled" Name="QOS_INHERITANCE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, TTL Inheritance is being Enabled" Name="TTL_INHERITANCE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Statistics Object Generation is being Enabled" Name="STATISTICS_OBJECT_GENERATION_ENABLE" Type="BOOL"/>
+                <Field Description="If true, STP State Stack Update is being Enabled" Name="STP_STATE_STACK_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VLAN Membership Stack Update is being Enabled" Name="VLAN_MEMBERSHIP_STACK_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Outbound Mirror Stack Update is being Enabled" Name="OUTBOUND_MIRROR_STACK_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Update Current Packet Size is being Enabled" Name="UPDATE_CURRENT_PACKET_SIZE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, MTU Filter is being Enabled" Name="MTU_FILTER_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Push First Destination is being Enabled" Name="PUSH_FIRST_DESTINATION_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSD Data is being Enabled" Name="VSD_DATA_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Update Current Protocol Type is being Enabled" Name="UPDATE_CURRENT_PROTOCOL_TYPE_ENABLE" Type="BOOL"/>
+                <Field Name="ETPP_ENCAPSULATION_MAIN_HEADER_TYPE"/>
+                <Field Name="QOS_VAR_TYPE"/>
+                <Field Name="CTX_ADDITIONAL_HEADER_PROFILE"/>
+                <Field Name="NOF_ENTRIES_IN_LAYER"/>
+                <Field Name="CURRENT_NEXT_PROTOCOL_NAME_SPACE"/>
+                <Field Name="CURRENT_LAYER_TYPE" Type="LAYER_TYPES"/>
+                <Field Name="MAIN_HEADER_SIZE_IN_BYTES"/>
+                <Field Name="REMARK_PROFILE_INDEX"/>
+                <Field Name="VLAN_MEMBERSHIP_PROFILE_INDEX"/>
+                <Field Name="IPV4_FLAGS"/>
+                <Field Name="PACKET_SIZE_COMPENSATION"/>
+                <Field Name="NOF_ENTRIES_TO_SHIFT"/>
+                <Field Name="SOURCE_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="TTL_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="NWK_QOS_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="QOS_MODEL_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="TTL_MODEL_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="FORWARD_DOMAIN_NETWORK_NAME_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="VLAN_EDIT_PROFILE_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="DUAL_HOMING_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="LIF_ADDITIONAL_HEADERS_PROFILE_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="MTU_PROFILE_INDEX" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+                <Field Name="SVTAG_INDEX" Size="1" Type="UINT" Valid="DNX_DATA.dev_init.general.context_selection_index_valid"/>
+            </Result> 
+            <TableLabels>L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/> 
+            <FieldMapping>
+                <Field Name="QOS_INHERITANCE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="QOS_INHERITANCE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_INHERITANCE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="TTL_INHERITANCE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="STATISTICS_OBJECT_GENERATION_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="STATISTICS_OBJECT_GENERATION_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="STP_STATE_STACK_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="STP_STATE_STACK_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_MEMBERSHIP_STACK_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="VLAN_MEMBERSHIP_STACK_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUTBOUND_MIRROR_STACK_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="OUTBOUND_MIRROR_STACK_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="UPDATE_CURRENT_PACKET_SIZE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="UPDATE_CURRENT_PACKET_SIZE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MTU_FILTER_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MTU_FILTER_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_ENTRIES_IN_LAYER">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="NOF_ENTRIES_IN_LAYERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PUSH_FIRST_DESTINATION_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PUSH_FIRST_DESTINATIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CURRENT_NEXT_PROTOCOL_NAME_SPACE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CURRENT_NEXT_PROTOCOL_NAME_SPACEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSD_DATA_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="VSD_DATA_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ETPP_ENCAPSULATION_MAIN_HEADER_TYPE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MAIN_HEADER_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="QOS_VAR_TYPE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="QOS_VAR_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CTX_ADDITIONAL_HEADER_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="ADDITIONAL_HEADERS_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="UPDATE_CURRENT_PROTOCOL_TYPE_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="UPDATE_CURRENT_PROTOCOL_TYPE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CURRENT_LAYER_TYPE">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CURRENT_PROTOCOL_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAIN_HEADER_SIZE_IN_BYTES">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MAIN_HEADER_SIZE_IN_BYTESf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REMARK_PROFILE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="REMARK_PROFILE_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_MEMBERSHIP_PROFILE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="VLAN_MEMBERSHIP_PROFILE_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV4_FLAGS">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IPV4_FLAGSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PACKET_SIZE_COMPENSATION">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PACKET_SIZE_COMPENSATIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_ENTRIES_TO_SHIFT">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="NOF_ENTRIES_TO_SHIFTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SOURCE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <HwField Name="SOURCE_IDX_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <HwField Name="TTL_IDX_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NWK_QOS_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <HwField Name="NWK_QOS_IDX_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="QOS_MODEL_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <HwField Name="QOS_MODEL_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_MODEL_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <HwField Name="TTL_MODEL_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FORWARD_DOMAIN_NETWORK_NAME_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <HwField Name="FORWARD_DOMAIN_NETWORK_NAME_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_EDIT_PROFILE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <HwField Name="VLAN_EDIT_PROFILE_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DUAL_HOMING_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <HwField Name="DUAL_HOMING_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_ADDITIONAL_HEADERS_PROFILE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <HwField Name="LIF_ADDITIONAL_HEADERS_PROFILE_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MTU_PROFILE_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <HwField Name="MTU_PROFILE_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SVTAG_INDEX">
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_ENABLERSm">
+                            <HwField Name="SVTAG_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="EGRESS_ETPP_TRAP_CONTEXT_PROPERTIES">
+        <OneLineDescription>Egress Trap Stage Context Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Egress Trap Stage Context ID" Name="TRAP_CONTEXT_ID"/>
+            </Key>
+            <Result>
+                <Field Description="If true, System headers are not removed" Name="BTS_SYS_HDR_ENABLE" Type="BOOL_INV"/>
+                <Field Description="If true, Terminated headers are not removed" Name="BTS_TERM_HDR_ENABLE" Type="BOOL_INV"/>
+                <Field Description="If true, a copy of the Forward Packet is transmitted on the Recycle Interface" Name="GEN_RECYCLE_COPY_ENABLE" Type="BOOL"/>
+                <Field Description="If true, only the first 128B of the Forward Packet are copied to the recycle port" Name="FWD_RECYCLE_CROP_PACKET_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Aligner appends the original FTMH to the Recycle Packet" Name="FWD_RECYCLE_APPEND_ORIGINAL_FTMH_ENABLE" Type="BOOL"/>
+                <Field Description="If true, the Forward Packet is dropped by the Aligner, Also passed to CRPS" Name="DROP_FORWARD_COPY_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Kill the Mirror,Snoop Copy" Name="KILL_MIRROR_COPY_ENABLE" Type="BOOL"/>
+                <Field Description="If true, External Statistics are being Enabled" Name="EXTERNAL_STATISTICS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Internal Statistics are being Enabled" Name="INTERNAL_STATISTICS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Candidate Header is being Enabled" Name="CANDIDATE_HEADER_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Recycle Copy is being Enabled" Name="RCY_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Forwarding Copy is being Enabled" Name="FWD_ENABLE" Type="BOOL"/>
+                <Field Description="If true, TX 1588 Processing is being Enabled" Name="TX_1588_ENABLE" Type="BOOL"/>
+                <Field Name="SYS_HDR_GENERATION_PROFILE" Size="3"/>
+                <Field Name="INGRESS_TRAP_ID"/>
+                <Field Name="FWD_RECYCLE_PRIORITY"/>
+                <Field Name="FWD_RECYCLE_CMD" Type="RECYCLE_CMD"/>
+                <Field Name="PP_DROP_REASON"/>
+                <Field Name="FORWARD_CROP_PACKET"/>
+            </Result>
+            <TableLabels>L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="BTS_SYS_HDR_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_TRAP_CONTEXT_ENABLERSm">
+                            <HwField Name="BTS_SYS_HDR_DISABLEDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="BTS_TERM_HDR_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_TRAP_CONTEXT_ENABLERSm">
+                            <HwField Name="BTS_TERM_HDR_DISABLEDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="GEN_RECYCLE_COPY_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_TRAP_CONTEXT_ENABLERSm">
+                            <HwField Name="GEN_RECYCLE_COPYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_RECYCLE_CROP_PACKET_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_TRAP_CONTEXT_ENABLERSm">
+                            <HwField Name="FWD_RECYCLE_CROP_PACKETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_RECYCLE_APPEND_ORIGINAL_FTMH_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_TRAP_CONTEXT_ENABLERSm">
+                            <HwField Name="FWD_RECYCLE_APPEND_ORIGINAL_FTMHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DROP_FORWARD_COPY_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_TRAP_CONTEXT_ENABLERSm">
+                            <HwField Name="DROP_FORWARD_COPYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="KILL_MIRROR_COPY_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_TRAP_CONTEXT_ENABLERSm">
+                            <HwField Name="KILL_MIRROR_COPYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EXTERNAL_STATISTICS_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_TRAP_CONTEXT_ENABLERSm">
+                            <HwField Name="EXTERNAL_STATISTICS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INTERNAL_STATISTICS_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_TRAP_CONTEXT_ENABLERSm">
+                            <HwField Name="INTERNAL_STATISTICS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CANDIDATE_HEADER_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_TRAP_CONTEXT_ENABLERSm">
+                            <HwField Name="CANDIDATE_HEADER_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RCY_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_TRAP_CONTEXT_ENABLERSm">
+                            <HwField Name="RCY_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_TRAP_CONTEXT_ENABLERSm">
+                            <HwField Name="FWD_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TX_1588_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPB_TRAP_CONTEXT_ENABLERSm">
+                            <HwField Name="TX_1588_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SYS_HDR_GENERATION_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPB_TRAP_CONTEXT_ENABLERSm">
+                            <HwField Name="SYS_HDR_GENERATION_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INGRESS_TRAP_ID">
+                    <Access>
+                        <Memory Name="ETPPB_TRAP_CONTEXT_ENABLERSm">
+                            <HwField Name="CPU_TRAP_CODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_RECYCLE_PRIORITY">
+                    <Access>
+                        <Memory Name="ETPPB_TRAP_CONTEXT_ENABLERSm">
+                            <HwField Name="FWD_RECYCLE_PRIORITYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_RECYCLE_CMD">
+                    <Access>
+                        <Memory Name="ETPPB_TRAP_CONTEXT_ENABLERSm">
+                            <HwField Name="FWD_RECYCLE_CMDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PP_DROP_REASON">
+                    <Access>
+                        <Memory Name="ETPPB_TRAP_CONTEXT_ENABLERSm">
+                            <HwField Name="PP_DROP_REASONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FORWARD_CROP_PACKET">
+                    <Access>
+                        <Memory Name="ETPPB_TRAP_CONTEXT_ENABLERSm">
+                            <HwField Name="FORWARD_CROP_PACKETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="PRP_CONTEXT_SELECTION">
+        <OneLineDescription>PRP Context Selection</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="TCAM_DIRECT">
+            <Key>
+                <Field Name="PEM_CS_VAR"/>
+                <Field Name="FORWARD_CODE" Type="EGRESS_FWD_CODE"/>
+                <Field Name="EES_TYPE"/>
+                <Field Description="Ace_Context_value[3:2]" Name="ACE_VALUE"/>
+                <Field Name="ETPP_TERMINATION_PORT_CS_VAR"/>
+                <Field Description="Application Specific Ext Present" Name="APPLICATION_SPECIFIC_EXT_PRESENT" Type="BOOL"/>
+                <Field Description="Tsh Ext Present" Name="TSH_EXT_PRESENT" Type="BOOL"/>
+                <Field Name="EXTENSION_TYPE"/>
+                <Field Name="PPH_END_OF_PACKET_EDITING" Type="END_OF_PACKET_EDITING"/>
+                <Field Name="COMMAND"/>
+                <Field Name="IN_LIF_PROFILE"/>
+                <Field Name="LAYER_TYPE_FWD_PLUS_1" Type="LAYER_TYPES"/>
+                <Field Name="INT_PROFILE" Size="2" Type="UINT" Valid="DNX_DATA.dev_init.context.int_profile_in_context_selection"/>
+            </Key>
+            <Result>
+                <Field Description="Bit 0 from Program field validates the selected program" Name="TERM_CONTEXT_ID_VALID" Type="BOOL"/>
+                <Field Name="TERM_CONTEXT_ID"/>
+                <Field Description="Validate line for compare" Name="VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMappingTcam>
+                <Type Name="KEY"> <!-- all key fields are packed together and connected from the same offset -->
+                    <Access>
+                        <Memory Name="ETPPA_TERMINATION_CONTEXT_SELECTION_CAMm">
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="KEY_MASK">
+                    <Access> <!-- all key masked fields are packed together and connected from the same offset -->
+                        <Memory Name="ETPPA_TERMINATION_CONTEXT_SELECTION_CAMm">
+                            <DataOffset Formula="dnx_data_dev_init.context.termination_context_selection_mask_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="RESULT">
+                    <Access> <!-- all result fields are packed together and connected from the same offset -->
+                        <Memory Name="ETPPA_TERMINATION_CONTEXT_SELECTION_CAMm">
+                            <DataOffset Formula="dnx_data_dev_init.context.termination_context_selection_result_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Type>
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="TERMINATION_CONTEXT_SELECTION">
+        <OneLineDescription>Termination Context Selection</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="TCAM_DIRECT">
+            <Key>
+                <Field Name="TERM_CONTEXT_ID" Valid="!DNX_DATA.dev_init.context.context_selection_profile"/>
+                <Field Name="TERM_CONTEXT_PROFILE" Size="6" Type="HEXA" Valid="DNX_DATA.dev_init.context.context_selection_profile"/>
+                <Field Name="FORWARD_CODE" Type="EGRESS_FWD_CODE"/>
+                <Field Name="FHEI_TYPE"/>
+                <Field Name="FHEI_SIZE"/>
+                <Field Name="ETPS_TOS_TYPE" Type="ETPS_TYPE"/>
+                <Field Description="PHP performed in Termination Stage" Name="PHP_PERFORMED" Type="BOOL"/>
+                <Field Description="Ace_Context_value[5:4]" Name="ACE_VALUE"/>
+                <Field Name="PEM_CS_VAR"/>
+                <Field Name="FORWARDING_CONTEXT_PORT_PROFILE"/>
+                <Field Name="OAM_SUB_TYPE" Valid="DNX_DATA.dev_init.context.oam_sub_type_in_context_selection"/>
+            </Key>
+            <Result>
+                <Field Description="Bit 0 from Program field validates the selected program" Name="FWD_CONTEXT_ID_VALID" Type="BOOL"/>
+                <Field Name="FWD_CONTEXT_ID"/>
+                <Field Description="If true, the HW table entry is Valid" Name="VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+         <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMappingTcam>
+                <Type Name="KEY"> <!-- all key fields are packed together and connected from the same offset -->
+                    <Access>
+                        <Memory Name="ETPPC_FORWARDING_CONTEXT_SELECTION_CAMm">
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="KEY_MASK">
+                    <Access> <!-- all key masked fields are packed together and connected from the same offset -->
+                        <Memory Name="ETPPC_FORWARDING_CONTEXT_SELECTION_CAMm">
+                            <DataOffset Formula="dnx_data_dev_init.context.forwarding_context_selection_mask_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="RESULT">
+                    <Access> <!-- all result fields are packed together and connected from the same offset -->
+                        <Memory Name="ETPPC_FORWARDING_CONTEXT_SELECTION_CAMm">
+                            <DataOffset Formula="dnx_data_dev_init.context.forwarding_context_selection_result_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Type>
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FWD_CONTEXT_SELECTION">
+        <OneLineDescription>FWD Context Selection</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="TCAM_DIRECT">
+            <Key>
+                <Field Name="FWD_CONTEXT_ID" Valid="!DNX_DATA.dev_init.context.context_selection_profile"/>
+                <Field Name="FWD_CONTEXT_PROFILE" Size="6" Type="HEXA" Valid="DNX_DATA.dev_init.context.context_selection_profile"/>
+                <Field Name="ETPS_TOS_ENTRY_TYPE" Type="ETPS_TYPE"/>
+                <Field Name="ETPS_SECOND_ENTRY_TYPE" Type="ETPS_TYPE"/>
+                <Field Description="Ace_Context_value[7:6]" Name="ACE_VALUE"/>
+                <Field Name="PEM_CS_VAR"/>
+                <Field Name="ENCAPSULATION_CONTEXT_PORT_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Description="Bit 0 from Program field validates the selected program" Name="ENCAP_1_CONTEXT_ID_VALID" Type="BOOL"/>
+                <Field Name="ENCAP_1_CONTEXT_ID"/>
+                <Field Description="Validate line for compare" Name="VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMappingTcam>
+                <Type Name="KEY"> <!-- all key fields are packed together and connected from the same offset -->
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_SELECTION_CAMm">
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="KEY_MASK">
+                    <Access> <!-- all key masked fields are packed together and connected from the same offset -->
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_SELECTION_CAMm">
+                            <DataOffset Formula="26"/>
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="RESULT">
+                    <Access> <!-- all result fields are packed together and connected from the same offset -->
+                        <Memory Name="ETPPC_ENCAPSULATION_1_CONTEXT_SELECTION_CAMm">
+                            <DataOffset Formula="52"/>
+                        </Memory>
+                    </Access>
+                </Type>
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ENCAP_1_CONTEXT_SELECTION">
+        <OneLineDescription>Egress ETPP Encapsulation1 Context Selection</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="TCAM_DIRECT">
+            <Key>
+                <Field Name="ENCAP_1_CONTEXT_ID" Valid="!DNX_DATA.dev_init.context.context_selection_profile"/>
+                <Field Name="ENCAP_1_CONTEXT_PROFILE" Size="6" Type="HEXA" Valid="DNX_DATA.dev_init.context.context_selection_profile"/>
+                <Field Name="ETPS_TOS_ENTRY_TYPE" Type="ETPS_TYPE"/>
+                <Field Name="ETPS_SECOND_ENTRY_TYPE" Type="ETPS_TYPE"/>
+                <Field Description="Ace_Context_value[9:8]" Name="ACE_VALUE"/>
+                <Field Name="PEM_CS_VAR"/>
+                <Field Name="ENCAPSULATION_CONTEXT_PORT_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Description="Bit 0 from Program field validates the selected program" Name="ENCAP_2_CONTEXT_ID_VALID" Type="BOOL"/>
+                <Field Name="ENCAP_2_CONTEXT_ID"/>
+                <Field Description="Validate line for compare" Name="VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMappingTcam>
+                <Type Name="KEY"> <!-- all key fields are packed together and connected from the same offset -->
+                    <Access>
+                        <Memory Name="ETPPC_ENCAPSULATION_2_CONTEXT_SELECTION_CAMm">
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="KEY_MASK">
+                    <Access> <!-- all key masked fields are packed together and connected from the same offset -->
+                        <Memory Name="ETPPC_ENCAPSULATION_2_CONTEXT_SELECTION_CAMm">
+                            <DataOffset Formula="26"/>
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="RESULT">
+                    <Access> <!-- all result fields are packed together and connected from the same offset -->
+                        <Memory Name="ETPPC_ENCAPSULATION_2_CONTEXT_SELECTION_CAMm">
+                            <DataOffset Formula="52"/>
+                        </Memory>
+                    </Access>
+                </Type>
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ENCAP_2_CONTEXT_SELECTION">
+        <OneLineDescription>Egress ETPP Encapsulation2 Context Selection</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="TCAM_DIRECT">
+            <Key>
+                <Field Name="ENCAP_2_CONTEXT_ID" Valid="!DNX_DATA.dev_init.context.context_selection_profile"/>
+                <Field Name="ENCAP_2_CONTEXT_PROFILE" Size="6" Type="HEXA" Valid="DNX_DATA.dev_init.context.context_selection_profile"/>
+                <Field Name="ETPS_TOS_ENTRY_TYPE" Type="ETPS_TYPE"/>
+                <Field Name="ETPS_SECOND_ENTRY_TYPE" Type="ETPS_TYPE"/>
+                <Field Description="Ace_Context_value[11:10]" Name="ACE_VALUE"/>
+                <Field Name="PEM_CS_VAR"/>
+                <Field Name="ENCAPSULATION_CONTEXT_PORT_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Description="Bit 0 from Program field validates the selected program" Name="ENCAP_3_CONTEXT_ID_VALID" Type="BOOL"/>
+                <Field Name="ENCAP_3_CONTEXT_ID"/>
+                <Field Description="Validate line for compare" Name="VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMappingTcam>
+                <Type Name="KEY"> <!-- all key fields are packed together and connected from the same offset -->
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_SELECTION_CAMm">
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="KEY_MASK">
+                    <Access> <!-- all key masked fields are packed together and connected from the same offset -->
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_SELECTION_CAMm">
+                            <DataOffset Formula="26"/>
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="RESULT">
+                    <Access> <!-- all result fields are packed together and connected from the same offset -->
+                        <Memory Name="ETPPB_ENCAPSULATION_3_CONTEXT_SELECTION_CAMm">
+                            <DataOffset Formula="52"/>
+                        </Memory>
+                    </Access>
+                </Type>
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ENCAP_3_CONTEXT_SELECTION">
+        <OneLineDescription>Egress ETPP Encapsulation3 Context Selection</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="TCAM_DIRECT">
+            <Key>
+                <Field Name="ENCAP_3_CONTEXT_ID" Valid="!DNX_DATA.dev_init.context.context_selection_profile"/>
+                <Field Name="ENCAP_3_CONTEXT_PROFILE" Size="6" Type="HEXA" Valid="DNX_DATA.dev_init.context.context_selection_profile"/>
+                <Field Name="ETPS_TOS_ENTRY_TYPE" Type="ETPS_TYPE"/>
+                <Field Name="ETPS_SECOND_ENTRY_TYPE" Type="ETPS_TYPE"/>
+                <Field Description="Ace_Context_value[11:10]" Name="ACE_VALUE"/>
+                <Field Name="PEM_CS_VAR"/>
+                <Field Name="ENCAPSULATION_CONTEXT_PORT_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Description="Bit 0 from Program field validates the selected program" Name="ENCAP_4_CONTEXT_ID_VALID" Type="BOOL"/>
+                <Field Name="ENCAP_4_CONTEXT_ID"/>
+                <Field Description="Validate line for compare" Name="VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMappingTcam>
+                <Type Name="KEY"> <!-- all key fields are packed together and connected from the same offset -->
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_SELECTION_CAMm">
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="KEY_MASK">
+                    <Access> <!-- all key masked fields are packed together and connected from the same offset -->
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_SELECTION_CAMm">
+                            <DataOffset Formula="26"/>
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="RESULT">
+                    <Access> <!-- all result fields are packed together and connected from the same offset -->
+                        <Memory Name="ETPPB_ENCAPSULATION_4_CONTEXT_SELECTION_CAMm">
+                            <DataOffset Formula="52"/>
+                        </Memory>
+                    </Access>
+                </Type>
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ENCAP_4_CONTEXT_SELECTION">
+        <OneLineDescription>Egress ETPP Encapsulation4 Context Selection</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="TCAM_DIRECT">
+            <Key>
+                <Field Name="ENCAP_4_CONTEXT_ID" Valid="!DNX_DATA.dev_init.context.context_selection_profile"/>
+                <Field Name="ENCAP_4_CONTEXT_PROFILE" Size="6" Type="HEXA" Valid="DNX_DATA.dev_init.context.context_selection_profile"/>
+                <Field Name="ETPS_TOS_ENTRY_TYPE" Type="ETPS_TYPE"/>
+                <Field Name="ETPS_SECOND_ENTRY_TYPE" Type="ETPS_TYPE"/>
+                <Field Description="Ace_Context_value[11:10]" Name="ACE_VALUE"/>
+                <Field Name="PEM_CS_VAR"/>
+                <Field Name="ENCAPSULATION_CONTEXT_PORT_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Description="Bit 0 from Program field validates the selected program" Name="ENCAP_5_CONTEXT_ID_VALID" Type="BOOL"/>
+                 <Field Name="ENCAP_5_CONTEXT_ID"/>
+                 <Field Description="Validate line for compare" Name="VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMappingTcam>
+                <Type Name="KEY"> <!-- all key fields are packed together and connected from the same offset -->
+                    <Access>
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_SELECTION_CAMm">
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="KEY_MASK">
+                    <Access> <!-- all key masked fields are packed together and connected from the same offset -->
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_SELECTION_CAMm">
+                            <DataOffset Formula="26"/>
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="RESULT">
+                    <Access> <!-- all result fields are packed together and connected from the same offset -->
+                        <Memory Name="ETPPB_ENCAPSULATION_5_CONTEXT_SELECTION_CAMm">
+                            <DataOffset Formula="52"/>
+                        </Memory>
+                    </Access>
+                </Type>
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ENCAP_5_CONTEXT_SELECTION">
+        <OneLineDescription>Egress ETPP Encapsulation5 Context Selection</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="TCAM_DIRECT">
+            <Key>
+                <Field Name="FORWARD_CODE" Type="EGRESS_FWD_CODE"/>
+                <Field Name="ACTION_PROFILE_IDX"/>
+                <Field Name="OAM_SUB_TYPE"/>
+                <Field Name="FHEI_TYPE"/>
+                <Field Description="Ace_Context_value[11:10]" Name="ACE_VALUE"/>
+                <Field Name="PEM_CS_VAR"/>
+                <Field Name="TRAP_CONTEXT_PORT_PROFILE" Type="ETPP_TRAP_CONTEXT_PORT_PROFILE"/>
+                <Field Description="TSH Extension Present" Name="TSH_PRESENT" Type="BOOL"/>
+                <Field Description="PPH Extension Present" Name="PPH_PRESENT" Type="BOOL"/>
+                <Field Description="Application Specific Extension Present" Name="ASE_PRESENT" Type="BOOL"/>
+                <Field Description="System MC" Name="SYS_MC" Type="BOOL"/>
+            </Key>
+            <Result>
+                <Field Description="Bit 0 from Program field validates the selected program" Name="EGRESS_TRAP_CONTEXT_ID_VALID" Type="BOOL"/>
+                <Field Name="EGRESS_TRAP_CONTEXT_ID" Type="TRAP_CONTEXT_ID"/>
+                <Field Description="Validate line for compare" Name="VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+         <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMappingTcam>
+                <Type Name="KEY"> <!-- all key fields are packed together and connected from the same offset -->
+                    <Access>
+                        <Memory Name="ETPPB_TRAP_CONTEXT_SELECTION_CAMm">
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="KEY_MASK">
+                    <Access> <!-- all key masked fields are packed together and connected from the same offset -->
+                        <Memory Name="ETPPB_TRAP_CONTEXT_SELECTION_CAMm">
+                            <DataOffset Formula="dnx_data_dev_init.context.trap_context_selection_mask_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="RESULT">
+                    <Access> <!-- all result fields are packed together and connected from the same offset -->
+                        <Memory Name="ETPPB_TRAP_CONTEXT_SELECTION_CAMm">
+                            <DataOffset Formula="dnx_data_dev_init.context.trap_context_selection_result_offset_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Type>
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="TERM_CONTEXT_MAP" Valid="DNX_DATA.dev_init.context.context_selection_profile">
+        <OneLineDescription>Map Termination Context to Context Profile for Forwarding Context Selection</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TERM_CONTEXT_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Context Profile Value" Name="TERM_CONTEXT_PROFILE" Size="6" Type="HEXA"/>
+               </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TERM_CONTEXT_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPC_FORWARDING_CONTEXT_PROFILEm">
+                            <HwField Name="FORWARDING_CONTEXT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FWD_CONTEXT_MAP" Valid="DNX_DATA.dev_init.context.context_selection_profile">
+        <OneLineDescription>Map Forwarding Context to Context Profile for Encapsulation1 Context Selection</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FWD_CONTEXT_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Context Profile Value" Name="FWD_CONTEXT_PROFILE" Size="6" Type="HEXA"/>
+               </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FWD_CONTEXT_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPC_ENC_1_CONTEXT_PROFILEm">
+                            <HwField Name="ENC_1_CONTEXT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ENCAP_1_CONTEXT_MAP" Valid="DNX_DATA.dev_init.context.context_selection_profile">
+        <OneLineDescription>Map Encapsulation1 Context to Context Profile for Encapsulation2 Context Selection</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ENCAP_1_CONTEXT_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Context Profile Value" Name="ENCAP_1_CONTEXT_PROFILE" Size="6" Type="HEXA"/>
+               </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENCAP_1_CONTEXT_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPC_ENC_2_CONTEXT_PROFILEm">
+                            <HwField Name="ENC_2_CONTEXT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ENCAP_2_CONTEXT_MAP" Valid="DNX_DATA.dev_init.context.context_selection_profile">
+        <OneLineDescription>Map Encapsulation2 Context to Context Profile for Encapsulation3 Context Selection</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ENCAP_2_CONTEXT_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Context Profile Value" Name="ENCAP_2_CONTEXT_PROFILE" Size="6" Type="HEXA"/>
+               </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENCAP_2_CONTEXT_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPB_ENC_3_CONTEXT_PROFILEm">
+                            <HwField Name="ENC_3_CONTEXT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ENCAP_3_CONTEXT_MAP" Valid="DNX_DATA.dev_init.context.context_selection_profile">
+        <OneLineDescription>Map Encapsulation3 Context to Context Profile for Encapsulation4 Context Selection</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ENCAP_3_CONTEXT_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Context Profile Value" Name="ENCAP_3_CONTEXT_PROFILE" Size="6" Type="HEXA"/>
+               </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENCAP_3_CONTEXT_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPB_ENC_4_CONTEXT_PROFILEm">
+                            <HwField Name="ENC_4_CONTEXT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ENCAP_4_CONTEXT_MAP" Valid="DNX_DATA.dev_init.context.context_selection_profile">
+        <OneLineDescription>Map Encapsulation4 Context to Context Profile for Encapsulation5 Context Selection</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ENCAP_4_CONTEXT_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Context Profile Value" Name="ENCAP_4_CONTEXT_PROFILE" Size="6" Type="HEXA"/>
+               </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENCAP_4_CONTEXT_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPB_ENC_5_CONTEXT_PROFILEm">
+                            <HwField Name="ENC_5_CONTEXT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

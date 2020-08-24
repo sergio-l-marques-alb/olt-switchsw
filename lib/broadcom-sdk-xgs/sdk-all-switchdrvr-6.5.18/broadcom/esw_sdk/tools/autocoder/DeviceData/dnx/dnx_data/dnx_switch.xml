@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="switch" bsl_flag="BSL_LS_BCMDNX_SWITCH">
+    <sub_module name="load_balancing" doc="Definitions related to load balancing on L2 and L3.">
+        <features>
+        </features>
+
+        <defines>
+            <define name="nof_lb_clients" doc="Number of load balancing clients (users of CRC functions)"></define>
+            <define name="nof_lb_crc_sel_tcam_entries" doc="Number of entries on IPPB_LOAD_BALANCING_CRC_SELECTION_CAM"></define>
+            <define name="nof_crc_functions" doc="Number of crc functions available for 'load balancing'"></define>
+
+            <!-- definitions related to 'reserved MPLS labels'. Start  -->
+            <define name="initial_reserved_label" doc="Bitmap. Each bit indicates the corresponding reserved label is to be
+                        included into load balancing calculation"></define>
+            <define name="initial_reserved_label_force" doc="Bitmap. Each bit indicates the corresponding reserved label is to be
+                        forced into load balancing calculation even if it was terminated"></define>
+            <define name="initial_reserved_next_label" doc="Bitmap. Each bit indicates whether label following correponding reserved label
+                        is to be forced into load balancing calculation even if it was terminated"></define>
+            <define name="initial_reserved_next_label_valid" doc="Bitmap. Currently redundant. Should be equal to 'initial_reserved_next_label' "></define>
+            <define name="reserved_next_label_valid" doc="Indicate whether the field reserved_next_label_valid exists"></define>
+            <!-- definitions related to 'reserved MPLS labels'. End  -->
+
+            <!-- definitions related to 'identification of MPLS protocols'. Start  -->
+            <define name="num_valid_mpls_protocols" doc="Number of supported MPLS protocols in dbal_enum_value_field_current_protocol_type_e"></define>
+            <!-- definitions related to 'identification of MPLS protocols'. End  -->
+
+            <!-- definitions related to 'ls/ms crc_32_bits_selection_bitmap'. Start  -->
+            <define name="nof_layer_records_from_parser" doc="Number of 32-bits layer records, cretaed by parser, which are used for hashing on load balancing"></define>
+            <!-- definitions related to 'ls/ms crc_32_bits_selection_bitmap'. End  -->
+
+            <!-- definitions related to 'crc seed setting, per crc function'. Start  -->
+            <define name="nof_seeds_per_crc_function" doc="Number of crc seeds that may be selected per crc function on load balancing"></define>
+            <!-- definitions related to 'crc seed setting, per crc function'. End  -->
+            <define name="hashing_selection_per_layer" doc="Indicate whether the functionality of using the LB key in hashing per layer is enabled"></define>
+            <define name="mpls_stack_split_hashing" doc="Indicate whether the MPLS stacks are split in two - terminated and non-terminated."></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+            <table name="lb_clients"
+                doc="Given hw identifier ('client id') get the corresponding logical client name, from 'bcm_switch_control_t'.">
+                <key name="client_hw_id"
+                    doc="Hw identifier of load-balancing client. See table LOAD_BALANCING_CRC_SELECTION_CAM (IPPB_LOAD_BALANCING_CRC_SELECTION_CAM)"/>
+                <value name="client_logical_id" type="int" doc="Corresponding logical identifier of client (value taken from 'bcm_switch_control_t')"/>
+            </table>
+            <table name="lb_client_crc"
+                doc="Define default CRC hash function selection (bcm_switch_hash_config_t) based on hw identifier.">
+                <key name="client_hw_id"
+                    doc="Hw identifier of load-balancing client. See table LOAD_BALANCING_CRC_SELECTION_CAM (IPPB_LOAD_BALANCING_CRC_SELECTION_CAM)"/>
+                <value name="crc_hash_func" type="int" doc="Default hashing function for identifier of client"/>
+            </table>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="svtag" doc="Definitions related to the SVTAG.">
+        <features>
+        </features>
+
+        <defines>
+            <define name="supported" doc="Indicate if the SVTAG supported on the device"></define>
+            <define name="svtag_label_size_bits" doc="The size in bits of an SVTAG label"></define>
+            <define name="egress_svtag_offset_addr_size_bits" doc="The size in bits of the offset addr on the egress svtag "></define>
+            <define name="egress_svtag_offset_addr_position_bits" doc="The position in bits of the offset addr in the egress svtag "></define>
+            <define name="egress_svtag_signature_size_bits" doc="The size in bits of the signature on the egress svtag "></define>
+            <define name="egress_svtag_signature_position_bits" doc="The position in bits of the signature in the egress svtag "></define>
+            <define name="egress_svtag_sci_size_bits" doc="The size in bits of the SCI on the egress svtag "></define>
+            <define name="egress_svtag_sci_position_bits" doc="The position in bits of the SCI in the egress svtag "></define>
+            <define name="egress_svtag_pkt_type_size_bits" doc="The size in bits of the packet type on the egress svtag "></define>
+            <define name="egress_svtag_pkt_type_position_bits" doc="The position in bits of the packet type in the egress svtag "></define>
+            <define name="egress_svtag_ipv6_indication_position_bits" doc="The position in bits of the IPv6 indication in the egress svtag "></define>
+            <define name="egress_svtag_hw_field_position_bits" doc="The position in bits of the SVTAG in the HW field."></define>
+            <define name="egress_svtag_accumulation_indication_hw_field_position_bits" doc="The HW field position in bits of the SVTAG accumulation indication."></define>
+            <define name="UDP_dedicated_port" doc="The source and destination port value in case of a security tag over a UDP tunnel."></define>
+            <define name="ingress_svtag_position_bytes" doc="The ingress SVTAG position in bytes before it swapped to the beginning  of the packet."></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+    
+    
+    <sub_module name="hw_bug" doc="switch related hw bug">
+
+        <features>
+            <feature name="mpls_labels_included_in_hash" doc="mpls labels content doesn't participate in the build of the LB keys."></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+</device_data>
+
+
+
+

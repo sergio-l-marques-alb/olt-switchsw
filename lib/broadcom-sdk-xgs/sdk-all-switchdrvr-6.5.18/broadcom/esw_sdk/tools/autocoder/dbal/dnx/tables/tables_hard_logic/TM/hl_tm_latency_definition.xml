@@ -1,0 +1,1459 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="LATENCY_INGRESS_MAX_REPORT">
+        <OneLineDescription>ingress latency table which holds information on the MAX ingress latency packets measured</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field Name="INDEX" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="LAT_VALUE" Permission="READONLY" Type="UINT"/>
+                <Field Name="LAT_FLOW_ID" Permission="READONLY" Size="20" Type="UINT"/>
+                <Field Name="LAT_PKT_WAS_DROP" Permission="READONLY" Type="BOOL"/>
+                <Field Name="LAT_TRF_CLS" Permission="READONLY" Size="3" Type="UINT"/>
+                <!-- Note LAT_PORT_ID is FTMH_PP_DSP -->
+                <Field Name="LAT_PORT_ID" Permission="READONLY" Size="8" Type="UINT"/>
+                <Field Name="LAT_MODID" Permission="READONLY" Size="11" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV LATENCY</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="LAT_VALUE">
+                    <Access>
+                        <Memory Name="ITPP_MAX_LATENCYm">
+                            <EntryOffset Formula="#KEY_VALUE(INDEX)"/>
+                            <HwField Name="LAT_VALUEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAT_FLOW_ID">
+                    <Access>
+                        <Memory Name="ITPP_MAX_LATENCYm">
+                            <EntryOffset Formula="#KEY_VALUE(INDEX)"/>
+                            <HwField Name="LAT_POINTERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAT_PKT_WAS_DROP">                 
+                    <Access>
+                        <Memory Name="ITPP_MAX_LATENCYm">
+                            <EntryOffset Formula="#KEY_VALUE(INDEX)"/>
+                            <HwField Name="LAT_PKT_WAS_DROPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAT_TRF_CLS">
+                    <Access>
+                        <Memory Name="ITPP_MAX_LATENCYm">
+                            <EntryOffset Formula="#KEY_VALUE(INDEX)"/>
+                            <HwField Name="LAT_TRF_CLSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAT_PORT_ID">
+                    <Access>
+                        <Memory Name="ITPP_MAX_LATENCYm">
+                            <EntryOffset Formula="#KEY_VALUE(INDEX)"/>
+                            <HwField Name="LAT_PORT_IDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAT_MODID">
+                    <Access>
+                        <Memory Name="ITPP_MAX_LATENCYm">
+                            <EntryOffset Formula="#KEY_VALUE(INDEX)"/>
+                            <HwField Name="LAT_DEST_DEVf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="LATENCY_EGRESS_MAX_REPORT">
+        <OneLineDescription>egress latency table which holds information on the MAX "end to end" latency packets measured</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            <Field Name="CORE_ID" Size="1"/>
+            <Field Name="INDEX" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="LAT_VALUE" Permission="READONLY" Type="UINT"/>
+                <Field Name="LAT_FLOW_ID" Permission="READONLY" Size="20" Type="UINT"/>
+                <Field Name="LAT_MC" Permission="READONLY" Type="BOOL"/>
+                <Field Name="LAT_TC" Permission="READONLY" Size="3" Type="UINT"/>
+                <Field Name="LAT_TM_PORT_ID" Permission="READONLY" Type="TM_PORT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV LATENCY</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="LAT_VALUE">
+                    <Access>
+                        <Memory Name="ETPPC_MAX_LATENCY_TRACKm">
+                            <EntryOffset Formula="#KEY_VALUE(INDEX)"/>
+                            <HwField Name="LAT_VALUEf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Name="LAT_FLOW_ID">
+                    <Access>
+                        <Memory Name="ETPPC_MAX_LATENCY_TRACKm">
+                            <EntryOffset Formula="#KEY_VALUE(INDEX)"/>
+                            <HwField Name="LAT_POINTERf"/>
+                        </Memory>                   
+                    </Access>
+                </Field>
+                <Field Name="LAT_MC">                   
+                    <Access>
+                        <Memory Name="ETPPC_MAX_LATENCY_TRACKm">
+                            <EntryOffset Formula="#KEY_VALUE(INDEX)"/>
+                            <HwField Name="LAT_MCf"/>
+                        </Memory>                       
+                    </Access>
+                </Field>
+                <Field Name="LAT_TC">
+                    <Access>
+                        <Memory Name="ETPPC_MAX_LATENCY_TRACKm">
+                            <EntryOffset Formula="#KEY_VALUE(INDEX)"/>
+                            <HwField Name="LAT_TCf"/>
+                        </Memory>                       
+                    </Access>
+                </Field>
+                <Field Name="LAT_TM_PORT_ID">
+                    <Access>
+                        <Memory Name="ETPPC_MAX_LATENCY_TRACKm">
+                            <EntryOffset Formula="#KEY_VALUE(INDEX)"/>
+                            <HwField Name="LAT_OUT_TM_PORTf"/>
+                        </Memory>                       
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="LATENCY_INGRESS_PROFILE">
+        <OneLineDescription>table defines the ingress latency properties for a given profile</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PROFILE_ID" Size="5" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="LAT_STAT_ENABLE" Type="BOOL"/>
+                <Field Name="LAT_FLOW_PROFILE_VALID" Type="BOOL" Valid="DNX_DATA.latency.features.valid_flow_profile_flag"/>
+                <Field Name="LATENCY_DROP_ENABLE" Type="BOOL"/>
+                <Field Name="LAT_DROP_THRESHOLD" Size="32" Type="UINT"/>
+                <Field Name="LAT_CNI_ENABLE" Type="BOOL"/>
+                <Field Name="LAT_CNI_THRESHOLD" Size="32" Type="UINT"/>
+                <Field Name="LAT_TRACK_ENABLE" Type="BOOL"/>
+                <Field Name="LAT_TRACK_DROP_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV LATENCY</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LAT_STAT_ENABLE">
+                    <Access>
+                        <Memory Name="ITPP_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="CRPS_LATENCY_ENf"/>
+                        </Memory>               
+                    </Access>
+                    <Access>
+                        <Memory Name="ITPPD_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="CRPS_LATENCY_ENf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="LAT_FLOW_PROFILE_VALID">
+                    <Access>
+                        <Register Name="ITPP_FLOW_PROFILE_VALID_BITMAPr">
+                            <HwField Name="FLOW_PROFILE_VALID_BITMAPf"/>
+                            <DataOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                        </Register>               
+                    </Access>
+                </Field>
+                <Field Name="LATENCY_DROP_ENABLE">
+                    <Access>
+                        <Memory Name="ITPP_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="EN_LATENCY_DROPf"/>
+                        </Memory>               
+                    </Access>
+                    <Access>
+                        <Memory Name="ITPPD_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="EN_LATENCY_DROPf"/>
+                        </Memory>               
+                    </Access>                   
+                </Field>
+                <Field Name="LAT_DROP_THRESHOLD">
+                    <Access>
+                        <Memory Name="ITPP_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="BIG_LATENCY_DROP_THRf"/>
+                        </Memory>               
+                    </Access>
+                    <Access>
+                        <Memory Name="ITPPD_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="BIG_LATENCY_DROP_THRf"/>
+                        </Memory>               
+                    </Access>                   
+                </Field>
+                <Field Name="LAT_CNI_ENABLE">
+                    <Access>
+                        <Memory Name="ITPP_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="EN_CNI_BIG_LATf"/>
+                        </Memory>               
+                    </Access>
+                    <Access>
+                        <Memory Name="ITPPD_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="EN_CNI_BIG_LATf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Name="LAT_CNI_THRESHOLD">
+                    <Access>
+                        <Memory Name="ITPP_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="BIG_LAT_CNI_THRf"/>
+                        </Memory>               
+                    </Access>
+                    <Access>
+                        <Memory Name="ITPPD_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="BIG_LAT_CNI_THRf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Name="LAT_TRACK_ENABLE">
+                    <Access>
+                        <Memory Name="ITPP_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="EN_TRACK_LATENCYf"/>
+                        </Memory>               
+                    </Access>
+                    <Access>
+                        <Memory Name="ITPPD_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="EN_TRACK_LATENCYf"/>
+                        </Memory>               
+                    </Access>
+                </Field>            
+                <Field Name="LAT_TRACK_DROP_ENABLE">
+                    <Access>
+                        <Memory Name="ITPP_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="TRACK_LAT_OF_DROP_PKTSf"/>
+                        </Memory>               
+                    </Access>
+                    <Access>
+                        <Memory Name="ITPPD_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="TRACK_LAT_OF_DROP_PKTSf"/>
+                        </Memory>               
+                    </Access>
+                </Field>                    
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="LATENCY_INGRESS_PROBABILITY_MARK" Valid="DNX_DATA.latency.features.probabilistic_mechanism_support">
+        <OneLineDescription>table defines the ingress latency properties for probabilistic marking drop/cni</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PROFILE_ID" Size="5" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="MARK_CNI_EN" Type="BOOL"/>
+                <Field Name="MARK_CNI_MIN_THRESH" Size="32" Type="UINT"/>
+                <Field Name="MARK_CNI_SHIFT" Size="5" Type="UINT"/>
+                <Field Name="DROP_EN" Type="BOOL"/>
+                <Field Name="DROP_MIN_THRESH" Size="32" Type="UINT"/>
+                <Field Name="DROP_SHIFT" Size="5" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV LATENCY</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MARK_CNI_EN">
+                    <Access>
+                        <Memory Name="ITPP_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="PROB_MARK_CNI_ENf"/>
+                        </Memory>               
+                    </Access>
+                    <Access>
+                        <Memory Name="ITPPD_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="PROB_MARK_CNI_ENf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Name="MARK_CNI_MIN_THRESH">
+                    <Access>
+                        <Memory Name="ITPP_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="PROB_MARK_CNI_BASEf"/>
+                        </Memory>               
+                    </Access>
+                    <Access>
+                        <Memory Name="ITPPD_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="PROB_MARK_CNI_BASEf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Name="MARK_CNI_SHIFT">
+                    <Access>
+                        <Memory Name="ITPP_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="PROB_MARK_CNI_SHIFTf"/>
+                        </Memory>               
+                    </Access>
+                    <Access>
+                        <Memory Name="ITPPD_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="PROB_MARK_CNI_SHIFTf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Name="DROP_EN">
+                    <Access>
+                        <Memory Name="ITPP_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="PROB_DROP_ENf"/>
+                        </Memory>               
+                    </Access>
+                    <Access>
+                        <Memory Name="ITPPD_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="PROB_DROP_ENf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Name="DROP_MIN_THRESH">
+                    <Access>
+                        <Memory Name="ITPP_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="PROB_DROP_BASEf"/>
+                        </Memory>               
+                    </Access>
+                    <Access>
+                        <Memory Name="ITPPD_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="PROB_DROP_BASEf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Name="DROP_SHIFT">
+                    <Access>
+                        <Memory Name="ITPP_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="PROB_DROP_SHIFTf"/>
+                        </Memory>               
+                    </Access>
+                    <Access>
+                        <Memory Name="ITPPD_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="PROB_DROP_SHIFTf"/>
+                        </Memory>               
+                    </Access>
+                </Field>                  
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="LATENCY_INGRESS_PROFILE_BINS">
+        <OneLineDescription>table defines the ingress latency bins thresholds for a given profile</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PROFILE_ID" Size="5" Type="UINT"/>
+                <Field MaxValue="6" Name="BIN_ID" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="LAT_BIN_THRESHOLD" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV LATENCY</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LAT_BIN_THRESHOLD">
+                    <Access>
+                        <KeyCondition Field="BIN_ID" Type="EQUAL_TO" Value="0"/>                 
+                        <Memory Name="ITPP_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_BIN_THR_0f"/>
+                        </Memory>   
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BIN_ID" Type="EQUAL_TO" Value="0"/>                 
+                        <Memory Name="ITPPD_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_BIN_THR_0f"/>
+                        </Memory>   
+                    </Access>                   
+                    <Access>
+                        <KeyCondition Field="BIN_ID" Type="EQUAL_TO" Value="1"/>                 
+                        <Memory Name="ITPP_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_BIN_THR_1f"/>
+                        </Memory>   
+                    </Access>   
+                    <Access>
+                        <KeyCondition Field="BIN_ID" Type="EQUAL_TO" Value="1"/>                 
+                        <Memory Name="ITPPD_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_BIN_THR_1f"/>
+                        </Memory>   
+                    </Access>                       
+                    <Access>
+                        <KeyCondition Field="BIN_ID" Type="EQUAL_TO" Value="2"/>                 
+                        <Memory Name="ITPP_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_BIN_THR_2f"/>
+                        </Memory>   
+                    </Access>   
+                    <Access>
+                        <KeyCondition Field="BIN_ID" Type="EQUAL_TO" Value="2"/>                 
+                        <Memory Name="ITPPD_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_BIN_THR_2f"/>
+                        </Memory>   
+                    </Access>                       
+                    <Access>
+                        <KeyCondition Field="BIN_ID" Type="EQUAL_TO" Value="3"/>                 
+                        <Memory Name="ITPP_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_BIN_THR_3f"/>
+                        </Memory>   
+                    </Access>       
+                    <Access>
+                        <KeyCondition Field="BIN_ID" Type="EQUAL_TO" Value="3"/>                 
+                        <Memory Name="ITPPD_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_BIN_THR_3f"/>
+                        </Memory>   
+                    </Access>                           
+                    <Access>
+                        <KeyCondition Field="BIN_ID" Type="EQUAL_TO" Value="4"/>                 
+                        <Memory Name="ITPP_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_BIN_THR_4f"/>
+                        </Memory>   
+                    </Access>   
+                    <Access>
+                        <KeyCondition Field="BIN_ID" Type="EQUAL_TO" Value="4"/>                 
+                        <Memory Name="ITPPD_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_BIN_THR_4f"/>
+                        </Memory>   
+                    </Access>                       
+                    <Access>
+                        <KeyCondition Field="BIN_ID" Type="EQUAL_TO" Value="5"/>                 
+                        <Memory Name="ITPP_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_BIN_THR_5f"/>
+                        </Memory>   
+                    </Access>       
+                    <Access>
+                        <KeyCondition Field="BIN_ID" Type="EQUAL_TO" Value="5"/>                 
+                        <Memory Name="ITPPD_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_BIN_THR_5f"/>
+                        </Memory>   
+                    </Access>                           
+                    <Access>
+                        <KeyCondition Field="BIN_ID" Type="EQUAL_TO" Value="6"/>                 
+                        <Memory Name="ITPP_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_BIN_THR_6f"/>
+                        </Memory>   
+                    </Access>                       
+                    <Access>
+                        <KeyCondition Field="BIN_ID" Type="EQUAL_TO" Value="6"/>                 
+                        <Memory Name="ITPPD_PACKET_LATENCY_MEASUREMENTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_BIN_THR_6f"/>
+                        </Memory>   
+                    </Access>                       
+                </Field>            
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+        
+    <AppDB Name="LATENCY_EGRESS_PROFILE">
+        <OneLineDescription>table defines the engress (enf to end) latency properties for a given profile</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PROFILE_ID" Size="4" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="LAT_STAT_ENABLE" Type="BOOL"/>
+                <Field Name="LAT_FLOW_PROFILE_VALID" Type="BOOL" Valid="DNX_DATA.latency.features.valid_flow_profile_flag"/>
+                <Field Name="LATENCY_DROP_ENABLE" Type="BOOL" Valid="!DNX_DATA.latency.features.valid_end_to_end_aqm_profile"/>
+                <Field Name="LAT_DROP_THRESHOLD" Size="32" Type="UINT" Valid="!DNX_DATA.latency.features.valid_end_to_end_aqm_profile"/>
+                <Field Name="LAT_CNI_ENABLE" Type="BOOL" Valid="!DNX_DATA.latency.features.valid_end_to_end_aqm_profile"/>
+                <Field Name="LAT_CNI_THRESHOLD" Size="32" Type="UINT" Valid="!DNX_DATA.latency.features.valid_end_to_end_aqm_profile"/>
+                <Field Name="LAT_TRACK_ENABLE" Type="BOOL" Valid="!DNX_DATA.latency.features.valid_end_to_end_aqm_profile"/>
+                <Field Name="LAT_STAT_COMMAND" Size="5" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV LATENCY</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0" Name="LAT_STAT_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_STATISTICS_ENf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="LAT_STAT_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_MEASUREMENT_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_STATISTICS_ENf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="LAT_FLOW_PROFILE_VALID">
+                    <Access>
+                        <Register Name="ETPPC_CFG_STATISTICS_VALID_PER_SYSTEM_HEADER_FLOW_PROFILEr">
+                            <HwField Name="CFG_STATISTICS_VALID_PER_SYSTEM_HEADER_FLOW_PROFILEf"/>
+                            <DataOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                        </Register>               
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="LATENCY_DROP_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_DROP_TRAP_ENf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="LAT_DROP_THRESHOLD">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_DROP_TRAP_THf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="LAT_CNI_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_CNI_ENf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="LAT_CNI_THRESHOLD">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_CNI_THf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="LAT_TRACK_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_MAX_ENf"/>
+                        </Memory>               
+                    </Access>
+                </Field>            
+                <Field Device="JR2_A0 JR2_B0" Name="LAT_STAT_COMMAND">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_STATISTICS_COMMANDf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="LAT_STAT_COMMAND">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_MEASUREMENT_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_STATISTICS_COMMANDf"/>
+                        </Memory>               
+                    </Access>
+                </Field>                    
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="LATENCY_EGRESS_PROFILE_BINS">
+        <OneLineDescription>table defines the egress (enf to end) latency bins thresholds for a given profile</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PROFILE_ID" Size="4" Type="UINT"/>
+                <Field MaxValue="6" Name="BIN_ID" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="LAT_BIN_THRESHOLD" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV LATENCY</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0" Name="LAT_BIN_THRESHOLD">
+                    <Access>
+                        <KeyCondition Field="BIN_ID" Type="EQUAL_TO" Value="0"/>                 
+                        <Memory Name="ETPPC_LATENCY_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_BIN_TH_0f"/>
+                        </Memory>   
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BIN_ID" Type="EQUAL_TO" Value="1"/>                 
+                        <Memory Name="ETPPC_LATENCY_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_BIN_TH_1f"/>
+                        </Memory>   
+                    </Access>   
+                    <Access>
+                        <KeyCondition Field="BIN_ID" Type="EQUAL_TO" Value="2"/>                 
+                        <Memory Name="ETPPC_LATENCY_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_BIN_TH_2f"/>
+                        </Memory>   
+                    </Access>   
+                    <Access>
+                        <KeyCondition Field="BIN_ID" Type="EQUAL_TO" Value="3"/>                 
+                        <Memory Name="ETPPC_LATENCY_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_BIN_TH_3f"/>
+                        </Memory>   
+                    </Access>       
+                    <Access>
+                        <KeyCondition Field="BIN_ID" Type="EQUAL_TO" Value="4"/>                 
+                        <Memory Name="ETPPC_LATENCY_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_BIN_TH_4f"/>
+                        </Memory>   
+                    </Access>   
+                    <Access>
+                        <KeyCondition Field="BIN_ID" Type="EQUAL_TO" Value="5"/>                 
+                        <Memory Name="ETPPC_LATENCY_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_BIN_TH_5f"/>
+                        </Memory>   
+                    </Access>       
+                    <Access>
+                        <KeyCondition Field="BIN_ID" Type="EQUAL_TO" Value="6"/>                 
+                        <Memory Name="ETPPC_LATENCY_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_BIN_TH_6f"/>
+                        </Memory>   
+                    </Access>                       
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="LAT_BIN_THRESHOLD">
+                    <Access>
+                        <KeyCondition Field="BIN_ID" Type="EQUAL_TO" Value="0"/>                 
+                        <Memory Name="ETPPC_LATENCY_MEASUREMENT_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_BIN_TH_0f"/>
+                        </Memory>   
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BIN_ID" Type="EQUAL_TO" Value="1"/>                 
+                        <Memory Name="ETPPC_LATENCY_MEASUREMENT_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_BIN_TH_1f"/>
+                        </Memory>   
+                    </Access>   
+                    <Access>
+                        <KeyCondition Field="BIN_ID" Type="EQUAL_TO" Value="2"/>                 
+                        <Memory Name="ETPPC_LATENCY_MEASUREMENT_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_BIN_TH_2f"/>
+                        </Memory>   
+                    </Access>   
+                    <Access>
+                        <KeyCondition Field="BIN_ID" Type="EQUAL_TO" Value="3"/>                 
+                        <Memory Name="ETPPC_LATENCY_MEASUREMENT_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_BIN_TH_3f"/>
+                        </Memory>   
+                    </Access>       
+                    <Access>
+                        <KeyCondition Field="BIN_ID" Type="EQUAL_TO" Value="4"/>                 
+                        <Memory Name="ETPPC_LATENCY_MEASUREMENT_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_BIN_TH_4f"/>
+                        </Memory>   
+                    </Access>   
+                    <Access>
+                        <KeyCondition Field="BIN_ID" Type="EQUAL_TO" Value="5"/>                 
+                        <Memory Name="ETPPC_LATENCY_MEASUREMENT_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_BIN_TH_5f"/>
+                        </Memory>   
+                    </Access>       
+                    <Access>
+                        <KeyCondition Field="BIN_ID" Type="EQUAL_TO" Value="6"/>                 
+                        <Memory Name="ETPPC_LATENCY_MEASUREMENT_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LATENCY_BIN_TH_6f"/>
+                        </Memory>   
+                    </Access>                       
+                </Field>            
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="LATENCY_END_TO_END_CONFIG">
+        <OneLineDescription>general configuration for end to end latency measurements</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="LAT_PER_FLOW_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV LATENCY</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LAT_PER_FLOW_ENABLE">
+                    <Access>
+                        <Register Name="ETPPC_CFG_FLOW_ID_EXISTr">
+                            <HwField Name="CFG_FLOW_ID_EXISTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="LATENCY_VOQ_QUARTET_PROFILE">
+        <OneLineDescription>mapping table from quartet queue (base of 4 queues) to a profile</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="QUARTET_QUEUE" Size="DNX_DATA.ipq.queues.queue_id_bits-DNX_DATA.ipq.queues.min_bundle_size_bits" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="PROFILE_ID" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV LATENCY</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PROFILE_ID">
+                    <Access>
+                        <Memory Name="ITPP_VOQ_QUARTETm">
+                            <EntryOffset Formula="#KEY_VALUE(QUARTET_QUEUE)/64"/>
+                            <HwField Name="PROFILEf"/>
+                            <DataOffset Formula="#KEY_VALUE(QUARTET_QUEUE)%64*#RESULT_SIZE(PROFILE_ID)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="ITPPD_VOQ_QUARTETm">
+                            <EntryOffset Formula="#KEY_VALUE(QUARTET_QUEUE)/64"/>
+                            <HwField Name="PROFILEf"/>
+                            <DataOffset Formula="#KEY_VALUE(QUARTET_QUEUE)%64*#RESULT_SIZE(PROFILE_ID)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+    
+    <AppDB Name="LATENCY_VOQ_QUARTET_PROFILE_MAP">
+        <OneLineDescription>mapping table from voq quartet profile to {tc_map(3), latency_flow-profile(3)}</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="QUARTET_PROFILE" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="LAT_FLOW_PROFILE" Size="3" Type="UINT"/>
+                <Field Name="TC_MAP" Size="3" Type="UINT"/>                
+            </Result>
+            <TableLabels>J2P_NOTREV LATENCY</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LAT_FLOW_PROFILE">
+                    <Access>
+                        <Register Name="ITPP_VOQ_TC_MAPr">
+                            <HwField Name="TC_MAP_PROFILEf"/>
+                            <DataOffset Formula="#KEY_VALUE(QUARTET_PROFILE)*6"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TC_MAP">
+                    <Access>
+                        <Register Name="ITPP_VOQ_TC_MAPr">
+                            <HwField Name="TC_MAP_PROFILEf"/>
+                            <DataOffset Formula="#KEY_VALUE(QUARTET_PROFILE)*6+3"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB> 
+
+     <AppDB Name="LATENCY_VOQ_DISCARD_PARAMS" Valid="DNX_DATA.ingr_congestion.info.latency_based_admission">
+        <OneLineDescription>This table contains mapping from free-res thresholds to VOQ latency drop.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DP"/>
+                <Field Name="VOQ_RATE_CLASS"/>
+            </Key>
+            <Result>
+                <Field Name="ENABLE" Type="BOOL"/>
+                <Field Name="ADMIT_THRESHOLD" Size="24" Type="UINT"/>
+                <Field Name="RJCT_PROB" NofInstances="8" Size="10" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV LATENCY</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Memory Name="CGM_VOQ_LATENCY_RJCT_PRMSm">
+                            <HwField Name="RJCT_ENf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ADMIT_THRESHOLD">
+                    <Access>
+                        <Memory Name="CGM_VOQ_LATENCY_RJCT_PRMSm">
+                            <HwField Name="RJCT_MIN_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RJCT_PROB">
+                    <Access instanceIndex="0">
+                        <Memory Name="CGM_VOQ_LATENCY_RJCT_PRMSm">
+                            <HwField Name="RJCT_PROB_0f"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Memory Name="CGM_VOQ_LATENCY_RJCT_PRMSm">
+                            <HwField Name="RJCT_PROB_1f"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Memory Name="CGM_VOQ_LATENCY_RJCT_PRMSm">
+                            <HwField Name="RJCT_PROB_2f"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Memory Name="CGM_VOQ_LATENCY_RJCT_PRMSm">
+                            <HwField Name="RJCT_PROB_3f"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Memory Name="CGM_VOQ_LATENCY_RJCT_PRMSm">
+                            <HwField Name="RJCT_PROB_4f"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Memory Name="CGM_VOQ_LATENCY_RJCT_PRMSm">
+                            <HwField Name="RJCT_PROB_5f"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Memory Name="CGM_VOQ_LATENCY_RJCT_PRMSm">
+                            <HwField Name="RJCT_PROB_6f"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="7">
+                        <Memory Name="CGM_VOQ_LATENCY_RJCT_PRMSm">
+                            <HwField Name="RJCT_PROB_7f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="LATENCY_VOQ_RANGES" Valid="DNX_DATA.ingr_congestion.info.latency_based_admission">
+        <OneLineDescription>This table defines VOQ latency range thresholds</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="LAT_FLOW_PROFILE" Size="5" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="RANGE_THRESHOLD" NofInstances="7" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV LATENCY</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>                
+                <Field Name="RANGE_THRESHOLD">
+                    <Access instanceIndex="0">
+                        <Memory Name="CGM_VOQ_LATENCY_RANGESm">
+                            <HwField Name="RANGE_TH_0f"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Memory Name="CGM_VOQ_LATENCY_RANGESm">
+                            <HwField Name="RANGE_TH_1f"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Memory Name="CGM_VOQ_LATENCY_RANGESm">
+                            <HwField Name="RANGE_TH_2f"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Memory Name="CGM_VOQ_LATENCY_RANGESm">
+                            <HwField Name="RANGE_TH_3f"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Memory Name="CGM_VOQ_LATENCY_RANGESm">
+                            <HwField Name="RANGE_TH_4f"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Memory Name="CGM_VOQ_LATENCY_RANGESm">
+                            <HwField Name="RANGE_TH_5f"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Memory Name="CGM_VOQ_LATENCY_RANGESm">
+                            <HwField Name="RANGE_TH_6f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+   <AppDB Name="LATENCY_VOQ_RJCT_SETTINGS" Valid="DNX_DATA.ingr_congestion.info.latency_based_admission">
+        <OneLineDescription>This table defines VOQ latency filter MC/filter SNIFF/flow control settings</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="RJCT_FILTER_MC" Type="BOOL"/>
+                <Field Name="RJCT_FILTER_SNIFF" Type="BOOL"/>
+                <Field Name="RJCT_FLOW_PROFILE_NULL" Size="4" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV LATENCY</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="RJCT_FILTER_MC">
+                    <Access>
+                        <Register Name="CGM_VOQ_LATENCY_RJCT_SETTINGSr">
+                            <HwField Name="VOQ_LATENCY_RJCT_FILTER_MCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RJCT_FILTER_SNIFF">
+                    <Access>
+                        <Register Name="CGM_VOQ_LATENCY_RJCT_SETTINGSr">
+                            <HwField Name="VOQ_LATENCY_RJCT_FILTER_SNIFFf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RJCT_FLOW_PROFILE_NULL">
+                    <Access>
+                        <Register Name="CGM_VOQ_LATENCY_RJCT_SETTINGSr">
+                            <HwField Name="VOQ_LATENCY_RJCT_FLOW_PROFILE_NULLf"/>
+                        </Register>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>       
+    <AppDB Name="LATENCY_EGRESS_DROP_CNI_PROFILE" Valid="DNX_DATA.latency.features.probabilistic_mechanism_support">
+        <OneLineDescription>table defines the engress (enf to end) latency properties for DROP/CNI profile</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PROFILE_ID" Size="4" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="LAT_FLOW_PROFILE_VALID" Type="BOOL" Valid="DNX_DATA.latency.features.valid_flow_profile_flag"/>
+                <Field Name="CNI_MAX_ENABLE" Type="BOOL"/>
+                <Field Name="CNI_MAX_THRESH" Size="32" Type="UINT"/>
+                <Field Name="CNI_PROB_ENABLE" Type="BOOL"/>
+                <Field Name="CNI_MIN_THRESH_SHIFT" Size="5" Type="UINT"/>
+                <Field Name="CNI_MIN_THRESH" Size="32" Type="UINT"/>
+                <Field Name="DROP_MAX_ENABLE" Type="BOOL"/>
+                <Field Name="DROP_MAX_THRESH" Size="32" Type="UINT"/>
+                <Field Name="DROP_PROB_ENABLE" Type="BOOL"/>
+                <Field Name="DROP_MIN_THRESH_SHIFT" Size="5" Type="UINT"/>
+                <Field Name="DROP_MIN_THRESH" Size="32" Type="UINT"/>
+                <Field Name="L4_AQM_LQ_ENABLE" Type="BOOL"/>
+                <Field Name="L4_AQM_CQ_ENABLE" Type="BOOL"/>
+                <Field Name="L4_AQM_TYP_ENABLE" Type="BOOL"/>
+                <Field Name="AVERAGE_WEIGHT" Size="5" Type="UINT"/>
+                <Field Name="LQ_CNI_MAX_ENABLE" Type="BOOL"/>
+                <Field Name="LQ_CNI_MAX_THRESH" Size="32" Type="UINT"/>
+                <Field Name="LQ_CNI_PROB_ENABLE" Type="BOOL"/>
+                <Field Name="LQ_CNI_PROB_MIN_THRESH" Size="32" Type="UINT"/>
+                <Field Name="LQ_CNI_PROB_MIN_SHIFT" Size="5" Type="UINT"/>
+                <Field Name="LQ_CNI_CLASSIFICATION_THRESH" Size="32" Type="UINT"/>
+                <Field Name="CQ_CNI_PROB_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV LATENCY</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="LAT_FLOW_PROFILE_VALID">
+                    <Access>
+                        <Register Name="ETPPC_CFG_DROP_CNI_VALID_PER_SYSTEM_HEADER_FLOW_PROFILEr">
+                            <HwField Name="CFG_DROP_CNI_VALID_PER_SYSTEM_HEADER_FLOW_PROFILEf"/>
+                            <DataOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                        </Register>               
+                    </Access>
+                </Field>
+                <Field Name="CNI_MAX_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_DROP_CNI_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="TYP_CNI_MAX_ENABLEf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Name="CNI_MAX_THRESH">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_DROP_CNI_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="TYP_CNI_MAX_THRESHOLDf"/>
+                        </Memory>              
+                    </Access>
+                </Field>
+                <Field Name="CNI_PROB_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_DROP_CNI_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="TYP_CNI_PROB_ENABLEf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Name="CNI_MIN_THRESH_SHIFT">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_DROP_CNI_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="TYP_CNI_PROB_BASE_SHIFTf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Name="CNI_MIN_THRESH">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_DROP_CNI_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="TYP_CNI_PROB_BASE_THRESHOLDf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Name="DROP_MAX_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_DROP_CNI_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="TYP_DROP_MAX_ENABLEf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Name="DROP_MAX_THRESH">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_DROP_CNI_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="TYP_DROP_MAX_THRESHOLDf"/>
+                        </Memory>              
+                    </Access>
+                </Field>
+                <Field Name="DROP_PROB_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_DROP_CNI_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="TYP_DROP_PROB_ENABLEf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Name="DROP_MIN_THRESH_SHIFT">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_DROP_CNI_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="TYP_DROP_PROB_BASE_SHIFTf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Name="DROP_MIN_THRESH">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_DROP_CNI_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="TYP_DROP_PROB_BASE_THRESHOLDf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Name="L4_AQM_LQ_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_DROP_CNI_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="L_4_AQM_LQ_ENABLEf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Name="L4_AQM_CQ_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_DROP_CNI_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="L_4_AQM_CQ_ENABLEf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Name="L4_AQM_TYP_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_DROP_CNI_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="L_4_AQM_TYP_ENABLEf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Name="AVERAGE_WEIGHT">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_DROP_CNI_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="AVERAGE_WEIGHTf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Name="LQ_CNI_MAX_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_DROP_CNI_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LQ_CNI_MAX_ENABLEf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Name="LQ_CNI_MAX_THRESH">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_DROP_CNI_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LQ_CNI_MAX_THRESHOLDf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Name="LQ_CNI_PROB_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_DROP_CNI_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LQ_CNI_PROB_ENABLEf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Name="LQ_CNI_PROB_MIN_THRESH">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_DROP_CNI_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LQ_CNI_PROB_BASE_THRESHOLDf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Name="LQ_CNI_PROB_MIN_SHIFT">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_DROP_CNI_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LQ_CNI_PROB_BASE_SHIFTf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Name="LQ_CNI_CLASSIFICATION_THRESH">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_DROP_CNI_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="LQ_CNI_CLASSIFICATION_THRESHOLDf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Name="CQ_CNI_PROB_ENABLE">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_DROP_CNI_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROFILE_ID)"/>
+                            <HwField Name="CQ_CNI_PROB_ENABLEf"/>
+                        </Memory>               
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="LATENCY_EGRESS_L4Q_PROFILE" Valid="DNX_DATA.latency.features.valid_end_to_end_aqm_profile">
+        <OneLineDescription>table defines the engress latency per DropCNI Flow id </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="L4Q_FLOW_ID" Size="8" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="AVG_LATENCY" Permission="READONLY" Size="20" Type="UINT"/>
+                <Field Name="INST_LATENCY" Permission="READONLY" Size="20" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV LATENCY</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="AVG_LATENCY">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(L4Q_FLOW_ID)"/>
+                            <HwField Name="AVG_LATENCYf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Name="INST_LATENCY">
+                    <Access>
+                        <Memory Name="ETPPC_LATENCY_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(L4Q_FLOW_ID)"/>
+                            <HwField Name="INST_LATENCYf"/>
+                        </Memory>               
+                    </Access>
+                </Field>                   
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="LATENCY_EGRESS_L4Q_MAP_AQM_FLOW_ID_PORT_TC" Valid="DNX_DATA.latency.features.valid_end_to_end_aqm_profile">
+        <OneLineDescription>table defines the mapping per out tm port and tc to L4Q flow id</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TM_PORT"/>
+                <Field Name="TC"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="L4Q_FLOW_ID" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV LATENCY</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="L4Q_FLOW_ID">
+                    <Access>
+                        <Memory Name="ETPPC_L_4Q_CLASSIFICATION_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(TM_PORT)"/>
+                            <HwField Name="L_4Q_FLOW_IDf"/>
+                            <DataOffset Formula="#KEY_VALUE(TC)*#RESULT_SIZE(L4Q_FLOW_ID)"/>
+                        </Memory>               
+                    </Access>
+                </Field>                   
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="LATENCY_EGRESS_L4Q_MAP_AQM_FLOW_ID_TO_PROFILE" Valid="DNX_DATA.latency.features.valid_end_to_end_aqm_profile">
+        <OneLineDescription>table defines the mapping of L4Q flow id to L4Q flow profile</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="L4Q_FLOW_ID" Size="8" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="L4Q_FLOW_PROFILE" Size="4" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV LATENCY</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="L4Q_FLOW_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPC_L_4Q_FLOW_ID_TO_PROFILE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(L4Q_FLOW_ID)"/>
+                            <HwField Name="L_4Q_FLOW_PROFILEf"/>
+                        </Memory>               
+                    </Access>
+                </Field>                   
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="LATENCY_EGRESS_PACKET_CLASSIFICATION" Valid="DNX_DATA.latency.features.valid_end_to_end_aqm_profile">
+        <OneLineDescription>table configures whether packet is LQ/CQ/DE/TYP</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ECN_PROFILE" Size="2" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="CFG_DE" Type="BOOL"/>
+                <Field Name="CFG_LQ" Type="BOOL"/>
+                <Field Name="CFG_CQ" Type="BOOL"/>
+                <Field Name="CFG_TYP" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV LATENCY</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CFG_DE">
+                    <Access>
+                        <Register Name="ETPPC_CFG_LATENCY_MEASUREMENT_DEr">
+                            <HwField Name="CFG_LATENCY_MEASUREMENT_DEf"/>
+                            <DataOffset Formula="#KEY_VALUE(ECN_PROFILE)"/>
+                        </Register>               
+                    </Access>
+                </Field>
+                <Field Name="CFG_LQ">
+                    <Access>
+                        <Register Name="ETPPC_CFG_LATENCY_MEASUREMENT_LQr">
+                            <HwField Name="CFG_LATENCY_MEASUREMENT_LQf"/>
+                            <DataOffset Formula="#KEY_VALUE(ECN_PROFILE)"/>
+                        </Register>               
+                    </Access>
+                </Field>
+                <Field Name="CFG_CQ">
+                    <Access>
+                        <Register Name="ETPPC_CFG_LATENCY_MEASUREMENT_CQr">
+                            <HwField Name="CFG_LATENCY_MEASUREMENT_CQf"/>
+                            <DataOffset Formula="#KEY_VALUE(ECN_PROFILE)"/>
+                        </Register>               
+                    </Access>
+                </Field>
+                <Field Name="CFG_TYP">
+                    <Access>
+                        <Register Name="ETPPC_CFG_LATENCY_MEASUREMENT_TYPr">
+                            <HwField Name="CFG_LATENCY_MEASUREMENT_TYPf"/>
+                            <DataOffset Formula="#KEY_VALUE(ECN_PROFILE)"/>
+                        </Register>               
+                    </Access>
+                </Field>                   
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+     <AppDB Name="LATENCY_EGRESS_MAINTAIN_AVERAGE_LATENCY" Valid="DNX_DATA.latency.features.valid_end_to_end_aqm_profile">
+        <OneLineDescription>table configures whether packet is LQ/CQ/DE/TYP</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PKT_TYPE_KEY" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="USE_NEW_AVG" Type="BOOL"/>
+                <Field Name="USE_NEW_INST" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV LATENCY</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="USE_NEW_AVG">
+                    <Access>
+                        <Register Name="ETPPC_CFG_MAINTAIN_AVERAGEr">
+                            <HwField Name="CFG_MAINTAIN_AVERAGEf"/>
+                            <DataOffset Formula="#KEY_VALUE(PKT_TYPE_KEY)*2"/>
+                        </Register>               
+                    </Access>
+                </Field>
+                <Field Name="USE_NEW_INST">
+                    <Access>
+                        <Register Name="ETPPC_CFG_MAINTAIN_AVERAGEr">
+                            <HwField Name="CFG_MAINTAIN_AVERAGEf"/>
+                            <DataOffset Formula="#KEY_VALUE(PKT_TYPE_KEY)*2+1"/>
+                        </Register>               
+                    </Access>
+                </Field>              
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="LATENCY_EGRESS_PROBABILITY_MAPPING" Valid="DNX_DATA.latency.features.valid_end_to_end_aqm_profile">
+        <OneLineDescription>table configures </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="MANTISSA" Size="3" Type="UINT"/> <!-- LSB -->
+                <Field Name="EXPONENT" Size="5" Type="UINT"/> <!-- MSB -->
+            </Key>
+            <Result>
+                <Field Name="MAPPED_MANTISSA" Size="3" Type="UINT"/>
+                <Field Name="MAPPED_EXPONENT" Size="5" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV LATENCY</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MAPPED_MANTISSA">
+                    <Access>
+                        <Memory Name="ETPPC_PROBABILITY_MAPm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()"/>
+                            <HwField Name="MAPPED_PROBABILITYf"/>
+                        </Memory>               
+                    </Access>
+                </Field>
+                <Field Name="MAPPED_EXPONENT">
+                    <Access>
+                        <Memory Name="ETPPC_PROBABILITY_MAPm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()"/>
+                            <HwField Name="MAPPED_PROBABILITYf"/>
+                            <DataOffset Formula="#RESULT_SIZE(MAPPED_MANTISSA)"/>
+                        </Memory>               
+                    </Access>
+                </Field>          
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

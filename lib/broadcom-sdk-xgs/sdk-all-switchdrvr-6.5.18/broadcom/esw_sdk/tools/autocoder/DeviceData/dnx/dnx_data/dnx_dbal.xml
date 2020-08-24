@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="dbal" bsl_flag="BSL_LS_SOCDNX_DBALDNX">
+    <includes>
+    </includes>
+    
+    <!-- must be first -->
+    <sub_module name="diag" doc="dbal diagnostics module">
+        <tables>
+            <table name="loggerInfo" doc="dbal logger info">
+               <value name="file_name" type="char *" doc="Dbal logger file name"></value>
+           </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="db_init" doc="dbal init module">
+        <features>
+             <feature name="invalid_feature_example" doc="Example feature to test dbal Valid flag"></feature>
+        </features>
+    </sub_module>
+
+    <sub_module name="table" doc="dbal table module">
+        <defines>
+            <define name = "nof_dynamic_tables"                         method="range" range_min="1" range_max="1000" doc = "Number of dynamic dbal tables"></define>
+        </defines>
+        <defines>
+            <define name = "nof_dynamic_xml_tables"                         method="range" range_min="1" range_max="1000" doc = "Number of dynamic xml dbal tables"></define>
+        </defines>        
+        <defines>
+            <define name = "nof_dynamic_tables_labels"                  method="range" range_min="1" range_max="10"  doc = "Number of labels in a dynamic dbal table"></define>
+        </defines>
+        <defines>
+            <define name = "nof_dynamic_tables_key_fields"              method="range" range_min="1" range_max="35"  doc = "Number of key fields in a dynamic dbal table"></define>
+        </defines>
+        <defines>
+            <define name = "nof_dynamic_tables_result_fields"           method="range" range_min="1" range_max="200" doc = "Number of result fields in a dynamic dbal table"></define>
+        </defines>
+        <defines>
+            <define name = "nof_dynamic_tables_multi_result_types"      method="range" range_min="1" range_max="1"   doc = "Number of multiple result types in a dynamic dbal table"></define>
+        </defines>
+        <defines>
+            <define name = "nof_dynamic_tables_ppmc_multi_result_types" method="range" range_min="1" range_max="20"  doc = "Number of multiple result types in a ppmc dynamic dbal table"></define>
+        </defines>
+        <numerics>
+            <numeric name = "nof_dynamic_and_static_tables"             doc = "Number of dynamic and static dbal tables"></numeric>
+        </numerics>
+    </sub_module>
+    
+    <sub_module name="hw_ent" doc="dbal hw ent module">
+        <numerics>
+            <numeric name = "nof_direct_maps"                         method="range" range_min="1" range_max="1000" doc = "Number of hw ent direct maps"></numeric>
+            <numeric name = "nof_groups_maps"                         method="range" range_min="1" range_max="1000" doc = "Number of hw ent group maps"></numeric>
+        </numerics>        
+    </sub_module>
+</device_data>
+
+
+
+    

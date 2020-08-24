@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2c_a0"  module="esb">
+     <includes>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_nif.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_egr_queuing.h</include>
+    </includes>
+    <sub_module name="general" doc="General parameters of Egress Shared Buffers">
+        <features>
+            <feature name="esb_support" value="1"></feature>
+        </features>
+        <defines>
+            <define name="nof_nif_eth_queues" value="DATA(nif, phys, nof_phys)"></define>
+            <define name="nof_nif_ilkn_queues" value="DATA(nif, ilkn, ilkn_if_nof)"></define>
+            <define name="nof_special_queues" value="10"></define>
+            <define name="nof_ilkn_tdm_queues" value="0"></define>
+            <define name="nof_flexe_queues" value="0"></define>
+            <define name="nof_reserved_queues" value="0"></define>
+            <define name="total_nof_esb_queues" value="DATA(esb, general, nof_nif_eth_queues)+DATA(esb, general, nof_nif_ilkn_queues)+DATA(esb, general, nof_ilkn_tdm_queues)+DATA(esb, general, nof_special_queues)"></define>
+            <define name="nof_fpc" value="4"></define>
+            <define name="fpc_ptr_size" value="10"></define>
+            <define name="mux_cal_len" value="256"></define>
+            <define name="ilkn_credits_resolution" value="48"></define>
+            <define name="ilkn_credits_rate_resolution" value="50000"></define>
+        </defines>
+        <tables>
+            <table name="if_esb_params" mode="sequential">
+                <key name="idx"></key>
+                <value name="speed" default="-1"></value>
+                <value name="if_id" default="-1"></value>
+                <value name="queue_id" default="-1"></value>
+                <value name="interleave_queue_id" default="-1"></value>
+                <value name="min_gap" default="-1"></value>
+                <entries>
+                    <entry if_id="DATA(egr_queuing,params,egr_if_cpu)" queue_id="144"  min_gap="3"></entry>
+                    <entry if_id="DATA(egr_queuing,params,egr_if_sat)" queue_id="145"  min_gap="0"></entry>
+                    <entry if_id="DATA(egr_queuing,params,egr_if_oam)" queue_id="146"  min_gap="3"></entry>
+                    <entry if_id="DATA(egr_queuing,params,egr_if_olp)" queue_id="147"  min_gap="9"></entry>
+                    <entry if_id="DATA(egr_queuing,params,egr_if_rcy)" queue_id="148" interleave_queue_id="151" min_gap="0"></entry>
+                    <entry if_id="DATA(egr_queuing,params,egr_if_txi_rcy)" queue_id="150" interleave_queue_id="152" min_gap="0"></entry>
+                    <entry if_id="DATA(egr_queuing,params,egr_if_eventor)" queue_id="149"  min_gap="9"></entry>
+                    <entry speed="40000" min_gap="8"></entry>
+                    <entry speed="50000" min_gap="6"></entry>
+                    <entry speed="100000" min_gap="3"></entry>
+                    <entry speed="200000" min_gap="1"></entry>
+                    <entry speed="600000" min_gap="0"></entry>
+                </entries>
+            </table>
+        </tables>
+        <numerics>
+            <numeric name="txi_irdy_th_factor" value="8"></numeric>
+            <numeric name="slow_port_dedicated_queue" value="192"></numeric>
+        </numerics>
+    </sub_module>
+    <sub_module name="dbal"  doc="ESB DBAL defines">
+        <defines>
+            <define name="pm_internal_port_size" value="4"></define>
+        </defines>
+    </sub_module>
+</device_data>

@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    All data on this file is related to 'load balancing'
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="LOAD_BALANCING_GENERAL_SEEDS">
+        <OneLineDescription>Indicate the seeds for the 2 CRC32 functions in the MPLS label collection and compression and the same for the parser.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="32 bits value to use as seed for MPLS stack '0' ." Name="LB_CRC_SEED_FOR_MPLS_STACK_0" Size="32" Type="UINT"/>
+                <Field Description="32 bits value to use as seed for MPLS stack '1' ." Name="LB_CRC_SEED_FOR_MPLS_STACK_1" Size="32" Type="UINT"/>
+                <Field Description="32 bits value to use as seed for MPLS stack '0' ." Name="LB_CRC_SEED_FOR_MPLS_STACK_2" Size="32" Type="UINT" Valid="DNX_DATA.switch.load_balancing.mpls_stack_split_hashing"/>
+                <Field Description="32 bits value to use as seed for MPLS stack '1' ." Name="LB_CRC_SEED_FOR_MPLS_STACK_3" Size="32" Type="UINT" Valid="DNX_DATA.switch.load_balancing.mpls_stack_split_hashing"/>
+                <Field Description="32 bits value to use as seed for parser ." Name="LB_CRC_SEED_FOR_PARSER" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LB_CRC_SEED_FOR_MPLS_STACK_0">
+                    <Access>
+                        <Register Name="IPPB_MPLS_LABEL_CRC_32_SEEDSr">
+                            <HwField Name="STACK_0_SEEDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LB_CRC_SEED_FOR_MPLS_STACK_1">
+                    <Access>
+                        <Register Name="IPPB_MPLS_LABEL_CRC_32_SEEDSr">
+                            <HwField Name="STACK_1_SEEDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LB_CRC_SEED_FOR_MPLS_STACK_2">
+                    <Access>
+                        <Register Name="IPPB_MPLS_LABEL_CRC_32_SEEDSr">
+                            <HwField Name="STACK_2_SEEDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LB_CRC_SEED_FOR_MPLS_STACK_3">
+                    <Access>
+                        <Register Name="IPPB_MPLS_LABEL_CRC_32_SEEDSr">
+                            <HwField Name="STACK_3_SEEDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <!-- This would probably need to be replaced by IPPE_PRSE_LOAD_BALANCING_SEEDr, PRSE_LOAD_BALANCING_SEEDf -->
+                <Field Device="JR2_A0 JR2_B0" Name="LB_CRC_SEED_FOR_PARSER">
+                    <Access>
+                        <Register Name="IPPE_REG_0600r">
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="LB_CRC_SEED_FOR_PARSER">
+                    <Access>
+                        <Register Name="IPPE_PRSE_LOAD_BALANCING_SEEDr">
+                            <HwField Name="PRSE_LOAD_BALANCING_SEEDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="LOAD_BALANCING_CLIET_FWD_BIT_SEL">
+        <OneLineDescription>Indicate which 16 bits (LSBs or MSBs) out of the 32 CRC bits, that come from the parser/VTT into FWD, will be used for hashing.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Identifier (one of 5: range 0-4) of load balancing client." MaxValue="DNX_DATA.switch.load_balancing.nof_lb_clients-1" Name="LB_CLIENT"/>
+            </Key>
+            <Result>
+                <Field Description="Bitmap of 8 bits indicating, per layer record, which 16 bits (MS/LS), of 32 bits CRC, will be used for hashing." Name="LB_SELECTION_BIT_MAP" Size="DNX_DATA.switch.load_balancing.nof_layer_records_from_parser" Type="UINT"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LB_SELECTION_BIT_MAP">
+                    <Access>
+                        <Register Name="IPPB_LB_CLIENTS_CRC_32_BITS_SELECTION_BITMAPr">
+                            <ArrayOffset Formula="#FULL_KEY_VALUE()"/>
+                            <HwField Name="LB_CLIENTS_CRC_32_BITS_SELECTION_BITMAP_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="LOAD_BALANCING_CRC_SEEDS">
+        <OneLineDescription>Indicate the seeds to use for the available 8 crc machines (that are used for load balancing).</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="3 bits value to use as identifier of crc function." Name="LB_CRC_FUNCTION_INDEX"/>
+            </Key>
+            <Result>
+                <Field Description="16 bits value to use as seed for crc-function specified on ." Name="LB_CRC_SEED"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LB_CRC_SEED">
+                    <Access>
+                        <Register Name="IPPB_MPLS_CRC_16_SEEDr">
+                            <HwField Name="MPLS_CRC_16_SEED_FUNCION_0f"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="MPLS_LAYER_IDENTIFICATION_BITMAP_CFG">
+        <OneLineDescription>Indicate, to chip hw, the identifier of MPLS protocols. To be used by FWD.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Bitmap. Bits set indicat the 5-bits identifiers of MPLS protocols." Name="MPLS_BIT_IDENTIFIER" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0" Name="MPLS_BIT_IDENTIFIER">
+                    <Access>
+                        <Register Name="IPPB_MPLS_LAYER_IDENTIFICATION_BITMAP_CFGr">
+                            <HwField Name="MPLS_LAYER_IDENTIFICATION_BITMAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="MPLS_BIT_IDENTIFIER">
+                    <Access>
+                        <Register Name="IPPB_IS_MPLS_VALr">
+                            <HwField Name="IS_MPLS_VALf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="LOAD_BALANCING_RESERVED_LABELS">
+        <OneLineDescription>Indicate how to handle reserved MPLS labels and the labels which follow them (next). Handling is with regard to inclusion in load balancing.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Bitmap. Indicates whether specified reserved label (0-15) is to be included in LB calculation." Name="RSRVD_CURRENT_LABEL_INDICATION" Size="16" Type="USHORT"/>
+                <Field Description="Bitmap. Indicates whether specified reserved label (0-15) is to be included in LB calculation even if terminated." Name="RSRVD_CURRENT_LABEL_FORCE_LAYER" Size="16" Type="USHORT"/>
+                <Field Description="Bitmap. Indicates whether label following specified reserved label (0-15) is to be forced into LB calculation even if terminated." Name="RSRVD_NEXT_LABEL_INDICATION" Size="16" Type="USHORT"/>
+                <Field Description="Bitmap. Redundant. Should be set as RSRVD_NEXT_LABEL_INDICATION." Name="RSRVD_NEXT_LABEL_VALID" Size="16" Type="USHORT" Valid="DNX_DATA.switch.load_balancing.reserved_next_label_valid"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="RSRVD_CURRENT_LABEL_INDICATION">
+                    <Access>
+                        <Register Name="IPPB_MPLS_RESERVED_LABEL_TYPESr">
+                            <HwField Name="RESERVED_CURRENT_LABEL_INDICATIONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RSRVD_CURRENT_LABEL_FORCE_LAYER">
+                    <Access>
+                        <Register Name="IPPB_MPLS_RESERVED_LABEL_TYPESr">
+                            <HwField Name="RESERVED_CURRENT_LABEL_FORCE_LAYERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RSRVD_NEXT_LABEL_INDICATION">
+                    <Access>
+                        <Register Name="IPPB_MPLS_RESERVED_LABEL_TYPESr">
+                            <HwField Name="RESERVED_NEXT_LABEL_INDICATIONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RSRVD_NEXT_LABEL_VALID">
+                    <Access>
+                        <Register Name="IPPB_MPLS_RESERVED_LABEL_TYPESr">
+                            <HwField Name="RESERVED_NEXT_LABEL_VALIDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="LOAD_BALANCING_CRC_SELECTION_HL_TCAM">
+        <OneLineDescription>LoadBalancing TCAM table. Result is list of CRCs for the five clients (lb_clients[])</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="TCAM_DIRECT">
+            <Key>
+                <!-- Size of 'destination' is 21 bits, as per 'field_types_definition.xml'  -->
+                <Field Name="LB_DESTINATION" Type="DESTINATION"/>
+                <!-- Size of 'OUTLIF_0' is 22 bits, as per 'field_types_definition.xml'  -->
+                <Field Name="OUTLIF_0" Type="GLOB_OUT_LIF"/>
+            </Key>
+            <Result>
+                <Field Name="CLIENT_0_CRC_16_SEL" Type="LB_CRC_FUNCTION_INDEX"/>
+                <Field Name="CLIENT_1_CRC_16_SEL" Type="LB_CRC_FUNCTION_INDEX"/>
+                <Field Name="CLIENT_2_CRC_16_SEL" Type="LB_CRC_FUNCTION_INDEX"/>
+                <Field Name="CLIENT_3_CRC_16_SEL" Type="LB_CRC_FUNCTION_INDEX"/>
+                <Field Name="CLIENT_4_CRC_16_SEL" Type="LB_CRC_FUNCTION_INDEX"/>
+                <Field Name="VALID" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMappingTcam>
+                <Type Name="KEY"> <!-- all key fields are packed together and connected from the same offset -->
+                    <Access>
+                        <Memory Name="IPPB_LOAD_BALANCING_CRC_SELECTION_CAMm">
+                            <HwField Name="KEYf"/>
+                         </Memory>
+                    </Access>
+                </Type>
+                <Type Name="KEY_MASK">
+                    <Access> <!-- all key masked fields are packed together and connected from the same offset -->
+                        <Memory Name="IPPB_LOAD_BALANCING_CRC_SELECTION_CAMm">
+                             <!-- This is temporary since, for now, we do not have a MASK field on IPPB_LOAD_BALANCING_CRC_SELECTION_CAM -->
+                             <!-- When this is fixed, replace the following line by: -->
+                             <!-- <HwField Name="MASKf"/> -->
+                            <DataOffset Formula="43"/>
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="RESULT">
+                    <Access> <!-- all result fields are packed together and connected from the same offset -->
+                        <Memory Name="IPPB_LOAD_BALANCING_CRC_SELECTION_CAMm">
+                            <HwField Name="RESULTf"/>
+                        </Memory>
+                    </Access>
+                </Type>
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="LOAD_BALANCING_MPLS_1ST_STACK_FORCE_LABELS_HL_TCAM">
+        <OneLineDescription>Force MPLS labels to participate in the build of the LB keys for the 1st MPLS stack</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <Maturity Device="JR2_A0 JR2_B0" Jira="SDK-111111" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="TCAM_DIRECT">
+            <Key>
+                <Field Name="LABEL" Size="20" Type="UINT"/>
+            </Key>
+            <Result>
+                <!-- Include this label into the hash key -->
+                <Field Name="CURRENT_LABEL_INDICATION" Size="1" Type="BOOL"/>
+                <!-- force this label into the hash key -->
+                <Field Name="CURRENT_LABEL_FORCE_LAYER" Size="1" Type="BOOL"/>
+                <!-- Include the following label into the hash key -->
+                <Field Name="NEXT_LABEL_INDICATION" Size="1" Type="BOOL"/>
+                <!-- force the following label into the hash key -->
+                <Field Name="NEXT_LABEL_VALID" Size="1" Type="BOOL"/>
+                <Field Name="VALID" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMappingTcam>
+                <Type Name="KEY"> 
+                    <Access>
+                        <Memory Name="IPPB_MPLS_LABEL_TYPES_CAM_0m">
+                            <HwField Name="LABELf"/>
+                         </Memory>
+                    </Access>
+                </Type>
+                <Type Name="KEY_MASK">
+                    <Access>
+                        <Memory Name="IPPB_MPLS_LABEL_TYPES_CAM_0m">
+                             <HwField Name="MASKf"/> 
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="RESULT">
+                    <Access>
+                        <Memory Name="IPPB_MPLS_LABEL_TYPES_CAM_0m">
+                            <HwField Name="RESULTf"/>
+                        </Memory>
+                    </Access>
+                </Type>
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="LOAD_BALANCING_MPLS_2ND_STACK_FORCE_LABELS_HL_TCAM">
+        <OneLineDescription>Force MPLS labels to participate in the build of the LB keys for the 2nd MPLS stack</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <Maturity Device="JR2_A0 JR2_B0" Jira="SDK-111111" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="TCAM_DIRECT">
+            <Key>
+                <Field Name="LABEL" Size="20" Type="UINT"/>
+            </Key>
+            <Result>
+                <!-- Include this label into the hash key -->
+                <Field Name="CURRENT_LABEL_INDICATION" Size="1" Type="BOOL"/>
+                <!-- force this label into the hash key -->
+                <Field Name="CURRENT_LABEL_FORCE_LAYER" Size="1" Type="BOOL"/>
+                <!-- Include the following label into the hash key -->
+                <Field Name="NEXT_LABEL_INDICATION" Size="1" Type="BOOL"/>
+                <!-- force the following label into the hash key -->
+                <Field Name="NEXT_LABEL_VALID" Size="1" Type="BOOL"/>
+                <Field Name="VALID" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMappingTcam>
+                <Type Name="KEY"> 
+                    <Access>
+                        <Memory Name="IPPB_MPLS_LABEL_TYPES_CAM_1m">
+                            <HwField Name="LABELf"/>
+                         </Memory>
+                    </Access>
+                </Type>
+                <Type Name="KEY_MASK">
+                    <Access>
+                        <Memory Name="IPPB_MPLS_LABEL_TYPES_CAM_1m">
+                             <HwField Name="MASKf"/> 
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="RESULT">
+                    <Access>
+                        <Memory Name="IPPB_MPLS_LABEL_TYPES_CAM_1m">
+                            <HwField Name="RESULTf"/>
+                        </Memory>
+                    </Access>
+                </Type>
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="LOAD_BALANCING_USE_LAYER_RECORD" Valid="DNX_DATA.switch.load_balancing.hashing_selection_per_layer">
+        <OneLineDescription> Indicate per layer whether the LB key of the layer should be included in hashing </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="" Name="LAYER_PROTOCOL" Size="5" Type="UINT"/>
+                <Field Description="" Name="PORT_LB_PROFILE" Size="2" Type="UINT"/>
+                <Field Description="" Name="IN_LIF_LB_PROFILE" Size="2" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="" Name="USE_LAYER_RECORD" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="USE_LAYER_RECORD">
+                    <Access>
+                        <Memory Name="IPPB_USE_LAYER_RECORD_LB_INFOm">
+                        <!-- the key for the table is compised of a bitmap of the three key fields LAYER_PROTOCOL(5b), PORT_LB_PROFILE(2b), IN_LIF_LB_PROFILE(2b) -->
+                            <EntryOffset Formula="(#KEY_VALUE(LAYER_PROTOCOL)&lt;&lt;(#KEY_SIZE(PORT_LB_PROFILE)+#KEY_SIZE(IN_LIF_LB_PROFILE)))+(#KEY_VALUE(PORT_LB_PROFILE)&lt;&lt;#KEY_SIZE(IN_LIF_LB_PROFILE))+#KEY_VALUE(IN_LIF_LB_PROFILE)"/>
+                            <HwField Name="USE_LAYER_RECORD_LB_INFOf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

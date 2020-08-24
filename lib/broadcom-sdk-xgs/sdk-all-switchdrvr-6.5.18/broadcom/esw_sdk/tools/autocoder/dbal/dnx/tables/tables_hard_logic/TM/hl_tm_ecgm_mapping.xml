@@ -1,0 +1,1074 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    **********************************************************************
+    This xml contains tables mapping ECGM resources for Multicast traffic.
+    **********************************************************************
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+  <!--
+    **********************************************************************
+    Table: ECGM_MULTICAST_QUEUE_MAP_TO_SP
+    Used in API: bcm_cosq_control_set
+    Mapping of Multicast queues to ECGM Packed descriptors Service pool.
+    **********************************************************************
+-->
+  <AppDB Name="ECGM_MULTICAST_QUEUE_MAP_TO_SP">
+    <OneLineDescription>This table contains mapping of Multicast queues to PDs SP, used for ECGM packet descriptors database.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+        <Field Name="ECGM_PORT_PROFILE"/>
+        <Field Name="ECGM_QUEUE_OFFSET" Type="TC"/>
+      </Key>
+      <Result>
+        <Field Name="MC_PD_SP" Size="1" Type="UINT"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM MULTICAST</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="MC_PD_SP">
+          <Access>
+            <Register Name="PQP_PD_SP_MAPPINGr">
+              <HwField Name="PD_SP_MAPPINGf"/>
+              <DataOffset Formula="#KEY_VALUE(ECGM_PORT_PROFILE)*8+#KEY_VALUE(ECGM_QUEUE_OFFSET)"/>
+            </Register>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+
+  </AppDB>
+
+  <!--
+    **********************************************************************
+    Table: ECGM_MULTICAST_QUEUE_MAP_TO_SP
+    Used in API: bcm_cosq_control_set
+    Enable bit indicating mapping of multicast queues to service pools per core.
+    **********************************************************************
+-->
+  <AppDB Name="ECGM_MULTICAST_QUEUE_MAP_TO_SP_ENABLE">
+    <OneLineDescription>This table contains the enable bit for multicast queue to service pool mapping per core.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+      </Key>
+      <Result>
+        <Field Name="MAP_ENABLE" Type="BOOL"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM MULTICAST</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="MAP_ENABLE">
+          <Access>
+            <Register Name="PQP_PD_SP_MAPPINGr">
+              <HwField Name="PD_SP_MAPPING_ENABLEf"/>
+            </Register>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+  <!--
+    **********************************************************************
+    Table: ECGM_MAP_MC_TC_TO_DB_SP
+    Used in API: bcm_cosq_gport_egress_multicast_config_set
+    Mapping a Multicast priority (traffic class)
+    to a data buffers Service pool.
+    **********************************************************************
+-->
+  <AppDB Name="ECGM_MAP_MC_TC_TO_DB_SP">
+    <OneLineDescription>This table contains mapping of Multicast TC to DB SP, used for ECGM data buffers database.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="MC_TC" Size="3" Type="UINT"/>
+      </Key>
+      <Result>
+        <Field Name="DB_SP" Size="1" Type="UINT"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM MULTICAST</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="SBC"/>
+      <FieldMapping>
+        <Field Name="DB_SP">
+          <Access>
+            <Register Name="ECI_FAP_GLOBAL_GENERAL_CFG_3r">
+              <HwField Name="ETM_MAP_TC_TO_SPf"/>
+              <DataOffset Formula="#KEY_VALUE(MC_TC)"/>
+            </Register>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+
+  </AppDB>
+
+  <!--
+    **********************************************************************
+  Table: ECGM_MAP_SYS_TC_DP_TO_MC_COS_PARAMS
+    Used in API: bcm_cosq_gport_egress_multicast_config_set
+    Mapping system traffic class and drop precedence 
+    to multicast traffic class, dp eligibility and priority.
+  **********************************************************************
+-->
+  <AppDB Name="ECGM_MAP_SYS_TC_DP_TO_MC_COS_PARAMS">
+    <OneLineDescription>This table contains mapping of System TC and DP to Multicast TC, eligibility and priority.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+        <Field Name="SYS_TC" Type="TC"/>
+        <Field Name="SYS_DP" Type="DP"/>
+      </Key>
+      <Result>
+        <Field Name="MC_TC" Size="3" Type="UINT"/>
+        <Field Name="SHARED_RESOURCE_ELIGIBILITY_DP" Size="2" Type="UINT"/>
+        <Field Name="MC_PRIORITY" Size="1" Type="UINT"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM MULTICAST</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="MC_TC">
+          <Access>
+            <Memory Name="RQP_MC_SP_TC_MAPm">
+              <EntryOffset Formula="#KEY_VALUE(SYS_TC)*4+#KEY_VALUE(SYS_DP)"/>
+              <HwField Name="CGM_MC_TCf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="SHARED_RESOURCE_ELIGIBILITY_DP">
+          <Access>
+            <Memory Name="RQP_MC_SP_TC_MAPm">
+              <EntryOffset Formula="#KEY_VALUE(SYS_TC)*4+#KEY_VALUE(SYS_DP)"/>
+              <HwField Name="CGM_MC_SEf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="MC_PRIORITY">
+          <Access>
+            <Register Name="RQP_MC_PRIORITY_LOOKUP_TABLEr">
+              <HwField Name="MC_PRIORITYf"/>
+              <DataOffset Formula="#KEY_VALUE(SYS_TC)*4+#KEY_VALUE(SYS_DP)"/>
+            </Register>
+          </Access>
+        </Field>
+
+      </FieldMapping>
+    </AppToPhyDbMapping>
+
+  </AppDB>
+  <!--
+    **********************************************************************
+    Table: ECGM_MAP_MC_SE
+    Used in API: bcm_cosq_gport_egress_multicast_config_set
+    Mapping system drop precedence and service pool 
+    to multicast eligibility.
+    **********************************************************************
+-->
+  <AppDB Name="ECGM_MAP_MC_SE">
+    <OneLineDescription>This table contains mapping of System DP and service pool id to shared resource eligibility bit.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+        <Field Name="SYS_DP" Type="DP"/>
+        <Field Name="SP" Size="1" Type="UINT"/>
+      </Key>
+      <Result>
+        <Field Name="SHARED_RESOURCE_ELIGIBILITY" Type="BOOL"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM MULTICAST</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="SHARED_RESOURCE_ELIGIBILITY">
+          <Access>
+            <Register Name="ECGM_CGM_DP_ELIGIBLE_TO_USE_RESOURCESr">
+              <HwField Name="SERVICE_POOL_SHARED_RESOURCE_ELIGIBILITYf"/>
+              <DataOffset Formula="#KEY_VALUE(SP)*4+#KEY_VALUE(SYS_DP)"/>
+              <!-- (SP << (sizeof SYS_DP)) | SYS_DP -->
+            </Register>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+
+  </AppDB>
+
+<!--
+    **********************************************************************
+    Table: ECGM_QUEUE_PD_COUNT
+    Mapping of egress queues to the current packet descriptors count.
+    **********************************************************************
+-->
+<AppDB Name="ECGM_QUEUE_PD_COUNT">
+    <OneLineDescription>Mapping of egress queues to the current packet descriptors count.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+    <AppDbInterface Type="DIRECT">
+        <Key>
+            <Field Name="CORE_ID"/>
+            <Field Name="QPAIR"/>
+            <Field Name="IS_MC" Type="BOOL"/>
+        </Key>
+        <Result>
+            <Field Name="PD_COUNT" Permission="READONLY" Size="DNX_DATA.ecgm.info.nof_bits_in_pd_count" Type="UINT"/>
+        </Result>
+        <TableLabels>J2P_NOTREV ECGM ETM MULTICAST</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+        <CoreMode Mode="DPC"/>
+        <FieldMapping>
+            <Field Name="PD_COUNT">
+                <Access>
+                    <Memory Name="ECGM_PDCMm">
+                        <EntryOffset Formula="dnx_data_egr_queuing.params.nof_q_pairs_get(unit)*#KEY_VALUE(IS_MC)+#KEY_VALUE(QPAIR)"/>
+                        <HwField Name="PDCMf"/>
+                    </Memory>
+                </Access>
+            </Field>
+        </FieldMapping>
+    </AppToPhyDbMapping>
+
+</AppDB>
+
+  <!--
+  **********************************************************************                                                                        
+  Table: ECGM_CORE_GLOBAL_RESOURCES_STATISTICS_CURRENT
+  Used in API: This table contains the current number of allocated Packet Descriptors and Data Buffers per core.
+  **********************************************************************
+-->
+  <AppDB Name="ECGM_CORE_GLOBAL_RESOURCES_STATISTICS_CURRENT">
+    <OneLineDescription>This table contains the current number of allocated Packet Descriptors and Data Buffers per core.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+      </Key>
+      <Result>
+        <Field Name="TOTAL_PD" Permission="READONLY" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="UC_PD" Permission="READONLY" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="MC_PD" Permission="READONLY" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="TOTAL_DB" Permission="READONLY" Type="UINT"/>
+        <Field Name="UC_DB" Permission="READONLY" Size="#log2_round_up(DNX_DATA.ecgm.core_resources.total_dbs)" Type="UINT"/>
+        <Field Name="MC_DB" Permission="READONLY" Size="#log2_round_up(DNX_DATA.ecgm.core_resources.total_dbs)" Type="UINT"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="TOTAL_PD">
+          <Access>
+            <Register Name="ECGM_TOTAL_PACKET_DESCRIPTORS_COUNTERr">
+              <HwField Name="NUMBER_OF_ALLOCATED_PACKET_DESCRIPTORSf"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="UC_PD">
+          <Access>
+            <Register Name="ECGM_UNICAST_PACKET_DESCRIPTORS_COUNTERr">
+              <HwField Name="UNICAST_PACKET_DESCRIPTORS_COUNTERf"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="MC_PD">
+          <Access>
+            <Register Name="ECGM_MULTICAST_REPLICATIONS_PACKET_DESCRIPTORS_COUNTERr">
+              <HwField Name="MULTICAST_REPLICATIONS_PACKET_DESCRIPTORS_COUNTERf"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="TOTAL_DB">
+          <Access>
+            <Register Name="ECGM_TOTAL_DATA_BUFFERS_COUNTERr">
+              <HwField Name="NUMBER_OF_ALLOCATED_DATA_BUFFERSf"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="UC_DB">
+          <Access>
+            <Register Name="ECGM_UNICAST_DATA_BUFFERS_COUNTERr">
+              <HwField Name="NUMBER_OF_UNICAST_DATA_BUFFERSf"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="MC_DB">
+          <Access>
+            <Register Name="ECGM_MULTICAST_DATA_BUFFERS_COUNTERr">
+              <HwField Name="NUMBER_OF_MULTICAST_DATA_BUFFERSf"/>
+            </Register>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+
+  </AppDB>
+
+  <!--
+  **********************************************************************
+  Table: ECGM_CORE_GLOBAL_RESOURCES_STATISTICS_MAX
+  Used in API: This table contains the maximum number of allocated Packet Descriptors and Data Buffers that have been reached per core since the last CPU read.
+  **********************************************************************
+-->
+  <AppDB Name="ECGM_CORE_GLOBAL_RESOURCES_STATISTICS_MAX">
+    <OneLineDescription>This table contains the maximum number of allocated Packet Descriptors and Data Buffers that have been reached per core.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+      </Key>
+      <Result>
+        <Field Name="TOTAL_PD" Permission="READONLY" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="UC_PD" Permission="READONLY" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="MC_PD" Permission="READONLY" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="TOTAL_DB" Permission="READONLY" Size="#log2_round_up(DNX_DATA.ecgm.core_resources.total_dbs)" Type="UINT"/>
+        <Field Name="UC_DB" Permission="READONLY" Size="#log2_round_up(DNX_DATA.ecgm.core_resources.total_dbs)" Type="UINT"/>
+        <Field Name="MC_DB" Permission="READONLY" Size="#log2_round_up(DNX_DATA.ecgm.core_resources.total_dbs)" Type="UINT"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="TOTAL_PD">
+          <Access>
+            <Register Name="ECGM_CONGESTION_TRACKING_TOTAL_PD_MAX_VALUEr">
+              <HwField Name="CONGESTION_TRACKING_TOTAL_PD_MAX_VALUEf"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="UC_PD">
+          <Access>
+            <Register Name="ECGM_CONGESTION_TRACKING_UNICAST_PD_MAX_VALUEr">
+              <HwField Name="CONGESTION_TRACKING_UNICAST_PD_MAX_VALUEf"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="MC_PD">
+          <Access>
+            <Register Name="ECGM_CONGESTION_TRACKING_MULTICAST_PD_MAX_VALUEr">
+              <HwField Name="CONGESTION_TRACKING_MULTICAST_PD_MAX_VALUEf"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="TOTAL_DB">
+          <Access>
+            <Register Name="ECGM_CONGESTION_TRACKING_TOTAL_DB_MAX_VALUEr">
+              <HwField Name="CONGESTION_TRACKING_TOTAL_DB_MAX_VALUEf"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="UC_DB">
+          <Access>
+            <Register Name="ECGM_CONGESTION_TRACKING_UNICAST_DB_MAX_VALUEr">
+              <HwField Name="CONGESTION_TRACKING_UNICAST_DB_MAX_VALUEf"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="MC_DB">
+          <Access>
+            <Register Name="ECGM_CONGESTION_TRACKING_MULTICAST_DB_MAX_VALUEr">
+              <HwField Name="CONGESTION_TRACKING_MULTICAST_DB_MAX_VALUEf"/>
+            </Register>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+
+  </AppDB>
+
+  <!--
+  **********************************************************************
+  Table: ECGM_INTERFACE_RESOURCES_STATISTICS_CURRENT                                                                                                                     
+  Used in API: This table contains the current number of allocated Packet Descriptors and Data Buffers per InterFace.
+  **********************************************************************
+-->
+  <AppDB Name="ECGM_INTERFACE_RESOURCES_STATISTICS_CURRENT">
+    <OneLineDescription>This table contains the current number of allocated Packet Descriptors and Data Buffers per EGQ InterFace.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+        <Field Name="IS_MC" Type="BOOL"/>
+        <Field Name="ECGM_PRIORITY"/>
+        <Field Name="EGQ_IF"/>
+      </Key>
+      <Result>
+        <Field Name="PD" Permission="READONLY" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="DB" Permission="READONLY" Size="22" Type="UINT"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping Hook="1">
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="PD">
+          <Access>
+            <Memory Name="ECGM_FDCMm">
+              <EntryOffset Formula="#KEY_VALUE(IS_MC)*2*dnx_data_egr_queuing.params.nof_egr_interfaces_get(unit)+#KEY_VALUE(ECGM_PRIORITY)*dnx_data_egr_queuing.params.nof_egr_interfaces_get(unit)+#KEY_VALUE(EGQ_IF)"/> 
+              <HwField Name="FDCMf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="DB">
+          <Access>
+            <Memory Name="ECGM_FQSMm">
+              <EntryOffset Formula="#KEY_VALUE(IS_MC)*2*dnx_data_egr_queuing.params.nof_egr_interfaces_get(unit)+#KEY_VALUE(ECGM_PRIORITY)*dnx_data_egr_queuing.params.nof_egr_interfaces_get(unit)+#KEY_VALUE(EGQ_IF)"/> 
+              <HwField Name="FQSMf"/>
+            </Memory>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+
+  </AppDB>
+
+  <!--
+  **********************************************************************
+  Table: ECGM_INTERFACE_RESOURCES_STATISTICS_MAX
+  Used in API: This table contains the maximum number of allocated Packet Descriptors and Data Buffers that have been reached per InterFace since the last CPU read.
+  **********************************************************************
+-->
+  <AppDB Name="ECGM_INTERFACE_RESOURCES_STATISTICS_MAX">
+    <OneLineDescription>This table contains the maximum number of allocated Packet Descriptors and Data Buffers that have been reached per InterFace.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+        <Field Name="IS_MC" Type="BOOL"/>
+        <Field Name="ECGM_PRIORITY"/>
+        <Field Name="EGQ_IF"/>
+      </Key>
+      <Result>
+        <Field Name="PD" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="DB" Size="22" Type="UINT"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="PD">
+          <Access>
+            <Memory Name="ECGM_FDCMAXm">
+              <EntryOffset Formula="#KEY_VALUE(IS_MC)*2*dnx_data_egr_queuing.params.nof_egr_interfaces_get(unit)+#KEY_VALUE(ECGM_PRIORITY)*dnx_data_egr_queuing.params.nof_egr_interfaces_get(unit)+#KEY_VALUE(EGQ_IF)"/> 
+              <HwField Name="FDCMAXf"/>
+            </Memory>
+          </Access>
+        </Field>
+         <Field Name="DB">
+          <Access>
+            <Memory Name="ECGM_FQSMAXm">
+              <EntryOffset Formula="#KEY_VALUE(IS_MC)*2*dnx_data_egr_queuing.params.nof_egr_interfaces_get(unit)+#KEY_VALUE(ECGM_PRIORITY)*dnx_data_egr_queuing.params.nof_egr_interfaces_get(unit)+#KEY_VALUE(EGQ_IF)"/> 
+              <HwField Name="FQSMAXf"/>
+            </Memory>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+
+  </AppDB>
+
+  <!--
+  **********************************************************************
+  Table: ECGM_PORT_RESOURCES_STATISTICS_CURRENT
+  Used in API: This table contains the current number of allocated Packet Descriptors and Data Buffers per OTM-Port.
+  **********************************************************************
+-->
+  <AppDB Name="ECGM_PORT_RESOURCES_STATISTICS_CURRENT">
+    <OneLineDescription>This table contains the current number of allocated Packet Descriptors and Data Buffers per OTM-Port.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+        <Field Name="IS_MC" Type="BOOL"/>
+        <Field Name="OTM_PORT" Type="QPAIR"/>
+      </Key>
+      <Result>
+        <Field Name="PD" Permission="READONLY" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="DB" Permission="READONLY" Size="22" Type="UINT"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping Hook="1">
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="PD">
+          <Access>
+            <Memory Name="ECGM_PDCMm">
+              <EntryOffset Formula="#KEY_VALUE(IS_MC)*dnx_data_egr_queuing.params.nof_q_pairs_get(unit)+#KEY_VALUE(OTM_PORT)"/>
+              <HwField Name="PDCMf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="DB">
+          <Access>
+            <Memory Name="ECGM_PQSMm">
+              <EntryOffset Formula="#KEY_VALUE(IS_MC)*dnx_data_egr_queuing.params.nof_q_pairs_get(unit)+#KEY_VALUE(OTM_PORT)"/> 
+              <HwField Name="PQSMf"/>
+            </Memory>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+
+  </AppDB>
+
+
+  <!--
+  **********************************************************************
+  Table: ECGM_PORT_RESOURCES_STATISTICS_MAX
+  Used in API: This table contains the maximum number of allocated Packet Descriptors and Data Buffers that have been reached per OTM-Port since the last CPU read.
+  **********************************************************************
+-->
+  <AppDB Name="ECGM_PORT_RESOURCES_STATISTICS_MAX">
+    <OneLineDescription>This table contains the maximum number of allocated Packet Descriptors and Data Buffers that have been reached per OTM-Port.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+        <Field Name="IS_MC" Type="BOOL"/>
+        <Field Name="OTM_PORT" Type="QPAIR"/>
+      </Key>
+      <Result>
+        <Field Name="PD" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="DB" Size="22" Type="UINT"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="PD">
+          <Access>
+            <Memory Name="ECGM_PDCMAXm">
+              <EntryOffset Formula="#KEY_VALUE(IS_MC)*dnx_data_egr_queuing.params.nof_q_pairs_get(unit)+#KEY_VALUE(OTM_PORT)"/> 
+              <HwField Name="PDCMAXf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="DB">
+          <Access>
+            <Memory Name="ECGM_PQSMAXm">
+              <EntryOffset Formula="#KEY_VALUE(IS_MC)*dnx_data_egr_queuing.params.nof_q_pairs_get(unit)+#KEY_VALUE(OTM_PORT)"/>
+              <HwField Name="PQSMAXf"/>
+            </Memory>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+
+  </AppDB>
+
+  <!--
+  **********************************************************************
+  Table: ECGM_QUEUE_RESOURCES_STATISTICS_CURRENT
+  Used in API: This table contains the current number of allocated Packet Descriptors and Data Buffers per queue.
+  **********************************************************************
+-->
+  <AppDB Name="ECGM_QUEUE_RESOURCES_STATISTICS_CURRENT">
+    <OneLineDescription>This table contains the current number of allocated Packet Descriptors and Data Buffers per queue.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+        <Field Name="IS_MC" Type="BOOL"/>
+        <Field Name="QPAIR"/>
+      </Key>
+      <Result>
+        <Field Name="PD" Permission="READONLY" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="DB" Permission="READONLY" Size="22" Type="UINT"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping Hook="1">
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="PD">
+          <Access>
+            <Memory Name="ECGM_QDCMm">
+              <EntryOffset Formula="#KEY_VALUE(IS_MC)*dnx_data_egr_queuing.params.nof_q_pairs_get(unit)+#KEY_VALUE(QPAIR)"/>
+              <HwField Name="QDCMf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="DB">
+          <Access>
+            <Memory Name="ECGM_QQSMm">
+              <EntryOffset Formula="#KEY_VALUE(IS_MC)*dnx_data_egr_queuing.params.nof_q_pairs_get(unit)+#KEY_VALUE(QPAIR)"/>
+              <HwField Name="QQSMf"/>
+            </Memory>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+
+  </AppDB>
+
+  <!--
+  **********************************************************************
+  Table: ECGM_QUEUE_RESOURCES_STATISTICS_MAX
+  Used in API: This table contains the maximum number of allocated Packet Descriptors and Data Buffers that have been reached per queue since the last CPU read.
+  **********************************************************************
+-->
+  <AppDB Name="ECGM_QUEUE_RESOURCES_STATISTICS_MAX">
+    <OneLineDescription>This table contains the maximum number of allocated Packet Descriptors and Data Buffers that have been reached per queue.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+        <Field Name="IS_MC" Type="BOOL"/>
+        <Field Name="QPAIR"/>
+      </Key>
+      <Result>
+        <Field Name="PD" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="DB" Size="22" Type="UINT"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="PD">
+          <Access>
+            <Memory Name="ECGM_QDCMAXm">
+              <EntryOffset Formula="#KEY_VALUE(IS_MC)*dnx_data_egr_queuing.params.nof_q_pairs_get(unit)+#KEY_VALUE(QPAIR)"/>
+              <HwField Name="QDCMAXf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="DB">
+          <Access>
+            <Memory Name="ECGM_QQSMAXm">
+              <EntryOffset Formula="#KEY_VALUE(IS_MC)*dnx_data_egr_queuing.params.nof_q_pairs_get(unit)+#KEY_VALUE(QPAIR)"/>
+              <HwField Name="QQSMAXf"/>
+            </Memory>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+
+  </AppDB>
+
+  <!--
+  **********************************************************************
+  Table: ECGM_SERVICE_POOL_RESOURCES_STATISTICS_CURRENT
+  Used in API: This table contains the current number of allocated Packet Descriptors and Data Buffers per Service Pool.
+  **********************************************************************
+-->
+  <AppDB Name="ECGM_SERVICE_POOL_RESOURCES_STATISTICS_CURRENT">
+    <OneLineDescription>This table contains the current number of allocated Packet Descriptors and Data Buffers per Service Pool.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+        <Field Name="SERVICE_POOL_ID"/>
+      </Key>
+      <Result>
+        <Field Name="PD" Permission="READONLY" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="DB" Permission="READONLY" Size="#log2_round_up(DNX_DATA.ecgm.core_resources.total_dbs)" Type="UINT"/>
+        <Field Name="RESERVED_PD" Permission="READONLY" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="RESERVED_DB" Permission="READONLY" Size="#log2_round_up(DNX_DATA.ecgm.core_resources.total_dbs)" Type="UINT"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM</TableLabels>
+    </AppDbInterface>
+    
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="PD">
+          <Access>
+            <KeyCondition Field="SERVICE_POOL_ID" Type="EQUAL_TO" Value="0"/>
+            <Register Name="ECGM_SERVICE_POOL_0_MULTICAST_PACKET_DESCRIPTORS_COUNTERr">
+              <HwField Name="NUMBER_OF_MULTICAST_SP_0_PACKET_DESCRIPTORSf"/>
+            </Register>
+          </Access>
+          <Access>
+            <KeyCondition Field="SERVICE_POOL_ID" Type="EQUAL_TO" Value="1"/>
+            <Register Name="ECGM_SERVICE_POOL_1_MULTICAST_PACKET_DESCRIPTORS_COUNTERr">
+              <HwField Name="NUMBER_OF_MULTICAST_SP_1_PACKET_DESCRIPTORSf"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="DB">
+          <Access>
+            <KeyCondition Field="SERVICE_POOL_ID" Type="EQUAL_TO" Value="0"/>
+            <Register Name="ECGM_SERVICE_POOL_0_MULTICAST_DATA_BUFFERS_COUNTERr">
+              <HwField Name="NUMBER_OF_MULTICAST_SP_0_DATA_BUFFERSf"/>
+            </Register>
+          </Access>
+          <Access>
+            <KeyCondition Field="SERVICE_POOL_ID" Type="EQUAL_TO" Value="1"/>
+            <Register Name="ECGM_SERVICE_POOL_1_MULTICAST_DATA_BUFFERS_COUNTERr">
+              <HwField Name="NUMBER_OF_MULTICAST_SP_1_DATA_BUFFERSf"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="RESERVED_PD">
+          <Access>
+            <KeyCondition Field="SERVICE_POOL_ID" Type="EQUAL_TO" Value="0"/>
+            <Register Name="ECGM_SERVICE_POOL_0_RESERVED_PACKET_DESCRIPTORSr">
+              <HwField Name="AVAILABLE_SP_0_RESERVED_PACKET_DESCRIPTORSf"/>
+            </Register>
+          </Access>
+          <Access>
+            <KeyCondition Field="SERVICE_POOL_ID" Type="EQUAL_TO" Value="1"/>
+            <Register Name="ECGM_SERVICE_POOL_1_RESERVED_PACKET_DESCRIPTORSr">
+              <HwField Name="AVAILABLE_SP_1_RESERVED_PACKET_DESCRIPTORSf"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="RESERVED_DB">
+          <Access>
+            <KeyCondition Field="SERVICE_POOL_ID" Type="EQUAL_TO" Value="0"/>
+            <Register Name="ECGM_SERVICE_POOL_0_RESERVED_DATA_BUFFERSr">
+              <HwField Name="AVAILABLE_SP_0_RESERVED_DATA_BUFFERSf"/>
+            </Register>
+          </Access>
+          <Access>
+            <KeyCondition Field="SERVICE_POOL_ID" Type="EQUAL_TO" Value="1"/>
+            <Register Name="ECGM_SERVICE_POOL_1_RESERVED_DATA_BUFFERSr">
+              <HwField Name="AVAILABLE_SP_1_RESERVED_DATA_BUFFERSf"/>
+            </Register>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+
+  </AppDB>
+
+  <!--
+  **********************************************************************
+  Table: ECGM_SERVICE_POOL_RESOURCES_STATISTICS_MAX
+  Used in API: This table contains the maximum number of allocated Packet Descriptors and Data Buffers that have been reached per Service Pool since the last CPU read.
+  **********************************************************************
+-->
+  <AppDB Name="ECGM_SERVICE_POOL_RESOURCES_STATISTICS_MAX">
+    <OneLineDescription>This table contains the maximum number of allocated Packet Descriptors and Data Buffers that have been reached per Service Pool.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+        <Field Name="SERVICE_POOL_ID"/>
+      </Key>
+      <Result>
+        <Field Name="PD" Permission="READONLY" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="DB" Permission="READONLY" Size="#log2_round_up(DNX_DATA.ecgm.core_resources.total_dbs)" Type="UINT"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="PD">
+          <Access>
+            <KeyCondition Field="SERVICE_POOL_ID" Type="EQUAL_TO" Value="0"/>       
+            <Register Name="ECGM_CONGESTION_TRACKING_MULTICAST_PDSP_0_MAX_VALUEr">
+              <HwField Name="CONGESTION_TRACKING_MULTICAST_PDSP_0_MAX_VALUEf"/>
+            </Register>
+          </Access>
+          <Access>
+            <KeyCondition Field="SERVICE_POOL_ID" Type="EQUAL_TO" Value="1"/>        
+            <Register Name="ECGM_CONGESTION_TRACKING_MULTICAST_PDSP_1_MAX_VALUEr">
+              <HwField Name="CONGESTION_TRACKING_MULTICAST_PDSP_1_MAX_VALUEf"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="DB">
+          <Access>
+            <KeyCondition Field="SERVICE_POOL_ID" Type="EQUAL_TO" Value="0"/>        
+            <Register Name="ECGM_CONGESTION_TRACKING_MULTICAST_DBSP_0_MAX_VALUEr">
+              <HwField Name="CONGESTION_TRACKING_MULTICAST_DBSP_0_MAX_VALUf"/>
+            </Register>
+          </Access>
+          <Access>
+            <KeyCondition Field="SERVICE_POOL_ID" Type="EQUAL_TO" Value="1"/>        
+            <Register Name="ECGM_CONGESTION_TRACKING_MULTICAST_DBSP_1_MAX_VALUEr">
+              <HwField Name="CONGESTION_TRACKING_MULTICAST_DBSP_1_MAX_VALUEf"/>
+            </Register>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+
+  </AppDB>
+
+  <!--
+  **********************************************************************
+  Table: ECGM_SERVICE_POOL_TC_RESOURCES_STATISTICS_CURRENT
+  Used in API: This table contains the current number of allocated Packet Descriptors and Data Buffers per Service Pool per Traffic Class.
+  **********************************************************************
+-->
+  <AppDB Name="ECGM_SERVICE_POOL_TC_RESOURCES_STATISTICS_CURRENT">
+    <OneLineDescription>This table contains the current number of allocated Packet Descriptors and Data Buffers per Service Pool per Traffic Class.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+        <Field Name="SERVICE_POOL_ID"/>
+        <Field Name="TC"/>
+      </Key>
+      <Result>
+        <Field Name="PD" Permission="READONLY" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="DB" Permission="READONLY" Size="#log2_round_up(DNX_DATA.ecgm.core_resources.total_dbs)" Type="UINT"/>
+
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="PD">
+          <Access>
+            <Register Name="ECGM_MC_PD_SP_TC_CNTr">
+              <ArrayOffset Formula="#KEY_VALUE(SERVICE_POOL_ID)*8+#KEY_VALUE(TC)"/>
+              <HwField Name="MC_PD_SP_TC_CNT_Nf"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="DB">
+          <Access>
+            <Register Name="ECGM_MC_DB_SP_TC_CNTr">
+              <ArrayOffset Formula="#KEY_VALUE(SERVICE_POOL_ID)*8+#KEY_VALUE(TC)"/>
+              <HwField Name="MC_DB_SP_TC_CNT_Nf"/>
+            </Register>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+
+  </AppDB>
+
+  <!--
+  **********************************************************************
+  Table: ECGM_SERVICE_POOL_TC_RESOURCES_STATISTICS_MAX
+  Used in API: This table contains the maximum number of allocated Packet Descriptors and Data Buffers that have been reached per Service Pool per Traffic Class since the last CPU read.
+  **********************************************************************
+-->
+  <AppDB Name="ECGM_SERVICE_POOL_TC_RESOURCES_STATISTICS_MAX">
+    <OneLineDescription>This table contains the maximum number of allocated Packet Descriptors and Data Buffers that have been reached per Service Pool per Traffic Class.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+        <Field Name="SERVICE_POOL_ID"/>
+        <Field Name="TC"/>
+      </Key>
+      <Result>
+        <Field Name="PD" Permission="READONLY" Type="ECGM_PD_THRESHOLD"/>
+        <Field Name="DB" Permission="READONLY" Size="#log2_round_up(DNX_DATA.ecgm.core_resources.total_dbs)" Type="UINT"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="PD">
+          <Access>
+            <Register Name="ECGM_CONGESTION_TRACKING_MULTICAST_P_DPER_SP_TC_MAX_VALUEr">
+              <ArrayOffset Formula="#KEY_VALUE(SERVICE_POOL_ID)*8+#KEY_VALUE(TC)"/>
+              <HwField Name="CONGESTION_TRACKING_MULTICAST_P_DPER_SP_TC_MAX_VALUEf"/>
+            </Register>
+          </Access>
+        </Field>
+        <Field Name="DB">
+          <Access>
+            <Register Name="ECGM_CONGESTION_TRACKING_MULTICAST_D_BPER_SP_TC_MAX_VALUEr">
+               <ArrayOffset Formula="#KEY_VALUE(SERVICE_POOL_ID)*8+#KEY_VALUE(TC)"/>
+               <HwField Name="CONGESTION_TRACKING_MULTICAST_D_BPER_SP_TC_MAX_VALUEf"/>
+            </Register>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+ 
+   <!--
+  **********************************************************************
+  Table: ECGM_DISABLE_MAX_STATISTICS_TRACKING
+  Used in API: sh_dnx_tm_egress_congestion_max_cmd()
+  **********************************************************************
+-->
+  <AppDB Name="ECGM_DISABLE_MAX_STATISTICS_TRACKING">
+    <OneLineDescription>In order for the CPU to get a coherent snapshot of max values of all statistics records - the DISABLE_MAX_STAT_TRACKING field should be set to 1.</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="CORE_ID"/>
+      </Key>
+      <Result>
+        <Field Name="DISABLE_MAX_STAT_TRACKING" Type="BOOL"/>
+      </Result>
+      <TableLabels>J2P_NOTREV ECGM ETM</TableLabels>
+    </AppDbInterface>
+
+    <AppToPhyDbMapping>
+      <CoreMode Mode="DPC"/>
+      <FieldMapping>
+        <Field Name="DISABLE_MAX_STAT_TRACKING">
+          <Access>
+            <Register Name="ECGM_STATISTICS_TRACKING_CONTROLr">
+              <HwField Name="STATISTICS_TRACKING_CONTROLf"/>
+            </Register>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+    <AppDB Name="ECGM_ENABLE_DYNAMIC_MEMORY_ACCESS">
+        <OneLineDescription>enable dynamic memory access to ECGM</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ECGM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0 J2C_A0" Name="ENABLE">
+                    <Access>
+                        <Register Name="ECGM_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="Q2A_A0 Q2A_B0 J2P_A0" Name="ENABLE">
+                    <Access>
+                        <Register Name="ECGM_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_PDCMf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ECGM_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_PDCMAXf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ECGM_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_PQSMf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ECGM_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_PQSMAXf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ECGM_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_QDCMf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ECGM_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_QDCMAXf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ECGM_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_FDCMf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ECGM_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_FDCMAXf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ECGM_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_QQSMf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ECGM_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_QQSMAXf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ECGM_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_FQSMf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="ECGM_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_FQSMAXf"/>
+                        </Register>
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+
+</AppDbCatalog>

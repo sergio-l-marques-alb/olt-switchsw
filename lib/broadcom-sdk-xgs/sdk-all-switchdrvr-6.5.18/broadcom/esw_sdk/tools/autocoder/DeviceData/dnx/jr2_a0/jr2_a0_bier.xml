@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0" module="bier">
+    <includes>
+    </includes>
+    
+    <sub_module name="params" doc="bier parameters">
+        <features>
+            <feature name="is_supported"></feature>
+        </features>
+
+         <defines>
+            <define name="bitstring_size" value="256"></define>
+            <define name="bfr_entry_size" value="4"></define>
+            <define name="bank_entries" value="2048"></define>
+            <define name="bundle_nof_banks" value="5"></define>
+            <define name="bundle_nof_banks_net" value="4"></define>
+            <define name="egress_only" value="0"></define>
+            <define name="nof_egr_table_copies" value="1"></define>
+            <define name="ingress_bfr_pos_msb_start" value="0"></define>
+        </defines>  
+        <numerics>
+            <numeric name="nof_bfr_entries" value="0">
+                <property name="bier_nof_bfr_entries" method="range" range_min="0" range_max="32768">
+                    <doc>
+                        bier supported bfr size
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+    </sub_module>   
+</device_data>
+

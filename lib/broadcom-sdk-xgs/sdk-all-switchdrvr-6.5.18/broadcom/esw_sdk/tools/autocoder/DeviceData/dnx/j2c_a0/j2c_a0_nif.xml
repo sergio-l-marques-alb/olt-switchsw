@@ -1,0 +1,622 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2c_a0" module="nif">
+    <includes>
+        <include>bcm/port.h</include>
+        <include>soc/portmod/portmod.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_fabric.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_device.h</include>
+        <include>soc/dnxc/dnxc_port.h</include>
+        <include>phymod/phymod.h</include>
+        <include>soc/dnx/intr/auto_generated/j2c/j2c_intr.h</include>
+    </includes>
+
+    <sub_module name="global">
+        <defines>
+            <define name="nof_lcplls" value="1"></define>
+            <define name="max_nif_rate_per_core" value="4096000000"></define> <!-- 4*8*50000*1024+6*16*25000*1024 = 4G -->
+            <define name="nof_nif_ports" value="144"></define>                <!-- calculated as following: 128 (ethu) + 16 (ilkn) = 144  -->
+            <define name="nif_interface_id_to_unit_id_granularity"  value="2"></define>
+            <define name="reassembler_fifo_threshold"  value="90"></define>
+        </defines>
+
+        <tables>
+            <table name="pll_phys">
+                <key name="lcpll" size="DATA(nif, global, nof_lcplls)"></key>
+                <value name="min_phy_id" default="0"></value>
+                <value name="max_phy_id" default="0"></value>
+                <entries>
+                    <entry lcpll="0" min_phy_id="0" max_phy_id="127"></entry>
+                </entries>
+            </table>
+            <table name="nif_interface_id_to_unit_id">
+              <key name="nif_interface_id" size="DATA(nif, global, nof_nif_ports)"></key>
+              <value name="unit_id"  default="0"></value>
+              <value name="internal_offset"  default="0"></value>
+              <entries>
+                   <entry nif_interface_id="0"  unit_id="0"   internal_offset="0"></entry> 
+                   <entry nif_interface_id="2"  unit_id="0"   internal_offset="2"></entry> 
+                   <entry nif_interface_id="4"  unit_id="0"   internal_offset="4"></entry> 
+                   <entry nif_interface_id="6"  unit_id="0"   internal_offset="6"></entry> 
+                   <entry nif_interface_id="8"  unit_id="1"   internal_offset="0"></entry>
+                   <entry nif_interface_id="10" unit_id="1"   internal_offset="2"></entry> 
+                   <entry nif_interface_id="12" unit_id="1"   internal_offset="4"></entry> 
+                   <entry nif_interface_id="14" unit_id="1"   internal_offset="6"></entry> 
+                   <entry nif_interface_id="16" unit_id="2"   internal_offset="0"></entry> 
+                   <entry nif_interface_id="18" unit_id="2"   internal_offset="2"></entry> 
+                   <entry nif_interface_id="20" unit_id="2"   internal_offset="4"></entry> 
+                   <entry nif_interface_id="22" unit_id="2"   internal_offset="6"></entry> 
+                   <entry nif_interface_id="24" unit_id="3"   internal_offset="0"></entry> 
+                   <entry nif_interface_id="26" unit_id="3"   internal_offset="2"></entry> 
+                   <entry nif_interface_id="28" unit_id="3"   internal_offset="4"></entry> 
+                   <entry nif_interface_id="30" unit_id="3"   internal_offset="6"></entry> 
+                   <entry nif_interface_id="32" unit_id="4"   internal_offset="0"></entry> 
+                   <entry nif_interface_id="34" unit_id="4"   internal_offset="2"></entry> 
+                   <entry nif_interface_id="36" unit_id="4"   internal_offset="4"></entry> 
+                   <entry nif_interface_id="38" unit_id="4"   internal_offset="6"></entry> 
+                   <entry nif_interface_id="40" unit_id="4"   internal_offset="8"></entry> 
+                   <entry nif_interface_id="42" unit_id="4"   internal_offset="10"></entry>
+                   <entry nif_interface_id="44" unit_id="4"   internal_offset="12"></entry>
+                   <entry nif_interface_id="46" unit_id="4"   internal_offset="14"></entry>
+                   <entry nif_interface_id="48" unit_id="5"   internal_offset="0"></entry> 
+                   <entry nif_interface_id="50" unit_id="5"   internal_offset="2"></entry> 
+                   <entry nif_interface_id="52" unit_id="5"   internal_offset="4"></entry> 
+                   <entry nif_interface_id="54" unit_id="5"   internal_offset="6"></entry> 
+                   <entry nif_interface_id="56" unit_id="5"   internal_offset="8"></entry> 
+                   <entry nif_interface_id="58" unit_id="5"   internal_offset="10"></entry>
+                   <entry nif_interface_id="60" unit_id="5"   internal_offset="12"></entry>
+                   <entry nif_interface_id="62" unit_id="5"   internal_offset="14"></entry>
+                   <entry nif_interface_id="64" unit_id="6"   internal_offset="0"></entry> 
+                   <entry nif_interface_id="66" unit_id="6"   internal_offset="2"></entry> 
+                   <entry nif_interface_id="68" unit_id="6"   internal_offset="4"></entry> 
+                   <entry nif_interface_id="70" unit_id="6"   internal_offset="6"></entry> 
+                   <entry nif_interface_id="72" unit_id="6"   internal_offset="8"></entry> 
+                   <entry nif_interface_id="74" unit_id="6"   internal_offset="10"></entry>
+                   <entry nif_interface_id="76" unit_id="6"   internal_offset="12"></entry>
+                   <entry nif_interface_id="78" unit_id="6"   internal_offset="14"></entry>
+                   <entry nif_interface_id="80" unit_id="7"   internal_offset="0"></entry> 
+                   <entry nif_interface_id="82" unit_id="7"   internal_offset="2"></entry> 
+                   <entry nif_interface_id="84" unit_id="7"   internal_offset="4"></entry> 
+                   <entry nif_interface_id="86" unit_id="7"   internal_offset="6"></entry> 
+                   <entry nif_interface_id="88" unit_id="7"   internal_offset="8"></entry> 
+                   <entry nif_interface_id="90" unit_id="7"   internal_offset="10"></entry>
+                   <entry nif_interface_id="92" unit_id="7"   internal_offset="12"></entry>
+                   <entry nif_interface_id="94" unit_id="7"   internal_offset="14"></entry>
+                   <entry nif_interface_id="96" unit_id="8"   internal_offset="0"></entry> 
+                   <entry nif_interface_id="98" unit_id="8"   internal_offset="2"></entry> 
+                   <entry nif_interface_id="100" unit_id="8"  internal_offset="4"></entry> 
+                   <entry nif_interface_id="102" unit_id="8"  internal_offset="6"></entry> 
+                   <entry nif_interface_id="104" unit_id="8"  internal_offset="8"></entry> 
+                   <entry nif_interface_id="106" unit_id="8"  internal_offset="10"></entry>
+                   <entry nif_interface_id="108" unit_id="8"  internal_offset="12"></entry>
+                   <entry nif_interface_id="110" unit_id="8"  internal_offset="14"></entry>
+                   <entry nif_interface_id="112" unit_id="9"  internal_offset="0"></entry> 
+                   <entry nif_interface_id="114" unit_id="9"  internal_offset="2"></entry> 
+                   <entry nif_interface_id="116" unit_id="9"  internal_offset="4"></entry> 
+                   <entry nif_interface_id="118" unit_id="9"  internal_offset="6"></entry> 
+                   <entry nif_interface_id="120" unit_id="9"  internal_offset="8"></entry> 
+                   <entry nif_interface_id="122" unit_id="9"  internal_offset="10"></entry>
+                   <entry nif_interface_id="124" unit_id="9"  internal_offset="12"></entry>
+                   <entry nif_interface_id="126" unit_id="9"  internal_offset="14"></entry>
+                   <entry nif_interface_id="128" unit_id="10" internal_offset="0"></entry> 
+                   <entry nif_interface_id="130" unit_id="11" internal_offset="0"></entry> 
+                   <entry nif_interface_id="132" unit_id="12" internal_offset="0"></entry> 
+                   <entry nif_interface_id="134" unit_id="13" internal_offset="0"></entry> 
+                   <entry nif_interface_id="136" unit_id="14" internal_offset="0"></entry> 
+                   <entry nif_interface_id="138" unit_id="15" internal_offset="0"></entry> 
+                   <entry nif_interface_id="140" unit_id="16" internal_offset="0"></entry> 
+                   <entry nif_interface_id="142" unit_id="17" internal_offset="0"></entry> 
+              </entries>                          
+            </table> 
+        </tables>
+
+        <features>
+            <feature name="reassembler"></feature>
+        </features>
+
+    </sub_module>
+
+    <sub_module name="phys">
+        <defines>
+            <define name="nof_phys" value="128"></define>
+            <define name="pm8x50_gen" value="1"></define>
+        </defines>
+
+        <tables>
+            <table name="general">
+                <value name="supported_phys" default="0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF"></value>
+            </table>
+            <table name="core_phys_map">
+                <key name="core_index" size="DATA(device,general,nof_cores)"></key>
+                <value name="phys" default="0x0"></value>
+                <entries>
+                    <entry core_index="0" phys="0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF"></entry>
+                </entries>
+            </table>
+            <table name="vco_div">
+                <key name="ethu_index" size="DATA(nif,eth,ethu_nof)"></key> 
+                <value name="vco_div" default="0"></value>
+                <entries>
+                    <entry ethu_index="0"  vco_div="20"> </entry>
+                    <entry ethu_index="1"  vco_div="20"> </entry>
+                    <entry ethu_index="2"  vco_div="20"> </entry>
+                    <entry ethu_index="3"  vco_div="20"> </entry>
+                    <entry ethu_index="4"  vco_div="40"> </entry>
+                    <entry ethu_index="5"  vco_div="40"> </entry>
+                    <entry ethu_index="6"  vco_div="40"> </entry>
+                    <entry ethu_index="7"  vco_div="40"> </entry>
+                    <entry ethu_index="8"  vco_div="40"> </entry>
+                    <entry ethu_index="9"  vco_div="40"> </entry>
+                </entries>
+            </table>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="ilkn">
+        <features>
+            <feature name="is_supported"></feature>
+            <feature name="is_fec_supported"></feature>
+            <feature name="is_fec_bypass_supported"></feature>
+            <feature name="credits_selector"></feature> 
+            <feature name="cdu_ilkn_selectors"></feature>
+            <feature name="clu_ilkn_selectors"></feature>
+            <feature name="clu_ilkn_direction_selectors"></feature>
+            <feature name="support_burst_interleaving"></feature>   
+            <feature name="over_fabric_per_core_selector" value="0"></feature>
+            <feature name="scheduler_context_per_port_support"></feature>
+            <feature name="fec_units_in_cdu"></feature> 
+            <feature name="support_ilu_burst_max"></feature>
+        </features>
+
+        <defines>
+            <define name="ilu_nof" value="8"></define>
+            <define name="ilkn_unit_nof" value="8"></define>
+            <define name="ilkn_unit_if_nof" value="2"></define>
+            <define name="fec_units_per_core_nof" value="16"></define>
+            <define name="lanes_max_nof" value="24"></define>
+            <define name="lanes_max_nof_using_fec" value="DATA(nif, ilkn, lanes_max_nof)"></define>
+            <define name="lanes_allowed_nof" value="24"></define>
+            <define name="ilkn_over_eth_pms_max" value="6"></define>
+            <define name="segments_max_nof" value="4"></define>
+            <define name="segments_half_nof" value="DATA(nif, ilkn, segments_max_nof) /2"></define>
+            <define name="pms_nof" value="6"></define>
+            <define name="fmac_bus_size" value="70"></define>
+            <define name="ilkn_rx_hrf_nof" value="4"></define>
+            <define name="ilkn_tx_hrf_nof" value="2"></define>
+            <define name="data_rx_hrf_size" value="2048"></define>
+            <define name="tdm_rx_hrf_size" value="256"></define>
+            <define name="tx_hrf_credits" value="192"></define>
+            <define name="watermark_high_elk" value="3"></define>
+            <define name="watermark_low_elk" value="4"></define>
+            <define name="watermark_high_data" value="11"></define>
+            <define name="watermark_low_data" value="12"></define>
+            <define name="is_25G_speed_supported" value="1"></define>
+            <define name="is_53G_speed_supported" value="1"></define>
+            <define name="is_56G_speed_supported" value="1"></define>
+            <define name="pad_size" value="60"></define>
+        </defines>
+
+        <numerics>
+            <numeric name="max_nof_ifs" value="16"></numeric>
+            <numeric name="port_0_status_intr_id" value="J2C_INT_ILE_ILKN_RX_PORT_0_STATUS_CHANGE_INT"></numeric>
+            <numeric name="port_1_status_intr_id" value="J2C_INT_ILE_ILKN_RX_PORT_1_STATUS_CHANGE_INT"></numeric>
+        </numerics>
+
+        <tables>
+            <table name="phys" init_only="1">
+                <key name="ilkn_id" size="16"></key>
+                <value name="bitmap" default="0"></value>
+                <value name="lanes_array" default="0"></value>
+                <value name="array_order_valid" default="0"></value>
+                 <property name="ilkn_lanes" method="custom">
+                        <doc>
+                            ilkn_lanes_#ilkn_id#=#bitmap#
+                            The bitmap parameter is up to 96 bits. 
+                            When a bit is set, the equivalent lane (PHY) is used for the corresponding port. 
+                            The ilkn_id parameter is the ILKN interface ID in the range 0-1.
+                        </doc>
+                    </property>
+            </table>
+
+            <table name="supported_phys">
+                <key name="ilkn_id" size="16"></key>
+                <value name="is_supported" default="0"></value>
+                <value name="max_phys" default="0"></value>
+                <value name="nif_phys" default="0"></value>
+                <value name="fabric_phys" default="0"></value>
+                <entries>
+                    <entry ilkn_id="0" is_supported="1" max_phys="24" nif_phys="0x00000000, 0x00ffffff, 0x00000000, 0x00000000"></entry>
+                    <entry ilkn_id="1" is_supported="1" max_phys="24" nif_phys="0x00000000, 0x00ffffff, 0x00000000, 0x00000000"></entry>
+                    <entry ilkn_id="2" is_supported="1" max_phys="24" nif_phys="0x00000000, 0xffffff00, 0x000000ff, 0x00000000"></entry>
+                    <entry ilkn_id="3" is_supported="1" max_phys="24" nif_phys="0x00000000, 0xffffff00, 0x000000ff, 0x00000000"></entry>
+                    <entry ilkn_id="4" is_supported="1" max_phys="24" nif_phys="0x00000000, 0xff000000, 0x00ffffff, 0x00000000"></entry>
+                    <entry ilkn_id="5" is_supported="1" max_phys="24" nif_phys="0x00000000, 0xff000000, 0x00ffffff, 0x00000000"></entry>
+                    <entry ilkn_id="6" is_supported="1" max_phys="24" nif_phys="0x00000000, 0x00000000, 0xffffff00, 0x00000000"></entry>
+                    <entry ilkn_id="7" is_supported="1" max_phys="24" nif_phys="0x00000000, 0x00000000, 0xffffff00, 0x00000000"></entry>
+                    <entry ilkn_id="8" is_supported="1" max_phys="24" nif_phys="0x00000000, 0x00000000, 0x00000000, 0x00ffffff"></entry>
+                    <entry ilkn_id="9" is_supported="1" max_phys="24" nif_phys="0x00000000, 0x00000000, 0x00000000, 0x00ffffff"></entry>
+                    <entry ilkn_id="10" is_supported="1" max_phys="24" nif_phys="0x00000000, 0x00000000, 0x00000000, 0xffffff00"></entry>
+                    <entry ilkn_id="11" is_supported="1" max_phys="24" nif_phys="0x00000000, 0x00000000, 0x00000000, 0xffffff00"></entry>
+                    <entry ilkn_id="12" is_supported="1" max_phys="24" nif_phys="0x00ffffff, 0x00000000, 0x00000000, 0x00000000" fabric_phys="0x0000ffff"></entry>
+                    <entry ilkn_id="13" is_supported="1" max_phys="24" nif_phys="0x00ffffff, 0x00000000, 0x00000000, 0x00000000" fabric_phys="0x0000ffff"></entry>
+                    <entry ilkn_id="14" is_supported="1" max_phys="24" nif_phys="0xffffff00, 0x00000000, 0x00000000, 0x00000000"></entry>
+                    <entry ilkn_id="15" is_supported="1" max_phys="24" nif_phys="0xffffff00, 0x00000000, 0x00000000, 0x00000000"></entry> 
+                </entries>
+            </table>
+            
+            <table name="ilkn_cores">
+                <key name="ilkn_core_id" size="8"></key>
+                <value name="is_elk_supported" default="0"></value>
+                <value name="is_data_supported" default="0"></value>
+                <value name="fec_disable_by_bypass" default="0"></value>
+                <entries>
+                    <entry ilkn_core_id="0" is_elk_supported="0" is_data_supported="1"></entry>
+                    <entry ilkn_core_id="1" is_elk_supported="1" is_data_supported="1"></entry>
+                    <entry ilkn_core_id="2" is_elk_supported="0" is_data_supported="1"></entry>
+                    <entry ilkn_core_id="3" is_elk_supported="0" is_data_supported="1"></entry>
+                    <entry ilkn_core_id="4" is_elk_supported="0" is_data_supported="1"></entry>
+                    <entry ilkn_core_id="5" is_elk_supported="0" is_data_supported="1"></entry>
+                    <entry ilkn_core_id="6" is_elk_supported="1" is_data_supported="1" fec_disable_by_bypass="1"></entry>
+                    <entry ilkn_core_id="7" is_elk_supported="0" is_data_supported="1" fec_disable_by_bypass="1"></entry>
+                </entries>
+            </table>
+            
+            <table name="supported_device_core">
+                <key name="ilkn_id" size="16"></key>
+                <value name="core" default="0"></value>
+            </table>            
+            
+            <!-- For J2C ILKN Mux logic  -->
+            <table name="ilkn_cores_clup_facing">
+                <key name="ilkn_core_id" size="8"></key>
+                <value name="clu_unit" default="-1"></value>
+                <entries>
+                    <entry ilkn_core_id="0"  clu_unit="0"></entry>
+                    <entry ilkn_core_id="1"  clu_unit="1"></entry>
+                    <entry ilkn_core_id="2"  clu_unit="2"></entry>
+                    <entry ilkn_core_id="3"  clu_unit="3"></entry>
+                    <entry ilkn_core_id="4"  clu_unit="4"></entry>
+                    <entry ilkn_core_id="5"  clu_unit="5"></entry>
+                </entries>
+            </table>
+
+            <table name="properties">
+                <key name="ilkn_id" size="16"></key>
+                <value name="burst_max" default="256">
+                    <property name="ilkn_burst_max" method="suffix_range" suffix="" range_min="256" range_max="512">
+                        <doc>
+                            Configure ILKN BurstMax per ILKN id.
+                            in Jr2 the only supported value is 256.
+                        </doc>
+                    </property>
+                </value>
+                <value name="burst_short" default="32">
+                    <property name="ilkn_burst_short" method="suffix_range" suffix="" range_min="32" range_max="128">
+                        <doc>
+                            Configure ILKN BurstShort per ILKN id.
+                            supported values: 32, 64... BurstMax / 2.
+                            default: 32.
+                        </doc>
+                    </property>
+                </value>
+                <value name="burst_min" default="64">
+                    <property name="ilkn_burst_min" method="suffix_range" suffix="" range_min="64" range_max="256">
+                        <doc>
+                            Configure ILKN BurstMin per ILKN id.
+                            supported values: BurstShort... BurstMax / 2.
+                            default: burstShort.
+                        </doc>
+                    </property>
+                </value>
+                <value name="metaframe_period" default="2048">
+                    <property name="ilkn_metaframe_sync_period" method="suffix_range" suffix="" range_min="64" range_max="16384">
+                        <doc>
+                            Configure ILKN Metaframe priod per ILKN id.
+                            supported values: 64 - 16K.
+                            default: 2048.
+                        </doc>
+                    </property>
+                </value>
+                <value name="is_over_fabric" default="0">
+                    <property name="use_fabric_links_for_ilkn_nif" method="suffix_only_enable" suffix="ilkn">
+                        <doc>
+                            Configure the ILKN IF to work over Fabric links instead of NIF.
+                            default = 0;
+                        </doc>
+                    </property>
+                </value>
+            </table>          
+    
+            <table name="nif_pms">
+                <key name="pm_id" size="DATA(nif, eth, total_nof_ethu_pms_in_device)"></key>
+                <value name="dispatch_type" default="portmodDispatchTypeCount"></value>
+                <value name="first_phy" default="-1"></value>
+                <value name="nof_phys" default="-1"></value>
+                <value name="facing_core_index" default="0xFF"></value>
+                <entries>
+                    <entry pm_id="0" dispatch_type="portmodDispatchTypePm8x50" first_phy="0" nof_phys="8" facing_core_index="6"></entry>
+                    <entry pm_id="1" dispatch_type="portmodDispatchTypePm8x50" first_phy="8" nof_phys="8" facing_core_index="6"></entry>
+                    <entry pm_id="2" dispatch_type="portmodDispatchTypePm8x50" first_phy="16" nof_phys="8" facing_core_index="7"></entry>
+                    <entry pm_id="3" dispatch_type="portmodDispatchTypePm8x50" first_phy="24" nof_phys="8" facing_core_index="7"></entry>
+                    <entry pm_id="4" dispatch_type="portmodDispatchTypePm4x25" first_phy="32" nof_phys="4" facing_core_index="0"></entry>
+                    <entry pm_id="5" dispatch_type="portmodDispatchTypePm4x25" first_phy="36" nof_phys="4" facing_core_index="0"></entry>
+                    <entry pm_id="6" dispatch_type="portmodDispatchTypePm4x25" first_phy="40" nof_phys="4" facing_core_index="0"></entry>
+                    <entry pm_id="7" dispatch_type="portmodDispatchTypePm4x25" first_phy="44" nof_phys="4" facing_core_index="0"></entry>
+                    <entry pm_id="8" dispatch_type="portmodDispatchTypePm4x25" first_phy="48" nof_phys="4" facing_core_index="1"></entry>
+                    <entry pm_id="9" dispatch_type="portmodDispatchTypePm4x25" first_phy="52" nof_phys="4" facing_core_index="1"></entry>
+                    <entry pm_id="10" dispatch_type="portmodDispatchTypePm4x25" first_phy="56" nof_phys="4" facing_core_index="1"></entry>
+                    <entry pm_id="11" dispatch_type="portmodDispatchTypePm4x25" first_phy="60" nof_phys="4" facing_core_index="1"></entry>
+                    <entry pm_id="12" dispatch_type="portmodDispatchTypePm4x25" first_phy="64" nof_phys="4" facing_core_index="2"></entry>
+                    <entry pm_id="13" dispatch_type="portmodDispatchTypePm4x25" first_phy="68" nof_phys="4" facing_core_index="2"></entry>
+                    <entry pm_id="14" dispatch_type="portmodDispatchTypePm4x25" first_phy="72" nof_phys="4" facing_core_index="2"></entry>
+                    <entry pm_id="15" dispatch_type="portmodDispatchTypePm4x25" first_phy="76" nof_phys="4" facing_core_index="2"></entry>     
+                    <entry pm_id="16" dispatch_type="portmodDispatchTypePm4x25" first_phy="80" nof_phys="4" facing_core_index="3"></entry>
+                    <entry pm_id="17" dispatch_type="portmodDispatchTypePm4x25" first_phy="84" nof_phys="4" facing_core_index="3"></entry>
+                    <entry pm_id="18" dispatch_type="portmodDispatchTypePm4x25" first_phy="88" nof_phys="4" facing_core_index="3"></entry>
+                    <entry pm_id="19" dispatch_type="portmodDispatchTypePm4x25" first_phy="92" nof_phys="4" facing_core_index="3"></entry>
+                    <entry pm_id="20" dispatch_type="portmodDispatchTypePm4x25" first_phy="96" nof_phys="4" facing_core_index="4"></entry>
+                    <entry pm_id="21" dispatch_type="portmodDispatchTypePm4x25" first_phy="100" nof_phys="4" facing_core_index="4"></entry>
+                    <entry pm_id="22" dispatch_type="portmodDispatchTypePm4x25" first_phy="104" nof_phys="4" facing_core_index="4"></entry>
+                    <entry pm_id="23" dispatch_type="portmodDispatchTypePm4x25" first_phy="108" nof_phys="4" facing_core_index="4"></entry>
+                    <entry pm_id="24" dispatch_type="portmodDispatchTypePm4x25" first_phy="112" nof_phys="4" facing_core_index="5"></entry>
+                    <entry pm_id="25" dispatch_type="portmodDispatchTypePm4x25" first_phy="116" nof_phys="4" facing_core_index="5"></entry>
+                    <entry pm_id="26" dispatch_type="portmodDispatchTypePm4x25" first_phy="120" nof_phys="4" facing_core_index="5"></entry>
+                    <entry pm_id="27" dispatch_type="portmodDispatchTypePm4x25" first_phy="124" nof_phys="4" facing_core_index="5"></entry>                                     
+                </entries>
+            </table>
+           
+            <table name="fabric_pms">
+                <key name="pm_id" size="2"></key>
+                <value name="dispatch_type" default="portmodDispatchTypeCount"></value>
+                <value name="first_phy" default="-1"></value>
+                <value name="nof_phys" default="-1"></value>
+                <entries>
+                    <entry pm_id="0" dispatch_type="portmodDispatchTypePm8x50_fabric" first_phy="0" nof_phys="8"></entry>
+                    <entry pm_id="1" dispatch_type="portmodDispatchTypePm8x50_fabric" first_phy="8" nof_phys="8"></entry>
+                </entries>
+            </table>
+            <table name="ilkn_pms" support="0"></table>
+            
+            <table name="nif_lanes_map"> 
+                <key name="ilkn_core" size="8"></key>
+                <key name="range_id" size="2"></key>
+                <value name="first_phy" default="-1"></value>
+                <value name="ilkn_lane_offset" default="-1"></value>
+                <value name="nof_lanes" default="-1"></value>
+                <entries>
+                   <!-- Entries for core 0  -->
+                    <entry ilkn_core="0" range_id ="0" first_phy="32" ilkn_lane_offset="0" nof_lanes="24"></entry>
+                   <!-- Entries for core 1  --> 
+                    <entry ilkn_core="1" range_id ="0" first_phy="40" ilkn_lane_offset="16" nof_lanes="8"></entry>
+                    <entry ilkn_core="1" range_id ="1" first_phy="48" ilkn_lane_offset="0" nof_lanes="24"></entry>
+                   <!-- Entries for core 2  --> 
+                    <entry ilkn_core="2" range_id ="0" first_phy="56" ilkn_lane_offset="16" nof_lanes="8"></entry>
+                    <entry ilkn_core="2" range_id ="1" first_phy="64" ilkn_lane_offset="0" nof_lanes="24"></entry>
+                   <!-- Entries for core 3  --> 
+                    <entry ilkn_core="3" range_id ="0" first_phy="72" ilkn_lane_offset="16" nof_lanes="8"></entry>
+                    <entry ilkn_core="3" range_id ="1" first_phy="80" ilkn_lane_offset="0" nof_lanes="16"></entry>
+                   <!-- Entries for core 4  --> 
+                    <entry ilkn_core="4" range_id ="0" first_phy="96" ilkn_lane_offset="0" nof_lanes="24"></entry>
+                   <!-- Entries for core 5  -->
+                    <entry ilkn_core="5" range_id ="0" first_phy="104" ilkn_lane_offset="16" nof_lanes="8"></entry>
+                    <entry ilkn_core="5" range_id ="1" first_phy="112" ilkn_lane_offset="0" nof_lanes="16"></entry>
+                   <!-- Entries for core 6  -->
+                    <entry ilkn_core="6" range_id ="0" first_phy="0" ilkn_lane_offset="0" nof_lanes="24"></entry>
+                   <!-- Entries for core 7  -->
+                    <entry ilkn_core="7" range_id ="0" first_phy="8"  ilkn_lane_offset="16" nof_lanes="8"></entry>
+                    <entry ilkn_core="7" range_id ="1" first_phy="16" ilkn_lane_offset="0"  nof_lanes="16"></entry>
+                </entries>
+            </table>
+
+            <table name="fabric_lanes_map">
+                <key name="ilkn_core" size="8"></key>
+                <key name="range_id" size="1"></key>
+                <value name="first_phy" default="-1"></value>
+                <value name="ilkn_lane_offset" default="-1"></value>
+                <value name="nof_lanes" default="-1"></value>
+                <entries>
+                <!-- Entries for core 6  -->
+                    <entry ilkn_core="6" range_id="0" first_phy="0" ilkn_lane_offset="0" nof_lanes="16"></entry>
+                </entries>
+            </table>
+            
+            <table name="start_tx_threshold_table">
+                <key name="idx" size="1"></key>
+                <value name="speed" default="0"></value>
+                <value name="start_thr" default="0"></value>
+                <entries>
+                    <entry idx="0" speed="600000" start_thr="12"></entry>
+                </entries>
+            </table> 
+
+        </tables>
+    </sub_module>
+    <sub_module name="eth">
+        <defines>
+            <define name="cdum_nof" value="0"></define>
+            <define name="cdu_nof" value="4"></define>
+            <define name="clu_nof" value="6"></define>
+            <define name="nof_pms_in_cdu" value="1"></define>
+            <define name="nof_pms_in_clu" value="4"></define>
+            <define name="cdu_memory_entries_nof" value="1024"></define>
+            <define name="clu_memory_entries_nof" value="1024"></define>
+            <define name="priority_groups_nof" value="3"></define>
+            <define name="phy_map_granularity" value="4"></define>
+        </defines>
+    
+        <tables>
+        
+            <table name="start_tx_threshold_table">
+                <key name="idx" size="1"></key>
+                <value name="speed" default="0"></value>
+                <value name="start_thr" default="0"></value>
+                <value name="start_thr_for_l1" default="0"></value>
+                <entries>
+                    <entry idx="0" speed="400000" start_thr="12"></entry>
+                </entries>
+            </table>       
+
+            <table name="ethu_properties">
+                <key name="ethu_index" size="DATA(nif,eth,ethu_nof)"></key> 
+                <value name="pms" default="-1"></value>
+                <value name="type" default="imbDispatchTypeNone"></value>
+                <value name="type_index" default="-1"></value>
+                <entries>
+                    <entry ethu_index="0" pms="0"            type="imbDispatchTypeImb_cdu" type_index="0"></entry>
+                    <entry ethu_index="1" pms="1"            type="imbDispatchTypeImb_cdu" type_index="1"></entry>
+                    <entry ethu_index="2" pms="2"            type="imbDispatchTypeImb_cdu" type_index="2"></entry>
+                    <entry ethu_index="3" pms="3"            type="imbDispatchTypeImb_cdu" type_index="3"></entry>
+                    <entry ethu_index="4" pms="4,5,6,7"      type="imbDispatchTypeImb_clu" type_index="0"></entry>
+                    <entry ethu_index="5" pms="8,9,10,11"    type="imbDispatchTypeImb_clu" type_index="1"></entry>
+                    <entry ethu_index="6" pms="12,13,14,15"  type="imbDispatchTypeImb_clu" type_index="2"></entry>
+                    <entry ethu_index="7" pms="16,17,18,19"  type="imbDispatchTypeImb_clu" type_index="3"></entry>
+                    <entry ethu_index="8" pms="20,21,22,23"  type="imbDispatchTypeImb_clu" type_index="4"></entry>
+                    <entry ethu_index="9" pms="24,25,26,27"  type="imbDispatchTypeImb_clu" type_index="5"></entry>
+                </entries>
+            </table>        
+        
+            <table name="pm_properties">
+                <key name="pm_index" size="DATA(nif,eth,total_nof_ethu_pms_in_device)"></key>
+                <value name="phys" default="0x0,0x0,0x0,0x0"></value>
+                <value name="tvco_pll_index" default="0x1"></value>
+                <value name="phy_addr" default="0"></value>
+                <value name="is_master" default="0"></value>
+                <value name="dispatch_type" default="portmodDispatchTypeCount"></value>
+                <value name="special_pll_check" default="0"></value>
+                <entries>
+                    <entry pm_index="0"  phys="0x000000FF,0x00000000,0x00000000,0x00000000" dispatch_type="portmodDispatchTypePm8x50" tvco_pll_index="1" phy_addr="0"  is_master="1"></entry>
+                    <entry pm_index="1"  phys="0x0000FF00,0x00000000,0x00000000,0x00000000" dispatch_type="portmodDispatchTypePm8x50" tvco_pll_index="1" phy_addr="8"  is_master="0"></entry>
+                    <entry pm_index="2"  phys="0x00FF0000,0x00000000,0x00000000,0x00000000" dispatch_type="portmodDispatchTypePm8x50" tvco_pll_index="1" phy_addr="16" is_master="0"></entry>
+                    <entry pm_index="3"  phys="0xFF000000,0x00000000,0x00000000,0x00000000" dispatch_type="portmodDispatchTypePm8x50" tvco_pll_index="1" phy_addr="24" is_master="1"></entry>
+                    <entry pm_index="4"  phys="0x00000000,0x0000000F,0x00000000,0x00000000" dispatch_type="portmodDispatchTypePm4x25" phy_addr="0"  is_master="0"></entry>
+                    <entry pm_index="5"  phys="0x00000000,0x000000F0,0x00000000,0x00000000" dispatch_type="portmodDispatchTypePm4x25" phy_addr="4"  is_master="0"></entry>
+                    <entry pm_index="6"  phys="0x00000000,0x00000F00,0x00000000,0x00000000" dispatch_type="portmodDispatchTypePm4x25" phy_addr="8"  is_master="1"></entry>
+                    <entry pm_index="7"  phys="0x00000000,0x0000F000,0x00000000,0x00000000" dispatch_type="portmodDispatchTypePm4x25" phy_addr="12" is_master="0"></entry>
+                    <entry pm_index="8"  phys="0x00000000,0x000F0000,0x00000000,0x00000000" dispatch_type="portmodDispatchTypePm4x25" phy_addr="16" is_master="0"></entry>
+                    <entry pm_index="9"  phys="0x00000000,0x00F00000,0x00000000,0x00000000" dispatch_type="portmodDispatchTypePm4x25" phy_addr="20" is_master="0"></entry>
+                    <entry pm_index="10" phys="0x00000000,0x0F000000,0x00000000,0x00000000" dispatch_type="portmodDispatchTypePm4x25" phy_addr="24" is_master="1"></entry>
+                    <entry pm_index="11" phys="0x00000000,0xF0000000,0x00000000,0x00000000" dispatch_type="portmodDispatchTypePm4x25" phy_addr="28" is_master="0"></entry>
+                    <entry pm_index="12"  phys="0x00000000,0x00000000,0x0000000F,0x00000000" dispatch_type="portmodDispatchTypePm4x25" phy_addr="0"  is_master="0"></entry>  
+                    <entry pm_index="13"  phys="0x00000000,0x00000000,0x000000F0,0x00000000" dispatch_type="portmodDispatchTypePm4x25" phy_addr="4"  is_master="0"></entry>                          
+                    <entry pm_index="14"  phys="0x00000000,0x00000000,0x00000F00,0x00000000" dispatch_type="portmodDispatchTypePm4x25" phy_addr="8"  is_master="1"></entry>                          
+                    <entry pm_index="15"  phys="0x00000000,0x00000000,0x0000F000,0x00000000" dispatch_type="portmodDispatchTypePm4x25" phy_addr="12" is_master="0"></entry>  
+                    <entry pm_index="16"  phys="0x00000000,0x00000000,0x000F0000,0x00000000" dispatch_type="portmodDispatchTypePm4x25" phy_addr="16" is_master="0"></entry>                          
+                    <entry pm_index="17"  phys="0x00000000,0x00000000,0x00F00000,0x00000000" dispatch_type="portmodDispatchTypePm4x25" phy_addr="20" is_master="0"></entry>
+                    <entry pm_index="18"  phys="0x00000000,0x00000000,0x0F000000,0x00000000" dispatch_type="portmodDispatchTypePm4x25" phy_addr="24" is_master="1"></entry>                          
+                    <entry pm_index="19"  phys="0x00000000,0x00000000,0xF0000000,0x00000000" dispatch_type="portmodDispatchTypePm4x25" phy_addr="28" is_master="0"></entry>
+                    <entry pm_index="20"  phys="0x00000000,0x00000000,0x00000000,0x0000000F" dispatch_type="portmodDispatchTypePm4x25" phy_addr="0"  is_master="0"></entry>                          
+                    <entry pm_index="21"  phys="0x00000000,0x00000000,0x00000000,0x000000F0" dispatch_type="portmodDispatchTypePm4x25" phy_addr="4"  is_master="0"></entry>                          
+                    <entry pm_index="22"  phys="0x00000000,0x00000000,0x00000000,0x00000F00" dispatch_type="portmodDispatchTypePm4x25" phy_addr="8"  is_master="1"></entry>                          
+                    <entry pm_index="23"  phys="0x00000000,0x00000000,0x00000000,0x0000F000" dispatch_type="portmodDispatchTypePm4x25" phy_addr="12" is_master="0"></entry>
+                    <entry pm_index="24"  phys="0x00000000,0x00000000,0x00000000,0x000F0000" dispatch_type="portmodDispatchTypePm4x25" phy_addr="16" is_master="0"></entry>                          
+                    <entry pm_index="25"  phys="0x00000000,0x00000000,0x00000000,0x00F00000" dispatch_type="portmodDispatchTypePm4x25" phy_addr="20" is_master="0"></entry>                          
+                    <entry pm_index="26"  phys="0x00000000,0x00000000,0x00000000,0x0F000000" dispatch_type="portmodDispatchTypePm4x25" phy_addr="24" is_master="1"></entry>                          
+                    <entry pm_index="27"  phys="0x00000000,0x00000000,0x00000000,0xF0000000" dispatch_type="portmodDispatchTypePm4x25" phy_addr="28" is_master="0"></entry>                          
+                </entries>
+            </table>
+            
+            <table name="phy_map">
+                <key name="idx" size="DATA(nif,phys,nof_phys)/DATA(nif,eth,phy_map_granularity)"></key>
+                <value name="phy_index"  default="-1"></value>
+                <value name="ethu_index" default="-1"></value>
+                <value name="pm_index"   default="-1"></value>
+                <entries>
+                    <entry idx="0"   phy_index="0"   ethu_index="0"  pm_index="0"></entry>
+                    <entry idx="1"   phy_index="4"   ethu_index="0"  pm_index="0"></entry> 
+                    <entry idx="2"   phy_index="8"   ethu_index="1"  pm_index="1"></entry> 
+                    <entry idx="3"   phy_index="12"  ethu_index="1"  pm_index="1"></entry> 
+                    <entry idx="4"   phy_index="16"  ethu_index="2"  pm_index="2"></entry>
+                    <entry idx="5"   phy_index="20"  ethu_index="2"  pm_index="2"></entry>
+                    <entry idx="6"   phy_index="24"  ethu_index="3"  pm_index="3"></entry>
+                    <entry idx="7"   phy_index="28"  ethu_index="3"  pm_index="3"></entry>
+                    <entry idx="8"   phy_index="32"  ethu_index="4"  pm_index="4"></entry>
+                    <entry idx="9"   phy_index="36"  ethu_index="4"  pm_index="5"></entry>
+                    <entry idx="10"  phy_index="40"  ethu_index="4"  pm_index="6"></entry>
+                    <entry idx="11"  phy_index="44"  ethu_index="4"  pm_index="7"></entry>
+                    <entry idx="12"  phy_index="48"  ethu_index="5"  pm_index="8"></entry>
+                    <entry idx="13"  phy_index="52"  ethu_index="5"  pm_index="9"></entry>
+                    <entry idx="14"  phy_index="56"  ethu_index="5"  pm_index="10"></entry>
+                    <entry idx="15"  phy_index="60"  ethu_index="5"  pm_index="11"></entry>
+                    <entry idx="16"  phy_index="64"  ethu_index="6"  pm_index="12"></entry>
+                    <entry idx="17"  phy_index="68"  ethu_index="6"  pm_index="13"></entry>
+                    <entry idx="18"  phy_index="72"  ethu_index="6"  pm_index="14"></entry>
+                    <entry idx="19"  phy_index="76"  ethu_index="6"  pm_index="15"></entry>
+                    <entry idx="20"  phy_index="80"  ethu_index="7"  pm_index="16"></entry>
+                    <entry idx="21"  phy_index="84"  ethu_index="7"  pm_index="17"></entry>
+                    <entry idx="22"  phy_index="88"  ethu_index="7"  pm_index="18"></entry>
+                    <entry idx="23"  phy_index="92"  ethu_index="7"  pm_index="19"></entry>
+                    <entry idx="24"  phy_index="96"  ethu_index="8"  pm_index="20"></entry>
+                    <entry idx="25"  phy_index="100" ethu_index="8"  pm_index="21"></entry>
+                    <entry idx="26"  phy_index="104" ethu_index="8"  pm_index="22"></entry>
+                    <entry idx="27"  phy_index="108" ethu_index="8"  pm_index="23"></entry>
+                    <entry idx="28"  phy_index="112" ethu_index="9"  pm_index="24"></entry>
+                    <entry idx="29"  phy_index="116" ethu_index="9"  pm_index="25"></entry>
+                    <entry idx="30"  phy_index="120" ethu_index="9"  pm_index="26"></entry>
+                    <entry idx="31"  phy_index="124" ethu_index="9"  pm_index="27"></entry>                                        
+                </entries> 
+            </table>            
+        </tables>
+
+        <features>
+            <feature name="nif_scheduler_context_per_rmc_support" value="0"></feature>
+            <feature name="rmc_flush_support"></feature>
+            <feature name="is_rmc_low_priority_needs_configuration"></feature>
+            <feature name="is_rx_port_mode_needs_configuration"></feature>
+        </features>
+    </sub_module>
+       
+    <sub_module name="simulator" doc="data about phy simulators">
+        <numerics>
+            <numeric name="cdu_type" value="phymodDispatchTypeTscbh"></numeric>  
+            <numeric name="clu_type" value="phymodDispatchTypeTscf16_gen3"></numeric>  
+        </numerics>     
+    </sub_module>
+                     
+    <sub_module name="portmod" doc="information required for portmod.">
+        <defines>
+            <define name="pm_types_nof" value="4"></define>
+        </defines>
+ 
+        <numerics>
+        </numerics>
+
+        <features>
+        </features>
+ 
+        <tables>
+            <table name="pm_types_and_interfaces">
+                <key name="index" size="DNX_DATA_MAX_NIF_PORTMOD_PM_TYPES_NOF"></key>
+                <value name="type" default="0"></value>
+                <value name="instances" default="0"></value>
+                <entries>
+                    <entry index="0" type="portmodDispatchTypePm8x50" instances="dnx_data_nif.eth.cdu_nof_get(unit)"></entry>
+                    <entry index="1" type="portmodDispatchTypePm4x25" instances="dnx_data_nif.eth.clu_nof_get(unit)*dnx_data_nif.eth.nof_pms_in_clu_get(unit)"></entry>
+                    <entry index="2" type="portmodDispatchTypePmOsILKN_50G" instances="dnx_data_nif.ilkn.ilkn_unit_nof_get(unit)"></entry>
+                    <entry index="3" type="portmodDispatchTypePm8x50_fabric" instances="dnx_data_fabric.blocks.nof_pms_get(unit)"></entry> 
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+    <sub_module name="dbal" doc="NIF dbal data">
+        <defines>
+            <define name="cdu_rx_rmc_entry_size" value="10"></define>
+            <define name="clu_rx_rmc_entry_size" value="10"></define>
+            <define name="cdu_tx_start_threshold_entry_size" value="11"></define>
+            <define name="clu_tx_start_threshold_entry_size" value="14"></define>
+            <define name="ilu_burst_min_entry_size" value="2"></define>
+            <define name="ethu_rx_rmc_counter_entry_size" value="15"></define>
+            <define name="cdu_lane_fifo_level_and_occupancy_entry_size" value="10"></define>
+            <define name="clu_lane_fifo_level_and_occupancy_entry_size" value="14"></define>
+            
+        </defines>
+  </sub_module>
+  <sub_module name="prd" doc="Priority Drop module">
+        <defines>
+            <define name="nof_clu_port_profiles" value="4"></define>
+        </defines>
+
+        <tables>
+        </tables>
+  </sub_module>
+
+</device_data>

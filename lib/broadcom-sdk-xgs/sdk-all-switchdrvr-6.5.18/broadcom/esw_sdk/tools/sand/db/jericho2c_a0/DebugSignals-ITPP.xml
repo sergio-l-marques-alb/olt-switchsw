@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<SignalInfo device="jericho2c_a0">
+<!--No editing - File is auto-generated-->
+    <Signal>
+        <Attribute>Pkt_Header</Attribute>
+        <Size>1024</Size>
+        <Name>ITPP_HEADER.HEADER</Name>
+        <BlockID>10</BlockID>
+        <From>ITPP</From>
+        <To></To>
+        <Address>{bus:0} bits: [1023 : 0]</Address>
+    </Signal>
+    <Signal>
+        <Attribute>Generated_Pkt_Header</Attribute>
+        <Size>512</Size>
+        <Name>ITPP_GENERATED_HEADDER.HEADER_TO_ADD</Name>
+        <BlockID>10</BlockID>
+        <From>ITPP</From>
+        <To></To>
+        <Address>{bus:0} bits: [511 : 0]</Address>
+    </Signal>
+    <Signal>
+        <Attribute>Pkt_Attributes</Attribute>
+        <Size>160</Size>
+        <Name></Name>
+        <BlockID>11</BlockID>
+        <From>ITPP</From>
+        <To></To>
+        <Address>{bus:0} bits: [159 : 0]</Address>
+    </Signal>
+    <Signal>
+        <Attribute>Generated_Values</Attribute>
+        <Size>17</Size>
+        <Name></Name>
+        <BlockID>11</BlockID>
+        <From>ITPP</From>
+        <To></To>
+        <Address>{bus:0} bits: [16 : 0]</Address>
+    </Signal>
+</SignalInfo>

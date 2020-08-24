@@ -1,0 +1,1250 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0"  module="field">
+    <includes>
+        <include>bcm_int/dnx/field/field_context.h</include>
+    </includes>
+    
+    <!--
+        The following submodule only exists because we cannot use DNX DATA pointers (DATA()) from a table's entry for define (but we can for numerical).
+    -->
+    <sub_module name="base_ipmf1">
+        <defines>
+            <define name="cs_container_5_selected_bits_size" value="1"></define>
+        </defines>
+    </sub_module>
+    
+    <!--
+        The following submodule only exists because we cannot use DNX DATA pointers (DATA()) from a table's entry for define (but we can for numerical).
+    -->
+    <sub_module name="base_ipmf3">
+        <defines>
+            <define name="cs_scratch_pad_size" value="33"></define>
+        </defines>
+    </sub_module>
+    
+    <sub_module name="efes" doc="EFES data">
+        <defines>
+            <!--
+                This value represents the maximum number of key_selects that can access a single field IO.
+                Determined by the biggest field_io, a double key direct extraction (that is 320 bits).                
+            -->
+            <define name="max_nof_key_selects_per_field_io" value="11"></define>
+        </defines>
+        <tables>
+            <table name="key_select_properties">
+                <key name="stage" size="DNX_FIELD_STAGE_NOF"></key>
+                <key name="field_io" size="DBAL_NOF_ENUM_FIELD_IO_VALUES"></key>
+                <value name="key_select" default="-1"/>
+                <value name="num_bits" default="0"></value>
+                <value name="lsb" default="0"></value>
+                <value name="num_bits_not_on_key" default="0"></value>
+                <entries>
+                    <!--
+                        Each entry in this table represents a field IO (for example, the result of the second TCAM lookup in the stage,
+                        or of th first key that can be used be direct extraction.
+                        For each field IO, we have arrays, with each index relevant for a single key select that can access the field IO.
+                        For each key select, we provide 3 parameters: 
+                            num_bits: The number of bits of the field IO that the key select can read.
+                            lsb: The first bit on the field IO read by the key_select.
+                            num_bits_not_on_key: The number of bits on the LSB of the key select before the first bit on the field_io.
+                                                 Note that bits on the MSB of the key select not on the field io are not counted here.
+                        For example, let's take DBAL_ENUM_FVAL_FIELD_IO_LEXEM. It is composed of 60 bits (we do not count zero padding)
+                        and can be Accessed by 3 key selects:
+                        
+                             <______________________IELD_IO_LEXEM______________________________> 
+           <________KEY_SELECT_LEXEM_27_0_4_B0_TCAM_7_63_32________> 
+                        <_______KEY_SELECT_LEXEM_59_0_4_B0_____________________________________>
+                                                                    <__________KEY_SELECT_SEXEM_27_0_4_B0_LEXEM_59_28________>                             
+                        KEY_SELECT_LEXEM_27_0_4_B0_TCAM_7_63_32 includes 32 bits from an earlier field_io, 4 bits of zero padding and then 
+                        28 bits from the beginning of the field_io. So num_bits=28, lsb=0 and num_bits_not_on_key=32+4=36.
+                        KEY_SELECT_LEXEM_59_0_4_B0 includes 4 bytes of zero padding,and then the entire field io, so
+                        num_bits=60 lsb=0 num_bits_not_on_key=4.
+                        KEY_SELECT_SEXEM_27_0_4_B0_LEXEM_59_28 includes 32 bits from the field_io starting from bit 28, plus 4 bits zero padding,
+                        plus 28 bits from the next field_io. So num_bits=32 lsb=28 and num_bits_not_on_key=0
+                        Note that the names of the key selects indicate what they contain, from MSB to LSB.
+                        Also note that each key select contains 64 bits, and is another 32 bits displacement from the last key select.
+                    -->
+                    <!-- Entries for iPMF1/2  -->
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_0" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_0_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_1_31_0_TCAM_0_63_32"
+                        num_bits="64, 32" lsb= "0, 32" num_bits_not_on_key="0, 0"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_1" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_1_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_2_31_0_TCAM_1_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_1_31_0_TCAM_0_63_32"
+                        num_bits="64, 32, 32" lsb= "0, 32, 0" num_bits_not_on_key="0, 0, 32"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_2" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_2_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_3_31_0_TCAM_2_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_2_31_0_TCAM_1_63_32"
+                        num_bits="64, 32, 32" lsb= "0, 32, 0" num_bits_not_on_key="0, 0, 32"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_3" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_3_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_4_31_0_TCAM_3_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_3_31_0_TCAM_2_63_32"
+                        num_bits="64, 32, 32" lsb= "0, 32, 0" num_bits_not_on_key="0, 0, 32"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_4" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_4_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_5_31_0_TCAM_4_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_4_31_0_TCAM_3_63_32"
+                        num_bits="64, 32, 32" lsb= "0, 32, 0" num_bits_not_on_key="0, 0, 32"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_5" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_5_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_6_31_0_TCAM_5_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_5_31_0_TCAM_4_63_32"
+                        num_bits="64, 32, 32" lsb= "0, 32, 0" num_bits_not_on_key="0, 0, 32"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_6" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_6_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_7_31_0_TCAM_6_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_6_31_0_TCAM_5_63_32"
+                        num_bits="64, 32, 32" lsb= "0, 32, 0" num_bits_not_on_key="0, 0, 32"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_7" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_7_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_LEXEM_27_0_4_B0_TCAM_7_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_7_31_0_TCAM_6_63_32"
+                        num_bits="64, 32, 32" lsb= "0, 32, 0" num_bits_not_on_key="0, 0, 32"></entry>
+                        
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_0_1" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_0_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_1_31_0_TCAM_0_63_32, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_1_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_2_31_0_TCAM_1_63_32"
+                        num_bits="64, 64, 64, 32" lsb= "0, 32, 64, 96" num_bits_not_on_key="0, 0, 0, 0"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_1_2" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_1_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_2_31_0_TCAM_1_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_2_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_3_31_0_TCAM_2_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_1_31_0_TCAM_0_63_32"
+                        num_bits="64, 64, 64, 32, 32" lsb= "0, 32, 64, 96, 0" num_bits_not_on_key="0, 0, 0, 0, 32"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_2_3" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_2_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_3_31_0_TCAM_2_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_3_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_4_31_0_TCAM_3_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_2_31_0_TCAM_1_63_32"
+                        num_bits="64, 64, 64, 32, 32" lsb= "0, 32, 64, 96, 0" num_bits_not_on_key="0, 0, 0, 0, 32"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_4_5" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_4_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_5_31_0_TCAM_4_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_5_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_6_31_0_TCAM_5_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_4_31_0_TCAM_3_63_32"
+                        num_bits="64, 64, 64, 32, 32" lsb= "0, 32, 64, 96, 0" num_bits_not_on_key="0, 0, 0, 0, 32"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_5_6" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_5_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_6_31_0_TCAM_5_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_6_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_7_31_0_TCAM_6_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_5_31_0_TCAM_4_63_32"
+                        num_bits="64, 64, 64, 32, 32" lsb= "0, 32, 64, 96, 0" num_bits_not_on_key="0, 0, 0, 0, 32"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_6_7" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_6_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_7_31_0_TCAM_6_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_7_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_LEXEM_27_0_4_B0_TCAM_7_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_TCAM_6_31_0_TCAM_5_63_32"
+                        num_bits="64, 64, 64, 32, 32" lsb= "0, 32, 64, 96, 0" num_bits_not_on_key="0, 0, 0, 0, 32"></entry>
+                    
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_LEXEM" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_LEXEM_27_0_4_B0_TCAM_7_63_32, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_LEXEM_59_0_4_B0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_SEXEM_27_0_4_B0_LEXEM_59_28"
+                        num_bits="28, 60, 32" lsb= "0, 0, 28" num_bits_not_on_key="36, 4, 0"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_SEXEM" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_SEXEM_27_0_4_B0_LEXEM_59_28, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_SEXEM_59_0_4_B0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_I_31_0_SEXEM_59_28"
+                        num_bits="28, 60, 32" lsb= "0, 0, 28" num_bits_not_on_key="36, 4, 0"></entry>
+                        
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_DIRECT_0" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_DIRECT_0_23_0_8_B0_KEY_J_159_128, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_DIRECT_0_55_0_8_B0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_DIRECT_0_87_24,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_DIRECT_0_119_56,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_DIRECT_1_23_0_8_B0_DIRECT_0_119_88"
+                        num_bits="24, 56, 64, 64, 32" lsb= "0, 0, 24, 56, 88" num_bits_not_on_key="40, 8, 0, 0, 0"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_DIRECT_1" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_DIRECT_1_23_0_8_B0_DIRECT_0_119_88, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_DIRECT_1_55_0_8_B0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_DIRECT_1_87_24,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_DIRECT_1_119_56,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_STATE_TABLE_DATA_7_0_STATE_TABLE_ADDRESS_9_0_14_B0_DIRECT_1_119_88"
+                        num_bits="24, 56, 64, 64, 32" lsb= "0, 0, 24, 56, 88" num_bits_not_on_key="40, 8, 0, 0, 0"></entry>
+                        
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_DIR_EXT_KEY_0" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_I_31_0_SEXEM_59_28, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_I_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_I_95_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_I_127_64,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_I_159_96,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_J_31_0_KEY_I_159_128"
+                        num_bits="32, 64, 64, 64, 64, 32" lsb= "0, 0, 32, 64, 96, 128" num_bits_not_on_key="32, 0, 0, 0, 0, 0"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_DIR_EXT_KEY_1" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_J_31_0_KEY_I_159_128, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_J_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_J_95_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_J_127_64,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_J_159_96,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_DIRECT_0_23_0_8_B0_KEY_J_159_128"
+                        num_bits="32, 64, 64, 64, 64, 32" lsb= "0, 0, 32, 64, 96, 128" num_bits_not_on_key="32, 0, 0, 0, 0, 0"></entry>
+                        
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_DIR_EXT_KEY_0_1" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_I_31_0_SEXEM_59_28, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_I_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_I_95_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_I_127_64,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_I_159_96,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_J_31_0_KEY_I_159_128,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_J_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_J_95_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_J_127_64,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_KEY_J_159_96,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_DIRECT_0_23_0_8_B0_KEY_J_159_128"
+                        num_bits="32, 64, 64, 64, 64, 64, 64, 64, 64, 64, 32" lsb= "0, 0, 32, 64, 96, 128, 160, 192, 224, 256, 288" num_bits_not_on_key="32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0"></entry>
+                        
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" field_io="DBAL_ENUM_FVAL_FIELD_IO_STATE_TABLE" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FES_KEY_SELECT_STATE_TABLE_DATA_7_0_STATE_TABLE_ADDRESS_9_0_14_B0_DIRECT_1_119_88" 
+                        num_bits="18" lsb= "0" num_bits_not_on_key="46"></entry>
+                    
+                    <!-- Entries for iPMF3  -->
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_0" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_TCAM_0_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_TCAM_1_31_0_TCAM_0_63_32"
+                        num_bits="64, 32" lsb= "0, 32" num_bits_not_on_key="0, 0"></entry>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_1" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_TCAM_1_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_SEXEM_27_0_4_B0_TCAM_1_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_TCAM_1_31_0_TCAM_0_63_32"
+                        num_bits="64, 32, 32" lsb= "0, 32, 0" num_bits_not_on_key="0, 0, 32"></entry>
+                        
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_0_1" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_TCAM_0_63_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_TCAM_1_31_0_TCAM_0_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_TCAM_1_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_SEXEM_27_0_4_B0_TCAM_1_63_32"
+                        num_bits="64, 64, 64, 32" lsb= "0, 32, 64, 96" num_bits_not_on_key="0, 0, 0, 0"></entry>
+                        
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" field_io="DBAL_ENUM_FVAL_FIELD_IO_SEXEM" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_SEXEM_27_0_4_B0_TCAM_1_63_32, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_SEXEM_59_0_4_B0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_A_31_0_SEXEM_59_28"
+                        num_bits="28, 60, 32" lsb= "0, 0, 28" num_bits_not_on_key="36, 4, 0"></entry>
+                        
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" field_io="DBAL_ENUM_FVAL_FIELD_IO_DIRECT_0" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_DIRECT_31_0_KEY_B_159_128, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_DIRECT_55_0_8_B0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_DIRECT_87_24,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_DIRECT_119_56"
+                        num_bits="24, 56, 64, 64" lsb= "0, 0, 24, 56" num_bits_not_on_key="40, 8, 0, 0"></entry>
+                        
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" field_io="DBAL_ENUM_FVAL_FIELD_IO_DIR_EXT_KEY_0" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_A_31_0_SEXEM_59_28, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_A_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_A_95_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_A_127_64,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_A_159_96,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_B_31_0_KEY_A_159_128"
+                        num_bits="32, 64, 64, 64, 64, 32" lsb= "0, 0, 32, 64, 96, 128" num_bits_not_on_key="32, 0, 0, 0, 0, 0"></entry>
+                        
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" field_io="DBAL_ENUM_FVAL_FIELD_IO_DIR_EXT_KEY_1" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_B_31_0_KEY_A_159_128, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_B_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_B_95_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_B_127_64,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_B_159_96,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_DIRECT_31_0_KEY_B_159_128"
+                        num_bits="32, 64, 64, 64, 64, 32" lsb= "0, 0, 32, 64, 96, 128" num_bits_not_on_key="32, 0, 0, 0, 0, 0"></entry>
+                        
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" field_io="DBAL_ENUM_FVAL_FIELD_IO_DIR_EXT_KEY_0_1" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_A_31_0_SEXEM_59_28, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_A_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_A_95_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_A_127_64,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_A_159_96,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_B_31_0_KEY_A_159_128,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_B_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_B_95_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_B_127_64,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_KEY_B_159_96,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_B_FES_KEY_SELECT_DIRECT_31_0_KEY_B_159_128"
+                        num_bits="32, 64, 64, 64, 64, 64, 64, 64, 64, 64, 32" lsb= "0, 0, 32, 64, 96, 128, 160, 192, 224, 256, 288" num_bits_not_on_key="32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0"></entry>
+                        
+                    <!-- Entries for ePMF  -->
+                    <entry stage="DNX_FIELD_STAGE_EPMF" field_io="DBAL_ENUM_FVAL_FIELD_IO_LEXEM" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_E_PMF_FES_KEY_SELECT_LEXEM_59_0_4_B0, 
+                                    DBAL_ENUM_FVAL_FIELD_E_PMF_FES_KEY_SELECT_TCAM_0_PAYLOAD_31_0_LEXEM_59_28"
+                        num_bits="60, 32" lsb= "0, 28" num_bits_not_on_key="4, 0"></entry>
+                        
+                    <entry stage="DNX_FIELD_STAGE_EPMF" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_0" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_E_PMF_FES_KEY_SELECT_TCAM_0_PAYLOAD_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_E_PMF_FES_KEY_SELECT_TCAM_1_PAYLOAD_31_0_TCAM_0_PAYLOAD_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_E_PMF_FES_KEY_SELECT_TCAM_0_PAYLOAD_31_0_LEXEM_59_28"
+                        num_bits="64, 32, 32" lsb= "0, 32, 0" num_bits_not_on_key="0, 0, 32"></entry>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_1" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_E_PMF_FES_KEY_SELECT_TCAM_1_PAYLOAD_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_E_PMF_FES_KEY_SELECT_TCAM_1_PAYLOAD_31_0_TCAM_0_PAYLOAD_63_32"
+                        num_bits="64, 32" lsb= "0, 0" num_bits_not_on_key="0, 32"></entry>
+                        
+                    <entry stage="DNX_FIELD_STAGE_EPMF" field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_0_1" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_E_PMF_FES_KEY_SELECT_TCAM_0_PAYLOAD_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_E_PMF_FES_KEY_SELECT_TCAM_1_PAYLOAD_31_0_TCAM_0_PAYLOAD_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_E_PMF_FES_KEY_SELECT_TCAM_1_PAYLOAD_63_0,
+                                    DBAL_ENUM_FVAL_FIELD_E_PMF_FES_KEY_SELECT_TCAM_0_PAYLOAD_31_0_LEXEM_59_28"
+                        num_bits="64, 64, 64, 32" lsb= "0, 32, 64, 0" num_bits_not_on_key="0, 0, 0, 32"></entry>
+                        
+                    <!-- Entries for ACE  -->
+                    <entry stage="DNX_FIELD_STAGE_ACE" field_io="DBAL_ENUM_FVAL_FIELD_IO_ACE" 
+                        key_select="0"
+                        num_bits="104" lsb= "0" num_bits_not_on_key="0"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="fem" doc="FEM data">
+        <defines>
+            <!--
+                This value represents the maximum number of key_selects that can access a single field IO.
+                Determined by the biggest field_io, a double key direct extraction (that is 320 bits).                
+            -->
+            <define name="max_nof_key_selects_per_field_io" value="21"></define>
+        </defines>
+        <tables>
+            <table name="key_select_properties">
+                <key name="field_io" size="DBAL_NOF_ENUM_FIELD_IO_VALUES"></key>
+                <value name="key_select" default="-1"/>
+                <value name="num_bits" default="0"></value>
+                <value name="lsb" default="0"></value>
+                <value name="num_bits_not_on_key" default="0"></value>
+                <entries>
+                    <!--
+                        See the comment about the entries for EFES key_select_properties.
+                        The only difference is that for FEM each key select is 32 bits long and a 16 bits displacement from the last.
+                    -->
+                    <entry field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_0" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_0_31_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_0_47_16,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_0_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_1_15_0_TCAM_0_63_48"
+                        num_bits="32, 32, 32, 16" lsb= "0, 16, 32, 48" num_bits_not_on_key="0, 0, 0, 0"></entry>
+                    <entry field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_1" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_1_15_0_TCAM_0_63_48, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_1_31_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_1_47_16,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_1_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_2_15_0_TCAM_1_63_48"
+                        num_bits="16, 32, 32, 32, 16" lsb= "0, 0, 16, 32, 48" num_bits_not_on_key="16, 0, 0, 0, 0"></entry>
+                    <entry field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_2" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_2_15_0_TCAM_1_63_48, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_2_31_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_2_47_16,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_2_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_3_15_0_TCAM_2_63_48"
+                        num_bits="16, 32, 32, 32, 16" lsb= "0, 0, 16, 32, 48" num_bits_not_on_key="16, 0, 0, 0, 0"></entry>
+                    <entry field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_3" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_3_15_0_TCAM_2_63_48, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_3_31_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_3_47_16,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_3_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_4_15_0_TCAM_3_63_48"
+                        num_bits="16, 32, 32, 32, 16" lsb= "0, 0, 16, 32, 48" num_bits_not_on_key="16, 0, 0, 0, 0"></entry>
+                    <entry field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_4" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_4_15_0_TCAM_3_63_48, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_4_31_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_4_47_16,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_4_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_5_15_0_TCAM_4_63_48"
+                        num_bits="16, 32, 32, 32, 16" lsb= "0, 0, 16, 32, 48" num_bits_not_on_key="16, 0, 0, 0, 0"></entry>
+                    <entry field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_5" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_5_15_0_TCAM_4_63_48, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_5_31_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_5_47_16,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_5_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_6_15_0_TCAM_5_63_48"
+                        num_bits="16, 32, 32, 32, 16" lsb= "0, 0, 16, 32, 48" num_bits_not_on_key="16, 0, 0, 0, 0"></entry> 
+                    <entry field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_6" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_6_15_0_TCAM_5_63_48, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_6_31_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_6_47_16,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_6_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_7_15_0_TCAM_6_63_48"
+                        num_bits="16, 32, 32, 32, 16" lsb= "0, 0, 16, 32, 48" num_bits_not_on_key="16, 0, 0, 0, 0"></entry>
+                    <entry field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_7" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_7_15_0_TCAM_6_63_48, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_7_31_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_7_47_16,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_7_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_LEXEM_11_0_4_B0_TCAM_7_63_48"
+                        num_bits="16, 32, 32, 32, 16" lsb= "0, 0, 16, 32, 48" num_bits_not_on_key="16, 0, 0, 0, 0"></entry>
+
+                    <entry field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_0_1" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_0_31_0, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_0_47_16,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_0_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_1_15_0_TCAM_0_63_48,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_1_31_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_1_47_16,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_1_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_2_15_0_TCAM_1_63_48"
+                        num_bits="32, 32, 32, 32, 32, 32, 32, 16" lsb= "0, 16, 32, 48, 64, 80, 96, 112" num_bits_not_on_key="0, 0, 0, 0, 0, 0, 0, 0"></entry>  
+                    <entry field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_1_2" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_1_15_0_TCAM_0_63_48, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_1_31_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_1_47_16,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_1_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_2_15_0_TCAM_1_63_48,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_2_31_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_2_47_16,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_2_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_3_15_0_TCAM_2_63_48"
+                        num_bits="16, 32, 32, 32, 32, 32, 32, 32, 16" lsb= "0, 0, 16, 32, 48, 64, 80, 96, 112" num_bits_not_on_key="16, 0, 0, 0, 0, 0, 0, 0, 0"></entry>  
+                    <entry field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_2_3" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_2_15_0_TCAM_1_63_48, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_2_31_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_2_47_16,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_2_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_3_15_0_TCAM_2_63_48,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_3_31_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_3_47_16,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_3_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_4_15_0_TCAM_3_63_48"
+                        num_bits="16, 32, 32, 32, 32, 32, 32, 32, 16" lsb= "0, 0, 16, 32, 48, 64, 80, 96, 112" num_bits_not_on_key="16, 0, 0, 0, 0, 0, 0, 0, 0"></entry> 
+                    <entry field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_4_5" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_4_15_0_TCAM_3_63_48, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_4_31_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_4_47_16,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_4_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_5_15_0_TCAM_4_63_48,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_5_31_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_5_47_16,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_5_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_6_15_0_TCAM_5_63_48"
+                        num_bits="16, 32, 32, 32, 32, 32, 32, 32, 16" lsb= "0, 0, 16, 32, 48, 64, 80, 96, 112" num_bits_not_on_key="16, 0, 0, 0, 0, 0, 0, 0, 0"></entry>
+                    <entry field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_5_6" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_5_15_0_TCAM_4_63_48, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_5_31_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_5_47_16,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_5_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_6_15_0_TCAM_5_63_48,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_6_31_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_6_47_16,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_6_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_7_15_0_TCAM_6_63_48"
+                        num_bits="16, 32, 32, 32, 32, 32, 32, 32, 16" lsb= "0, 0, 16, 32, 48, 64, 80, 96, 112" num_bits_not_on_key="16, 0, 0, 0, 0, 0, 0, 0, 0"></entry> 
+                    <entry field_io="DBAL_ENUM_FVAL_FIELD_IO_INTERNAL_TCAM_6_7" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_6_15_0_TCAM_5_63_48, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_6_31_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_6_47_16,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_6_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_7_15_0_TCAM_6_63_48,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_7_31_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_7_47_16,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_TCAM_7_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_LEXEM_11_0_4_B0_TCAM_7_63_48"
+                        num_bits="16, 32, 32, 32, 32, 32, 32, 32, 16" lsb= "0, 0, 16, 32, 48, 64, 80, 96, 112" num_bits_not_on_key="16, 0, 0, 0, 0, 0, 0, 0, 0"></entry> 
+
+                    <entry field_io="DBAL_ENUM_FVAL_FIELD_IO_LEXEM" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_LEXEM_11_0_4_B0_TCAM_7_63_48, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_LEXEM_27_0_4_B0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_LEXEM_43_12,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_LEXEM_59_28,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_SEXEM_11_0_4_B0_LEXEM_59_44"
+                        num_bits="12, 28, 32, 32, 16" lsb= "0, 0, 12, 28, 44" num_bits_not_on_key="20, 40, 0, 0, 0"></entry>  
+                    <entry field_io="DBAL_ENUM_FVAL_FIELD_IO_SEXEM" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_SEXEM_11_0_4_B0_LEXEM_59_44, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_SEXEM_27_0_4_B0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_SEXEM_43_12,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_SEXEM_59_28,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_I_16_0_SEXEM_59_44"
+                        num_bits="12, 28, 32, 32, 16" lsb= "0, 0, 12, 28, 44" num_bits_not_on_key="20, 40, 0, 0, 0"></entry>
+
+                    <entry field_io="DBAL_ENUM_FVAL_FIELD_IO_DIRECT_0" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_DIRECT_0_7_0_8_B0_KEY_J_159_144, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_DIRECT_0_23_0_8_B0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_DIRECT_0_39_8,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_DIRECT_0_55_24,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_DIRECT_0_71_40,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_DIRECT_0_87_56,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_DIRECT_0_103_72,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_DIRECT_0_119_88,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_DIRECT_1_7_0_8_B0_DIRECT_0_119_104"
+                        num_bits="8, 24, 32, 32, 32, 32, 32, 32, 16" lsb= "0, 0, 8, 24, 40, 56, 72, 88, 104" num_bits_not_on_key="24, 8, 0, 0, 0, 0, 0, 0, 0"></entry>   
+                    <entry field_io="DBAL_ENUM_FVAL_FIELD_IO_DIRECT_1" 
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_DIRECT_1_7_0_8_B0_DIRECT_0_119_104, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_DIRECT_1_23_0_8_B0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_DIRECT_1_39_8,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_DIRECT_1_55_24,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_DIRECT_1_71_40,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_DIRECT_1_87_56,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_DIRECT_1_103_72,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_DIRECT_1_119_88,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_STATE_TABLE_ADDRESS_1_0_14_B0_DIRECT_1_119_104"
+                        num_bits="8, 24, 32, 32, 32, 32, 32, 32, 16" lsb= "0, 0, 8, 24, 40, 56, 72, 88, 104" num_bits_not_on_key="24, 8, 0, 0, 0, 0, 0, 0"></entry> 
+
+                    <entry field_io="DBAL_ENUM_FVAL_FIELD_IO_DIR_EXT_KEY_0"
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_I_16_0_SEXEM_59_44, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_I_31_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_I_47_16,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_I_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_I_79_48,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_I_95_64,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_I_111_80,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_I_127_96,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_I_143_112,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_I_159_128,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_J_15_0_KEY_I_159_144"
+                        num_bits="16, 32, 32, 32, 32, 32, 32, 32, 32, 32, 16" lsb= "0, 0, 16, 32, 48, 64, 80, 96, 112, 128, 144" num_bits_not_on_key="16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0"></entry>   
+                    <entry field_io="DBAL_ENUM_FVAL_FIELD_IO_DIR_EXT_KEY_1"
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_J_15_0_KEY_I_159_144, 
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_J_31_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_J_47_16,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_J_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_J_79_48,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_J_95_64,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_J_111_80,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_J_127_96,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_J_143_112,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_J_159_128,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_DIRECT_0_7_0_8_B0_KEY_J_159_144"
+                        num_bits="16, 32, 32, 32, 32, 32, 32, 32, 32, 32, 16" lsb= "0, 0, 16, 32, 48, 64, 80, 96, 112, 128, 144" num_bits_not_on_key="16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0"></entry>  
+
+                    <entry field_io="DBAL_ENUM_FVAL_FIELD_IO_DIR_EXT_KEY_0_1"
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_I_16_0_SEXEM_59_44,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_I_31_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_I_47_16,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_I_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_I_79_48,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_I_95_64,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_I_111_80,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_I_127_96,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_I_143_112,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_I_159_128,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_J_15_0_KEY_I_159_144,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_J_31_0,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_J_47_16,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_J_63_32,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_J_79_48,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_J_95_64,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_J_111_80,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_J_127_96,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_J_143_112,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_KEY_J_159_128,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_DIRECT_0_7_0_8_B0_KEY_J_159_144"
+                        num_bits="16, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 16"
+                        lsb= "0, 0, 16, 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224, 240, 256, 272, 288, 304"
+                        num_bits_not_on_key="16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0"></entry>
+
+                    <entry field_io="DBAL_ENUM_FVAL_FIELD_IO_STATE_TABLE"
+                        key_select="DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_STATE_TABLE_ADDRESS_1_0_14_B0_DIRECT_1_119_104,
+                                    DBAL_ENUM_FVAL_FIELD_PMF_A_FEM_KEY_SELECT_STATE_TABLE_DATA_7_0_STATE_TABLE_ADDRESS_9_0_14_B0"
+                        num_bits="2, 18" lsb= "0, 0" num_bits_not_on_key="60, 14"></entry>                        
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+    
+     <sub_module name="qual">
+        <defines>
+            <define name="ifwd2_pbus_size" value="3239"></define>
+            <define name="ipmf1_pbus_size" value="3362"></define>
+            <define name="ipmf2_pbus_size" value="1384"></define>
+            <define name="ipmf3_pbus_size" value="1822"></define>
+            <define name="epmf_pbus_size" value="2563"></define>
+            <define name="ac_lif_wide_size" value="28"></define>
+        </defines>
+        <tables>
+            <table name="params">
+                <key name="stage" size="DNX_FIELD_STAGE_NOF"/>
+                <key name="qual" size="256"/>
+                <value name="offset" default="-1"/>
+                <value name="signal" default="unsupported"/>
+                <entries>
+                <!-- Entries for IFWD2  -->
+                    <!-- FIXMESDK-150529: change the offset by adding first bit used by PMF -->
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_PMF_ETH_RIF_PROFILE"                offset="1734"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FWD_LAYER_INDEX"                    offset="1408"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_RPF_ROUTE_VALID"                    offset="1411"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FWD1_PRIORITY_DECODER_FWD_PROFILE"  offset="1412"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FWD1_PRIORITY_DECODER_FWD_RESULT"   offset="1419"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FWD1_PRIORITY_DECODER_RPF_PROFILE"  offset="1515"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FWD1_PRIORITY_DECODER_RPF_RESULT"   offset="1522"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_MP_PROFILE_SEL"                     offset="1618"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_RPF_DEFAULT_ROUTE_FOUND"            offset="1619"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_ACL_CONTEXT"                        offset="1620"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_CONTEXT"                            offset="1626"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_NASID"                              offset="1632"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_ENABLE_PP_INJECT"                   offset="1637"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_UNKNOWN_ADDRESS"                    offset="1638"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_EEI"                                offset="1639"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_EGRESS_LEARN_ENABLE"                offset="1663"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FWD_ACTION_CPU_TRAP_CODE"           offset="1664"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FWD_ACTION_CPU_TRAP_QUAL"           offset="1673"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FWD_ACTION_DESTINATION"             offset="1692"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FWD_ACTION_STRENGTH"                offset="1713"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FWD_DOMAIN"                         offset="1717"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_VRF_VALUE"                          offset="1717"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FWD_DOMAIN_PROFILE"                 offset="1735"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FWD_LAYER_ADDITIONAL_INFO"          offset="1745"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_GENERAL_DATA_0"                     offset="1749"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_GENERAL_DATA_1"                     offset="1877"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_GENERAL_DATA_2"                     offset="1905"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_GENERAL_DATA_3"                     offset="2033"/>
+                    <!-- FIXME: SDK-179446 currently assumed that virtual wires allocated only on General data which has start offset of DNX_FIELD_IFWD2_QUAL_GENERAL_DATA_0-->
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_AC_IN_LIF_WIDE_DATA"                offset="1749"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_IEEE1588_COMMAND"                   offset="2259"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_IEEE1588_COMPENSATE_TIME_STAMP"     offset="2261"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_IEEE1588_ENCAPSULATION"             offset="2262"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_IEEE1588_HEADER_OFFSET"             offset="2263"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_IN_LIF_PROFILE_0"                   offset="2271"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_IN_LIF_PROFILE_1"                   offset="2279"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_GLOB_IN_LIF_0"                      offset="2287"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_GLOB_IN_LIF_1"                      offset="2309"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_PP_PORT"                            offset="2331"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_INCOMING_TAG_STRUCTURE"             offset="2341"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_INGRESS_LEARN_ENABLE"               offset="2346"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_LEARN_INFO"                         offset="2347"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_MEM_SOFT_ERR"                       offset="2507"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_NWK_QOS"                            offset="2508"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_OAM_OFFSET"                         offset="2516"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_OAM_STAMP_OFFSET"                   offset="2524"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_OAM_OPCODE"                         offset="2532"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_OAM_YOUR_DISCR"                     offset="2536"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_MY_CFM_MAC"                         offset="2537"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_PACKET_IS_OAM"                      offset="2538"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_PACKET_IS_BFD"                      offset="2539"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_MDL"                                offset="2540"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_VTT_OAM_LIF_0"                      offset="2543"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_VTT_OAM_LIF_0_VALID"                offset="2565"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_VTT_OAM_LIF_1"                      offset="2566"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_VTT_OAM_LIF_1_VALID"                offset="2588"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_VTT_OAM_LIF_2"                      offset="2589"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_VTT_OAM_LIF_2_VALID"                offset="2611"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_VTT_OAM_PCP_0"                      offset="2612"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_VTT_OAM_PCP_1"                      offset="2615"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_VTT_OAM_PCP_2"                      offset="2618"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_GLOB_OUT_LIF_0"                     offset="2621"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_GLOB_OUT_LIF_1"                     offset="2643"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_PRT_QUALIFIER"                      offset="2665"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_PACKET_HEADER_SIZE"                 offset="2668"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_PACKET_IS_APPLET"                   offset="2676"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_PACKET_IS_COMPATIBLE_MC"            offset="2677"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_PACKET_IS_IEEE1588"                 offset="2678"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_DP"                                 offset="2679"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_ECN"                                offset="2681"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_TC"                                 offset="2684"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_PTC"                                offset="2687"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_RPF_DST"                            offset="2697"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_RPF_DST_VALID"                      offset="2718"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_SNOOP_CODE"                         offset="2719"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_SNOOP_STRENGTH"                     offset="2728"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_MIRROR_CODE"                        offset="2731"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_STATISTICAL_SAMPLING_CODE"          offset="2740"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_SRC_SYS_PORT"                       offset="2749"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FLP_STATISTICS_ID_0"                offset="2765"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FLP_STATISTICS_ID_1"                offset="2785"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FLP_STATISTICS_ID_2"                offset="2805"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FLP_STATISTICS_ID_3"                offset="2825"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FLP_STATISTICS_ID_4"                offset="2845"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FLP_STATISTICS_ID_5"                offset="2865"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FLP_STATISTICS_ATR_0"               offset="2885"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FLP_STATISTICS_ATR_1"               offset="2889"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FLP_STATISTICS_ATR_2"               offset="2895"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FLP_STATISTICS_ATR_3"               offset="2899"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FLP_STATISTICS_ATR_4"               offset="2905"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FLP_STATISTICS_ATR_5"               offset="2910"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_VLAN_EDIT_CMD"                      offset="2915"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_TRACE_PACKET"                       offset="2954"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_IN_TTL"                             offset="2955"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_LIF_OAM_TRAP_PROFILE"               offset="2963"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_VISIBILITY_CLEAR"                   offset="2965"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_VISIBILITY"                         offset="2966"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_RPF_OUT_LIF"                        offset="2967"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_ACTION_PROFILE_SA_DROP_INDEX"       offset="2989"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_ACTION_PROFILE_SA_NOT_FOUND_INDEX"  offset="2991"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_ACTION_PROFILE_DA_NOT_FOUND_INDEX"  offset="2993"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_SAVED_CONTEXT_PROFILE"              offset="2994"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_IPV4_VERSION_ERROR"                 offset="3000"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_IPV4_CHECKSUM_ERROR"                offset="3001"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_IPV4_TOTAL_LENGTH_ERROR"            offset="1002"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_IPV4_OPTIONS_ERROR"                 offset="3003"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_IPV4_SIP_EQUAL_DIP_ERROR"           offset="3004"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_IPV4_DIP_ZERO_ERROR"                offset="3005"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_IPV4_SIP_IS_MC_ERROR"               offset="3006"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_IPV4_HEADER_LENGTH_ERROR"           offset="3007"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_IN_LIF_UNKNOWN_DA_PROFILE"          offset="3008"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_NOF_VALID_LM_LIFS"                  offset="3010"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_IS_IN_LIF_VALID_FOR_LM"             offset="3012"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FWD1_PRIORITY_DECODER_FWD_STRENGTH" offset="3013"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FWD1_PRIORITY_DECODER_RPF_STRENGTH" offset="3018"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FWD1_PRIORITY_DECODER_FWD_FOUND"    offset="3023"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FWD1_PRIORITY_DECODER_RPF_FOUND"    offset="3024"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_STATISTICS_META_DATA"               offset="3025"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FWD_STAT_ATTRIBUTE_OBJ_CMD"         offset="3041"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_FWD_STAT_ATTRIBUTE_OBJ"             offset="3046"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_VSI_UNKNOWN_DA_DESTINATION"         offset="3066"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_INGRESS_PROTOCOL_TRAP_IN_LIF_PROFILE" offset="3087"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_ECMP_LB_KEY_0"                      offset="3095"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_ECMP_LB_KEY_1"                      offset="3111"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_ECMP_LB_KEY_2"                      offset="3127"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_LAG_LB_KEY"                         offset="3143"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_NWK_LB_KEY"                         offset="3159"/>
+                    <entry stage="DNX_FIELD_STAGE_EXTERNAL" qual="DNX_FIELD_IFWD2_QUAL_CONTEXT_CONSTANTS"                  offset="3175"/>
+                <!-- Entries for IPMF1 -->
+                    <!-- FIXMESDK-150529: change the offset by adding first bit used by PMF -->
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_PMF_ETH_RIF_PROFILE"            offset="2890"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_TM_PORT_PMF_PROFILE"            offset="1866"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_PP_PORT_PMF_GENERAL_DATA"       offset="1908+DATA(field, profile_bits, nof_bits_in_port_profile)"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_PP_PORT_PMF_PROFILE"            offset="1908"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_UNKNOWN_ADDRESS"                offset="3361"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_ALL_ONES"                       offset="3345"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_MEM_SOFT_ERR"                   offset="3344"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_ACL_CONTEXT"                    offset="3338"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_NASID"                          offset="3333"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_FWD_CONTEXT"                    offset="3327"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_RPF_OUT_LIF"                    offset="3305"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_RPF_DEFAULT_ROUTE_FOUND"        offset="3304"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_RPF_ROUTE_VALID"                offset="3303"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_PACKET_IS_APPLET"               offset="3302"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_GENERAL_DATA_2"                 offset="3174"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_GENERAL_DATA_1"                 offset="3046"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_GENERAL_DATA_0"                 offset="2918"/>
+                    <!-- FIXME: SDK-179446 currently assumed that virtual wires allocated only on General data which has start offset of DNX_FIELD_IPMF1_QUAL_GENERAL_DATA_0-->
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_AC_IN_LIF_WIDE_DATA"            offset="2918"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_NATIVE_AC_IN_LIF_WIDE_DATA"     offset="2918"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_FWD_DOMAIN"                     offset="2900"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_VRF_VALUE"                      offset="2900"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_FWD_DOMAIN_PROFILE"             offset="2890"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_VLAN_EDIT_PCP_2"                offset="2887"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_VLAN_EDIT_DEI_2"                offset="2886"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_VLAN_EDIT_PCP_DEI_2"            offset="2886"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_VLAN_EDIT_VID_2"                offset="2874"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_VLAN_EDIT_PCP_1"                offset="2871"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_VLAN_EDIT_DEI_1"                offset="2870"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_VLAN_EDIT_PCP_DEI_1"            offset="2870"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_VLAN_EDIT_VID_1"                offset="2858"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_VLAN_EDIT_CMD_INDEX"            offset="2851"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_VLAN_EDIT_CMD"                  offset="2851"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_SRC_SYS_PORT"                   offset="2835"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_SNOOP_CODE"                     offset="2826"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_SNOOP_STRENGTH"                 offset="2823"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_FWD_LAYER_ADDITIONAL_INFO"      offset="2819"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_RPF_DST"                        offset="2798"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_RPF_DST_VALID"                  offset="2797"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_PACKET_IS_IEEE1588"             offset="2796"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_IEEE1588_COMPENSATE_TIME_STAMP" offset="2795"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_IEEE1588_COMMAND"               offset="2793"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_IEEE1588_ENCAPSULATION"         offset="2792"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_IEEE1588_HEADER_OFFSET"         offset="2784"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_PACKET_IS_COMPATIBLE_MC"        offset="2783"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_PRT_QUALIFIER"                  offset="2780"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_PACKET_HEADER_SIZE"             offset="2772"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_OAM_ID"                         offset="2753"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_OAM_UP_MEP"                     offset="2752"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_OAM_SUB_TYPE"                   offset="2748"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_OAM_OFFSET"                     offset="2740"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_OAM_STAMP_OFFSET"               offset="2732"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_MIRROR_CODE"                    offset="2723"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_VISIBILITY"                     offset="2722"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_LEARN_EXPECTED_WON"            offset="2717"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_LEARN_FOUND"                    offset="2716"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_LEARN_MATCH"                    offset="2715"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_LEARN_STATION_MOVE"             offset="2714"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_LEARN_VLAN"                     offset="2697"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_LEARN_VSI"                      offset="2679"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_LEARN_SRC_MAC"                  offset="2631"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_LEARN_DATA"                     offset="2565"/>                     
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_LEARN_INFO"                     offset="2562"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_INGRESS_LEARN_ENABLE"           offset="2561"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_EGRESS_LEARN_ENABLE"            offset="2560"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_GLOB_IN_LIF_1"                  offset="2538"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_GLOB_IN_LIF_0"                  offset="2516"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_IN_LIF_PROFILE_1"               offset="2508"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_IN_LIF_PROFILE_0"               offset="2500"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_FWD_ACTION_STRENGTH"            offset="2496"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_FWD_ACTION_DESTINATION"         offset="2475"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_FWD_ACTION_CPU_TRAP_CODE"       offset="2466"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_FWD_ACTION_CPU_TRAP_QUAL"       offset="2447"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_EEI"                            offset="2423"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_ELK_LKP_HIT_0"                  offset="2422"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_ELK_LKP_HIT_1"                  offset="2421"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_ELK_LKP_HIT_2"                  offset="2420"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_ELK_LKP_HIT_3"                  offset="2419"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_ELK_LKP_HIT_4"                  offset="2418"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_ELK_LKP_HIT_5"                  offset="2417"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_ELK_LKP_HIT_6"                  offset="2416"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_ELK_LKP_HIT_7"                  offset="2415"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_ELK_LKP_PAYLOAD_ALL_PART_1"     offset="2327"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_ELK_LKP_PAYLOAD_ALL_PART_0"     offset="2167"/>
+                    <!-- Note that as Q2A have only one core, we do not include the core_id in the in_port qualifier. -->
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_PP_PORT"                        offset="2157"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_IN_PORT"                        offset="2157"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_CORE_ID"                        offset="2156"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_PTC"                            offset="2146"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_LAG_LB_KEY"                     offset="2130"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_NWK_LB_KEY"                     offset="2114"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_ECMP_LB_KEY_2"                  offset="2098"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_ECMP_LB_KEY_1"                  offset="2082"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_ECMP_LB_KEY_0"                  offset="2066"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_GLOB_OUT_LIF_1"                 offset="2044"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_GLOB_OUT_LIF_0"                 offset="2022"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_IN_TTL"                         offset="2014"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_BIER_STR_OFFSET"                offset="2006"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_BIER_STR_SIZE"                  offset="2004"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_PACKET_IS_BIER"                 offset="2003"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_SAVED_CONTEXT_PROFILE"          offset="1997"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_OAM_METER_DISABLE"              offset="1996"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_INCOMING_TAG_STRUCTURE"         offset="1991"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_TC"                             offset="1988"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_DP"                             offset="1986"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_ECN"                            offset="1983"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_NWK_QOS"                        offset="1975"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_TRACE_PACKET"                   offset="1974"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_PACKET_HEADER_SIZE_RANGE"       offset="1972"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_IN_PORT_KEY_GEN_VAR"            offset="1908"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_IN_PORT_MAPPED_PP_PORT"         offset="1898"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_PTC_KEY_GEN_VAR"                offset="1866"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_VID_VALID"                      offset="1865"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_L4OPS"                          offset="1841"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_STATISTICS_OBJECT10"            offset="1838"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_CPU_TRAP_CODE_PROFILE"          offset="1837"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_TM_FLOW_ID"                     offset="1817"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_EXT_STATISTICS_ID_3"            offset="1797"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_EXT_STATISTICS_ID_2"            offset="1777"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_EXT_STATISTICS_ID_1"            offset="1757"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_EXT_STATISTICS_ID_0"            offset="1737"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_STATISTICS_ID_9"                offset="1717"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_STATISTICS_ID_8"                offset="1697"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_STATISTICS_ID_7"                offset="1677"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_STATISTICS_ID_6"                offset="1657"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_STATISTICS_ID_5"                offset="1637"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_STATISTICS_ID_4"                offset="1617"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_STATISTICS_ID_3"                offset="1597"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_STATISTICS_ID_2"                offset="1577"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_STATISTICS_ID_1"                offset="1557"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_STATISTICS_ID_0"                offset="1537"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_TM_FLOW_ATR"                    offset="1532"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_EXT_STATISTICS_ATR_3"           offset="1527"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_EXT_STATISTICS_ATR_2"           offset="1522"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_EXT_STATISTICS_ATR_1"           offset="1517"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_EXT_STATISTICS_ATR_0"           offset="1512"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_STATISTICS_ATR_9"               offset="1507"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_STATISTICS_ATR_8"               offset="1502"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_STATISTICS_ATR_7"               offset="1497"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_STATISTICS_ATR_6"               offset="1492"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_STATISTICS_ATR_5"               offset="1487"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_STATISTICS_ATR_4"               offset="1482"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_STATISTICS_ATR_3"               offset="1477"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_STATISTICS_ATR_2"               offset="1472"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_STATISTICS_ATR_1"               offset="1467"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_STATISTICS_ATR_0"               offset="1462"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_STATISTICS_META_DATA"           offset="1446"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_CONTEXT_KEY_GEN_VAR"            offset="1414"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_EGRESS_PARSING_INDEX"           offset="1411"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF1" qual="DNX_FIELD_IPMF1_QUAL_FWD_LAYER_INDEX"                offset="1408"/>
+                <!-- Entries for IPMF2 -->
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" qual="DNX_FIELD_IPMF2_QUAL_PMF1_TCAM_ACTION_0"             offset="1320"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" qual="DNX_FIELD_IPMF2_QUAL_PMF1_TCAM_ACTION_1"             offset="1256"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" qual="DNX_FIELD_IPMF2_QUAL_PMF1_TCAM_ACTION_2"             offset="1192"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" qual="DNX_FIELD_IPMF2_QUAL_PMF1_TCAM_ACTION_3"             offset="1128"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" qual="DNX_FIELD_IPMF2_QUAL_PMF1_EXEM_ACTION"               offset="1068"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" qual="DNX_FIELD_IPMF2_QUAL_PMF1_DIRECT_ACTION"             offset="944"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" qual="DNX_FIELD_IPMF2_QUAL_STATE_DATA"                     offset="935"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" qual="DNX_FIELD_IPMF2_QUAL_STATE_ADDRESS"                  offset="925"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" qual="DNX_FIELD_IPMF2_QUAL_KEY_F_INITIAL"                  offset="765"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" qual="DNX_FIELD_IPMF2_QUAL_KEY_G_INITIAL"                  offset="605"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" qual="DNX_FIELD_IPMF2_QUAL_KEY_H_INITIAL"                  offset="445"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" qual="DNX_FIELD_IPMF2_QUAL_KEY_I_INITIAL"                  offset="285"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" qual="DNX_FIELD_IPMF2_QUAL_KEY_J_INITIAL"                  offset="125"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" qual="DNX_FIELD_IPMF2_QUAL_LAG_LB_KEY"                     offset="109"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" qual="DNX_FIELD_IPMF2_QUAL_NWK_LB_KEY"                     offset="93"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" qual="DNX_FIELD_IPMF2_QUAL_ECMP_LB_KEY_2"                  offset="77"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" qual="DNX_FIELD_IPMF2_QUAL_ECMP_LB_KEY_1"                  offset="61"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" qual="DNX_FIELD_IPMF2_QUAL_ECMP_LB_KEY_0"                  offset="45"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" qual="DNX_FIELD_IPMF2_QUAL_TRJ_HASH"                       offset="29"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" qual="DNX_FIELD_IPMF2_QUAL_CMP_KEY_0_DECODED"              offset="23"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" qual="DNX_FIELD_IPMF2_QUAL_CMP_KEY_1_DECODED"              offset="17"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" qual="DNX_FIELD_IPMF2_QUAL_CMP_KEY_TCAM_0_DECODED"         offset="11"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" qual="DNX_FIELD_IPMF2_QUAL_CMP_KEY_TCAM_1_DECODED"         offset="5"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF2" qual="DNX_FIELD_IPMF2_QUAL_NASID"                          offset="0"/>
+                <!-- Entries for IPMF3 -->
+                    <!-- FIXMESDK-150529: change the offset by adding first bit used by PMF -->
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_PMF_ETH_RIF_PROFILE"            offset="1375"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_TM_PORT_PMF_PROFILE"            offset="437"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_PP_PORT_PMF_GENERAL_DATA"       offset="373+DATA(field, profile_bits, nof_bits_in_port_profile)"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_PP_PORT_PMF_PROFILE"            offset="373"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_PRT_QUALIFIER"                  offset="1819"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_ELEPHANT_LEARN_NEEDED"          offset="1818"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_ELEPHANT_TRAP_INFO"             offset="1722"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_DUAL_QUEUE"                     offset="1721"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_ALL_ONES"                       offset="1705"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_LEARN_EXPECTED_WON"            offset="1700"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_LEARN_FOUND"                    offset="1699"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_LEARN_MATCH"                    offset="1698"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_LEARN_STATION_MOVE"             offset="1697"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_LEARN_VLAN"                     offset="1680"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_LEARN_VSI"                      offset="1662"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_LEARN_SRC_MAC"                  offset="1614"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_LEARN_DATA"                     offset="1548"/>                     
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_LEARN_INFO"                     offset="1545"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_RPF_ECMP_MODE"                  offset="1543"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_RPF_ECMP_GROUP"                 offset="1527"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_ADMT_PROFILE"                   offset="1524"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_BIER_STR_OFFSET"                offset="1516"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_BIER_STR_SIZE"                  offset="1514"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_BYTES_TO_REMOVE"                offset="1505"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_WEAK_TM_VALID"                  offset="1504"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_WEAK_TM_PROFILE"                offset="1498"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_STAT_OBJ_LM_READ_INDEX"         offset="1496"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_CONGESTION_INFO"                offset="1493"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_END_OF_PACKET_EDITING"          offset="1490"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_EEI"                            offset="1466"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_EGRESS_LEARN_ENABLE"            offset="1465"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_FWD_ACTION_CPU_TRAP_QUAL"       offset="1446"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_FWD_ACTION_CPU_TRAP_CODE"       offset="1437"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_FWD_ACTION_DP_METER_COMMAND"    offset="1433"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_FWD_ACTION_DP"                  offset="1431"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_FWD_ACTION_TC"                  offset="1429"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_FWD_ACTION_DESTINATION"         offset="1407"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_FWD_ACTION_STRENGTH"            offset="1403"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_FWD_PAYLOAD"                    offset="1403"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_FWD_DOMAIN"                     offset="1385"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_VRF_VALUE"                      offset="1385"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_FWD_DOMAIN_PROFILE"             offset="1375"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_GENERAL_DATA_PMF_CONTAINER"     offset="1343"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_GENERAL_DATA"                   offset="1247"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_IEEE1588_COMMAND"               offset="1245"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_IEEE1588_COMPENSATE_TIME_STAMP" offset="1244"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_IEEE1588_ENCAPSULATION"         offset="1243"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_IEEE1588_HEADER_OFFSET"         offset="1235"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_IN_LIF_PROFILE_1"               offset="1227"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_IN_LIF_PROFILE_0"               offset="1219"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_GLOB_IN_LIF_1"                  offset="1197"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_GLOB_IN_LIF_0"                  offset="1175"/>
+                    <!-- Note that as Q2A have only one core, we do not include the core_id in the in_port qualifier. -->
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_PP_PORT"                        offset="1165"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_IN_PORT"                        offset="1165"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_CORE_ID"                        offset="1164"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_IN_TTL"                         offset="1156"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_INGRESS_LEARN_ENABLE"           offset="1155"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_ITPP_DELTA"                     offset="1146"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_LAG_LB_KEY"                     offset="1130"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_LATENCY_FLOW_ID_VALID"          offset="1129"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_LATENCY_FLOW_ID"                offset="1110"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_MIRROR_CODE"                    offset="1101"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_MIRROR_QUALIFIER"               offset="1093"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_NWK_LB_KEY"                     offset="1077"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_NWK_QOS"                        offset="1069"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_OAM_ID"                         offset="1050"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_OAM_OFFSET"                     offset="1042"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_OAM_STAMP_OFFSET"               offset="1034"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_OAM_SUB_TYPE"                   offset="1030"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_OAM_UP_MEP"                     offset="1029"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_GLOB_OUT_LIF_3"                 offset="1007"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_GLOB_OUT_LIF_2"                 offset="985"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_GLOB_OUT_LIF_1"                 offset="963"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_GLOB_OUT_LIF_0"                 offset="941"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_PACKET_IS_APPLET"               offset="941"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_NASID"                          offset="935"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_PACKET_IS_BIER"                 offset="934"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_PACKET_IS_IEEE1588"             offset="933"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_EGRESS_PARSING_INDEX"           offset="930"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_PTC"                            offset="920"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_EXT_STATISTICS_VALID"           offset="919"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_PPH_RESERVED"                   offset="916"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_PPH_TYPE"                       offset="914"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_RPF_DST"                        offset="893"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_RPF_DST_VALID"                  offset="892"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_SNOOP_CODE"                     offset="883"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_SNOOP_STRENGTH"                 offset="880"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_SNOOP_QUALIFIER"                offset="872"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_SRC_SYS_PORT"                   offset="856"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_ST_VSQ_PTR"                     offset="848"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_STATISTICAL_SAMPLING_CODE"      offset="839"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_STATISTICAL_SAMPLING_QUALIFIER" offset="831"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_STACKING_ROUTE_HISTORY_BITMAP"  offset="815"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_STATISTICS_META_DATA"           offset="799"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_STATISTICS_OBJECT10"            offset="796"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_SYSTEM_HEADER_PROFILE_INDEX"    offset="792"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_TM_PROFILE"                     offset="790"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_USER_HEADER_1"                  offset="758"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_USER_HEADER_2"                  offset="726"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_USER_HEADER_3"                  offset="694"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_USER_HEADER_4"                  offset="662"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_USER_HEADER_1_TYPE"             offset="660"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_USER_HEADER_2_TYPE"             offset="658"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_USER_HEADER_3_TYPE"             offset="656"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_USER_HEADER_4_TYPE"             offset="654"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_USER_HEADERS_TYPE"              offset="654"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_VISIBILITY"                     offset="653"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_VLAN_EDIT_VID_2"                offset="641"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_VLAN_EDIT_VID_1"                offset="629"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_VLAN_EDIT_DEI_2"                offset="628"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_VLAN_EDIT_PCP_2"                offset="625"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_VLAN_EDIT_PCP_DEI_2"            offset="625"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_VLAN_EDIT_DEI_1"                offset="624"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_VLAN_EDIT_PCP_1"                offset="621"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_VLAN_EDIT_PCP_DEI_1"            offset="621"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_VLAN_EDIT_CMD_INDEX"            offset="614"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_VLAN_EDIT_CMD"                  offset="614"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_FWD_LAYER_ADDITIONAL_INFO"      offset="610"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_SLB_LEARN_NEEDED"               offset="609"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_SLB_KEY"                        offset="529"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_SLB_PAYLOAD"                    offset="469"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_PTC_KEY_GEN_VAR"                offset="437"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_IN_PORT_KEY_GEN_VAR"            offset="373"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_IN_PORT_MAPPED_PP_PORT"         offset="363"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_CONTEXT_KEY_GEN_VAR"            offset="331"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_FER_STATISTICS_OBJ"             offset="259"/>
+                    <entry stage="DNX_FIELD_STAGE_IPMF3" qual="DNX_FIELD_IPMF3_QUAL_FWD_LAYER_INDEX"                offset="256"/>
+                <!-- Entries for EPMF -->
+                    <!-- FIXMESDK-150529: change the offset by adding first bit used by PMF -->
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_TM_PORT_PMF_PROFILE"                   offset="2457"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_PP_PORT_PMF_PROFILE"                   offset="2509"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_FTMH_RESERVED"                         offset="1167"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_FTMH_VISIBILITY"                       offset="1168"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_FTMH_TM_PROFILE"                       offset="1169"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_FTMH_ECN_ENABLE"                       offset="1171"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_FTMH_CNI"                              offset="1172"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_FTMH_BIER_BFR_EXT_PRESENT"             offset="1173"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_FTMH_FLOW_ID_EXT_PRESENT"              offset="1174"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_FTMH_APPLICATION_SPECIFIC_EXT_PRESENT" offset="1175"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_FTMH_TM_DESTINATION_EXT_PRESENT"       offset="1176"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_FTMH_MCID_OR_OUTLIF_0_OR_MCDB_PTR"     offset="1177"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_FTMH_TM_ACTION_IS_MC"                  offset="1199"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_FTMH_PPH_PRESENT"                      offset="1200"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_FTMH_TSH_EXT_PRESENT"                  offset="1201"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_FTMH_TM_ACTION_TYPE"                   offset="1202"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_FTMH_DP"                               offset="1204"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_PP_DSP"                                offset="1206"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_FTMH_SRC_SYS_PORT"                     offset="1216"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_FTMH_TC"                               offset="1232"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_FTMH_PACKET_SIZE"                      offset="1235"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_LB_KEY"                                offset="1249"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_NWK_KEY"                               offset="1257"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_STACKING_EXT"                          offset="1273"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_BIER_BFR_EXT"                          offset="1289"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_TM_DESTINATION_EXT"                    offset="1305"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_APPLICATION_SPECIFIC_EXT"              offset="1329"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_TSH_EXT"                               offset="1377"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_FWD_STRENGTH"                          offset="1433"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_PPH_PARSING_START_TYPE"                offset="1437"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_PPH_PARSING_START_OFFSET"              offset="1442"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_PPH_LIF_EXT_TYPE"                      offset="1449"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_PPH_FHEI_SIZE"                         offset="1452"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_PPH_LEARN_EXT_PRESENT"                 offset="1454"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_PPH_TTL"                               offset="1455"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_PPH_NWK_QOS"                           offset="1463"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_PPH_IN_LIF"                            offset="1471"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_PPH_FWD_DOMAIN"                        offset="1493"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_PPH_VRF_VALUE"                         offset="1493"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_PPH_IN_LIF_PROFILE"                    offset="1511"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_PPH_END_OF_PACKET_EDITING"             offset="1519"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_PPH_FWD_LAYER_ADDITIONAL_INFO"         offset="1522"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_PPH_VALUE1"                            offset="1526"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_PPH_VALUE2"                            offset="1534"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_FHEI_EXT"                              offset="1542"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_LEARN_EXT"                             offset="1606"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_LEARN_EXT_DATA"                        offset="1609"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_LEARN_EXT_SRC_MAC"                     offset="1675"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_LEARN_EXT_VSI"                         offset="1723"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_LEARN_EXT_VLAN"                        offset="1741"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_LIF_EXT"                               offset="1758"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_USER_HEADER_4"                         offset="1830"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_USER_HEADER_3"                         offset="1862"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_USER_HEADER_2"                         offset="1894"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_USER_HEADER_1"                         offset="1926"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_USER_HEADER_4_TYPE"                    offset="1958"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_USER_HEADER_3_TYPE"                    offset="1960"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_USER_HEADER_2_TYPE"                    offset="1962"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_USER_HEADER_1_TYPE"                    offset="1964"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_IS_TDM"                                offset="1966"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_CUD_OUTLIF_OR_MCDB_PTR"                offset="1967"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_DISCARD"                               offset="1989"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_OUT_LIF_PROFILE"                       offset="1990"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_PMF_ETH_RIF_PROFILE"                   offset="1993"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_ETH_TAG_FORMAT"                        offset="1994"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_UPDATED_TPIDS_PACKET_DATA"             offset="2004"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_IVE_BYTES_TO_ADD"                      offset="2148"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_IVE_BYTES_TO_REMOVE"                   offset="2153"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_ETHER_TYPE_CODE"                       offset="2158"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_FABRIC_OR_EGRESS_MC"                   offset="2174"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_ESTIMATED_BTR"                         offset="2175"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_FWD_CONTEXT"                           offset="2184"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_GLOB_OUT_LIF_0"                        offset="2190"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_GLOB_OUT_LIF_1"                        offset="2212"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_GLOB_OUT_LIF_2"                        offset="2234"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_GLOB_OUT_LIF_3"                        offset="2256"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_GLOB_IN_LIF_0"                         offset="2278"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_IN_LIF_PROFILE_0"                      offset="2300"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_IP_MC_ELIGIBLE"                        offset="2308"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_IP_MC_SHOULD_BE_BRIDGED"               offset="2309"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_LEARN_VALID"                           offset="2310"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_LOCAL_OUT_LIF"                         offset="2311"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_FWD_ACTION_PROFILE_INDEX"              offset="2331"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_SNOOP_ACTION_PROFILE_INDEX"            offset="2334"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_SNOOP_STRENGTH"                        offset="2336"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_SYSTEM_HEADERS_SIZE"                   offset="2339"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_DST_SYS_PORT"                          offset="2346"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_OUT_TM_PORT"                           offset="2362"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_OUT_PP_PORT"                           offset="2372"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_PACKET_IS_APPLET"                      offset="2382"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_MEM_SOFT_ERR"                          offset="2383"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_TC_MAP_PROFILE"                        offset="2384"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_L4_PORT_IN_RANGE"                      offset="2388"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_PROGRAM_INDEX"                         offset="2412"/>
+                    <entry stage="DNX_FIELD_STAGE_EPMF" qual="DNX_FIELD_EPMF_QUAL_PER_PORT_TABLE_DATA"                   offset="2418"/>
+                 </entries>
+            </table>
+            
+            <table name="layer_record_info_ingress">
+                <!-- Note that this table is the same as in J2_b0. It is given here because J2C inherits from J2_a0 and not J2_b0.-->
+                <key name="layer_record" size="DNX_FIELD_LR_QUAL_NOF"/>
+                <value name="valid" default="0"/>
+                <value name="size" default="0"/>
+                <value name="offset" default="0"/>
+                <entries>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_OFFSET"                            valid="TRUE"   size="8"   offset="0"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_PROTOCOL"                          valid="TRUE"   size="5"   offset="24"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_QUALIFIER"                         valid="TRUE"   size="16"  offset="8"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_ETH_IS_DA_MC"                      valid="TRUE"   size="1"   offset="8"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_ETH_IS_DA_BC"                      valid="TRUE"   size="1"   offset="9"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_ETH_1ST_TPID_EXIST"                valid="TRUE"   size="1"   offset="10"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_ETH_1ST_TPID_INDEX"                valid="TRUE"   size="3"   offset="11"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_ETH_2ND_TPID_EXIST"                valid="TRUE"   size="1"   offset="14"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_ETH_2ND_TPID_INDEX"                valid="TRUE"   size="3"   offset="15"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_ETH_3RD_TPID_EXIST"                valid="TRUE"   size="1"   offset="18"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_ETH_3RD_TPID_INDEX"                valid="TRUE"   size="3"   offset="19"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV4_IS_MC"                        valid="TRUE"   size="1"   offset="8"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV4_HAS_OPTION"                   valid="TRUE"   size="1"   offset="9"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV4_IS_FRAGMENTED"                valid="TRUE"   size="1"   offset="10"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV4_IS_1ST_FRAGMENT"              valid="TRUE"   size="1"   offset="11"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV4_1ST_ADD_HEADER_EXIST"         valid="TRUE"   size="1"   offset="12"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV4_1ST_ADD_HEADER"               valid="TRUE"   size="4"   offset="13"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV4_2ND_ADD_HEADER_EXISTS"        valid="TRUE"   size="1"   offset="17"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV4_TUNNEL_TYPE"                  valid="TRUE"   size="4"   offset="18"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV6_IS_MC"                        valid="TRUE"   size="1"   offset="8"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV6_1ST_ADD_HEADER_EXIST"         valid="TRUE"   size="1"   offset="9"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV6_1ST_ADD_HEADER"               valid="TRUE"   size="5"   offset="10"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV6_2ND_ADD_HEADER_EXISTS"        valid="TRUE"   size="1"   offset="15"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV6_2ND_ADD_HEADER"               valid="TRUE"   size="5"   offset="16"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV6_3RD_ADD_HEADER_EXISTS"        valid="TRUE"   size="1"   offset="21"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV6_VALUE_1"                      valid="TRUE"   size="1"   offset="22"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_SRV6_EP_SEGMENT_LEFT_MINUS_ONE"    valid="TRUE"   size="8"   offset="8"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_MPLS_NOF_LABELS"                   valid="TRUE"   size="4"   offset="8"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_BIER_BITSTRINGLENGTH"              valid="TRUE"   size="4"   offset="8"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_FCOE_IS_FIP"                       valid="TRUE"   size="1"   offset="8"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_FCOE_IS_ENCAP"                     valid="TRUE"   size="1"   offset="9"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_FCOE_VFT_EXIST"                    valid="TRUE"   size="1"   offset="10"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_ITMH_PPH_TYPE"                     valid="TRUE"   size="2"   offset="8"/>
+                 </entries>
+            </table>
+
+            <table name="layer_record_info_egress">
+                <!-- Note that this table is the same as in J2_b0. It is given here because J2C inherits from J2_a0 and not J2_b0.-->
+                <key name="layer_record" size="DNX_FIELD_LR_QUAL_NOF"/>
+                <value name="valid" default="0"/>
+                <value name="size" default="0"/>
+                <value name="offset" default="0"/>
+                <entries>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_OFFSET"                            valid="TRUE"   size="7"   offset="0"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_PROTOCOL"                          valid="TRUE"   size="5"   offset="23"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_QUALIFIER"                         valid="TRUE"   size="16"  offset="7"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_ETH_IS_DA_MC"                      valid="TRUE"   size="1"   offset="7"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_ETH_IS_DA_BC"                      valid="TRUE"   size="1"   offset="8"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_ETH_1ST_TPID_EXIST"                valid="TRUE"   size="1"   offset="9"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_ETH_1ST_TPID_INDEX"                valid="TRUE"   size="3"   offset="10"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_ETH_2ND_TPID_EXIST"                valid="TRUE"   size="1"   offset="13"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_ETH_2ND_TPID_INDEX"                valid="TRUE"   size="3"   offset="14"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_ETH_3RD_TPID_EXIST"                valid="TRUE"   size="1"   offset="17"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_ETH_3RD_TPID_INDEX"                valid="TRUE"   size="3"   offset="18"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV4_IS_MC"                        valid="TRUE"   size="1"   offset="7"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV4_HAS_OPTION"                   valid="TRUE"   size="1"   offset="8"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV4_IS_FRAGMENTED"                valid="TRUE"   size="1"   offset="9"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV4_IS_1ST_FRAGMENT"              valid="TRUE"   size="1"   offset="10"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV4_1ST_ADD_HEADER_EXIST"         valid="TRUE"   size="1"   offset="11"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV4_1ST_ADD_HEADER"               valid="TRUE"   size="4"   offset="12"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV4_2ND_ADD_HEADER_EXISTS"        valid="TRUE"   size="1"   offset="16"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV4_TUNNEL_TYPE"                  valid="TRUE"   size="4"   offset="17"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV6_IS_MC"                        valid="TRUE"   size="1"   offset="7"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV6_1ST_ADD_HEADER_EXIST"         valid="TRUE"   size="1"   offset="8"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV6_1ST_ADD_HEADER"               valid="TRUE"   size="5"   offset="9"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV6_2ND_ADD_HEADER_EXISTS"        valid="TRUE"   size="1"   offset="14"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV6_2ND_ADD_HEADER"               valid="TRUE"   size="5"   offset="15"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV6_3RD_ADD_HEADER_EXISTS"        valid="TRUE"   size="1"   offset="20"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_IPV6_VALUE_1"                      valid="TRUE"   size="1"   offset="21"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_SRV6_EP_SEGMENT_LEFT_MINUS_ONE"    valid="TRUE"   size="8"   offset="7"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_MPLS_NOF_LABELS"                   valid="TRUE"   size="4"   offset="7"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_BIER_BITSTRINGLENGTH"              valid="TRUE"   size="4"   offset="7"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_FCOE_IS_FIP"                       valid="TRUE"   size="1"   offset="7"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_FCOE_IS_ENCAP"                     valid="TRUE"   size="1"   offset="8"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_FCOE_VFT_EXIST"                    valid="TRUE"   size="1"   offset="9"/>
+                    <entry layer_record="DNX_FIELD_LR_QUAL_ITMH_PPH_TYPE"                     valid="TRUE"   size="2"   offset="7"/>
+                 </entries>
+            </table>
+
+        </tables>
+    </sub_module>
+
+    <sub_module name="exem" doc="exem values">
+        <defines>
+            <define name="small_ipmf2_key" value="4"></define>
+            <define name="small_ipmf2_key_part" value="0"></define>
+            <!-- 
+                The value of small_ipmf2_key_hw_value is dependant on small_ipmf2_key and small_ipmf2_key_part.
+                If LSB half of key F (small_ipmf2_key=0 small_ipmf2_key_part=0) than small_ipmf2_key_value=0
+                If MSB half of key F (small_ipmf2_key=0 small_ipmf2_key_part=1) than small_ipmf2_key_value=1
+                If LSB half of key J (small_ipmf2_key=4 small_ipmf2_key_part=0) than small_ipmf2_key_value=2
+                If MSB half of key J (small_ipmf2_key=4 small_ipmf2_key_part=1) than small_ipmf2_key_value=3
+            -->
+            <define name="small_ipmf2_key_hw_value" value="(((DATA(field, exem, small_ipmf2_key)/4)*2)+(DATA(field, exem, small_ipmf2_key_part)))"></define>
+            <define name="small_ipmf2_key_hw_bits" value="2"></define>
+            <define name="large_ipmf1_key_configurable" value="0"></define>
+            <define name="large_ipmf1_key" value="4"></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="features">
+        <defines>
+            <define name="switch_to_acl_context" value="0"></define>
+            <define name="kbp_opcode_in_ipmf1_cs" value="1"></define>
+            <define name="kbp_hitbits_correct_in_ipmf1_cs" value="1"></define>
+            <define name="exem_vmv_removable_from_payload" value="1"></define>
+            <define name="tcam_result_half_payload_on_msb" value="1"></define>
+            <define name="multiple_dynamic_mem_enablers" value="1"></define>
+        </defines>
+    </sub_module>
+    <sub_module name="signal_sizes">
+        <defines>
+            <define name="dual_queue_size" value="1"></define>
+            <define name="ecn" value="3"></define>
+        </defines>
+    </sub_module>
+    <sub_module name="init" doc="Field defines and features related to init.">
+        <defines>
+            <define name="wa_fec_dest" value="0"></define>
+            <define name="wa_oam_layer_index" value="1"></define>
+            <define name="wa_oam_stat" value="0"></define>
+            <define name="wa_j1_learning" value="0"></define> 
+            <define name="wa_roo" value="0"></define>
+            <define name="wa_j1_same_port" value="0"></define>
+            <define name="wa_jr1_ipmc_inlif" value="0"></define>
+            <define name="wa_flow_id" value="0"></define>
+        </defines>
+    </sub_module>
+   <sub_module name="tcam">
+        <defines>
+            <define name="hw_bank_size" value="2048"></define>
+            <define name="nof_big_bank_lines" value="2048"></define>
+            <define name="dt_max_key_size" value="10"></define>
+            <define name="nof_entries_160_bits" value="13312"></define>
+            <define name="nof_entries_80_bits" value="26624"></define>
+        </defines>
+    </sub_module>
+
+
+</device_data>
+
+
+

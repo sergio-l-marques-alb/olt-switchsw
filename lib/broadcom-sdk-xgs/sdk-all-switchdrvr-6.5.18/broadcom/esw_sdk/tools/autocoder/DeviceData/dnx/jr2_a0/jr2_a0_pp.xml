@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0" module="pp">
+    <includes>
+        <include>soc/dnx/pp_stage.h</include>
+        <include>soc/dnx/dbal/auto_generated/dbal_defines_fields.h</include>
+    </includes>
+
+    <sub_module name="stages">
+        <tables>
+            <table name="params">
+                <key name="stage" size="DNX_PP_STAGE_NOF"></key>
+                <value name="valid" default="0"></value>
+                <value name="name" default="unsupported"></value>
+                <value name="block" default="unknown"></value>
+                <value name="is_fp" default="0"></value>
+                <value name="is_kleap" default="0"></value>
+                <value name="pema_id" default="-1"></value>
+                <entries>
+                    <entry stage="DNX_PP_STAGE_NIF"      valid="1" name="NIF"      block="IRPP"    is_fp="0" is_kleap="0"/>
+                    <entry stage="DNX_PP_STAGE_PRT"      valid="1" name="PRT"      block="IRPP"    is_fp="0" is_kleap="0"/>
+                    <entry stage="DNX_PP_STAGE_IPARSER"  valid="1" name="IParser"  block="IRPP"    is_fp="0" is_kleap="0"/>
+                    <entry stage="DNX_PP_STAGE_LLR"      valid="1" name="LLR"      block="IRPP"    is_fp="0" is_kleap="0"/>
+                    <entry stage="DNX_PP_STAGE_VTT1"     valid="1" name="VTT1"     block="IRPP"    is_fp="0" is_kleap="1" pema_id="DBAL_ENUM_FVAL_PEMA_ID_VTT1"/>
+                    <entry stage="DNX_PP_STAGE_VTT2"     valid="1" name="VTT2"     block="IRPP"    is_fp="0" is_kleap="1"/>
+                    <entry stage="DNX_PP_STAGE_VTT3"     valid="1" name="VTT3"     block="IRPP"    is_fp="0" is_kleap="1" pema_id="DBAL_ENUM_FVAL_PEMA_ID_VTT3"/>
+                    <entry stage="DNX_PP_STAGE_VTT4"     valid="1" name="VTT4"     block="IRPP"    is_fp="0" is_kleap="1"/>
+                    <entry stage="DNX_PP_STAGE_VTT5"     valid="1" name="VTT5"     block="IRPP"    is_fp="0" is_kleap="1" pema_id="DBAL_ENUM_FVAL_PEMA_ID_VTT5"/>
+                    <entry stage="DNX_PP_STAGE_IFWD1"    valid="1" name="FWD1"     block="IRPP"    is_fp="0" is_kleap="1" pema_id="DBAL_ENUM_FVAL_PEMA_ID_FWD1"/>
+                    <entry stage="DNX_PP_STAGE_IFWD2"    valid="1" name="FWD2"     block="IRPP"    is_fp="1" is_kleap="1" pema_id="DBAL_ENUM_FVAL_PEMA_ID_FWD2"/>
+                    <entry stage="DNX_PP_STAGE_IPMF1"    valid="1" name="IPMF1"    block="IRPP"    is_fp="1" is_kleap="1" pema_id="DBAL_ENUM_FVAL_PEMA_ID_IPMF1"/>
+                    <entry stage="DNX_PP_STAGE_IPMF2"    valid="1" name="IPMF2"    block="IRPP"    is_fp="1" is_kleap="1"/>
+                    <entry stage="DNX_PP_STAGE_FER"      valid="1" name="FER"      block="IRPP"    is_fp="0" is_kleap="1"/>
+                    <entry stage="DNX_PP_STAGE_IPMF3"    valid="1" name="IPMF3"    block="IRPP"    is_fp="1" is_kleap="1" pema_id="DBAL_ENUM_FVAL_PEMA_ID_IPMF3"/>
+                    <entry stage="DNX_PP_STAGE_LBP"      valid="1" name="LBP"      block="IRPP"    is_fp="0" is_kleap="0"/>
+                    <entry stage="DNX_PP_STAGE_ITMR"     valid="1" name="ITMR"     block="IRPP"    is_fp="0" is_kleap="0"/>
+                    <entry stage="DNX_PP_STAGE_ITM"      valid="1" name="ITM"      block="IRPP"    is_fp="0" is_kleap="0"/>
+                    <entry stage="DNX_PP_STAGE_ITPP"     valid="1" name="ITPP"     block="ITPP"    is_fp="0" is_kleap="0"/>
+                    <entry stage="DNX_PP_STAGE_FABRIC"   valid="1" name="Fabric"   block="ERPP"    is_fp="0" is_kleap="0"/>
+                    <entry stage="DNX_PP_STAGE_ERPARSER" valid="1" name="ERParser" block="ERPP"    is_fp="0" is_kleap="0"/>
+                    <entry stage="DNX_PP_STAGE_ERPRP"    valid="1" name="PRP"      block="ERPP"    is_fp="0" is_kleap="0"/>
+                    <entry stage="DNX_PP_STAGE_FILTER"   valid="1" name="Filter"   block="ERPP"    is_fp="0" is_kleap="0"/>
+                    <entry stage="DNX_PP_STAGE_EPMF"     valid="1" name="EPMF"     block="ERPP"    is_fp="1" is_kleap="1"/>
+                    <entry stage="DNX_PP_STAGE_ETMR"     valid="1" name="ETMR"     block="ERPP"    is_fp="0" is_kleap="0"/>
+                    <entry stage="DNX_PP_STAGE_ETM"      valid="1" name="ETM"      block="ERPP"    is_fp="0" is_kleap="0"/>
+                    <entry stage="DNX_PP_STAGE_APPLET"   valid="1" name="Applet"   block="ETPP"    is_fp="0" is_kleap="0"/>
+                    <entry stage="DNX_PP_STAGE_ETPARSER" valid="1" name="ETParser" block="ETPP"    is_fp="0" is_kleap="0"/>
+                    <entry stage="DNX_PP_STAGE_ETPRP2"   valid="1" name="PRP2"     block="ETPP"    is_fp="0" is_kleap="0" pema_id="DBAL_ENUM_FVAL_PEMA_ID_PRP2"/>
+                    <entry stage="DNX_PP_STAGE_TERM"     valid="1" name="Term"     block="ETPP"    is_fp="0" is_kleap="1" pema_id="DBAL_ENUM_FVAL_PEMA_ID_TERM"/>
+                    <entry stage="DNX_PP_STAGE_EFWD"     valid="1" name="FWD"      block="ETPP"    is_fp="0" is_kleap="1" pema_id="DBAL_ENUM_FVAL_PEMA_ID_FWD"/>
+                    <entry stage="DNX_PP_STAGE_ENC1"     valid="1" name="Enc1"     block="ETPP"    is_fp="0" is_kleap="1" pema_id="DBAL_ENUM_FVAL_PEMA_ID_ENC1"/>
+                    <entry stage="DNX_PP_STAGE_ENC2"     valid="1" name="Enc2"     block="ETPP"    is_fp="0" is_kleap="1" pema_id="DBAL_ENUM_FVAL_PEMA_ID_ENC2"/>
+                    <entry stage="DNX_PP_STAGE_ENC3"     valid="1" name="Enc3"     block="ETPP"    is_fp="0" is_kleap="1" pema_id="DBAL_ENUM_FVAL_PEMA_ID_ENC3"/>
+                    <entry stage="DNX_PP_STAGE_ENC4"     valid="1" name="Enc4"     block="ETPP"    is_fp="0" is_kleap="1" pema_id="DBAL_ENUM_FVAL_PEMA_ID_ENC4"/>
+                    <entry stage="DNX_PP_STAGE_ENC5"     valid="1" name="Enc5"     block="ETPP"    is_fp="0" is_kleap="1" pema_id="DBAL_ENUM_FVAL_PEMA_ID_ENC5"/>
+                    <entry stage="DNX_PP_STAGE_TRAP"     valid="1" name="Trap"     block="ETPP"    is_fp="0" is_kleap="1" pema_id="DBAL_ENUM_FVAL_PEMA_ID_TRAP"/>
+                    <entry stage="DNX_PP_STAGE_BTC"      valid="1" name="BTC"      block="ETPP"    is_fp="0" is_kleap="0"/>
+                    <entry stage="DNX_PP_STAGE_ALIGNER"  valid="1" name="Aligner"  block="ETPP"    is_fp="0" is_kleap="0"/>
+                    <entry stage="DNX_PP_STAGE_EPNI"     valid="1" name="EPNI"     block="ETPP"    is_fp="0" is_kleap="0"/>
+                    <entry stage="DNX_PP_STAGE_ACE"      valid="0" name="ACE"      block="Virtual" is_fp="0" is_kleap="0"/>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="application">
+        <tables>
+            <table name="device_image">
+                <value name="standard_image_name" default="standard_1"></value>
+                <value name="name" default="standard_1">
+                    <property name="programmability_image_name" method="str">
+                        <doc>
+                          Define the device application image, affects the ucode to load and the validity per image MDB tables
+                        </doc>
+                    </property>
+                </value>
+            </table>
+           <table name="ucode">
+                <value name="relative_path" default="pemla/ucode/standard_1/jer2pemla/u_code_db2pem.txt">
+                    <property name="programmability_ucode_relative_path" method="str">
+                        <doc>
+                          Define the aucode relative path
+                        </doc>
+                    </property>
+                </value>
+            </table>
+       </tables>
+       <defines>
+        </defines>
+    </sub_module>
+    <sub_module name="ETPP">
+        <defines>
+            <define name="etps_type_size_bits" value="6"/>
+        </defines>
+    </sub_module>
+
+    <sub_module name="debug">
+        <defines>
+            <define name="packet_header_data" value="512"/>
+            <define name="ptc_size" value="8"/>
+            <define name="valid_bytes" value="7"/>
+            <define name="time_stamp" value="32"/>
+        </defines>
+        <features>
+        </features>
+    </sub_module>
+
+</device_data>

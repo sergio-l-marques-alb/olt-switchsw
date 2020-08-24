@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2c_a0"  module="stif">
+    <includes>
+        <include>bcm/stat.h</include>
+        <include>bcm_int/dnx/stat/stif/stif_mgmt.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_nif.h</include>
+    </includes>
+
+    <sub_module name="port" doc="stif - nif port instance values">
+        <defines>
+            <define name="max_nof_instances" value="2"></define>
+            <define name="stif_ethu_select_size" value="2"></define>
+            <define name="stif_lane_mapping_size" value="4"></define>
+        </defines>
+     
+        <numerics>
+        </numerics>
+     
+        <features>
+        </features>
+     
+        <tables>
+            <table name="ethu_id_stif_valid">
+                <key name="ethu_id" size="DATA(nif,eth,ethu_nof)"></key>
+                <value name="valid" default="0"></value>
+                <value name="hw_select_value" default="0"></value>                
+                <entries>
+                    <entry ethu_id="0" valid="0" hw_select_value="0"></entry>
+                    <entry ethu_id="1" valid="0" hw_select_value="0"></entry>
+                    <entry ethu_id="2" valid="0" hw_select_value="0"></entry>
+                    <entry ethu_id="3" valid="1" hw_select_value="1"></entry>
+                    <entry ethu_id="4" valid="1" hw_select_value="2"></entry>
+                    <entry ethu_id="5" valid="0" hw_select_value="0"></entry>
+                    <entry ethu_id="6" valid="0" hw_select_value="0"></entry>
+                    <entry ethu_id="7" valid="0" hw_select_value="0"></entry>
+                    <entry ethu_id="8" valid="0" hw_select_value="0"></entry>
+                    <entry ethu_id="9" valid="0" hw_select_value="0"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="report" doc="stif values related to the report">
+        <defines>
+        </defines>
+     
+        <numerics>
+        </numerics>
+     
+        <features>
+            <feature name="etpp_core_in_portmetadata" value="0"></feature>
+        </features>
+     
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="flow_control" doc="stif values related to the low and high flow control calculations">
+        <defines>
+        </defines>
+     
+        <numerics>
+        </numerics>
+     
+        <features>
+             <feature name="instance_0_must_be_on" value="1"></feature>
+        </features>
+     
+        <tables>
+        </tables>
+    </sub_module>
+
+
+     <sub_module name="config">
+     
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+     
+        <features>
+            <feature name="mixing_ports_limitation" value="0"></feature>
+        </features>
+     
+        <tables>
+        </tables>
+     </sub_module>
+
+</device_data>

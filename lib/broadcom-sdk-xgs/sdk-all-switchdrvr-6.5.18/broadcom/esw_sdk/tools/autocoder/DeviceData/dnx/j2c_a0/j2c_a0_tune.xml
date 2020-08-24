@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2c_a0"  module="tune">
+
+    <sub_module name="ecgm">
+        <defines>
+            <define name="port_uc_flow_control_min_divider" value="1"></define>
+        </defines>
+
+        <tables>
+            <table name="port_dp_ratio">
+                <key name="dp" size="4"></key>
+                <value name="percentage_ratio" default="100"></value>
+                <entries>
+                    <entry dp="0" percentage_ratio="100"></entry>
+                    <entry dp="1" percentage_ratio="100"></entry>
+                    <entry dp="2" percentage_ratio="50"></entry>
+                    <entry dp="3" percentage_ratio="50"></entry>
+                </entries>                
+            </table>
+        </tables>
+
+    </sub_module>
+    
+    <sub_module name="iqs">
+        
+        <features>
+        </features>
+        
+        <defines>
+        </defines>
+
+        <numerics>
+            <numeric name="fmq_max_rate" value="400"/>
+        </numerics>        
+
+    </sub_module>
+    
+    <sub_module name="fabric">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="cgm_llfc_pipe_th" value="376"></define>
+            <define name="cgm_drop_fabric_class_th" value="192"></define>
+        </defines>
+
+        <numerics>
+        </numerics>        
+        
+    </sub_module>
+    
+</device_data>
+
+
+

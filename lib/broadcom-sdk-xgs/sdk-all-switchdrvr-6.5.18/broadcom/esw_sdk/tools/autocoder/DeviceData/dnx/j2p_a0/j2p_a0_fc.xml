@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2p_a0"  module="fc" bsl_flag="BSL_LS_SOCDNX_GENERAL">    
+
+     <includes>
+        <include>bcm_int/dnx/cosq/flow_control/cosq_fc.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_nif.h</include>
+        <include>soc/dnx/intr/auto_generated/j2p/j2p_intr.h</include>
+    </includes>
+
+    <sub_module name="general"  doc="Flow Control general configurations.">
+        <defines>
+            <define name="nof_glb_rsc" value="14"></define>
+            <define name="nof_af_nif_indications" value="DATA(nif,phys,nof_phys)"></define>
+            <define name="nof_cal_llfcs" value="DATA(nif,phys,nof_phys) + 4"></define>
+        </defines>
+        <features>
+            <feature name="fc_to_nif_status" value="1"></feature>
+            <feature name="glb_res_lp_to_llfc" value="1"></feature>
+            <feature name="vsqd_to_llfc_pfc" value="1"></feature>
+            <feature name="oob_tx_reset" value="0"></feature>
+            <feature name="additional_enablers" value="1"></feature>
+            <feature name="glb_rsc_oob_en" value="0"></feature>
+            <feature name="cat2_oob_en" value="0"></feature>
+            <feature name="pfc_rec_cdu_shift" value="0"></feature>
+            <feature name="pfc_status_regs_double_read" value="1"></feature>
+            <feature name="ilkn_oob_fast_llfc" value="0"></feature>
+            <feature name="pp_inb_enable" value="0"></feature>
+            <feature name="fc_from_llfc_vsq_status_sel" value="0"></feature>
+            <feature name="if_2_cfc_enablers" value="1"></feature>
+            <feature name="ilkn_oob_en" value="0"></feature>
+            <feature name="ilkn_polarity_set" value="0"></feature>
+        </features>
+    </sub_module>
+
+    <sub_module name="coe"  doc="Flow Control COE general configurations.">
+        <defines>
+            <define name="nof_supported_vlan_ids" value="4096"></define>
+            <define name="nof_coe_vid_mask_width" value="10"></define>
+            <define name="nof_coe_vid_right_shift_width" value="4"></define>
+            <define name="max_coe_ticks" value="1048575"></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="oob"  doc="Flow Control OOB general configurations.">
+    </sub_module>
+
+    <sub_module name="pfc_deadlock"  doc="PFC Deadlock detection and recovery.">
+        <numerics>
+            <numeric name="cdum_intr_id" value="J2P_INT_LAST"></numeric>
+            <numeric name="cdu_intr_id" value="J2P_INT_LAST"></numeric>
+            <numeric name="clu_intr_id" value="J2P_INT_LAST"></numeric>
+        </numerics>
+    </sub_module>
+</device_data>
+

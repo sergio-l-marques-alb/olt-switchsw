@@ -1,0 +1,153 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="dev_init" bsl_flag="BSL_LS_BCMDNX_INIT">
+    <includes>
+        <include>bcm_int/dnx/init/init_mem.h</include>
+        <include>soc/dnx/dnx_data/dnx_data_verify.h</include>
+    </includes>
+
+    <sub_module name="time" doc="time relevant for init">
+        <numerics>
+            <numeric name="analyze" doc="whether to analyze init time"></numeric>
+        </numerics>
+        <defines>
+            <define name="init_total_thresh" doc="Default time threshold (in microseconds) for the overall time that the BCM Init takes"></define>
+            <define name="appl_init_total_thresh" doc="Default time threshold (in microseconds) for the overall time that the APPL Init takes"></define>
+        </defines>  
+        <tables>
+            <table name="step_thresh" doc="Time threshold (in microseconds) for the time each step is taking during BCM init">
+                <key name="step_id" doc="IDs for the different steps and sub-steps of the Init."></key>
+                <value name="value" type="uint32" doc="Time threshold in microseconds. The default value was chosen because the majority of the steps are below it. For steps that are expected to be above the default, a specific threshold can be set"></value>
+            </table>
+            <table name="appl_step_thresh" doc="Time threshold (in microseconds) for the time each step is taking during APPL init">
+                <key name="step_id" doc="IDs for the different steps and sub-steps of the Init."></key>
+                <value name="value" type="uint32" doc="Time threshold in microseconds. The default value was chosen because the majority of the steps are below it. For steps that are expected to be above the default, a specific threshold can be set"></value>
+            </table> 
+        </tables>
+    </sub_module>
+
+    <sub_module name="mem" doc="memory data relevant for init">
+        <numerics>
+            <numeric name="force_zeros" doc="if true will force zeroing memories in pcid and emulation"></numeric>
+            <numeric name="reset_mode" doc="method to reset the memories which are not listed in table 'default'. See enum 'dnx_init_mem_reset_mode_e'"></numeric>
+            <numeric name="defaults_verify" doc="if true will test memory defaults are as exepected"></numeric>
+        </numerics>
+
+        <tables>
+            <table name="default" doc="default values for memories, any mem that is not mentioned will be set to zero">
+                <key name="index" doc="running index"></key>
+                <value name="mem" type="soc_mem_t" doc="memory"></value>
+                <value name="mode" type="dnx_init_mem_default_mode_e" doc="default value will be set according to this mode"></value>
+                <value name="default_get_cb" type="dnx_init_mem_default_get_f" doc="callback to get the default, used in custom modes"></value>
+                <value name="field" type="soc_field_t" doc="If field defined - will set just the specified field (all the reset will be set to zero). not relevant for custom modes"></value>
+            </table>
+        </tables>
+         
+    </sub_module>
+
+    <sub_module name="properties" doc="used to store information related to soc properties">
+        
+        <tables>
+            <table name="unsupported" doc="unsupported soc properties">
+                <key name="index" doc="running index"></key>
+                <value name="property" type="char *" doc="soc property name"></value>
+                <value name="suffix" type="char *" doc="used in case the soc property read using suffix method"></value>
+                <value name="num_max" type="int" doc="max number of index to check in case using suffix_num method"></value>
+                <value name="per_port" type="int" doc="1 if the soc property might be read per port"></value>
+                <value name="err_msg" type="char *" doc="detailed error message with instructions what to do instead"></value>
+            </table>
+        </tables>
+         
+    </sub_module>
+
+    <sub_module name="general" doc="general values for device init">
+        <numerics>
+            <numeric name="access_only" doc="boot with access only"></numeric>
+            <numeric name="flexe_core_drv_select" doc="selects which FlexE core driver to use, 0: debug; 1: standard"></numeric>
+        </numerics>
+        <features>
+             <feature name="data_path_hw" doc="If set, indicates data path HW needs to be set"></feature>
+             <feature name="remove_crc_bytes" doc="If set, indicates CRC bytes are removed for ERPP and ETPP parser."></feature>
+             <feature name="remove_crc_bytes_capability" doc="If set, indicates that in ERPP/ETPPA_UTILITY_REGS is present FTMH_PACKET_SIZE_REMOVE_CRC"></feature>
+             <feature name="erpp_compensate_crc_size" doc="If set, indicates that fabric CRC size will be compensated for ERPP statistics"></feature>
+             <feature name="etpp_compensate_crc_size" doc="If set, indicates that fabric CRC size will be compensated with compensation registers for ETPP statistics"></feature>
+             <feature name="tail_editing_enable" doc="If set, tail editing is enabled"></feature>
+             <feature name="tail_editing_append_enable" doc="If set, append tail editing is enabled"></feature>
+             <feature name="tail_editing_truncate_enable" doc="If set, truncate tail editing is enabled"></feature>
+             <feature name="packet_size_compensation_term" doc="packet size compensationis valid in term block"></feature>
+             <feature name="current_packet_size_compensation_term" doc="current packet size compensationis valid in term block"></feature>
+             <feature name="erpp_filters_non_separate_enablers" doc="ipv4/6 and l4 filters in ERPP are not enabled/disabled independently"></feature>
+             <feature name="etppa_bypass_stamp_ftmh_enable" doc="Enable stamping FTMH bypass"></feature>
+             <feature name="l4_protocol_fields_config_enable" doc="Enable configuration of L4 protocol fields"></feature>
+             <feature name="da_type_map_enable" doc="Enable configuration DA Type map in FLP"></feature> 
+             <feature name="ecologic_support"  doc = "ecologic feature is supported"></feature>
+             <feature name="context_selection_index_valid" doc="Enable configuration of context enablers"></feature>
+             <feature name="network_header_termination" doc="Indicate whether network headers should be terminated"></feature>
+             <feature name="network_offset_for_system_headers_valid" doc="Set UDH header size in J_MODE_NETWORK_OFFSET_FOR_SYSTEM_HEADERS register for inter-op mode - J2P only"></feature>
+        </features>
+        <defines>
+        </defines>
+    </sub_module>
+    
+    <sub_module name="context" doc="general values for context selection init">
+        <features>
+             <feature name="context_selection_profile" doc="Enabled for devices supporting context id to context profile mapping"></feature>
+             <feature name="oam_sub_type_in_context_selection" doc="Enabled for devices having oam_sub_type as part of the context selection"></feature>
+             <feature name="int_profile_in_context_selection" doc="Enabled for devices having int_profile as part of the context selection"></feature>
+        </features>
+        
+        <defines>
+             <define name="forwarding_context_selection_mask_offset" doc="Mask fields offset for Forwarding context selection TCAM"></define>
+             <define name="forwarding_context_selection_result_offset" doc="Result fields offset for Forwarding context selection TCAM"></define>
+             <define name="termination_context_selection_mask_offset" doc="Mask fields offset for Termination context selection TCAM"></define>
+             <define name="termination_context_selection_result_offset" doc="Result fields offset for Termination context selection TCAM"></define>
+             <define name="trap_context_selection_mask_offset" doc="Mask fields offset for Trap context selection TCAM"></define>
+             <define name="trap_context_selection_result_offset" doc="Result fields offset for Trap context selection TCAM"></define>
+             <define name="fwd_reycle_priority_size" doc="Forward Recycle priority size"></define>
+        </defines>
+    </sub_module>
+    
+    <sub_module name="ha" doc="values for sw state and high availability init">
+        <numerics>
+            <numeric name="warmboot_support"    doc="specify if unit should support wb"></numeric>
+            <numeric name="sw_state_max_size"   doc="specify the amount of memory (in bytes) preallocated for sw state"></numeric>
+            <numeric name="stable_location"     doc="Specify the stable cache option for Warm Boot operations"></numeric>
+            <numeric name="stable_size"         doc="Specify the stable cache size in bytes used for Warm boot operations"></numeric>
+        </numerics>
+
+         <tables>
+            <table name="stable_filename" doc="If the stable cache location is BCM_SWITCH_STABLE_APPLICATION, the local file system will be used to save the stable cache data with this filename">
+                <value name="val" type="char *" doc="stable filename"></value>
+            </table>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="shadow" doc="shadow memory for init">
+        <numerics>
+            <numeric name="cache_enable_all" doc="if true shadow all cacheable memory"></numeric>
+            <numeric name="cache_enable_ecc" doc="if true shadow all cacheable memory which contain ecc field"></numeric>
+            <numeric name="cache_enable_parity" doc="if true shadow all cacheable memory which contain parity field"></numeric>
+            <numeric name="cache_enable_specific" doc="if true, some specific memory be shadowed"></numeric>
+            <numeric name="cache_disable_specific" doc="if true, some specific memory won't be shadowed"></numeric>
+        </numerics>
+
+        <tables>
+            <table name="uncacheable_mem" doc="uncache memory">
+                <key name="index" doc="uncacheable memory index"></key>
+                <value name="mem" type="soc_mem_t" doc="memory"></value>
+            </table>
+        </tables>
+
+     </sub_module>
+    <sub_module name="cmc" doc="cmc information in CMICx">
+        <numerics>
+            <numeric name="pci_cmc" doc="CMC in CMICx used by the PCI Host"></numeric>
+            <numeric name="pci_cmcs_num" doc="Number of CMCs used by the PCI Host"></numeric>
+        </numerics>
+     </sub_module>
+</device_data>
+
+
+
+
+

@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<signals>
+    <!-- defining signals that are N/A in specific devices and to specific stages -->
+    <signal block="IRPP" to="VTT1" name="Hit">
+        <device chip="BCM88690_A0"/>
+        <device chip="BCM88690_B0"/>
+    </signal>
+    <signal block="IRPP" to="VTT1" name="Hit_0">
+        <device chip="BCM88690_A0"/>
+        <device chip="BCM88690_B0"/>
+    </signal>
+    <signal block="IRPP" to="VTT1" name="Hit_1">
+        <device chip="BCM88690_A0"/>
+        <device chip="BCM88690_B0"/>
+    </signal>
+    <signal block="IRPP" to="VTT2" name="Hit">
+        <device chip="BCM88690_A0"/>
+        <device chip="BCM88690_B0"/>
+    </signal>
+    <signal block="IRPP" to="VTT2" name="Hit_0">
+        <device chip="BCM88690_A0"/>
+        <device chip="BCM88690_B0"/>
+    </signal>
+    <signal block="IRPP" to="VTT2" name="Hit_1">
+        <device chip="BCM88690_A0"/>
+        <device chip="BCM88690_B0"/>
+    </signal>
+    <signal block="IRPP" to="VTT4" name="Hit">
+        <device chip="BCM88690_A0"/>
+        <device chip="BCM88690_B0"/>
+    </signal>
+    <signal block="IRPP" to="VTT4" name="Hit_0">
+        <device chip="BCM88690_A0"/>
+        <device chip="BCM88690_B0"/>
+    </signal>
+    <signal block="IRPP" to="VTT4" name="Hit_1">
+        <device chip="BCM88690_A0"/>
+        <device chip="BCM88690_B0"/>
+    </signal>
+    <signal block="IRPP" to="FWD1" name="Hit">
+        <device chip="BCM88690_A0"/>
+        <device chip="BCM88690_B0"/>
+    </signal>
+    <signal block="IRPP" to="FWD1" name="Hit_0">
+        <device chip="BCM88690_A0"/>
+        <device chip="BCM88690_B0"/>
+    </signal>
+    <signal block="IRPP" to="FWD1" name="Hit_1">
+        <device chip="BCM88690_A0"/>
+        <device chip="BCM88690_B0"/>
+    </signal>
+    <signal block="IRPP" to="FWD1" name="Hit_2">
+        <device chip="BCM88690_A0"/>
+        <device chip="BCM88690_B0"/>
+    </signal>
+    <signal block="IRPP" to="FWD1" name="Hit_3">
+        <device chip="BCM88690_A0"/>
+        <device chip="BCM88690_B0"/>
+    </signal>                                                                                                          
+</signals>

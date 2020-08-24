@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_b0"  module="mpls">
+
+    <sub_module name="general">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="mpls_special_label_encap_handling"                 value="0"></define>
+            <define name="mpls_control_word_supported"                 value="1"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        
+        
+        <tables>
+        </tables>
+         
+    </sub_module>
+</device_data>
+
+
+

@@ -1,0 +1,716 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="gtimer" bsl_flag="BSL_LS_BCMDNX_COUNTER">
+    <includes>
+    </includes>
+
+    <sub_module name="rtp" doc="Definitions related to RTP global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have RTP GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="fdt" doc="Definitions related to FDT global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have FDT GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="fdtl" doc="Definitions related to FDTL global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have FDTL GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="pem" doc="Definitions related to PEM global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have PEM GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="dhc" doc="Definitions related to DHC global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have DHC GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="cdu" doc="Definitions related to CDU global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have CDU GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="esb" doc="Definitions related to ESB global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have ESB GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="cdum" doc="Definitions related to CDUM global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have CDUM GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="mesh_topology" doc="Definitions related to MESH_TOPOLOGY global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have MESH_TOPOLOGY GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="bdm" doc="Definitions related to BDM global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have BDM GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="hbc" doc="Definitions related to HBC global timer which is used for counter statistics">
+        
+        <features>
+            <!--
+                This GTIMER is supported depending on 'DNX_DATA.dram.hbm.is_supported'
+            -->
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="ecgm" doc="Definitions related to ECGM global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have ECGM GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="cfc" doc="Definitions related to CFC global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have CFC GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="cgm" doc="Definitions related to CGM global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have CGM GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="crps" doc="Definitions related to CRPS global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have CRPS GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="ddha" doc="Definitions related to DDHA global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have DDHA GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="ddp" doc="Definitions related to DDP global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have DDP GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="dqm" doc="Definitions related to DQM global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have DQM GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="edb" doc="Definitions related to EDB global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have EDB GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="epni" doc="Definitions related to EPNI global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have EPNI GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="epre" doc="Definitions related to EPRE global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have EPRE GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="eps" doc="Definitions related to EPS global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have EPS GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="erpp" doc="Definitions related to ERPP global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have ERPP GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="etppa" doc="Definitions related to ETPPA global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have ETPPA GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="etppb" doc="Definitions related to ETPPB global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have ETPPB GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="etppc" doc="Definitions related to ETPPC global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have ETPPC GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="fqp" doc="Definitions related to FQP global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have FQP GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="ile" doc="Definitions related to ILE global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have ILE GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="ippa" doc="Definitions related to IPPA global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have IPPA GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="ippb" doc="Definitions related to IPPB global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have IPPB GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="ippc" doc="Definitions related to IPPC global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have IPPC GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="ippd" doc="Definitions related to IPPD global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have IPPD GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="ippe" doc="Definitions related to IPPE global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have IPPE GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="ippf" doc="Definitions related to IPPF global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have IPPF GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="ips" doc="Definitions related to IPS global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have IPS GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="ipt" doc="Definitions related to IPT global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have IPT GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="iqm" doc="Definitions related to IPT global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have IPT GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="ire" doc="Definitions related to IRE global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have IRE GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="itpp" doc="Definitions related to ITPP global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have ITPP GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="itppd" doc="Definitions related to ITPPD global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have ITPPD GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="kaps" doc="Definitions related to KAPS global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have KAPS GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="mcp" doc="Definitions related to MCP global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have MCP GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="mrps" doc="Definitions related to MRPS global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have MRPS GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="nmg" doc="Definitions related to MNG global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have MNG GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="ocb" doc="Definitions related to OCB global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have OCB GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="pdm" doc="Definitions related to PDM global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have PDM GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="pqp" doc="Definitions related to PQP global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have PQP GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="rqp" doc="Definitions related to PQP global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have PQP GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="sch" doc="Definitions related to SCH global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have SCH GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="sif" doc="Definitions related to SIF global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have SIF GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="spb" doc="Definitions related to SPB global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have SPB GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="sqm" doc="Definitions related to SQM global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have SQM GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="tcam" doc="Definitions related to TCAM global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have TCAM GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="tdu" doc="Definitions related to TDU global timer which is used for counter statistics">
+        
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Does device have TDU GTIMER? (negative logic)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="dcc" doc="Definitions related to DCC global timer which is used for counter statistics">
+        <features>
+            <!-- The gtimer is supported by DNX_DATA.dram.gddr6.is_supported -->
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="block_index_size" doc="Number of bits in value indicating the number of copies per block."></define>
+            <define labels="j2p_notrev" name="block_index_max_value" doc="Maximal value for number of copies per block. Block index starts at '0'."></define>
+        </defines>
+
+    </sub_module>
+
+</device_data>
+
+
+
+
+
+

@@ -1,0 +1,301 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="stif">
+    <includes>
+        <include>bcm/stat.h</include>
+        <include>bcm_int/dnx/stat/stif/stif_mgmt.h</include>
+        <include>bcm_int/dnx/cosq/ingress/ingress_congestion.h</include>
+        <include>soc/dnx/dbal/dbal.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_ipq.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_nif.h</include>
+        <include>shared/utilex/utilex_integer_arithmetic.h</include>
+    </includes>
+
+     <sub_module name="config">
+     
+        <defines>
+            <define name="sram_buffers_resolution" value="16"> </define>
+            <define name="sram_pdbs_resolution" value="16"> </define>
+            <define name="dram_bdb_resolution" value="16"> </define>
+        </defines>
+
+        <numerics>
+            <numeric name="stif_packet_size" value="512">
+                <property name="stat_if_pkt_size" method="direct_map">
+                    <map name="512" value="512"></map>
+                    <map name="1024" value="1024"></map>
+                    <map name="1536" value="1536"></map>
+                    <doc>
+                        Configure packet size (same for all NIF interfaces):
+                        stat_if_pkt_size = 512/ 1024/ 1536
+                        Default: 980
+                    </doc>
+                </property>
+            </numeric>
+             <numeric name="stif_scrubber_queue_min" value="0">
+                <property name="stat_if_scrubber_queue_min" method="range" range_min="0" range_max="DATA(ipq,queues,nof_queues)-1">
+                    <doc>
+                        Scrubber queue minimum
+                        Default: 0
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="stif_scrubber_queue_max" value="DATA(ipq,queues,nof_queues)-1">
+                <property name="stat_if_scrubber_queue_max" method="range" range_min="0" range_max="DATA(ipq,queues,nof_queues)-1">
+                    <doc>
+                        Scrubber queue maximum
+                        Default: 65535
+                    </doc>
+                </property>
+            </numeric>
+             <numeric name="stif_scrubber_rate_min" value="0">
+                <property name="stat_if_scrubber_rate_min" method="range" range_min="0" range_max="65535">
+                    <doc>
+                        Minimal period between two consecutive scrubber in nanoseconds
+                        Default: 0 - disabled
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="stif_scrubber_rate_max" value="65535">
+                <property name="stat_if_scrubber_rate_max" method="range" range_min="0" range_max="65535">
+                    <doc>
+                        Maximal period between two consecutive scrubber in nanoseconds
+                        Default: 0 - disabled
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="stif_report_mode" value="dnx_stat_stif_mgmt_report_mode_billing">
+                    <property name="stat_if_report_mode" method="direct_map">
+                        <map name="QSIZE" value="dnx_stat_stif_mgmt_report_mode_qsize"></map>
+                        <map name="BILLING" value="dnx_stat_stif_mgmt_report_mode_billing"></map>
+                        <map name="INGRESS_BILLING" value="dnx_stat_stif_mgmt_report_mode_billing_ingress"></map>
+                        <doc>
+                            STIF report mode - queue size / billing/ billing ingress
+                            Default: billing
+                        </doc>
+                    </property>
+            </numeric>
+            <numeric name="stif_report_size_ingress" value="DBAL_ENUM_FVAL_STIF_BILLING_REPORT_SIZE_64_BITS">
+                    <property name="stat_if_report_size" method="suffix_direct_map" suffix="ingress">
+                        <map name="64" value="DBAL_ENUM_FVAL_STIF_BILLING_REPORT_SIZE_64_BITS"></map>
+                        <map name="72" value="DBAL_ENUM_FVAL_STIF_BILLING_REPORT_SIZE_72_BITS"></map>
+                        <map name="80" value="DBAL_ENUM_FVAL_STIF_BILLING_REPORT_SIZE_80_BITS"></map>
+                        <map name="96" value="DBAL_ENUM_FVAL_STIF_BILLING_REPORT_SIZE_96_BITS"></map>
+                        <doc>
+                            Ingress STIF report size in bits
+                        </doc>
+                    </property>
+            </numeric>
+            <numeric name="stif_report_size_egress" value="DBAL_ENUM_FVAL_STIF_BILLING_REPORT_SIZE_64_BITS">
+                    <property name="stat_if_report_size" method="suffix_direct_map" suffix="egress">
+                        <map name="64" value="DBAL_ENUM_FVAL_STIF_BILLING_REPORT_SIZE_64_BITS"></map>
+                        <map name="72" value="DBAL_ENUM_FVAL_STIF_BILLING_REPORT_SIZE_72_BITS"></map>
+                        <map name="80" value="DBAL_ENUM_FVAL_STIF_BILLING_REPORT_SIZE_80_BITS"></map>
+                        <map name="96" value="DBAL_ENUM_FVAL_STIF_BILLING_REPORT_SIZE_96_BITS"></map>
+                        <doc>
+                            Egress STIF report size in bits
+                        </doc>
+                    </property>
+            </numeric>
+            <numeric name="stif_idle_report" value="256">
+                <property name="stat_if_idle_reports_present" method="direct_map">
+                        <map name="0" value="0"></map>
+                        <map name="1" value="256"></map>
+                    <doc>
+                        Configure if empty reports will be sent:
+                        stat_if_idle_report = 0/1
+                        if empty reports will be sent the report period will be set to 256
+                        Default: 1
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="nof_valid_sources" value="DATA(device, general, nof_cores)*3"></numeric>
+        </numerics>
+     
+        <features>
+            <feature name="stif_enable" value="0">
+                <property name="stat_if_enable" method="enable">
+                    <doc>
+                        Enable / Disable STIF:
+                        stat_if_enable = 0 / 1
+                    </doc>
+                </property>
+            </feature>
+            <feature name="stif_report_mc_single_copy" value="1">
+                <property name="stat_if_report_multicast_single_copy" method="enable">
+                    <doc>
+                        Billing - count all ingress MC copies as one.:
+                        stat_if_report_multicast_single_copy = 0/1
+                        Default: 1
+                    </doc>
+                </property>
+            </feature>
+            <feature name="mixing_ports_limitation" value="1"></feature>
+        </features>
+     
+        <tables>
+            <table name="scrubber_buffers">
+                <key name="thresh_id" size="16"></key>
+                <value name="sram_buffers" default="0">
+                    <property name="stat_if_scrubber_sram_buffers_th" method="suffix_range" range_min="0" range_max="utilex_power_of_2(DATA(ingr_congestion,dbal,sram_buffer_th_nof_bits)) - 1" suffix="">
+                        <doc>
+                             scrubber sram buffers threshold
+                        </doc>
+                    </property>
+                </value>
+                <value name="sram_pdbs" default="0">
+                    <property name="stat_if_scrubber_sram_pdbs_th" method="suffix_range" range_min="0" range_max="utilex_power_of_2(DATA(ingr_congestion,dbal,sram_pdbs_th_nof_bits)) - 1" suffix="">
+                        <doc>
+                             scrubber sram pdbs threshold
+                        </doc>
+                    </property>
+                </value>
+                <value name="dram_bdb" default="0">
+                    <property name="stat_if_scrubber_bdb_th" method="suffix_range" range_min="0" range_max="utilex_power_of_2(DATA(ingr_congestion,dbal,dram_bdbs_th_nof_bits)) - 1" suffix="">
+                        <doc>
+                             scrubber dram bdb threshold
+                        </doc>
+                    </property>
+                </value>
+            </table>
+            <table name="selective_report_range">
+                <key name="range_id" size="2"> </key>
+                <value name="min" default="0">
+                    <property name="stat_if_selective_report_queue_min" method="suffix_range" range_min="0" range_max="DATA(ipq,queues,nof_queues)-1" suffix="range">
+                        <doc>
+                             range of queues for qsize reports - min value
+                        </doc>
+                    </property>
+                </value>
+                <value name="max" default="DATA(ipq,queues,nof_queues)-1">
+                    <property name="stat_if_selective_report_queue_max" method="suffix_range" range_min="0" range_max="DATA(ipq,queues,nof_queues)-1" suffix="range">
+                        <doc>
+                             range of queues for qsize reports - max value
+                        </doc>
+                    </property>
+                </value>
+            </table>
+        </tables>
+     </sub_module>
+
+    <sub_module name="port" doc="stif - nif port instance values">
+        <defines>
+            <define name="max_nof_instances" value="4"></define>
+            <define name="stif_ethu_select_size" value="6"></define>
+            <define name="stif_lane_mapping_size" value="3"></define>
+        </defines>
+     
+        <numerics>
+        </numerics>
+     
+        <features>
+        </features>
+     
+        <tables>
+            <table name="ethu_id_stif_valid">
+                <key name="ethu_id" size="DATA(nif,eth,ethu_nof)"></key>
+                <value name="valid" default="1"></value>
+                <value name="hw_select_value" default="0"></value>                
+                <entries>
+                    <entry ethu_id="0" valid="1" hw_select_value="1"></entry>
+                    <entry ethu_id="1" valid="1" hw_select_value="2"></entry>
+                    <entry ethu_id="2" valid="1" hw_select_value="4"></entry>
+                    <entry ethu_id="3" valid="1" hw_select_value="8"></entry>
+                    <entry ethu_id="4" valid="1" hw_select_value="16"></entry>
+                    <entry ethu_id="5" valid="1" hw_select_value="32"></entry>
+                    <entry ethu_id="6" valid="1" hw_select_value="1"></entry>
+                    <entry ethu_id="7" valid="1" hw_select_value="2"></entry>
+                    <entry ethu_id="8" valid="1" hw_select_value="4"></entry>
+                    <entry ethu_id="9" valid="1" hw_select_value="8"></entry>
+                    <entry ethu_id="10" valid="1" hw_select_value="16"></entry>
+                    <entry ethu_id="11" valid="1" hw_select_value="32"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+
+     <sub_module name="report" doc="stif values related to the report">
+        <defines>
+            <define name="qsize_idle_report_size" value="8"></define>
+            <define name="qsize_idle_report_period" value="256"></define>
+            <define name="qsize_idle_report_period_invalid" value="127"></define>
+            <define name="qsize_scrubber_report_cycles_unit" value="16"></define>
+            <define name="max_thresholds_per_buffer" value="15"></define>
+            <define name="incoming_tc" value="2"></define>
+            <define name="record_two_msb" value="3"></define>
+            <define name="nof_source_types" value="4"></define>
+            <define name="stat_id_max_count" value="4"></define>
+            <define name="stat_object_size" value="20"></define>
+            <define name="billing_format_element_packet_size" value="14"></define>
+            <define name="billing_format_msb_opcode_size" value="2"></define>
+            <define name="billing_format_etpp_metadata_size" value="24"></define>
+            <define name="billing_opsize_use_one_type_mask" value="3"></define>
+            <define name="billing_opsize_use_two_types_mask" value="15"></define>
+            <define name="billing_opsize_use_three_types_mask" value="63"></define>
+            <define name="billing_opsize_use_four_types_mask" value="255"></define>
+            <define name="billing_enq_ing_size_wa_shift" value="16"></define>
+        </defines>
+     
+        <numerics>
+        </numerics>
+     
+        <features>
+            <feature name="etpp_core_in_portmetadata" value="1"></feature>
+        </features>
+     
+        <tables>
+            <table name="etpp_metadata">
+                <key name="element" size="31"></key>
+                <value name="size" default="0" ></value>
+                <entries>
+                    <entry element="bcmStatStifRecordElementEgressMetaDataMultiCast" size="1"></entry>
+                    <entry element="bcmStatStifRecordElementEgressMetaDataPpDropReason" size="2"></entry>
+                    <entry element="bcmStatStifRecordElementEgressMetaDataPort" size="8"></entry>
+                    <entry element="bcmStatStifRecordElementEgressMetaDataEcnEligibleAndCni" size="1"></entry>
+                    <entry element="bcmStatStifRecordElementEgressMetaDataTrafficClass" size="3"></entry>
+                    <entry element="bcmStatStifRecordElementEgressMetaDataDropPrecedence" size="2"></entry>
+                    <entry element="bcmStatStifRecordElementEgressMetaDataObj0" size="4"></entry>
+                    <entry element="bcmStatStifRecordElementEgressMetaDataObj1" size="4"></entry>
+                    <entry element="bcmStatStifRecordElementEgressMetaDataObj2" size="4"></entry>
+                    <entry element="bcmStatStifRecordElementEgressMetaDataObj3" size="4"></entry>
+                    <entry element="bcmStatStifRecordElementEgressMetaDataCore" size="1"></entry>
+                </entries>
+            </table>
+              <table name="report_size">
+                <key name="dbal_enum" size="DBAL_NOF_ENUM_STIF_BILLING_REPORT_SIZE_VALUES"></key>
+                <value name="size" default="64" ></value>
+                <entries>
+                    <entry dbal_enum="DBAL_ENUM_FVAL_STIF_BILLING_REPORT_SIZE_64_BITS" size="64"></entry>
+                    <entry dbal_enum="DBAL_ENUM_FVAL_STIF_BILLING_REPORT_SIZE_72_BITS" size="72"></entry>
+                    <entry dbal_enum="DBAL_ENUM_FVAL_STIF_BILLING_REPORT_SIZE_80_BITS" size="80"></entry>
+                    <entry dbal_enum="DBAL_ENUM_FVAL_STIF_BILLING_REPORT_SIZE_96_BITS" size="96"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+    <sub_module name="flow_control" doc="stif values related to the low and high flow control calculations">
+        <defines>
+            <define name="etpp_pipe_length" value="770"></define>
+            <define name="etpp_deq_size_of_fifo" value="1024"></define>
+            <define name="cgm_pipe_length" value="64"></define>
+            <define name="cgm_size_of_fifo" value="208"></define>
+            <define name="billing_level_sampling" value="60"></define>
+            <define name="fc_disable_value" value="0"></define>
+            <define name="billing_etpp_flow_control_high" value="DATA(stif, flow_control, etpp_deq_size_of_fifo)*0.9 - DATA(stif, flow_control, etpp_pipe_length) - DATA(stif, flow_control, billing_level_sampling)"></define>
+            <define name="billing_etpp_flow_control_low" value="DATA(stif, flow_control, billing_etpp_flow_control_high) - 1"></define>
+            <define name="billing_cgm_flow_control_high" value="DATA(stif, flow_control, cgm_size_of_fifo)*0.9 - DATA(stif, flow_control, cgm_pipe_length) - DATA(stif, flow_control, billing_level_sampling)"></define>
+            <define name="billing_cgm_flow_control_low" value="DATA(stif, flow_control, billing_cgm_flow_control_high) - 1"></define>
+            <define name="qsize_cgm_flow_control_high" value="DATA(stif, flow_control, cgm_size_of_fifo)*0.9 - DATA(stif, flow_control, cgm_pipe_length)"></define>
+            <define name="qsize_cgm_flow_control_low" value="DATA(stif, flow_control, qsize_cgm_flow_control_high) - 1"></define>
+        </defines>
+     
+        <numerics>
+        </numerics>
+     
+        <features>
+             <feature name="instance_0_must_be_on" value="0"></feature>
+        </features>
+     
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>

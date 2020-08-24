@@ -1,0 +1,537 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="nif" bsl_flag="BSL_LS_BCMDNX_PORT">
+    <includes>
+        <include>bcm/port.h</include>
+        <include>soc/portmod/portmod.h</include>
+        <include>soc/dnxc/dnxc_port.h</include>
+        <include>bcm_int/dnx/port/imb/imb.h</include>
+    </includes>
+    
+    <sub_module name="global" doc="global nif proprties and data">
+        <defines>
+            <define labels="j2p_notrev" name="nof_lcplls" doc="number of lcplls supported"></define>
+            <define labels="j2p_notrev" name="max_core_access_per_port" doc="The max of core access per port"></define>
+            <define labels="j2p_notrev" name="max_nif_rate_per_core" doc="Max rate in all NIF phys combined [Kbps]"></define>
+            <define labels="j2p_notrev" name="nof_nif_ports"  doc="Number of Nif ports in device"></define>
+            <define labels="j2p_notrev" name="nif_interface_id_to_unit_id_granularity"  doc="Granularity of the nif_interface_id_to_unit_id table"></define>
+            <define labels="j2p_notrev" name="reassembler_fifo_threshold"  doc="Default value of reassembler FIFO threshold"></define>
+            <define labels="j2p_notrev" name="last_port_led_scan" doc="the last port of led scan chain"></define>
+        </defines>
+
+        <tables>
+            <table labels="j2p_notrev" name="pll_phys" doc="phys controlled by each lcpll">
+                <key name="lcpll" doc="LCPLL index"></key>
+                <value name="min_phy_id" type="uint32" doc="The min phy ID controlled by given pll"></value>
+                <value name="max_phy_id" type="uint32" doc="The max phy ID controlled by given pll"></value>
+            </table>
+            <table labels="j2p_notrev" name="nif_interface_id_to_unit_id" doc="map the nif port to nif unit id, in granularity of nif_interface_id_to_unit_id_granularity (2).">
+                <key name="nif_interface_id" doc="Port number."></key>
+                <value name="unit_id" type="uint32" doc="NIF unit id."></value>
+                <value name="internal_offset" type="uint32" doc="Intenal offset inside the NIF unit id."></value>
+            </table>
+        </tables>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="start_tx_threshold_global" doc="Global start TX threshold. This value overrides TX threshold table values"></numeric>
+        </numerics>
+
+        <features>
+            <feature labels="j2p_notrev" name="reassembler" doc="Does reassembler exist"></feature>
+        </features>
+    </sub_module>
+
+    <sub_module name="phys" doc="data about phys">
+        <defines>
+            <define labels="j2p_notrev" name="nof_phys" doc="number of phys supported"></define>
+            <define labels="j2p_notrev" name="nof_phys_per_core" doc="number of phys per core supported"></define>
+            <define labels="j2p_notrev" name="pm8x50_gen" doc="The generation of Blackhalk PM that the device uses. IIf older generation some abilities are not supported"></define>
+        </defines>
+
+        <tables>
+            <table labels="j2p_notrev" name="general" doc="general data about phys">
+                <value name="supported_phys" type="bcm_pbmp_t" doc="bitmap of supported phys"></value>
+            </table>
+            <table labels="j2p_notrev" name="polarity" doc="rx and tx polarity per lane">
+                <key name="lane_index" doc="lane index (0-based)"></key>
+                <value name="tx_polarity" type="uint32" doc="switch TX phy polarity"></value>
+                <value name="rx_polarity" type="uint32" doc="switch RX phy polarity"></value>
+            </table>
+            <table labels="j2p_notrev" name="core_phys_map" doc="map pipeline core to connected PHYs">
+                <key name="core_index" doc="Core number."></key>
+                <value name="phys" type="bcm_pbmp_t" doc="phys connected to the CORE."></value>
+            </table>
+            <table labels="j2p_notrev" name="vco_div" doc="VCO divider per ethu_id">
+                <key name="ethu_index" doc="ethu instance number."></key>
+                <value name="vco_div" type="uint32" doc="vco_div"></value>
+            </table>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="ilkn" doc="data about ILKN ports">
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="is device type support ILKN."></feature>
+            <feature labels="j2p_notrev" name="is_ilu_supported" doc="is device type support data ILKN."></feature>
+            <feature labels="j2p_notrev" name="credits_selector" doc="is device type support credits source selector."></feature> 
+            <feature labels="j2p_notrev" name="over_fabric_per_core_selector" doc="is device type support over fabric per core selector: nif or fabric."></feature> 
+            <feature labels="j2p_notrev" name="cdu_ilkn_selectors" doc="Indicates if CDU units support Ilkn selectors configuration."></feature>
+            <feature labels="j2p_notrev" name="clu_ilkn_selectors" doc="Indicates if CLU units support Ilkn selectors configuration."></feature>
+            <feature labels="j2p_notrev" name="clu_ilkn_direction_selectors" doc="Indicates if CLU units support Ilkn selectors direction (up/down) configuration."></feature>
+            <feature labels="j2p_notrev" name="support_burst_interleaving" doc="Indicates if Cburst interleaving mode is supported."></feature>   
+            <feature labels="j2p_notrev" name="support_xpmd_if" doc="Indicates if XPMD Interface is supported."></feature>
+            <feature labels="j2p_notrev" name="support_aligner" doc="Indicates if ILKN aligner is supported."></feature>
+            <feature labels="j2p_notrev" name="scheduler_context_per_port_support" doc="Indicates if the scheduler supportes per port configuration."></feature>
+            <feature labels="j2p_notrev" name="support_ilu_burst_max" doc="Indicates if ilu burst max configuration is supported."></feature>
+            <feature labels="j2p_notrev" name="is_fec_supported" doc="Indicates if device type support FEC over ilkn interface."></feature>
+            <feature labels="j2p_notrev" name="is_fec_bypass_supported" doc="Indicates if device type support ILKN FEC bypass."></feature>
+            <feature labels="j2p_notrev" name="fec_units_in_cdu" doc="Indicates if the FEC units are external to core (in CDU)."></feature>
+            <feature labels="j2p_notrev" name="hrf_flush_support" doc="Indicates if HRF flush mechanism is supported"></feature>
+            <feature labels="j2p_notrev" name="elk_require_core_reset_after_link_training" doc="Should ILKN core be reset after link training is performed on ELK port"></feature>
+        </features>
+        <defines>
+            <define labels="j2p_notrev" name="ilu_nof" doc="Number of ILU instances in the device"></define>
+            <define labels="j2p_notrev" name="ilkn_unit_nof" doc="Number of ILKN units in the device"></define>
+            <define labels="j2p_notrev" name="ilkn_unit_if_nof" doc="Number of ILKN Interfaces in each ILKN unit"></define>
+            <define labels="j2p_notrev" name="ilkn_if_nof" doc="Number of ILKN Interfaces in the device"></define>
+            <define labels="j2p_notrev" name="fec_units_per_core_nof" doc="Number of ILKN FEC units per core in the device"></define>
+            <define labels="j2p_notrev" name="nof_lanes_per_fec_unit" doc="Number of ilkn lanes per ILKN FEC unit in the device"></define>
+            <define labels="j2p_notrev" name="lanes_max_nof" doc="Max number of lanes for ILKN port"></define>
+            <define labels="j2p_notrev" name="lanes_max_nof_using_fec" doc="Max number of lanes for ILKN port interface when FEC is enabled"></define>
+            <define labels="j2p_notrev" name="lanes_allowed_nof" doc="The allowed lanes for each ILKN port"></define>
+            <define labels="j2p_notrev" name="ilkn_over_eth_pms_max" doc="Max number eth pms ilkn lanes is part of"></define>
+            <define labels="j2p_notrev" name="segments_max_nof" doc="Max number of segments in ILKN protocol. (Segment is a resource of ILKN which is shared between all ports of the ILKN unit)"></define>
+            <define labels="j2p_notrev" name="segments_half_nof" doc="Min number of segments in ILKN protocol. (Segment is a resource of ILKN which is shared between all ports of the ILKN unit)"></define>        
+            <define labels="j2p_notrev" name="pms_nof" doc="Maximal number of PMs connectted to the ILKN unit"></define>
+            <define labels="j2p_notrev" name="fmac_bus_size" doc="Fabric MAC bus size [bits], relevant for ILKN over fabric ports"></define>
+            <define labels="j2p_notrev" name="ilkn_rx_hrf_nof" doc="Number of High Rate Fifo queues in RX"></define>
+            <define labels="j2p_notrev" name="ilkn_tx_hrf_nof" doc="Number of High Rate Fifo queues in TX"></define>
+            <define labels="j2p_notrev" name="data_rx_hrf_size" doc="Number of entries in High Rate Fifo for data"></define>
+            <define labels="j2p_notrev" name="tdm_rx_hrf_size" doc="Number of entries in High Rate Fifo for tdm"></define>
+            <define labels="j2p_notrev" name="tx_hrf_credits" doc="Number of credits needed per High Rate Fifo for tx"></define> 
+            <define labels="j2p_notrev" name="nof_rx_hrf_per_port" doc="Number of High Rate Fifo queues in RX per port"></define>
+            <define labels="j2p_notrev" name="watermark_high_elk" doc="High Watermark value for ILKN ELK"></define>
+            <define labels="j2p_notrev" name="watermark_low_elk" doc="Low Watermark value for ILKN ELK"></define>
+            <define labels="j2p_notrev" name="watermark_high_data" doc="High Watermark value for ILKN Data"></define>
+            <define labels="j2p_notrev" name="watermark_low_data" doc="Low Watermark value for ILKN Data"></define>
+            <define labels="j2p_notrev" name="is_25G_speed_supported" doc="Indicated if device supports ILKN with speed of 25000"></define>
+            <define labels="j2p_notrev" name="is_53G_speed_supported" doc="Indicated if device supports ILKN with speed of 53125"></define>
+            <define labels="j2p_notrev" name="is_56G_speed_supported" doc="Indicated if device supports ILKN with speed of 56G"></define>
+            <define labels="j2p_notrev" name="pad_size" doc="Packet size for ILKN. Packet will be to this size if packet is smaller than this size"></define>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="max_nof_ifs" doc="Max of supported ILKN interfaces, if set to  -1, there is no limitation"></numeric>
+            <numeric labels="j2p_notrev" name="max_nof_elk_ifs" doc="Max of supported ILKN interfaces for ELK(KBP), if set to  -1, there is no limitation"></numeric>
+            <numeric labels="j2p_notrev" name="port_0_status_intr_id" doc="ILKN port 0 status change interrupt ID"></numeric>
+            <numeric labels="j2p_notrev" name="port_1_status_intr_id" doc="ILKN port 1 status change interrupt ID"></numeric>
+        </numerics>
+        
+        <tables>
+            <table labels="j2p_notrev" name="phys" doc="phys bitmap for ports added by soc property">
+                <key name="ilkn_id" doc="ilkn if id"></key>
+                <value name="bitmap" type="bcm_pbmp_t" doc="phys connected to the ILKN id."></value>
+                <value name="lanes_array" type="uint32[DNX_DATA_MAX_NIF_ILKN_LANES_MAX_NOF]" doc="lanes connected to the ILKN id."></value>
+                <value name="array_order_valid" type="uint8" doc="indicated weather the lanes_array order is valid or not."></value>
+            </table>
+
+            <table labels="j2p_notrev" name="supported_phys" doc="supported phys per ILKN id">
+                <key name="ilkn_id" doc="ilkn if id"></key>
+                <value name="is_supported" type="uint32" doc="is ILKN id supported on the device."></value>
+                <value name="max_phys" type="uint32" doc="Max supported phys for the ILKN id."></value>
+                <value name="nif_phys" type="bcm_pbmp_t" doc="NIF phys supported by the ILKN id."></value>
+                <value name="fabric_phys" type="bcm_pbmp_t" doc="Fabric phys supported by the ILKN id. if the ILKN unit is not connected to fabric lanes, this value should be 0."></value>
+            </table>
+            
+            <table labels="j2p_notrev" name="supported_interfaces" doc="table with all supported by the device ILKN speeds">
+                <key name="index" doc="entry index"></key>
+                <value name="speed" type="uint32" doc="ILKN serdes speed."></value>
+                <value name="pm_dispatch_type" type="portmod_dispatch_type_t" doc="PM type supporting the given speed."></value>
+                <value name="fec_type" type="bcm_port_phy_fec_t" doc="fec type"></value>
+                <value name="is_valid" type="uint32" doc="Used to filter the valid table entries per device."></value>
+            </table>
+            
+            <table labels="j2p_notrev" name="ilkn_cores"  doc="Ilkn core properties">
+                <key name="ilkn_core_id" doc="ilkn core id"></key>
+                <value name="is_elk_supported" type="uint32" doc="is ILKN core supports ELK."></value>
+                <value name="is_data_supported" type="uint32" doc="is ILKN core supports Data."></value>
+                <value name="fec_disable_by_bypass" type="uint32" doc="FEC is disabled by setting FEC bypass"></value>
+             </table>
+             
+            <table labels="j2p_notrev" name="ilkn_cores_clup_facing" doc="Facing clup id per ilkn core (For J2C ILKN Mux)">
+                <key name="ilkn_core_id" doc="ilkn core id"></key>
+                <value name="clu_unit" type="uint32" doc="facing CLUP unit Id."></value>
+            </table>
+            
+            <table labels="j2p_notrev" name="supported_device_core" doc="supported device core per ILKN id">
+                <key name="ilkn_id" doc="ilkn if id"></key>
+                <value name="core" type="int" doc="Core id of which ILKN id is associated."></value>
+            </table>
+
+            <table labels="j2p_notrev" name="properties" doc="ILKN properties per ILKN id - added using soc property.">
+                <key name="ilkn_id" doc="ilkn if id"></key>
+                <value name="burst_short" type="uint32" doc="ILKN burst short value. Sets the smallest burst size for the ILKN port. Shorter bursts will be padded with idles"></value>
+                <value name="burst_max" type="uint32" doc="ILKN burst Max value. Set the max burst size for the ILKN port."></value>
+                <value name="burst_min" type="uint32" doc="ILKN burst min value. BurstMin should be bigger or equal to BurstShort and less or equal to BurstMax/2. This value is used to optimize the usage of the interface."></value>
+                <value name="metaframe_period" type="uint32" doc="Specify the interval (in words) between meta-frame sync words. supported values: 64-16K."></value>
+                <value name="is_over_fabric" type="uint32" doc="ILKN over fabric indication. Specify the ILKN port is using Fabric lanes instead of NIF phys."></value>
+            </table>
+            
+            <table labels="j2p_notrev" name="nif_pms" doc="ILKN PM table over NIF">
+                <key name="pm_id" doc="Port Macro identifier"></key>
+                <value name="dispatch_type" type="portmod_dispatch_type_t" doc="PM dispatch type in Portmod"></value>
+                <value name="first_phy" type="uint32" doc="PM first phy"></value>
+                <value name="nof_phys" type="uint32" doc="Number of Phys in ILKN PM"></value>
+                <value name="facing_core_index" type="int" doc="PM is facing (connected directly) to this core id (For J2C ILKN Mux)."></value>
+            </table>
+
+            <table labels="j2p_notrev" name="fabric_pms" doc="ILKN PM table over Fabric">
+                <key name="pm_id" doc="Port Macro identifier"></key>
+                <value name="dispatch_type" type="portmod_dispatch_type_t" doc="PM dispatch type in Portmod"></value>
+                <value name="first_phy" type="uint32" doc="PM first phy"></value>
+                <value name="nof_phys" type="uint32" doc="Number of Phys in ILKN PM"></value>
+            </table>
+
+            <!-- FIXME SDK-147772: This table is used for ilkn-over-fabric regression only. --> 
+            <table labels="j2p_notrev" name="ilkn_pms" doc="ILKN PM table per ILKN id">
+                <key name="ilkn_id" doc="ilkn if id"></key>
+                <value name="nif_pm_ids" type="uint32[DNX_DATA_MAX_NIF_ILKN_PMS_NOF]" doc="ILKN connected PMs on NIF side"></value>
+                <value name="fabric_pm_ids" type="uint32[DNX_DATA_MAX_NIF_ILKN_PMS_NOF]" doc="ILKN connected PMs on Fabric side"></value>
+            </table>
+
+            <table labels="j2p_notrev" name="nif_lanes_map"  doc="ILKN lanes map table">
+                <key name="ilkn_core" doc="Ilkn Core id"></key>
+                <key name="range_id" doc="Ilkn lanes range id"></key>
+                <value name="first_phy" type="uint32" doc="PM first phy"></value>
+                <value name="ilkn_lane_offset" type="uint32" doc="Ilkn lane id offset"></value>
+                <value name="nof_lanes" type="uint32" doc="number of lanes in range"></value>
+            </table>
+
+             <table labels="j2p_notrev" name="fabric_lanes_map"  doc="ILKN lanes map table">
+                <key name="ilkn_core" doc="Ilkn Core id"></key>
+                <key name="range_id" doc="Ilkn lanes range id"></key>
+                <value name="first_phy" type="uint32" doc="PM first phy"></value>
+                <value name="ilkn_lane_offset" type="uint32" doc="Ilkn lane id offset"></value>
+                <value name="nof_lanes" type="uint32" doc="number of lanes in range"></value>
+            </table>
+            
+            <table labels="j2p_notrev" name="start_tx_threshold_table" doc="TX threshold table of values per speed range">
+                <key name="idx" doc="Entry index"></key>
+                <value name="speed" type="uint32" doc="Interface rate"></value>
+                <value name="start_thr" type="uint32" doc="Start TX threshold"></value>
+            </table>
+            
+            <table labels="j2p_notrev" name="fec_units" doc="mapping lanes to fec units">
+                <key name="base_lane" doc="ILKN first lane"></key>
+                <value name="nof_lanes" type="uint32" doc="number of lanes in range"></value>
+                <value name="base_fec_unit" type="uint32" doc="Base FEC unit Id"></value>
+            </table>
+            
+        </tables>
+    </sub_module>
+
+    <sub_module name="eth" doc="data about Ethernet ports">
+        <defines>
+            <define labels="j2p_notrev" name="cdu_nof" doc="Number of CDU instances in the device"></define>
+            <define labels="j2p_notrev" name="clu_nof" doc="Number of CLU instances in the device"></define>
+            <define labels="j2p_notrev" name="cdum_nof" doc="Number of CDUM instances in the device"></define>
+            <define labels="j2p_notrev" name="nof_pms_in_cdu" doc="Number of pms in each CDU in the device"></define>           
+            <define labels="j2p_notrev" name="nof_pms_in_clu" doc="Number of pms in each CLU in the device"></define>           
+            <define labels="j2p_notrev" name="total_nof_ethu_pms_in_device" doc="Maximum number of ETHU pms in the device"></define>
+            <define labels="j2p_notrev" name="nof_cdu_lanes_in_pm" doc="Number of lanes in pm in CDU unit in the device"></define>
+            <define labels="j2p_notrev" name="nof_clu_lanes_in_pm" doc="Number of lanes in pm in CLU unit in the device"></define>
+            <define labels="j2p_notrev" name="nof_cdu_pms" doc="Number of CDU pms in the device"></define>
+            <define labels="j2p_notrev" name="nof_clu_pms" doc="Number of CLU pms in the device"></define>
+            <define labels="j2p_notrev" name="ethu_nof" doc="Maximum number of ETHU in the device"></define>
+            <define labels="j2p_notrev" name="ethu_nof_per_core" doc="Maximum number of ETHU in each device core"></define>
+            <define labels="j2p_notrev" name="cdu_nof_per_core" doc="Number of CDU instances in each device core"></define>
+            <define labels="j2p_notrev" name="nof_lanes_in_cdu" doc="Number of lanes in each CDU"></define>
+            <define labels="j2p_notrev" name="nof_lanes_in_clu" doc="Number of lanes in each CLU"></define>
+            <define labels="j2p_notrev" name="total_nof_cdu_lanes_in_device" doc="Number of CDU lanes in device"></define>
+            <define labels="j2p_notrev" name="cdu_mac_mode_config_nof" doc="Number of MAC mode config units per CDU"></define>
+            <define labels="j2p_notrev" name="mac_mode_config_lanes_nof" doc="Number of lanes in each MAC mode config"></define>
+            <define labels="j2p_notrev" name="cdu_mac_nof" doc="Number of MAC units per CDU"></define>
+            <define labels="j2p_notrev" name="mac_lanes_nof" doc="Number of lanes in each MAC"></define>
+            <define labels="j2p_notrev" name="ethu_logical_fifo_nof" doc="number of logical fifos in the CDU"></define>
+            <define labels="j2p_notrev" name="cdu_memory_entries_nof" doc="number of entries in the CDU memory, to be shared between all logical FIFOs"></define>
+            <define labels="j2p_notrev" name="clu_memory_entries_nof" doc="number of entries in the CLU memory, to be shared between all logical FIFOs"></define>
+            <define labels="j2p_notrev" name="priority_group_nof_entries_min" doc="minimum number of entries to allocate to a priority group (priority group = RMC)"></define>
+            <define labels="j2p_notrev" name="priority_groups_nof" doc="number of allowed priority groups per port (priority group = RMC)"></define>
+            <define labels="j2p_notrev" name="pad_size_min" doc="min padding size"></define>
+            <define labels="j2p_notrev" name="pad_size_max" doc="max padding size"></define>
+            <define labels="j2p_notrev" name="packet_size_max" doc="max packet size"></define>
+            <define labels="j2p_notrev" name="an_max_nof_abilities" doc="max auto-negotiation abilities"></define>
+            <define labels="j2p_notrev" name="phy_map_granularity" doc="Phy granularity of phy_map table"></define>
+            <define labels="j2p_notrev" name="average_ipg_in_bits" doc="average ipg for NIF ETH ports"></define>
+            <define labels="j2p_notrev" name="is_400G_supported" doc="Marks if 400G speed port is supported for the device"></define>
+        </defines>
+ 
+        <numerics>
+        </numerics>
+     
+        <features>
+            <feature labels="j2p_notrev" name="nif_scheduler_context_per_rmc_support" doc="Indicates if the scheduler supportes per-priority configuration."></feature>
+            <feature labels="j2p_notrev" name="rmc_flush_support" doc="Is flush mechanism on RMC is supported"></feature>
+            <feature labels="j2p_notrev" name="is_rmc_low_priority_needs_configuration" doc="Indicates if the rmc supportes low-priority configuration."></feature>
+            <feature labels="j2p_notrev" name="is_clu_supported" doc="Indicates if the device supportes clu units."></feature>
+            <feature labels="j2p_notrev" name="is_rx_port_mode_needs_configuration" doc="Indicates if the rx port mode should be configured."></feature>
+            <feature labels="j2p_notrev" name="pcs_lane_map_reconfig_support" doc="Indicates if PCS lane map reconfig is supported"></feature>
+        </features>
+ 
+        <tables>
+            <table labels="j2p_notrev" name="start_tx_threshold_table" doc="TX threshold table of values per speed range">
+                <key name="idx" doc="Entry index"></key>
+                <value name="speed" type="uint32" doc="Interface rate"></value>
+                <value name="start_thr" type="uint32" doc="Start TX threshold for non-L1 ports"></value>
+                <value name="start_thr_for_l1" type="uint32" doc="Start TX threshold for L1 ports"></value>
+            </table>
+            <table labels="j2p_notrev" name="pm_properties" doc="PM properties per PM">
+                <key name="pm_index" doc="PM instance number."></key>
+                <value name="phys" type="bcm_pbmp_t" doc="phys connected to the PM."></value>
+                <value name="tvco_pll_index" type="int" doc="PM TVCO PLL index."></value>
+                <value name="phy_addr" type="int" doc="PM MDIO Address."></value>
+                <value name="is_master" type="int" doc="Boolean. Is master in PM chain"></value>
+                <value name="dispatch_type" type="portmod_dispatch_type_t" doc="PM dispatch type in Portmod"></value>
+                <value name="special_pll_check" type="int" doc="Boolean. Does this PM require special PLL check"></value>
+            </table>
+            <table labels="j2p_notrev" name="ethu_properties" doc="map ethu to PM instance">
+                <key name="ethu_index" doc="ethu instance number."></key>
+                <value name="pms" type="int[DNX_DATA_MAX_NIF_ETH_TOTAL_NOF_ETHU_PMS_IN_DEVICE]" doc="array of pms in each ethu."></value>
+                <value name="type" type="imb_dispatch_type_t" doc="Unit IMB type"></value>
+                <value name="type_index" type="int" doc="inner IMB type index"></value>
+            </table>
+            <table labels="j2p_notrev" name="phy_map" doc="Map phy index to ETHU index and PM index. Phy index granularity is defined by phy_map_granularity">
+                <key name="idx" doc="Entry Index"></key>
+                <value name="phy_index" type="int" doc="NIF Phy Index"></value>
+                <value name="ethu_index" type="int" doc="Ethernet Unit Index containing Phy Index"></value>
+                <value name="pm_index" type="int" doc="PM Index containing Phy Index"></value>
+            </table>            
+            <table labels="j2p_notrev" name="max_speed" doc="Max speed for each ethernet interface type.">
+                <key name="lane_num" doc="number of lanes for the given interface type."></key>
+                <value name="speed" type="int" doc="Max speed value."></value>
+            </table>
+            
+            <table labels="j2p_notrev" name="supported_interfaces" doc="Table with all the supported Ethernet interfaces for the device.">
+                <key name="idx" doc="Running index"></key>
+                <value name="speed" type="int" doc="valid etherned speed"></value>
+                <value name="nof_lanes" type="int" doc="nof lanes used by the port"></value>
+                <value name="fec_type" type="bcm_port_phy_fec_t" doc="fec type"></value>
+                <value name="dispatch_type" type="portmod_dispatch_type_t" doc="pm type"></value>
+                <value name="is_valid" type="int" doc="is valid interface for current device"></value>
+            </table> 
+
+            <table labels="j2p_notrev" name="supported_an_abilities" doc="Table with all the supported AN ability for legacy PMs.">
+                <key name="idx" doc="Running index"></key>
+                <value name="an_mode" type="int" doc="AN mode"></value>
+                <value name="speed" type="int" doc="valid etherned speed"></value>
+                <value name="nof_lanes" type="int" doc="nof lanes used by the port"></value>
+                <value name="fec_type" type="bcm_port_phy_fec_t" doc="fec type"></value>
+                <value name="medium" type="bcm_port_medium_t" doc="media type"></value>
+                <value name="channel" type="bcm_port_phy_channel_t" doc="short/long channel"></value>
+                <value name="is_valid" type="int" doc="is valid interface for current device"></value>
+            </table> 
+        </tables>
+    </sub_module>
+
+    <sub_module name="simulator" doc="data about phy simulators">
+         <numerics>
+              <numeric labels="j2p_notrev" name="cdu_type" type="uint32" doc="Type of CDU phy simulator"></numeric>  
+              <numeric labels="j2p_notrev" name="clu_type" type="uint32" doc="Type of CLU phy simulator"></numeric>  
+         </numerics>
+    </sub_module>
+
+    <sub_module name="flexe" doc="data about FlexE">
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Is FlexE supported"></feature>
+            <feature labels="j2p_notrev" name="is_led_supported" doc="Is FlexE LED supported"></feature>
+            <feature labels="j2p_notrev" name="prd_is_bypassed" doc="Is PRD bypassed on the device"></feature>
+            <feature labels="j2p_notrev" name="double_slots_for_small_client" doc="5G/10G client needs two slots in sb rx"></feature>
+            <feature labels="j2p_notrev" name="double_slots_for_all_client" doc="All clients need double slots in sb rx"></feature>
+            <feature labels="j2p_notrev" name="half_capability" doc="Reduce flexe capability to 200G"></feature>
+            <feature labels="j2p_notrev" name="rmc_cal_per_priority" doc="RMC calendar is configured per RMC priority"></feature>
+            <feature labels="j2p_notrev" name="avoid_bw_verification" doc="Avoid verifying flexe total bandwidth"></feature>
+            <feature labels="j2p_notrev" name="pcs_port_enable_support" doc="Indicate if per pcs port enable is supported"></feature>
+            <feature labels="j2p_notrev" name="rx_valid_in_lf" doc="If there is local fault, there is still Rx valid"></feature>
+            <feature labels="j2p_notrev" name="l1_mismatch_rate_support" doc="If mismatch rate is supported between ETH and Busb client for L1 switching"></feature>
+            <feature labels="j2p_notrev" name="disable_l1_mismatch_rate_checking" doc="Disable L1 mismatch rate checking when configuring L1 switching"></feature>
+            <feature labels="j2p_notrev" name="feu_ilkn_burst_size_support" doc="If configuring ILKN Burst size in FEU is supported"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="feu_nof" doc="Number of FEU instances in the device"></define>
+            <define labels="j2p_notrev" name="nof_clients" doc="Number of total clients, including 1588 and OAM channel"></define>
+            <define labels="j2p_notrev" name="nof_flexe_clients" doc="Number of FlexE clients"></define>
+            <define labels="j2p_notrev" name="nof_special_clients" doc="Number of special clients for 1588 and OAM"></define>
+            <define labels="j2p_notrev" name="nof_groups" doc="Number of FlexE groups"></define>
+            <define labels="j2p_notrev" name="max_group_id" doc="MAX FlexE group ID"></define>
+            <define labels="j2p_notrev" name="min_group_id" doc="MIN FlexE group ID"></define>
+            <define labels="j2p_notrev" name="nb_tx_delay" doc="The TX delay in NB interface"></define>
+            <define labels="j2p_notrev" name="nb_tx_fifo_th_for_first_read" doc="first read from fifo will start only after data has accumulated in the fifo."></define>
+            <define labels="j2p_notrev" name="nof_pcs" doc="Number of FlexE pcs"></define>
+            <define labels="j2p_notrev" name="nof_phy_speeds" doc="Number of PHY speed"></define>
+            <define labels="j2p_notrev" name="phy_speed_granularity" doc="The granularity for PHY speed"></define>
+            <define labels="j2p_notrev" name="max_flexe_core_speed" doc="The max capacity for FlexE core"></define>
+            <define labels="j2p_notrev" name="flexe_core_clock_source_pm" doc="Define the clock source PM id for flexe core"></define>
+            <define labels="j2p_notrev" name="nof_logical_fifos" doc="Number of FlexE client logical fifos"></define>
+            <define labels="j2p_notrev" name="sar_channel_base" doc="base number for SAR channel"></define>
+            <define labels="j2p_notrev" name="mac_channel_base" doc="base number for MAC channel"></define>
+            <define labels="j2p_notrev" name="client_speed_granularity" doc="The FlexE client speed granularity"></define>
+            <define labels="j2p_notrev" name="nof_sb_rx_fifos" doc="Number of SB RX fifos"></define>
+            <define labels="j2p_notrev" name="oam_client_channel" doc="Client channel ID for OAM"></define>
+            <define labels="j2p_notrev" name="ptp_client_channel" doc="Client channel ID for 1588"></define>
+            <define labels="j2p_notrev" name="oam_tx_cal_slot" doc="TMC Calendar slot for OAM"></define>
+            <define labels="j2p_notrev" name="ptp_tx_cal_slot" doc="TMC Calendar slot for 1588"></define>
+            <define labels="j2p_notrev" name="priority_groups_nof" doc="number of allowed priority groups per port (priority group = RMC)"></define>
+            <define labels="j2p_notrev" name="max_nof_slots" doc="Define the MAX number of time slots"></define>
+            <define labels="j2p_notrev" name="min_client_id" doc="Define the Min client ID"></define>
+            <define labels="j2p_notrev" name="max_client_id" doc="Define the MAX client ID"></define>
+            <define labels="j2p_notrev" name="ptp_channel_max_bandwidth" doc="Max bandwidth for PTP channel"></define>
+            <define labels="j2p_notrev" name="oam_channel_max_bandwidth" doc="Max bandwidth for OAM channel"></define>
+            <define labels="j2p_notrev" name="nof_mem_entries_per_slot" doc="Nof memory entries per RMC slots"></define>
+            <define labels="j2p_notrev" name="ptp_oam_fifo_entries_in_sb_rx" doc="Nof FIFO entries for PTP OAM client in SB RX FIFO"></define>
+            <define labels="j2p_notrev" name="nof_flexe_instances" doc="Number of FlexE instances"></define>
+            <define labels="j2p_notrev" name="nof_flexe_lphys" doc="Number of FlexE logical PHYs"></define>
+            <define labels="j2p_notrev" name="nof_sar_timeslots" doc="Number of FlexE SAR timeslots"></define>
+            <define labels="j2p_notrev" name="nof_mac_timeslots" doc="Number of FlexE MAC timeslots"></define>
+            <define labels="j2p_notrev" name="distributed_ilu_id" doc="ILKN CORE ID for FlexE distributed mode"></define>
+            <define labels="j2p_notrev" name="max_nif_rate_centralized" doc="Max NIF capacity when flexe is enabled in centralized mode"></define>
+            <define labels="j2p_notrev" name="rmc_cal_nof_slots" doc="Nof slots for RMC calendar"></define>
+            <define labels="j2p_notrev" name="max_nif_rate_distributed" doc="Max NIF capacity when flexe is enabled in distributed mode"></define>
+            <define labels="j2p_notrev" name="max_ilu_rate_distributed" doc="Max ILU capacity for flexe distributed interface"></define>
+            <define labels="j2p_notrev" name="ilkn_burst_size_in_feu" doc="Burst size for ILKN in FEU"></define>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="flexe_mode" doc="FlexE mode."></numeric>
+            <numeric labels="j2p_notrev" name="nof_pms_per_feu" doc="Number of PMs for each FEU"></numeric>
+            <numeric name="nb_tdm_slot_allocation_mode" doc="The NB TDM slot allocation mode"></numeric>
+        </numerics>
+
+        <tables>
+            <table labels="j2p_notrev" name="phy_info" doc="The PHY info for flexe physical interface">
+                <key name="idx" doc="Entry Index"></key>
+                <value name="speed" type="int" doc="PHY speed"></value>
+                <value name="min_logical_phy_id" type="int" doc="Min logical PHY ID"></value>
+                <value name="max_logical_phy_id" type="int" doc="Max logical PHY ID"></value>
+                <value name="flexe_core_port" type="int[DNX_DATA_MAX_NIF_FLEXE_NOF_PCS]" doc="FlexE core port ID"></value>
+            </table>
+            <table labels="j2p_notrev" name="start_tx_threshold_table" doc="TX threshold table of values per speed">
+                <key name="idx" doc="Entry index"></key>
+                <value name="speed" type="uint32" doc="Interface rate"></value>
+                <value name="start_thr" type="uint32" doc="Start TX threshold for non-L1 ports"></value>
+                <value name="start_thr_for_l1" type="uint32" doc="Start TX threshold for L1 ports"></value>
+            </table>
+            <table labels="j2p_notrev" name="mac_tx_threshold_table" doc="TX threshold table of values per speed for TinyMAC">
+                <key name="idx" doc="Entry index"></key>
+                <value name="speed" type="uint32" doc="Interface rate"></value>
+                <value name="tx_thr" type="uint32" doc="TX threshold for tiny_mac"></value>
+            </table>
+            <table labels="j2p_notrev" name="supported_pms" doc="Supported PMs for each FEU">
+                <key name="feu_idx" type="int" doc="FEU index"></key>
+                <value name="nif_pms" type="int[DNX_DATA_MAX_NIF_ETH_TOTAL_NOF_ETHU_PMS_IN_DEVICE]" doc="The PMs connecting to the FEU"></value>
+            </table>
+            <table labels="j2p_notrev" name="l1_mismatch_rate_table" doc="Info for L1 mismatch rate feature">
+                <key name="idx" doc="Entry index"></key>
+                <value name="eth_speed" type="uint32" doc="Interface rate for ETH"></value>
+                <value name="client_speed" type="uint32" doc="Interface rate for Client"></value>
+                <value name="tx_thr" type="uint32" doc="TX threshold for RMC"></value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="prd" doc="Priority Drop module">
+        <defines>
+            <define labels="j2p_notrev" name="nof_control_frames" doc="Number of control frame properties to which each packet is compared in order to be recognized as control frame in the PRD parser"></define>
+            <define labels="j2p_notrev" name="nof_ether_type_codes" doc="Number of ether types supported by the PRD Parser"></define>
+            <define labels="j2p_notrev" name="nof_tcam_entries" doc="Number of entries in PRD Parser soft stage TCAM"></define>
+            <define labels="j2p_notrev" name="nof_mpls_special_labels" doc="Number of MPLS special labels recognized by the PRD parser"></define>
+            <define labels="j2p_notrev" name="nof_priorities" doc="Number of PRD Priorities"></define>
+            <define labels="j2p_notrev" name="custom_ether_type_code_min" doc="Min value of the configurable ether type codes"></define>
+            <define labels="j2p_notrev" name="custom_ether_type_code_max" doc="Max value of the configurable ether type codes"></define>           
+            <define labels="j2p_notrev" name="ether_type_code_max" doc="Max value of the  ether type code"></define>
+            <define labels="j2p_notrev" name="ether_type_max" doc="Max value of the  ether type"></define>
+            <define labels="j2p_notrev" name="rmc_threshold_max" doc="Max value of the ingress port drop threshold for RMC"></define>
+            <define labels="j2p_notrev" name="cdu_rmc_threshold_max" doc="Max value of the ingress CDU port drop threshold for RMC"></define>
+            <define labels="j2p_notrev" name="hrf_threshold_max" doc="Max value of the ingress port drop threshold for HRF"></define>
+            <define labels="j2p_notrev" name="mpls_special_label_max" doc="Max value of the  MPLS special label"></define>
+            <define labels="j2p_notrev" name="flex_key_offset_key_max" doc="Max value of the  FLEX Key offset key"></define>
+            <define labels="j2p_notrev" name="flex_key_offset_result_max" doc="Max value of the  FLEX Key offset result"></define>
+            <define labels="j2p_notrev" name="tpid_max" doc="Max value of the  tpid"></define>
+            <define labels="j2p_notrev" name="nof_clu_port_profiles" doc="Number of prd porfiles per CLU"></define>
+            <define labels="j2p_notrev" name="nof_feu_port_profiles" doc="Number of prd porfiles per FEU"></define>
+        </defines>
+ 
+        <numerics>
+        </numerics>
+
+        <features>
+            <feature labels="j2p_notrev" name="is_rx_rmc_threshold_need_configuration" doc="Indicates if the rx rmc thresholds should be restamped."></feature>
+        </features>
+ 
+        <tables>
+            <table labels="j2p_notrev" name="ether_type" doc="Ether type codes and sizes for fixed ether types.">
+                <key name="ether_type_code" doc="Ether type code in PRD parser"></key>
+                <value name="ether_type_name" type="char *" doc="the name of the Ether type."></value>
+                <value name="ether_type_size" type="uint32" doc="the size in bytes of the ether type header."></value>
+            </table>
+            <table labels="j2p_notrev" name="port_profile_map" doc="Prd profiles information per IMB type">
+                <key name="type" doc="IMB type"></key>
+                <value name="is_supported" type="uint32" doc="Ether the prd profile mapping is supported per IMB type"></value>
+                <value name="nof_profiles" type="uint32" doc="Number of the prd profiles per IMB type"></value>
+            </table>
+
+        </tables>
+    </sub_module>
+    <sub_module name="portmod" doc="information required for portmod.">
+        <defines>
+            <define labels="j2p_notrev" name="pm_types_nof" doc="Number of pm types"></define>
+        </defines>
+ 
+        <numerics>
+        </numerics>
+
+        <features>
+        </features>
+ 
+        <tables>
+            <table labels="j2p_notrev" name="pm_types_and_interfaces" doc="fixed types and interfaces per device">
+                <key name="index" doc="pm type index"></key>
+                <value name="type" type="portmod_dispatch_type_t" doc="pm type"></value>
+                <value name="instances" type="int" doc="the number of instances of the specified pm type"></value>
+            </table>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="scheduler" doc="data about NIF schedulder">
+        <defines>
+            <define labels="j2p_notrev" name="rate_per_ethu_bit" doc="The Rate equivalent to 1 weight bit of ETHU scheduler"></define>
+            <define labels="j2p_notrev" name="rate_per_ilu_bit" doc="The Rate equivalent to 1 weight bit of ILU scheduler"></define>
+            <define labels="j2p_notrev" name="rate_per_cdu_rmc_bit" doc="The Rate equivalent to 1 bit of CDU RMC scheduler"></define>
+            <define labels="j2p_notrev" name="rate_per_clu_rmc_bit" doc="The Rate equivalent to 1 bit of CLU RMC scheduler"></define>
+            <define labels="j2p_notrev" name="nof_weight_bits" doc="Number of weight bits in UNIT scheduler"></define>
+            <define labels="j2p_notrev" name="nof_rmc_bits" doc="Number of bits in RMC scheduler"></define>
+       </defines>
+    </sub_module>
+    
+    <sub_module name="dbal"  doc="NIF dbal defines">
+        <defines>
+            <define labels="j2p_notrev" name="cdu_rx_rmc_entry_size" doc="size of the cdu rmc fifo entry size in bits"></define>
+            <define labels="j2p_notrev" name="clu_rx_rmc_entry_size" doc="size of the clu rmc fifo entry size in bits"></define>
+            <define labels="j2p_notrev" name="cdu_tx_start_threshold_entry_size" doc="size of the cdu tx start threshold entry size"></define>
+            <define labels="j2p_notrev" name="clu_tx_start_threshold_entry_size" doc="size of the clu tx start threshold entry size"></define>
+            <define labels="j2p_notrev" name="ilu_burst_min_entry_size" doc="size of the ilu burst min entry size"></define>
+            <define labels="j2p_notrev" name="ethu_rx_rmc_counter_entry_size" doc="ethu rx rmc counter entry size"></define>
+            <define labels="j2p_notrev" name="cdu_lane_fifo_level_and_occupancy_entry_size" doc="cdu nif status fifo level and occupancy entry size"></define>
+            <define labels="j2p_notrev" name="clu_lane_fifo_level_and_occupancy_entry_size" doc="clu nif status fifo level and occupancy entry size"></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="hw_workarounds" doc="All nif workarounds">
+        <features>
+            <feature labels="j2p_notrev" name="pm_mode_0122_invalid" doc="The dynamic transitions to/from PM configuration 0122 should be disabled ,(HWJERICHO2C-1264)."></feature>
+        </features>
+    </sub_module>
+</device_data>
+
+
+
+

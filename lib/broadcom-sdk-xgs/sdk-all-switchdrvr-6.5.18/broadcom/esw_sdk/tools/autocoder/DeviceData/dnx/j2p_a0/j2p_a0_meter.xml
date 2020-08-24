@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2p_a0"  module="meter">
+    <includes>
+        <include>bcm/policer.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_crps.h</include>
+        <include>shared/utilex/utilex_integer_arithmetic.h</include>
+    </includes>
+    <sub_module name="profile">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="ir_mant_nof_bits" value="9"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>    
+        </tables>
+         
+    </sub_module>
+    <sub_module name="diag">
+        
+        <features>
+            <feature name="rate_measurements_support" value="1"></feature>      
+        </features>
+        
+        <defines>      
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>    
+        </tables>
+         
+    </sub_module>  
+    <sub_module name="meter_db">
+        
+        <features>
+        </features>     
+        
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>    
+        </tables>
+         
+    </sub_module>      
+    <sub_module name="mem_mgmt">
+        
+        <features>
+        </features>
+        
+        <defines>           
+            <define name="meter_pointer_size" value="20"></define> 
+            <define name="invalid_bank_id" value="63"></define>          
+        </defines>
+
+        <numerics>
+            <numeric name="bank_id_size" value="6"></numeric>
+            <numeric name="sections_offset" value="1"></numeric>
+        </numerics>
+
+        <tables>    
+        </tables>
+         
+    </sub_module>   
+    
+</device_data>
+
+
+

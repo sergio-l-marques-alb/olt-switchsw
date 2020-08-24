@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2c_a0"  module="stack">
+
+    <sub_module name="general">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="dest_port_base_queue_min" value="0x1ffc0"></define>
+            <define name="dest_port_base_queue_max" value="0x1ffff"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+</device_data>
+
+
+

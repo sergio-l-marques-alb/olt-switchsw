@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_b0"  module="adapter">
+
+    <includes>
+        <include>src/bcm/dnx/rx/auto_generated/rx_internal_jr2_b0.h</include>
+   </includes>
+
+    <sub_module name="rx">
+        <numerics>
+                    <numeric name="packet_header_signal_id" value="PACKET_HEADER_SIGNAL_ID_JR2_B0"/>
+        </numerics>
+    </sub_module>
+
+</device_data>

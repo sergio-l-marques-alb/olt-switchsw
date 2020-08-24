@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="ECMP_TABLE">
+        <OneLineDescription>Holds all the ECMP groups</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.l3.ecmp.max_ecmp_extended_mode" MinValue="1" Name="ECMP_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Index of the first FEC/ECMP in the ECMP group." Name="FEC_POINTER_BASE"/>
+                <Field Description="The ECMP profile index." Name="ECMP_GROUP_PROFILE"/>
+                <Field Description="In case the ECMP is using an EM RPF mode this bit should be set to prevent SIP base MC RPF in case enabled as it would fail." Name="RPF_MODE_IS_EM" Type="BOOL"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FEC_POINTER_BASE">
+                    <!-- In the case of ECMP_ID > 32k, we need to save the group in another HL table.
+                     To find the exact bank that the ID belongs to in the HL table, we need to subtract 32k from the ECMP ID value and then divide by the number of rows in a single bank
+                     We also need to make a copy of the entry in the two halves of the memory. -->
+                    <Access>
+                        <KeyCondition Type="BIGGER_THAN" Value="DNX_DATA.l3.ecmp.max_ecmp_basic_mode"/>
+                        <Memory Name="IPPD_FEC_PATH_SELECTm">
+                            <!-- Add the entry in the former 16 banks of the memory -->
+                            <ArrayOffset Formula="#KEY_VALUE(ECMP_ID)/dnx_data_l3.ecmp.nof_ecmp_per_bank_of_extended_ecmps_get(unit)-32768/dnx_data_l3.ecmp.nof_ecmp_per_bank_of_extended_ecmps_get(unit)"/>
+                            <!-- Find the row in the HL table that the ECMP ID needs to be saved in -->
+                            <EntryOffset Formula="#KEY_VALUE(ECMP_ID) % dnx_data_l3.ecmp.nof_ecmp_per_bank_of_extended_ecmps_get(unit)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Type="BIGGER_THAN" Value="DNX_DATA.l3.ecmp.max_ecmp_basic_mode"/>
+                        <Memory Name="IPPD_FEC_PATH_SELECTm">
+                            <!-- Add the entry in the latter 16 banks of the memory -->
+                            <ArrayOffset Formula="16+#KEY_VALUE(ECMP_ID)/dnx_data_l3.ecmp.nof_ecmp_per_bank_of_extended_ecmps_get(unit)-32768/dnx_data_l3.ecmp.nof_ecmp_per_bank_of_extended_ecmps_get(unit)"/>
+                            <!-- Find the row in the HL table that the ECMP ID needs to be saved in -->
+                            <EntryOffset Formula="#KEY_VALUE(ECMP_ID)%dnx_data_l3.ecmp.nof_ecmp_per_bank_of_extended_ecmps_get(unit)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Type="LOWER_THAN" Value="DNX_DATA.l3.ecmp.nof_ecmp_basic_mode"/>
+                        <Memory Name="IPPD_FEC_ECMPm">
+                            <ArrayOffset Formula="#KEY_VALUE(ECMP_ID)/dnx_data_l3.ecmp.nof_ecmp_per_bank_of_low_ecmps_get(unit)"/>
+                            <EntryOffset Formula="#KEY_VALUE(ECMP_ID)%dnx_data_l3.ecmp.nof_ecmp_per_bank_of_low_ecmps_get(unit)"/>
+                            <HwField Name="FEC_POINTER_BASEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ECMP_GROUP_PROFILE">
+                    <Access>
+                        <KeyCondition Type="BIGGER_THAN" Value="DNX_DATA.l3.ecmp.max_ecmp_basic_mode"/>
+                        <Memory Name="IPPD_FEC_PATH_SELECTm">
+                            <!-- (ECMP_ID - 32k) / nof_ecmp_per_bank_of_extended_ecmps -->
+                            <ArrayOffset Formula="#KEY_VALUE(ECMP_ID)/dnx_data_l3.ecmp.nof_ecmp_per_bank_of_extended_ecmps_get(unit)-32768/dnx_data_l3.ecmp.nof_ecmp_per_bank_of_extended_ecmps_get(unit)"/>
+                            <EntryOffset Formula="#KEY_VALUE(ECMP_ID)%dnx_data_l3.ecmp.nof_ecmp_per_bank_of_extended_ecmps_get(unit)"/>
+                            <DataOffset Formula="#RESULT_SIZE(FEC_POINTER_BASE)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Type="BIGGER_THAN" Value="DNX_DATA.l3.ecmp.max_ecmp_basic_mode"/>
+                        <Memory Name="IPPD_FEC_PATH_SELECTm">
+                            <!-- (ECMP_ID - 32k) / nof_ecmp_per_bank_of_extended_ecmps -->
+                            <ArrayOffset Formula="16+#KEY_VALUE(ECMP_ID)/dnx_data_l3.ecmp.nof_ecmp_per_bank_of_extended_ecmps_get(unit)-32768/dnx_data_l3.ecmp.nof_ecmp_per_bank_of_extended_ecmps_get(unit)"/>
+                            <EntryOffset Formula="#KEY_VALUE(ECMP_ID)%dnx_data_l3.ecmp.nof_ecmp_per_bank_of_extended_ecmps_get(unit)"/>
+                            <DataOffset Formula="#RESULT_SIZE(FEC_POINTER_BASE)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Type="LOWER_THAN" Value="DNX_DATA.l3.ecmp.nof_ecmp_basic_mode"/>
+                        <Memory Name="IPPD_FEC_ECMPm"> 
+                            <ArrayOffset Formula="#KEY_VALUE(ECMP_ID)/dnx_data_l3.ecmp.nof_ecmp_per_bank_of_low_ecmps_get(unit)"/>
+                            <EntryOffset Formula="#KEY_VALUE(ECMP_ID)%dnx_data_l3.ecmp.nof_ecmp_per_bank_of_low_ecmps_get(unit)"/>
+                            <HwField Name="GROUP_PROFILE_PTRf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPF_MODE_IS_EM">
+                    <Access>
+                        <KeyCondition Type="BIGGER_THAN" Value="DNX_DATA.l3.ecmp.max_ecmp_basic_mode"/>
+                        <Memory Name="IPPD_FEC_PATH_SELECTm">
+                            <!-- (ECMP_ID - 32k) / nof_ecmp_per_bank_of_extended_ecmps -->
+                            <ArrayOffset Formula="#KEY_VALUE(ECMP_ID)/dnx_data_l3.ecmp.nof_ecmp_per_bank_of_extended_ecmps_get(unit)-32768/dnx_data_l3.ecmp.nof_ecmp_per_bank_of_extended_ecmps_get(unit)"/>
+                            <EntryOffset Formula="#KEY_VALUE(ECMP_ID)%dnx_data_l3.ecmp.nof_ecmp_per_bank_of_extended_ecmps_get(unit)"/>
+                            <DataOffset Formula="#RESULT_SIZE(FEC_POINTER_BASE)+#RESULT_SIZE(ECMP_GROUP_PROFILE)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Type="BIGGER_THAN" Value="DNX_DATA.l3.ecmp.max_ecmp_basic_mode"/>
+                        <Memory Name="IPPD_FEC_PATH_SELECTm">
+                            <!-- (ECMP_ID - 32k) / nof_ecmp_per_bank_of_extended_ecmps -->
+                            <ArrayOffset Formula="16+#KEY_VALUE(ECMP_ID)/dnx_data_l3.ecmp.nof_ecmp_per_bank_of_extended_ecmps_get(unit)-32768/dnx_data_l3.ecmp.nof_ecmp_per_bank_of_extended_ecmps_get(unit)"/>
+                            <EntryOffset Formula="#KEY_VALUE(ECMP_ID)%dnx_data_l3.ecmp.nof_ecmp_per_bank_of_extended_ecmps_get(unit)"/>
+                            <DataOffset Formula="#RESULT_SIZE(FEC_POINTER_BASE)+#RESULT_SIZE(ECMP_GROUP_PROFILE)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Type="LOWER_THAN" Value="DNX_DATA.l3.ecmp.nof_ecmp_basic_mode"/>
+                        <Memory Name="IPPD_FEC_ECMPm"> 
+                            <ArrayOffset Formula="#KEY_VALUE(ECMP_ID)/dnx_data_l3.ecmp.nof_ecmp_per_bank_of_low_ecmps_get(unit)"/>
+                            <EntryOffset Formula="#KEY_VALUE(ECMP_ID)%dnx_data_l3.ecmp.nof_ecmp_per_bank_of_low_ecmps_get(unit)"/>
+                            <HwField Name="RPF_DESTINATION_IS_ECMPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ECMP_GROUP_PROFILE_TABLE">
+        <OneLineDescription>Holds the profiles of the ECMP group, each profile can be used by a several ECMP group and each ECMP hierarchy have a different set of profiles.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ECMP_GROUP_PROFILE" Size="10"/>
+                <Field MaxValue="2" Name="HIERARCHY_LEVEL"/>
+            </Key>
+            <Result>
+                <Field Name="ECMP_MODE"/>
+                <Field Name="ECMP_MEMBERS_BASE"/>
+                <Field Name="MAX_GROUP_SIZE_MINUS_ONE" Size="DNX_DATA.l3.ecmp.group_size_nof_bits" Type="UINT"/>
+                <Field Name="STAT_OBJECT_ID" Size="16"/>
+                <Field Name="STAT_OBJECT_CMD"/>
+                <Field Name="PROTECTION_ENABLE"/>
+                <Field Name="ECMP_RPF_MODE"/>
+                <Field Name="ECMP_TUNNEL_PRIORITY_MAP_PROFILE" Valid="DNX_DATA.l3.ecmp.tunnel_priority_support"/>
+                <Field Name="ECMP_TUNNEL_PRIORITY_MODE" Valid="DNX_DATA.l3.ecmp.tunnel_priority_support"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ECMP_MODE">
+                    <Access>
+                        <Memory Name="IPPD_FEC_ECMP_GROUP_PROFILEm">
+                            <ArrayOffset Formula="#KEY_VALUE(HIERARCHY_LEVEL)"/>
+                            <EntryOffset Formula="#KEY_VALUE(ECMP_GROUP_PROFILE)"/>
+                            <HwField Name="ECMP_MODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ECMP_MEMBERS_BASE">
+                    <Access>
+                        <Memory Name="IPPD_FEC_ECMP_GROUP_PROFILEm"> 
+                            <ArrayOffset Formula="#KEY_VALUE(HIERARCHY_LEVEL)"/>
+                            <EntryOffset Formula="#KEY_VALUE(ECMP_GROUP_PROFILE)"/>
+                            <HwField Name="ECMP_MEMBERS_BASEf"/>
+                        </Memory>
+                    </Access>
+                </Field>   
+                <Field Name="MAX_GROUP_SIZE_MINUS_ONE">
+                    <Access>
+                        <Memory Name="IPPD_FEC_ECMP_GROUP_PROFILEm">
+                            <ArrayOffset Formula="#KEY_VALUE(HIERARCHY_LEVEL)"/>
+                            <EntryOffset Formula="#KEY_VALUE(ECMP_GROUP_PROFILE)"/>
+                            <HwField Name="MAX_GROUP_SIZE_MINUS_ONEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="STAT_OBJECT_ID">
+                    <Access>
+                        <Memory Name="IPPD_FEC_ECMP_GROUP_PROFILEm"> 
+                            <ArrayOffset Formula="#KEY_VALUE(HIERARCHY_LEVEL)"/>
+                            <EntryOffset Formula="#KEY_VALUE(ECMP_GROUP_PROFILE)"/>
+                            <HwField Name="STATISTIC_OBJECT_IDf"/>
+                        </Memory>
+                    </Access>
+                </Field>  
+                <Field Name="STAT_OBJECT_CMD">
+                    <Access>
+                        <Memory Name="IPPD_FEC_ECMP_GROUP_PROFILEm">
+                            <ArrayOffset Formula="#KEY_VALUE(HIERARCHY_LEVEL)"/>
+                            <EntryOffset Formula="#KEY_VALUE(ECMP_GROUP_PROFILE)"/>
+                            <HwField Name="STATISTIC_OBJECT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PROTECTION_ENABLE">
+                    <Access>
+                        <Memory Name="IPPD_FEC_ECMP_GROUP_PROFILEm"> 
+                            <ArrayOffset Formula="#KEY_VALUE(HIERARCHY_LEVEL)"/>
+                            <EntryOffset Formula="#KEY_VALUE(ECMP_GROUP_PROFILE)"/>
+                            <HwField Name="PROTECTION_FLAGf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ECMP_RPF_MODE">
+                    <Access>
+                        <Memory Name="IPPD_FEC_ECMP_RPF_MODEm"> 
+                            <ArrayOffset Formula="#KEY_VALUE(HIERARCHY_LEVEL)"/>
+                            <EntryOffset Formula="#KEY_VALUE(ECMP_GROUP_PROFILE)"/>
+                            <HwField Name="RPF_MODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ECMP_TUNNEL_PRIORITY_MAP_PROFILE">
+                    <Access>
+                        <Memory Name="IPPD_FEC_ECMP_GROUP_PROFILEm"> 
+                            <ArrayOffset Formula="#KEY_VALUE(HIERARCHY_LEVEL)"/>
+                            <EntryOffset Formula="#KEY_VALUE(ECMP_GROUP_PROFILE)"/>
+                            <HwField Name="TP_MAP_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field> 
+                <Field Name="ECMP_TUNNEL_PRIORITY_MODE">
+                    <Access>
+                        <Memory Name="IPPD_FEC_ECMP_GROUP_PROFILEm"> 
+                            <ArrayOffset Formula="#KEY_VALUE(HIERARCHY_LEVEL)"/>
+                            <EntryOffset Formula="#KEY_VALUE(ECMP_GROUP_PROFILE)"/>
+                            <HwField Name="TP_MODEf"/>
+                        </Memory>
+                    </Access>
+                </Field> 
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    
+    <AppDB Name="ECMP_TUNNEL_PRIORITY_MAP" Valid="DNX_DATA.l3.ecmp.tunnel_priority_support">
+        <OneLineDescription>Holds the tunnel priority mapping.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TP_VALUE" Size="DNX_DATA.l3.ecmp.tunnel_priority_field_width" Type="UINT"/>
+                <Field Name="TP_MAP_PROFILE" Size="2" Type="UINT"/>
+                <Field MaxValue="2" Name="HIERARCHY_LEVEL"/>
+            </Key>
+            <Result>
+                <Field Name="TP_INDEX" Size="DNX_DATA.l3.ecmp.tunnel_priority_index_field_width" Type="UINT"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TP_INDEX">
+                    <Access>
+                        <Register Name="IPPD_MAP_TP_AND_TP_MODEr">
+                            <ArrayOffset Formula="#KEY_VALUE(HIERARCHY_LEVEL)"/>
+                            <HwField Name="ECMP_TP_Nf"/>
+                            <DataOffset Formula="#RESULT_SIZE(TP_INDEX)*((#KEY_VALUE(TP_VALUE)&lt;&lt;#KEY_SIZE(TP_MAP_PROFILE))+#KEY_VALUE(TP_MAP_PROFILE))"/>
+                        </Register>
+                    </Access>
+                </Field>     
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="L3_GENERAL_CONFIGURATION">
+        <OneLineDescription>Indicate if default route is allowed for UC strict and MC SIP-based RPF</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Indicates whether default routing is allowed or not for Strict UC RPF" Name="DEFAULT_ROUTE_STRICT_RPF" Size="1" Type="BOOL"/>
+                <Field Description="Indicates whether default routing is allowed or not for Loose UC RPF" Name="DEFAULT_ROUTE_LOOSE_RPF" Size="1" Type="BOOL"/>
+                <Field Description="Indicates whether default routing is allowed or not for SIP-based MC RPF" Name="DEFAULT_ROUTE_MC_SIP_BASED_RPF" Size="1" Type="BOOL"/>
+                <Field Description="Indicates whether the extended range for ECMP groups is enabled (40k entries)" Name="ENABLE_40K_ECMP_RANGE" Size="1" Type="BOOL"/>
+                <Field Description="Indicates whether the KAPS interfaces are enabled for default indication" Name="ENABLE_KAPS_DEFAULT" Size="4"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DEFAULT_ROUTE_STRICT_RPF">
+                    <Access>
+                        <Register Name="IPPD_ALLOW_DEFAULT_ROUTEr">
+                            <HwField Name="STRICT_RPF_ALLOW_DEFAULTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DEFAULT_ROUTE_LOOSE_RPF">
+                    <Access>
+                        <Register Name="IPPD_ALLOW_DEFAULT_ROUTEr">
+                            <HwField Name="UC_LOOSE_RPF_ALLOW_DEFAULTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DEFAULT_ROUTE_MC_SIP_BASED_RPF">
+                    <Access>
+                        <Register Name="IPPD_ALLOW_DEFAULT_ROUTEr">
+                            <HwField Name="MC_SIP_BASED_RPF_ALLOW_DEFAULTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ENABLE_40K_ECMP_RANGE">
+                    <Access>
+                        <Register Name="IPPD_FER_POINTER_CONSRUCTIONr">
+                            <HwField Name="ENABLE_40K_ECMPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ENABLE_KAPS_DEFAULT">
+                    <Access>
+                        <Register Name="IPPB_ENABLE_KAPS_INTERFACE_DEFAULTr">
+                            <HwField Name="ENABLE_KAPS_INTERFACE_DEFAULTf"/>
+                        </Register>
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FEC_ECMP_MEMBERS">
+        <OneLineDescription>The table contains information regarding the list of members of the ECMP groups</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="direct row index to the table" Name="ECMP_MEMBER_ROW_ID" Size="12" Type="UINT"/> 
+            </Key>
+            <MultipleResults>
+                <Result>
+                    <Field Description="A single member takes 4b" Name="RESULT_TYPE" Size="1" Value="4B_MEMBER_SIZE"/>
+                    <Field Description="Indexes of the first FEC/ECMP in the ECMP group." Name="ECMP_MEMBER_VAL" NofInstances="8" Size="4" Type="UINT"/>
+                </Result>
+                <Result>
+                    <Field Description="A single member takes 8b" Name="RESULT_TYPE" Size="1" Value="8B_MEMBER_SIZE"/>
+                    <Field Description="Indexes of the first FEC/ECMP in the ECMP group." Name="ECMP_MEMBER_VAL" NofInstances="4" Size="8" Type="UINT"/>
+                </Result>
+            </MultipleResults>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <MultipleResultsMapping>
+                <Result LogicalValue="4B_MEMBER_SIZE" Value="0"/>
+                <Result LogicalValue="8B_MEMBER_SIZE" Value="1"/>
+            </MultipleResultsMapping>
+            <FieldMapping ResultType="4B_MEMBER_SIZE">
+                <Field Name="RESULT_TYPE">
+                    <Access Offset="0" Size="1">
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field>
+                <Field Name="ECMP_MEMBER_VAL">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="IPPD_FEC_ECMP_MEMBERSm">
+                            <ArrayOffset Formula="#KEY_VALUE(ECMP_MEMBER_ROW_ID)/256"/> <!-- bank ID -->
+                            <EntryOffset Formula="#KEY_VALUE(ECMP_MEMBER_ROW_ID)%256"/> <!-- row in the memory bank -->
+                            <HwField Name="FEC_ECMP_MEMBERf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()*#RESULT_SIZE(ECMP_MEMBER_VAL)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+            <FieldMapping ResultType="8B_MEMBER_SIZE">
+                <Field Name="RESULT_TYPE">
+                    <Access Offset="0" Size="1">
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field>
+                <Field Name="ECMP_MEMBER_VAL">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="IPPD_FEC_ECMP_MEMBERSm">
+                            <ArrayOffset Formula="#KEY_VALUE(ECMP_MEMBER_ROW_ID)/256"/> <!-- bank ID -->
+                            <EntryOffset Formula="#KEY_VALUE(ECMP_MEMBER_ROW_ID)%256"/> <!-- row in the memory bank -->
+                            <HwField Name="FEC_ECMP_MEMBERf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()*#RESULT_SIZE(ECMP_MEMBER_VAL)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ECMP_BANK_TO_STAGE_MAP">
+        <OneLineDescription>The table provides ability to save the hierarchy values for each ECMP ID range. Each instance indicates the hierarchy for every DNXDATA.ecmp_stage_map_size number of entries.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="The hierarchy value for a given stage(instance)" Name="HIERARCHY_LEVEL" NofInstances="20" Size="2"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="HIERARCHY_LEVEL">
+                    <Access instanceIndex="ALL">
+                        <Register Name="IPPD_FER_POINTER_CONSRUCTIONr">
+                            <HwField Name="ECMP_BANK_TO_STAGE_MAPf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()*#RESULT_SIZE(HIERARCHY_LEVEL)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="KAPS_STRENGTH_MAPPING">
+        <OneLineDescription>The table holds a mapping of KAPS prefix length to entry strength. Different strengths can be assigned to default and non-default entries.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            <Field Name="KAPS_INTERFACE"/> 
+        <Field Name="PREFIX_LENGTH" Type="KAPS_PREFIX_LENGTH"/> 
+            </Key>
+            <Result>
+                <Field Description="The strength for non-default entry " Name="STRENGTH_NON_DEFAULT" Type="KAPS_ENTRY_STRENGTH"/>
+        <Field Description="The strength for default entry " Name="STRENGTH_DEFAULT" Type="KAPS_ENTRY_STRENGTH"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="STRENGTH_NON_DEFAULT">
+                    <Access>
+                        <Memory Name="IPPB_FLP_KAPS_STRENGTH_MAPPING_MEMm">
+                <ArrayOffset Formula="#KEY_VALUE(KAPS_INTERFACE)"/>
+                <EntryOffset Formula="#KEY_VALUE(PREFIX_LENGTH)"/>
+                            <HwField Name="STRENGTH_DEFAULT_0f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="STRENGTH_DEFAULT">
+                    <Access>
+                        <Memory Name="IPPB_FLP_KAPS_STRENGTH_MAPPING_MEMm">
+                <ArrayOffset Formula="#KEY_VALUE(KAPS_INTERFACE)"/>
+                <EntryOffset Formula="#KEY_VALUE(PREFIX_LENGTH)"/>
+                            <HwField Name="STRENGTH_DEFAULT_1f"/>
+                        </Memory>
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+
+    <AppDB Name="FEC_BANK_TO_STAGE_MAP">
+        <OneLineDescription>The table provides ability to save the hierarchy values for each FEC range. Each instance indicates the hierarchy for every DNXDATA_l3.fec.bank_size number of entries.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="The hierarchy value for a given stage(instance)" Name="HIERARCHY_LEVEL" NofInstances="30" Size="2"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="HIERARCHY_LEVEL">
+                    <Access instanceIndex="ALL">
+                        <Register Name="IPPD_FER_POINTER_CONSRUCTIONr">
+                            <HwField Name="FEC_BANK_TO_STAGE_MAPf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()*#RESULT_SIZE(HIERARCHY_LEVEL)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

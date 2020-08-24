@@ -1,0 +1,776 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="mib">
+
+    <sub_module name="general">
+
+        <features>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+            <numeric name="stat_interval" value="1000000">
+                <property name="bcm_stat_interval" method="range" range_min="0" range_max="0xffffffff">
+                    <doc>
+                        Set statistics collection interval in microseconds
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="stat_jumbo" value="1518" init_only="1">
+                <property name="bcm_stat_jumbo" method="range" range_min="0" range_max="0x3fff">
+                    <doc>
+                        Maximum packet size used in statistics counter update
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+
+        <tables>
+            <table name="stat_pbmp" init_only="1">
+                <value name="pbmp" default="0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff">
+                    <property name="bcm_stat_pbmp" method="pbmp">
+                        <doc>
+                        Bitmap of ports to enable statistic counter collection
+                        </doc>
+                    </property>
+                </value>
+            </table>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="controlled_counters">
+        <tables>
+            <table name="map_data">
+                <key name="counter_type" size="snmpValCount"></key>
+                <key name="set_type" size="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NOF"></key>
+                <value name="counters_to_add_array" default="-1, -1, -1, -1"></value>
+                <value name="counters_to_subtract_array" default="-1, -1, -1, -1"></value>
+                <value name="counters_to_get_cb" default="NULL"></value>
+                <entries>
+                    <entry counter_type="snmpBcmTxControlCells"                    set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC"           counters_to_add_array="dnx_mib_counter_tx_control_cells"></entry>
+                    <entry counter_type="snmpBcmTxDataCells"                       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC"           counters_to_add_array="dnx_mib_counter_tx_data_cells"></entry>
+                    <entry counter_type="snmpBcmTxDataBytes"                       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC"           counters_to_add_array="dnx_mib_counter_tx_data_bytes"></entry>
+                    <entry counter_type="snmpBcmRxCrcErrors"                       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC"           counters_to_add_array="dnx_mib_counter_rx_crc_errors_data_cells, dnx_mib_counter_rx_crc_errors_control_cells_nonbypass, dnx_mib_counter_rx_crc_errors_control_cells_bypass"></entry>
+                    <entry counter_type="snmpBcmRxFecCorrectable"                  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC"           counters_to_add_array="dnx_mib_counter_rx_fec_correctable_error"></entry>
+                    <entry counter_type="snmpBcmRxFecCorrectable"                  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF"              counters_to_add_array="dnx_mib_counter_nif_rx_fec_correctable_errors"></entry>
+                    <entry counter_type="snmpBcmRxControlCells"                    set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC"           counters_to_add_array="dnx_mib_counter_rx_control_cells"></entry>
+                    <entry counter_type="snmpBcmRxDataCells"                       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC"           counters_to_add_array="dnx_mib_counter_rx_data_cells"></entry>
+                    <entry counter_type="snmpBcmRxDataBytes"                       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC"           counters_to_add_array="dnx_mib_counter_rx_data_bytes"></entry>
+                    <entry counter_type="snmpBcmRxDroppedRetransmittedControl"     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC"           counters_to_add_array="dnx_mib_counter_rx_dropped_retransmitted_control"></entry>
+                    <entry counter_type="snmpBcmTxAsynFifoRate"                    set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC"           counters_to_add_array="dnx_mib_counter_tx_asyn_fifo_rate"></entry>
+                    <entry counter_type="snmpBcmTxAsynFifoRate"                    set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_ILKN_OVER_FABRIC" counters_to_add_array="dnx_mib_counter_tx_asyn_fifo_rate"></entry>
+                    <entry counter_type="snmpBcmRxAsynFifoRate"                    set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC"           counters_to_add_array="dnx_mib_counter_rx_asyn_fifo_rate"></entry>
+                    <entry counter_type="snmpBcmRxAsynFifoRate"                    set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_ILKN_OVER_FABRIC" counters_to_add_array="dnx_mib_counter_rx_asyn_fifo_rate"></entry>
+                    <entry counter_type="snmpBcmRxFecUncorrectable"                set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC"           counters_to_add_array="dnx_mib_counter_rx_lfec_fec_uncorrrectable_errors"></entry>
+                    <entry counter_type="snmpBcmRxFecUncorrectable"                set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF"              counters_to_add_array="dnx_mib_counter_nif_rx_fec_uncorrectable_errors"></entry>
+                    <entry counter_type="snmpBcmRxBipErrorCount"                   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_rx_bip_errors"></entry>
+                    <entry counter_type="snmpBcmRxBipErrorCount"                   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC"           counters_to_get_cb="dnx_mib_counters_map_get_dummy_cb"></entry>
+                    
+                    <!-- RFC 1213 -->
+                    <entry counter_type="snmpIfInOctets"                           set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rbyt, dnx_mib_counter_nif_eth_rrbyt"></entry>
+                    <entry counter_type="snmpIfInOctets"                           set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"         counters_to_add_array="dnx_mib_counter_nif_eth_rbyt, dnx_mib_counter_nif_eth_rrbyt"></entry>
+                    <entry counter_type="snmpIfInUcastPkts"                        set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_ruca"></entry>
+                    <entry counter_type="snmpIfInUcastPkts"                        set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"         counters_to_add_array="dnx_mib_counter_nif_eth_ruca"></entry>
+                    <entry counter_type="snmpIfInNUcastPkts"                       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rmca, dnx_mib_counter_nif_eth_rbca"></entry>
+                    <entry counter_type="snmpIfInNUcastPkts"                       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"         counters_to_add_array="dnx_mib_counter_nif_eth_rmca, dnx_mib_counter_nif_eth_rbca"></entry>
+                    <entry counter_type="snmpIfInNUcastPkts"                       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC"           counters_to_get_cb="dnx_mib_counters_map_get_dummy_cb"></entry>
+                    <entry counter_type="snmpIfInNUcastPkts"                       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_ILKN"             counters_to_get_cb="dnx_mib_counters_map_get_dummy_cb"></entry>
+                    <entry counter_type="snmpIfInBroadcastPkts"                    set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rbca"></entry>
+                    <entry counter_type="snmpIfInBroadcastPkts"                    set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"         counters_to_add_array="dnx_mib_counter_nif_eth_rbca"></entry>
+                    <entry counter_type="snmpIfInMulticastPkts"                    set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rmca"></entry>
+                    <entry counter_type="snmpIfInMulticastPkts"                    set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"         counters_to_add_array="dnx_mib_counter_nif_eth_rmca"></entry>
+                    <entry counter_type="snmpIfInErrors"                           set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rfcs, dnx_mib_counter_nif_eth_rjbr, dnx_mib_counter_nif_eth_rrpkt, dnx_mib_counter_nif_eth_rmtue"></entry>
+                    <entry counter_type="snmpIfInErrors"                           set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"         counters_to_add_array="dnx_mib_counter_nif_eth_rfcs, dnx_mib_counter_nif_eth_rjbr, dnx_mib_counter_nif_eth_rrpkt, dnx_mib_counter_nif_eth_rmtue"></entry>
+                    <entry counter_type="snmpIfInErrors"                           set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC"           counters_to_get_cb="dnx_mib_counters_map_get_dummy_cb"></entry>
+                    <entry counter_type="snmpIfInErrors"                           set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_ILKN"             counters_to_add_array="dnx_mib_counter_ilkn_rx_err_pkt"></entry>
+                    <entry counter_type="snmpIfOutOctets"                          set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_tbyt"></entry>
+                    <entry counter_type="snmpIfOutOctets"                          set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"         counters_to_add_array="dnx_mib_counter_nif_eth_tbyt"></entry>
+                    <entry counter_type="snmpIfOutUcastPkts"                       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_tuca"></entry>
+                    <entry counter_type="snmpIfOutUcastPkts"                       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"         counters_to_add_array="dnx_mib_counter_nif_eth_tuca"></entry>
+                    <entry counter_type="snmpIfOutNUcastPkts"                      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_tmca, dnx_mib_counter_nif_eth_tbca"></entry>
+                    <entry counter_type="snmpIfOutNUcastPkts"                      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"         counters_to_add_array="dnx_mib_counter_nif_eth_tmca, dnx_mib_counter_nif_eth_tbca"></entry>
+                    <entry counter_type="snmpIfOutNUcastPkts"                      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_ILKN"             counters_to_get_cb="dnx_mib_counters_map_get_dummy_cb"></entry>
+                    <entry counter_type="snmpIfOutNUcastPkts"                      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC"           counters_to_get_cb="dnx_mib_counters_map_get_dummy_cb"></entry>
+                    <entry counter_type="snmpIfOutBroadcastPkts"                   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_tbca"></entry>
+                    <entry counter_type="snmpIfOutBroadcastPkts"                   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"         counters_to_add_array="dnx_mib_counter_nif_eth_tbca"></entry>
+                    <entry counter_type="snmpIfOutMulticastPkts"                   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_tmca"></entry>
+                    <entry counter_type="snmpIfOutMulticastPkts"                   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"         counters_to_add_array="dnx_mib_counter_nif_eth_tmca"></entry>
+                    <entry counter_type="snmpIfOutErrors"                          set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_get_cb="dnx_mib_counters_map_get_cb"></entry>
+                    <entry counter_type="snmpIfOutErrors"                          set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"         counters_to_get_cb="dnx_mib_counters_map_get_cb"></entry>
+                    <entry counter_type="snmpIfOutErrors"                          set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_ILKN"             counters_to_add_array="dnx_mib_counter_ilkn_tx_err_pkt"></entry>
+                    <entry counter_type="snmpIfOutErrors"                          set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC"           counters_to_get_cb="dnx_mib_counters_map_get_dummy_cb"></entry>
+
+                    <!-- RFC 1493 -->
+                    <entry counter_type="snmpDot1dBasePortMtuExceededDiscards"     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rmtue"></entry>
+                    <entry counter_type="snmpDot1dTpPortInFrames"                  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rpkt"></entry>
+                    <entry counter_type="snmpDot1dTpPortOutFrames"                 set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_tpkt"></entry>
+                    <!-- flexe mac -->
+                    <entry counter_type="snmpDot1dBasePortMtuExceededDiscards"     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rmtue"></entry>
+                    <entry counter_type="snmpDot1dTpPortInFrames"                  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rpkt"></entry>
+                    <entry counter_type="snmpDot1dTpPortOutFrames"                 set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_tpkt"></entry>
+                    
+                    <!-- RFC 1757 -->
+                    <entry counter_type="snmpEtherStatsDropEvents"                 set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_ILKN"             counters_to_add_array="dnx_mib_counter_nif_rx_stats_drop_events_sch_low, dnx_mib_counter_nif_rx_stats_drop_events_sch_tdm"></entry>
+                    <entry counter_type="snmpEtherStatsDropEvents"                 set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_rx_stats_drop_events_sch_low, dnx_mib_counter_nif_rx_stats_drop_events_sch_high, dnx_mib_counter_nif_rx_stats_drop_events_sch_tdm"></entry>
+                    <entry counter_type="snmpEtherStatsOctets"                     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rbyt, dnx_mib_counter_nif_eth_tbyt, dnx_mib_counter_nif_eth_rrbyt"></entry>
+                    <entry counter_type="snmpEtherStatsPkts"                       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rpkt, dnx_mib_counter_nif_eth_rflr, dnx_mib_counter_nif_eth_tpkt, dnx_mib_counter_nif_eth_rrpkt"></entry>
+                    <entry counter_type="snmpEtherStatsBroadcastPkts"              set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rbca, dnx_mib_counter_nif_eth_tbca"></entry>
+                    <entry counter_type="snmpEtherStatsMulticastPkts"              set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rmca, dnx_mib_counter_nif_eth_tmca"></entry>
+                    <entry counter_type="snmpEtherStatsCRCAlignErrors"             set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rfcs"></entry>
+                    <entry counter_type="snmpEtherStatsTxCRCAlignErrors"           set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_tfcs"></entry>
+                    <entry counter_type="snmpEtherStatsUndersizePkts"              set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rund"></entry>
+                    <entry counter_type="snmpEtherStatsOversizePkts"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rovr, dnx_mib_counter_nif_eth_tovr"></entry>
+                    <entry counter_type="snmpEtherRxOversizePkts"                  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rovr"></entry>
+                    <entry counter_type="snmpEtherTxOversizePkts"                  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_tovr"></entry>
+                    <entry counter_type="snmpEtherStatsFragments"                  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rfrg"></entry>
+                    <entry counter_type="snmpEtherStatsJabbers"                    set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rjbr"></entry>
+                    <entry counter_type="snmpEtherStatsTxJabbers"                  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_tjbr"></entry>
+                    <entry counter_type="snmpEtherStatsPkts64Octets"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_r64, dnx_mib_counter_nif_eth_t64"></entry>
+                    <entry counter_type="snmpEtherStatsPkts65to127Octets"          set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_r127, dnx_mib_counter_nif_eth_t127"></entry>
+                    <entry counter_type="snmpEtherStatsPkts128to255Octets"         set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_r255, dnx_mib_counter_nif_eth_t255"></entry>
+                    <entry counter_type="snmpEtherStatsPkts256to511Octets"         set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_r511, dnx_mib_counter_nif_eth_t511"></entry>
+                    <entry counter_type="snmpEtherStatsPkts512to1023Octets"        set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_r1023, dnx_mib_counter_nif_eth_t1023"></entry>
+                    <entry counter_type="snmpEtherStatsPkts1024to1518Octets"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_r1518, dnx_mib_counter_nif_eth_t1518"></entry>
+                    <entry counter_type="snmpBcmEtherStatsPkts1519to1522Octets"    set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rmgv, dnx_mib_counter_nif_eth_tmgv"></entry>
+                    <entry counter_type="snmpBcmEtherStatsPkts1522to2047Octets"    set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_r2047, dnx_mib_counter_nif_eth_t2047" counters_to_subtract_array="dnx_mib_counter_nif_eth_rmgv, dnx_mib_counter_nif_eth_tmgv"></entry>
+                    <entry counter_type="snmpBcmEtherStatsPkts2048to4095Octets"    set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_r4095, dnx_mib_counter_nif_eth_t4095"></entry>
+                    <entry counter_type="snmpBcmEtherStatsPkts4095to9216Octets"    set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_r9216, dnx_mib_counter_nif_eth_t9216"></entry>
+                    <entry counter_type="snmpBcmEtherStatsPkts9217to16383Octets"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_r16383, dnx_mib_counter_nif_eth_t16383"></entry>
+                    <entry counter_type="snmpBcmReceivedPkts64Octets"              set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_r64"></entry>
+                    <entry counter_type="snmpBcmReceivedPkts65to127Octets"         set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_r127"></entry>
+                    <entry counter_type="snmpBcmReceivedPkts128to255Octets"        set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_r255"></entry>
+                    <entry counter_type="snmpBcmReceivedPkts256to511Octets"        set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_r511"></entry>
+                    <entry counter_type="snmpBcmReceivedPkts512to1023Octets"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_r1023"></entry>
+                    <entry counter_type="snmpBcmReceivedPkts1024to1518Octets"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_r1518"></entry>
+                    <entry counter_type="snmpBcmReceivedPkts1519to2047Octets"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_r2047"></entry>
+                    <entry counter_type="snmpBcmReceivedPkts2048to4095Octets"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_r4095"></entry>
+                    <entry counter_type="snmpBcmReceivedPkts4095to9216Octets"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_r9216"></entry>
+                    <entry counter_type="snmpBcmReceivedPkts9217to16383Octets"     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_r16383"></entry>
+                    <entry counter_type="snmpBcmTransmittedPkts64Octets"           set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_t64"></entry>
+                    <entry counter_type="snmpBcmTransmittedPkts65to127Octets"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_t127"></entry>
+                    <entry counter_type="snmpBcmTransmittedPkts128to255Octets"     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_t255"></entry>
+                    <entry counter_type="snmpBcmTransmittedPkts256to511Octets"     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_t511"></entry>
+                    <entry counter_type="snmpBcmTransmittedPkts512to1023Octets"    set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_t1023"></entry>
+                    <entry counter_type="snmpBcmTransmittedPkts1024to1518Octets"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_t1518"></entry>
+                    <entry counter_type="snmpBcmTransmittedPkts1519to2047Octets"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_t2047"></entry>
+                    <entry counter_type="snmpBcmTransmittedPkts2048to4095Octets"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_t4095"></entry>
+                    <entry counter_type="snmpBcmTransmittedPkts4095to9216Octets"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_t9216"></entry>
+                    <entry counter_type="snmpBcmTransmittedPkts9217to16383Octets"  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_t16383"></entry>
+                    <entry counter_type="snmpEtherStatsTXNoErrors"                 set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_tpok"></entry>
+                    <entry counter_type="snmpEtherStatsTXNoErrors"                 set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_ILKN"             counters_to_add_array="dnx_mib_counter_ilkn_tx_pkt"></entry>
+                    <entry counter_type="snmpEtherStatsRXNoErrors"                 set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rpok, dnx_mib_counter_nif_eth_rflr"></entry>
+                    <entry counter_type="snmpEtherStatsRXNoErrors"                 set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_ILKN"             counters_to_add_array="dnx_mib_counter_ilkn_rx_pkt"></entry>
+                    <!-- flexe mac -->
+                    <entry counter_type="snmpEtherStatsDropEvents"                 set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_rx_stats_drop_events_sch_low, dnx_mib_counter_nif_rx_stats_drop_events_sch_high, dnx_mib_counter_nif_rx_stats_drop_events_sch_tdm"></entry>
+                    <entry counter_type="snmpEtherStatsOctets"                     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rbyt, dnx_mib_counter_nif_eth_tbyt, dnx_mib_counter_nif_eth_rrbyt"></entry>
+                    <entry counter_type="snmpEtherStatsPkts"                       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rpkt, dnx_mib_counter_nif_eth_rflr, dnx_mib_counter_nif_eth_tpkt, dnx_mib_counter_nif_eth_rrpkt"></entry>
+                    <entry counter_type="snmpEtherStatsBroadcastPkts"              set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rbca, dnx_mib_counter_nif_eth_tbca"></entry>
+                    <entry counter_type="snmpEtherStatsMulticastPkts"              set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rmca, dnx_mib_counter_nif_eth_tmca"></entry>
+                    <entry counter_type="snmpEtherStatsCRCAlignErrors"             set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rfcs"></entry>
+                    <entry counter_type="snmpEtherStatsTxCRCAlignErrors"           set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_tfcs"></entry>
+                    <entry counter_type="snmpEtherStatsUndersizePkts"              set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rund"></entry>
+                    <entry counter_type="snmpEtherStatsOversizePkts"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rovr, dnx_mib_counter_nif_eth_tovr"></entry>
+                    <entry counter_type="snmpEtherRxOversizePkts"                  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rovr"></entry>
+                    <entry counter_type="snmpEtherTxOversizePkts"                  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_tovr"></entry>
+                    <entry counter_type="snmpEtherStatsFragments"                  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rfrg"></entry>
+                    <entry counter_type="snmpEtherStatsJabbers"                    set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rjbr"></entry>
+                    <entry counter_type="snmpEtherStatsTxJabbers"                  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_tjbr"></entry>
+                    <entry counter_type="snmpEtherStatsPkts64Octets"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_r64, dnx_mib_counter_nif_eth_t64"></entry>
+                    <entry counter_type="snmpEtherStatsPkts65to127Octets"          set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_r127, dnx_mib_counter_nif_eth_t127"></entry>
+                    <entry counter_type="snmpEtherStatsPkts128to255Octets"         set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_r255, dnx_mib_counter_nif_eth_t255"></entry>
+                    <entry counter_type="snmpEtherStatsPkts256to511Octets"         set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_r511, dnx_mib_counter_nif_eth_t511"></entry>
+                    <entry counter_type="snmpEtherStatsPkts512to1023Octets"        set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_r1023, dnx_mib_counter_nif_eth_t1023"></entry>
+                    <entry counter_type="snmpEtherStatsPkts1024to1518Octets"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_r1518, dnx_mib_counter_nif_eth_t1518"></entry>
+                    <entry counter_type="snmpBcmEtherStatsPkts1519to1522Octets"    set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rmgv, dnx_mib_counter_nif_eth_tmgv"></entry>
+                    <entry counter_type="snmpBcmEtherStatsPkts1522to2047Octets"    set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_r2047, dnx_mib_counter_nif_eth_t2047" counters_to_subtract_array="dnx_mib_counter_nif_eth_rmgv, dnx_mib_counter_nif_eth_tmgv"></entry>
+                    <entry counter_type="snmpBcmEtherStatsPkts2048to4095Octets"    set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_r4095, dnx_mib_counter_nif_eth_t4095"></entry>
+                    <entry counter_type="snmpBcmEtherStatsPkts4095to9216Octets"    set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_r9216, dnx_mib_counter_nif_eth_t9216"></entry>
+                    <entry counter_type="snmpBcmEtherStatsPkts9217to16383Octets"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_r16383, dnx_mib_counter_nif_eth_t16383"></entry>
+                    <entry counter_type="snmpBcmReceivedPkts64Octets"              set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_r64"></entry>
+                    <entry counter_type="snmpBcmReceivedPkts65to127Octets"         set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_r127"></entry>
+                    <entry counter_type="snmpBcmReceivedPkts128to255Octets"        set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_r255"></entry>
+                    <entry counter_type="snmpBcmReceivedPkts256to511Octets"        set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_r511"></entry>
+                    <entry counter_type="snmpBcmReceivedPkts512to1023Octets"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_r1023"></entry>
+                    <entry counter_type="snmpBcmReceivedPkts1024to1518Octets"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_r1518"></entry>
+                    <entry counter_type="snmpBcmReceivedPkts1519to2047Octets"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_r2047"></entry>
+                    <entry counter_type="snmpBcmReceivedPkts2048to4095Octets"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_r4095"></entry>
+                    <entry counter_type="snmpBcmReceivedPkts4095to9216Octets"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_r9216"></entry>
+                    <entry counter_type="snmpBcmReceivedPkts9217to16383Octets"     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_r16383"></entry>
+                    <entry counter_type="snmpBcmTransmittedPkts64Octets"           set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_t64"></entry>
+                    <entry counter_type="snmpBcmTransmittedPkts65to127Octets"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_t127"></entry>
+                    <entry counter_type="snmpBcmTransmittedPkts128to255Octets"     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_t255"></entry>
+                    <entry counter_type="snmpBcmTransmittedPkts256to511Octets"     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_t511"></entry>
+                    <entry counter_type="snmpBcmTransmittedPkts512to1023Octets"    set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_t1023"></entry>
+                    <entry counter_type="snmpBcmTransmittedPkts1024to1518Octets"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_t1518"></entry>
+                    <entry counter_type="snmpBcmTransmittedPkts1519to2047Octets"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_t2047"></entry>
+                    <entry counter_type="snmpBcmTransmittedPkts2048to4095Octets"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_t4095"></entry>
+                    <entry counter_type="snmpBcmTransmittedPkts4095to9216Octets"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_t9216"></entry>
+                    <entry counter_type="snmpBcmTransmittedPkts9217to16383Octets"  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_t16383"></entry>
+                    <entry counter_type="snmpEtherStatsTXNoErrors"                 set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_tpok"></entry>
+                    <entry counter_type="snmpEtherStatsRXNoErrors"                 set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rpok, dnx_mib_counter_nif_eth_rflr"></entry>
+
+                    <!-- RFC 2665 -->
+                    <entry counter_type="snmpDot3StatsFCSErrors"                   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rfcs"></entry>
+                    <entry counter_type="snmpDot3StatsInternalMacTransmitErrors"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_tufl, dnx_mib_counter_nif_eth_terr"></entry>
+                    <entry counter_type="snmpDot3StatsFrameTooLongs"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rmtue"></entry>
+                    <entry counter_type="snmpDot3StatsInternalMacReceiveErrors"    set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rrpkt, dnx_mib_counter_nif_eth_rerpkt"></entry>
+                    <entry counter_type="snmpDot3StatsSymbolErrors"                set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rerpkt"></entry>
+                    <entry counter_type="snmpDot3ControlInUnknownOpcodes"          set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rxuo"></entry>
+                    <entry counter_type="snmpDot3InPauseFrames"                    set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rxpf"></entry>
+                    <entry counter_type="snmpDot3OutPauseFrames"                   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_txpf"></entry>
+                    <entry counter_type="snmpIfHCInOctets"                         set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rbyt, dnx_mib_counter_nif_eth_rrbyt"></entry>
+                    <entry counter_type="snmpIfHCInUcastPkts"                      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_ruca"></entry>
+                    <entry counter_type="snmpIfHCInMulticastPkts"                  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rmca"></entry>
+                    <entry counter_type="snmpIfHCInBroadcastPkts"                  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rbca"></entry>
+                    <entry counter_type="snmpIfHCOutOctets"                        set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_tbyt"></entry>
+                    <entry counter_type="snmpIfHCOutUcastPkts"                     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_tuca"></entry>
+                    <entry counter_type="snmpIfHCOutMulticastPkts"                 set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_tmca"></entry>
+                    <entry counter_type="snmpIfHCOutBroadcastPckts"                set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_tbca"></entry>
+                    <!-- flexe mac -->
+                    <entry counter_type="snmpDot3StatsFCSErrors"                   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rfcs"></entry>
+                    <entry counter_type="snmpDot3StatsInternalMacTransmitErrors"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_tufl, dnx_mib_counter_nif_eth_terr"></entry>
+                    <entry counter_type="snmpDot3StatsFrameTooLongs"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rmtue"></entry>
+                    <entry counter_type="snmpDot3StatsInternalMacReceiveErrors"    set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rrpkt, dnx_mib_counter_nif_eth_rerpkt"></entry>
+                    <entry counter_type="snmpDot3StatsSymbolErrors"                set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rerpkt"></entry>
+                    <entry counter_type="snmpDot3ControlInUnknownOpcodes"          set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rxuo"></entry>
+                    <entry counter_type="snmpDot3InPauseFrames"                    set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rxpf"></entry>
+                    <entry counter_type="snmpDot3OutPauseFrames"                   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_txpf"></entry>
+                    <entry counter_type="snmpIfHCInOctets"                         set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rbyt, dnx_mib_counter_nif_eth_rrbyt"></entry>
+                    <entry counter_type="snmpIfHCInUcastPkts"                      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_ruca"></entry>
+                    <entry counter_type="snmpIfHCInMulticastPkts"                  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rmca"></entry>
+                    <entry counter_type="snmpIfHCInBroadcastPkts"                  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rbca"></entry>
+                    <entry counter_type="snmpIfHCOutOctets"                        set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_tbyt"></entry>
+                    <entry counter_type="snmpIfHCOutUcastPkts"                     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_tuca"></entry>
+                    <entry counter_type="snmpIfHCOutMulticastPkts"                 set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_tmca"></entry>
+                    <entry counter_type="snmpIfHCOutBroadcastPckts"                set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_tbca"></entry>
+
+                    <!-- IEEE 802.1bb -->
+                    <entry counter_type="snmpIeee8021PfcRequests"                  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_txpp"></entry>
+                    <entry counter_type="snmpIeee8021PfcIndications"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rxpp"></entry>
+                    <entry counter_type="snmpBcmReceivedUndersizePkts"             set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rrpkt"></entry>
+                    <entry counter_type="snmpBcmTransmittedUndersizePkts"          set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_trpkt"></entry>
+                    <!-- flexe mac -->
+                    <entry counter_type="snmpIeee8021PfcRequests"                  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_txpp"></entry>
+                    <entry counter_type="snmpIeee8021PfcIndications"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rxpp"></entry>
+                    <entry counter_type="snmpBcmReceivedUndersizePkts"             set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rrpkt"></entry>
+                    <entry counter_type="snmpBcmTransmittedUndersizePkts"          set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_trpkt"></entry>
+
+                    <!-- PFC -->
+                    <entry counter_type="snmpBcmRxPFCFramePriority0"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfc0"></entry>
+                    <entry counter_type="snmpBcmRxPFCFramePriority1"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfc1"></entry> 
+                    <entry counter_type="snmpBcmRxPFCFramePriority2"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfc2"></entry> 
+                    <entry counter_type="snmpBcmRxPFCFramePriority3"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfc3"></entry> 
+                    <entry counter_type="snmpBcmRxPFCFramePriority4"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfc4"></entry> 
+                    <entry counter_type="snmpBcmRxPFCFramePriority5"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfc5"></entry> 
+                    <entry counter_type="snmpBcmRxPFCFramePriority6"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfc6"></entry> 
+                    <entry counter_type="snmpBcmRxPFCFramePriority7"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfc7"></entry>                    
+                    <entry counter_type="snmpBcmTxPFCFramePriority0"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_tpfc0"></entry>
+                    <entry counter_type="snmpBcmTxPFCFramePriority1"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_tpfc1"></entry> 
+                    <entry counter_type="snmpBcmTxPFCFramePriority2"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_tpfc2"></entry> 
+                    <entry counter_type="snmpBcmTxPFCFramePriority3"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_tpfc3"></entry> 
+                    <entry counter_type="snmpBcmTxPFCFramePriority4"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_tpfc4"></entry> 
+                    <entry counter_type="snmpBcmTxPFCFramePriority5"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_tpfc5"></entry> 
+                    <entry counter_type="snmpBcmTxPFCFramePriority6"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_tpfc6"></entry> 
+                    <entry counter_type="snmpBcmTxPFCFramePriority7"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_tpfc7"></entry>                    
+                    <entry counter_type="snmpBcmRxPFCFrameXonPriority0"            set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfcoff0"></entry>
+                    <entry counter_type="snmpBcmRxPFCFrameXonPriority1"            set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfcoff1"></entry> 
+                    <entry counter_type="snmpBcmRxPFCFrameXonPriority2"            set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfcoff2"></entry> 
+                    <entry counter_type="snmpBcmRxPFCFrameXonPriority3"            set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfcoff3"></entry> 
+                    <entry counter_type="snmpBcmRxPFCFrameXonPriority4"            set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfcoff4"></entry> 
+                    <entry counter_type="snmpBcmRxPFCFrameXonPriority5"            set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfcoff5"></entry> 
+                    <entry counter_type="snmpBcmRxPFCFrameXonPriority6"            set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfcoff6"></entry> 
+                    <entry counter_type="snmpBcmRxPFCFrameXonPriority7"            set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfcoff7"></entry>                                         
+                    <!-- flexe mac -->
+                    <entry counter_type="snmpBcmRxPFCFramePriority0"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfc0"></entry>
+                    <entry counter_type="snmpBcmRxPFCFramePriority1"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfc1"></entry> 
+                    <entry counter_type="snmpBcmRxPFCFramePriority2"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfc2"></entry> 
+                    <entry counter_type="snmpBcmRxPFCFramePriority3"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfc3"></entry> 
+                    <entry counter_type="snmpBcmRxPFCFramePriority4"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfc4"></entry> 
+                    <entry counter_type="snmpBcmRxPFCFramePriority5"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfc5"></entry> 
+                    <entry counter_type="snmpBcmRxPFCFramePriority6"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfc6"></entry> 
+                    <entry counter_type="snmpBcmRxPFCFramePriority7"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfc7"></entry>                    
+                    <entry counter_type="snmpBcmTxPFCFramePriority0"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_tpfc0"></entry>
+                    <entry counter_type="snmpBcmTxPFCFramePriority1"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_tpfc1"></entry> 
+                    <entry counter_type="snmpBcmTxPFCFramePriority2"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_tpfc2"></entry> 
+                    <entry counter_type="snmpBcmTxPFCFramePriority3"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_tpfc3"></entry> 
+                    <entry counter_type="snmpBcmTxPFCFramePriority4"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_tpfc4"></entry> 
+                    <entry counter_type="snmpBcmTxPFCFramePriority5"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_tpfc5"></entry> 
+                    <entry counter_type="snmpBcmTxPFCFramePriority6"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_tpfc6"></entry> 
+                    <entry counter_type="snmpBcmTxPFCFramePriority7"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_tpfc7"></entry>                    
+                    <entry counter_type="snmpBcmRxPFCFrameXonPriority0"            set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfcoff0"></entry>
+                    <entry counter_type="snmpBcmRxPFCFrameXonPriority1"            set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfcoff1"></entry> 
+                    <entry counter_type="snmpBcmRxPFCFrameXonPriority2"            set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfcoff2"></entry> 
+                    <entry counter_type="snmpBcmRxPFCFrameXonPriority3"            set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfcoff3"></entry> 
+                    <entry counter_type="snmpBcmRxPFCFrameXonPriority4"            set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfcoff4"></entry> 
+                    <entry counter_type="snmpBcmRxPFCFrameXonPriority5"            set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfcoff5"></entry> 
+                    <entry counter_type="snmpBcmRxPFCFrameXonPriority6"            set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfcoff6"></entry> 
+                    <entry counter_type="snmpBcmRxPFCFrameXonPriority7"            set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC"          counters_to_add_array="dnx_mib_counter_nif_eth_rpfcoff7"></entry>                                         
+                
+                </entries>
+            </table>
+            
+            <table name="set_data">
+                <key name="counter_id" size="dnx_mib_counter_nof"></key>
+                <key name="set_type" size="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NOF"></key>
+                <value name="hw_counter_id" default="-1"></value>    
+                <value name="get_cb" default="NULL"></value>
+                <value name="clear_cb" default="NULL"></value>
+                <entries>
+                    <!-- fmac counters -->
+                    <entry counter_id="dnx_mib_counter_tx_control_cells"                      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC" get_cb="dnx_mib_fmac_counter_get" clear_cb="dnx_mib_fmac_counter_clear" hw_counter_id="0"></entry>
+                    <entry counter_id="dnx_mib_counter_tx_data_cells"                         set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC" get_cb="dnx_mib_fmac_counter_get" clear_cb="dnx_mib_fmac_counter_clear" hw_counter_id="1"></entry>
+                    <entry counter_id="dnx_mib_counter_tx_data_bytes"                         set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC" get_cb="dnx_mib_fmac_counter_get" clear_cb="dnx_mib_fmac_counter_clear" hw_counter_id="2"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_crc_errors_data_cells"              set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC" get_cb="dnx_mib_fmac_counter_get" clear_cb="dnx_mib_fmac_counter_clear" hw_counter_id="3"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_crc_errors_control_cells_nonbypass" set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC" get_cb="dnx_mib_fmac_counter_get" clear_cb="dnx_mib_fmac_counter_clear" hw_counter_id="4"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_crc_errors_control_cells_bypass"    set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC" get_cb="dnx_mib_fmac_counter_get" clear_cb="dnx_mib_fmac_counter_clear" hw_counter_id="5"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_fec_correctable_error"              set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC" get_cb="dnx_mib_fmac_counter_get" clear_cb="dnx_mib_fmac_counter_clear" hw_counter_id="6"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_control_cells"                      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC" get_cb="dnx_mib_fmac_counter_get" clear_cb="dnx_mib_fmac_counter_clear" hw_counter_id="7"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_data_cells"                         set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC" get_cb="dnx_mib_fmac_counter_get" clear_cb="dnx_mib_fmac_counter_clear" hw_counter_id="8"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_data_bytes"                         set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC" get_cb="dnx_mib_fmac_counter_get" clear_cb="dnx_mib_fmac_counter_clear" hw_counter_id="9"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_dropped_retransmitted_control"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC" get_cb="dnx_mib_fmac_counter_get" clear_cb="dnx_mib_fmac_counter_clear" hw_counter_id="10"></entry>
+                    <entry counter_id="dnx_mib_counter_tx_asyn_fifo_rate"                     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC" get_cb="dnx_mib_fmac_counter_get" clear_cb="dnx_mib_fmac_counter_clear" hw_counter_id="13"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_asyn_fifo_rate"                     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC" get_cb="dnx_mib_fmac_counter_get" clear_cb="dnx_mib_fmac_counter_clear" hw_counter_id="14"></entry>
+                    <entry counter_id="dnx_mib_counter_tx_asyn_fifo_rate"                     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_ILKN_OVER_FABRIC" get_cb="dnx_mib_fmac_counter_get" clear_cb="dnx_mib_fmac_counter_clear" hw_counter_id="13"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_asyn_fifo_rate"                     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_ILKN_OVER_FABRIC" get_cb="dnx_mib_fmac_counter_get" clear_cb="dnx_mib_fmac_counter_clear" hw_counter_id="14"></entry>                    
+                    <entry counter_id="dnx_mib_counter_rx_lfec_fec_uncorrrectable_errors"     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC" get_cb="dnx_mib_fmac_counter_get" clear_cb="dnx_mib_fmac_counter_clear" hw_counter_id="15"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_llfc_primary_pipe"                  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC" get_cb="dnx_mib_fmac_counter_get" clear_cb="dnx_mib_fmac_counter_clear" hw_counter_id="16"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_llfc_second_pipe"                   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC" get_cb="dnx_mib_fmac_counter_get" clear_cb="dnx_mib_fmac_counter_clear" hw_counter_id="17"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_llfc_third_pipe"                    set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC" get_cb="dnx_mib_fmac_counter_get" clear_cb="dnx_mib_fmac_counter_clear" hw_counter_id="18"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_kpcs_errors"                        set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC" get_cb="dnx_mib_fmac_counter_get" clear_cb="dnx_mib_fmac_counter_clear" hw_counter_id="19"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_kpcs_bypass_errors"                 set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC" get_cb="dnx_mib_fmac_counter_get" clear_cb="dnx_mib_fmac_counter_clear" hw_counter_id="20"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_rs_fec_bit_error"                   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC" get_cb="dnx_mib_fmac_counter_get" clear_cb="dnx_mib_fmac_counter_clear" hw_counter_id="21"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_rs_fec_symbol_error_rate"           set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FABRIC" get_cb="dnx_mib_fmac_counter_get" clear_cb="dnx_mib_fmac_counter_clear" hw_counter_id="22"></entry>
+                    <!-- ilkn counters -->
+                    <entry counter_id="dnx_mib_counter_ilkn_rx_pkt"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_ILKN" get_cb="dnx_mib_ilkn_counter_get" clear_cb="dnx_mib_ilkn_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_ilkn_tx_pkt"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_ILKN" get_cb="dnx_mib_ilkn_counter_get" clear_cb="dnx_mib_ilkn_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_ilkn_rx_bytes"             set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_ILKN" get_cb="dnx_mib_ilkn_counter_get" clear_cb="dnx_mib_ilkn_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_ilkn_tx_bytes"             set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_ILKN" get_cb="dnx_mib_ilkn_counter_get" clear_cb="dnx_mib_ilkn_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_ilkn_rx_err_pkt"           set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_ILKN" get_cb="dnx_mib_ilkn_counter_get" clear_cb="dnx_mib_ilkn_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_ilkn_tx_err_pkt"           set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_ILKN" get_cb="dnx_mib_ilkn_counter_get" clear_cb="dnx_mib_ilkn_counter_clear"></entry>
+                    <!-- nif counters -->
+                    <entry counter_id="dnx_mib_counter_nif_rx_fec_correctable_errors"         set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF" get_cb="dnx_mib_nif_counter_get" clear_cb="dnx_mib_nif_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_rx_fec_uncorrectable_errors"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF" get_cb="dnx_mib_nif_counter_get" clear_cb="dnx_mib_nif_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_rx_bip_errors"                     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF" get_cb="dnx_mib_nif_counter_get" clear_cb="dnx_mib_nif_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_rx_stats_drop_events_sch_low"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF" get_cb="dnx_mib_nif_counter_get" clear_cb="dnx_mib_nif_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_rx_stats_drop_events_sch_high"     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF" get_cb="dnx_mib_nif_counter_get" clear_cb="dnx_mib_nif_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_rx_stats_drop_events_sch_tdm"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF" get_cb="dnx_mib_nif_counter_get" clear_cb="dnx_mib_nif_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_rx_stats_drop_events_sch_low"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_nif_counter_get" clear_cb="dnx_mib_nif_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_rx_stats_drop_events_sch_high"     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_nif_counter_get" clear_cb="dnx_mib_nif_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_rx_stats_drop_events_sch_tdm"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_nif_counter_get" clear_cb="dnx_mib_nif_counter_clear"></entry>
+                    <!-- nif eth counters -->
+                    <entry counter_id="dnx_mib_counter_nif_eth_r64"        set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_r127"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_r255"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_r511"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_r1023"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_r1518"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rmgv"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_r2047"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_r4095"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_r9216"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_r16383"     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rbca"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rprog0"     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rprog1"     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rprog2"     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rprog3"     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpkt"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpok"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_ruca"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rmca"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rxpf"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rxpp"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rxcf"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rfcs"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rerpkt"     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rflr"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rjbr"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rmtue"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rovr"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rvln"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rdvln"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rxuo"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rxuda"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rxwsa"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rprm"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfc0"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfcoff0"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfc1"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfcoff1"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfc2"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfcoff2"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfc3"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfcoff3"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfc4"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfcoff4"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfc5"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfcoff5"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfc6"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfcoff6"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfc7"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfcoff7"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rund"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rfrg"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rrpkt"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t64"        set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t127"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t255"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t511"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t1023"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t1518"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tmgv"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t2047"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t4095"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t9216"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t16383"     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tbca"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfc0"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfcoff0"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfc1"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfcoff1"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfc2"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfcoff2"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfc3"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfcoff3"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfc4"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfcoff4"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfc5"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfcoff5"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfc6"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfcoff6"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfc7"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfcoff7"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpkt"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpok"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tuca"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tufl"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tmca"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_txpf"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_txpp"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_txcf"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tfcs"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_terr"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tovr"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tjbr"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_trpkt"  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tfrg"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tvln"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tdvln"  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rbyt"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rrbyt"  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tbyt"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <!-- nif eth clu counters -->
+                    <entry counter_id="dnx_mib_counter_nif_eth_rverify"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH_CLU" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rreply"                set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH_CLU" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rtrfu"                 set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH_CLU" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rschcrc"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH_CLU" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rx_eee_lpi_event"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH_CLU" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rx_eee_lpi_duration"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH_CLU" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rx_llfc_phy"           set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH_CLU" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rx_llfc_log"           set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH_CLU" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rx_llfc_crc"           set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH_CLU" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rx_hcfc"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH_CLU" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rx_hcfc_crc"           set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH_CLU" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tverify"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH_CLU" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_treply"                set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH_CLU" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tscl"                  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH_CLU" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tmcl"                  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH_CLU" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tlcl"                  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH_CLU" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_txcl"                  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH_CLU" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tx_eee_lpi_event"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH_CLU" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tx_eee_lpi_duration"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH_CLU" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tx_llfc_log"           set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH_CLU" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tx_hcfc"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH_CLU" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tncl"                  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH_CLU" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_xthol"                 set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH_CLU" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tspare0"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH_CLU" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tspare1"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH_CLU" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tspare2"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH_CLU" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tspare3"               set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_NIF_ETH_CLU" get_cb="dnx_mib_nif_eth_counter_get" clear_cb="dnx_mib_nif_eth_counter_clear"></entry>
+                    <!-- flexe mac counters -->
+                    <entry counter_id="dnx_mib_counter_nif_eth_r64"        set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_r127"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_r255"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_r511"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_r1023"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_r1518"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rmgv"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_r2047"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_r4095"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_r9216"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_r16383"     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rbca"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rprog0"     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rprog1"     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rprog2"     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rprog3"     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpkt"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpok"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_ruca"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rmca"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rxpf"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rxpp"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rxcf"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rfcs"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rerpkt"     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rflr"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rjbr"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rmtue"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rovr"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rvln"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rdvln"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rxuo"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rxuda"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rxwsa"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rprm"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfc0"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfcoff0"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfc1"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfcoff1"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfc2"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfcoff2"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfc3"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfcoff3"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfc4"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfcoff4"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfc5"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfcoff5"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfc6"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfcoff6"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfc7"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfcoff7"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rund"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rfrg"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rrpkt"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t64"        set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t127"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t255"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t511"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t1023"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t1518"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tmgv"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t2047"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t4095"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t9216"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t16383"     set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tbca"       set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfc0"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfcoff0"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfc1"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfcoff1"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfc2"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfcoff2"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfc3"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfcoff3"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfc4"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfcoff4"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfc5"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfcoff5"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfc6"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfcoff6"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfc7"      set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfcoff7"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpkt"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpok"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tuca"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tufl"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tmca"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_txpf"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_txpp"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_txcf"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tfcs"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_terr"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tovr"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tjbr"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_trpkt"  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tfrg"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tvln"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tdvln"  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rbyt"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rrbyt"  set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tbyt"   set_type="DNX_ALGO_PORT_MIB_COUNTER_SET_TYPE_FLEX_MAC" get_cb="dnx_mib_flexe_mac_counter_get" clear_cb="dnx_mib_flexe_mac_counter_clear"></entry>
+                </entries> 
+            </table>
+            
+            <table name="counter_data">
+                <key name="counter_id" size="dnx_mib_counter_nof"></key>
+                <value name="length" default="-1"></value>
+                <value name="doc" default="N/A"></value>    
+                <entries>
+                    <!-- fmac counters -->
+                    <entry counter_id="dnx_mib_counter_tx_control_cells" length="48" doc="TX Control cells"></entry>
+                    <entry counter_id="dnx_mib_counter_tx_data_cells" length="48" doc="TX Data cells"></entry>
+                    <entry counter_id="dnx_mib_counter_tx_data_bytes" length="48" doc="TX Data bytes"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_crc_errors_data_cells" length="32" doc="RX CRC errors"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_crc_errors_control_cells_nonbypass" length="16" doc="RX CRC errors nonbypass"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_crc_errors_control_cells_bypass" length="16" doc="RX CRC errors bypass"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_fec_correctable_error" length="32" doc="RX FEC correctable"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_control_cells" length="48" doc="RX Control cells"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_data_cells" length="48" doc="RX Data cells"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_data_bytes" length="48" doc="RX Data bytes"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_dropped_retransmitted_control" length="0" doc="RX Dropped retransmitted control"></entry>
+                    <entry counter_id="dnx_mib_counter_tx_asyn_fifo_rate" length="32" doc="TX Asyn fifo rate"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_asyn_fifo_rate" length="32" doc="RX Asyn fifo rate"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_lfec_fec_uncorrrectable_errors" length="16" doc="RX FEC uncorrectable errors"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_llfc_primary_pipe" length="64" doc="RX Llfc primary pipe"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_llfc_second_pipe" length="64" doc="RX Llfc second pipe"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_llfc_third_pipe" length="64" doc="RX Llfc third pipe"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_kpcs_errors" length="16" doc="RX Kpcs errors"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_kpcs_bypass_errors" length="16" doc="RX Kpcs bypass errors"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_rs_fec_bit_error" length="48" doc="RX RS-FEC bit error"></entry>
+                    <entry counter_id="dnx_mib_counter_rx_rs_fec_symbol_error_rate" length="48" doc="RX RS-FEC symbol error rate"></entry>
+                    <!-- ilkn counters -->
+                    <entry counter_id="dnx_mib_counter_ilkn_rx_pkt" length="64" doc="RX snmp stats no errors"></entry>
+                    <entry counter_id="dnx_mib_counter_ilkn_tx_pkt" length="64" doc="TX snmp stats no errors"></entry>
+                    <entry counter_id="dnx_mib_counter_ilkn_rx_bytes" length="64" doc="RX ILKN bytes counter"></entry>
+                    <entry counter_id="dnx_mib_counter_ilkn_tx_bytes" length="64" doc="TX ILKN bytes counter"></entry>
+                    <entry counter_id="dnx_mib_counter_ilkn_rx_err_pkt" length="64" doc="RX snmp If in err pkts"></entry>
+                    <entry counter_id="dnx_mib_counter_ilkn_tx_err_pkt" length="64" doc="RX snmp If out err pkts"></entry>
+                    <!-- nif counters -->
+                    <entry counter_id="dnx_mib_counter_nif_rx_fec_correctable_errors" length="64" doc="RX NIF FEC correctable"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_rx_fec_uncorrectable_errors" length="64" doc="RX NIF FEC uncorrectable"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_rx_bip_errors" length="64" doc="RX NIF BIP error count"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_rx_stats_drop_events_sch_low" length="64" doc="RX nif drop low events"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_rx_stats_drop_events_sch_high" length="64" doc="RX nif drop high events"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_rx_stats_drop_events_sch_tdm" length="64" doc="RX nif drop tdm events"></entry>
+                    <!-- nif eth counters-->
+                    <entry counter_id="dnx_mib_counter_nif_eth_r64" length="40" doc="RX 64-byte frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_r127" length="40" doc="RX 65 to 127 byte frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_r255" length="40" doc="RX 128 to 255 byte frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_r511" length="40" doc="RX 256 to 511 byte frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_r1023" length="40" doc="RX 512 to 1023 byte frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_r1518" length="40" doc="RX 1024 to 1518 byte frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rmgv" length="40" doc="RX 1519 to 1522 byte frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_r2047" length="40" doc="RX 1519 to 2047 byte frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_r4095" length="40" doc="RX 2048 to 4095 byte frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_r9216" length="40" doc="RX 4096 to 9216 byte frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_r16383" length="40" doc="RX 9217 to 16383 byte frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rbca" length="40" doc="RX BC frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rprog0" length="40" doc="RX RPROG0 frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rprog1" length="40" doc="RX RPROG1 frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rprog2" length="40" doc="RX RPROG2 frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rprog3" length="40" doc="RX RPROG3 frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpkt" length="40" doc="RX all packets frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpok" length="40" doc="RX good frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_ruca" length="40" doc="RX UC frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rmca" length="40" doc="RX MC frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rxpf" length="40" doc="RX pause frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rxpp" length="40" doc="RX PFC frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rxcf" length="40" doc="RX control frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rfcs" length="40" doc="RX FCS error frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rerpkt" length="40" doc="RX code error frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rflr" length="40" doc="RX out-of-range length frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rjbr" length="40" doc="RX jabber frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rmtue" length="40" doc="RX MTU check error frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rovr" length="40" doc="RX oversized frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rvln" length="40" doc="RX single and double VLAN tagged frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rdvln" length="40" doc="RX double VLAN tagged frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rxuo" length="40" doc="RX unsupported opcode frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rxuda" length="40" doc="RX unsupported DA for pause/PFC frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rxwsa" length="40" doc="RX incorrect SA frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rprm" length="40" doc="RX promiscuous frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfc0" length="40" doc="RX PFC frame with enable bit set for Priority0"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfcoff0" length="40" doc="RX PFC frame transition XON to XOFF for Priority"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfc1" length="40" doc="RX PFC frame with enable bit set for Priority1"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfcoff1" length="40" doc="RX PFC frame transition XON to XOFF for Priority1"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfc2" length="40" doc="RX PFC frame with enable bit set for Priority2"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfcoff2" length="40" doc="RX PFC frame transition XON to XOFF for Priority2"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfc3" length="40" doc="RX PFC frame with enable bit set for Priority3"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfcoff3" length="40" doc="RX PFC frame transition XON to XOFF for Priority3"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfc4" length="40" doc="RX PFC frame with enable bit set for Priority4"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfcoff4" length="40" doc="RX PFC frame transition XON to XOFF for Priority4"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfc5" length="40" doc="RX PFC frame with enable bit set for Priority5"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfcoff5" length="40" doc="RX PFC frame transition XON to XOFF for Priority5"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfc6" length="40" doc="RX PFC frame with enable bit set for Priority6"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfcoff6" length="40" doc="RX PFC frame transition XON to XOFF for Priority6"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfc7" length="40" doc="RX PFC frame with enable bit set for Priority7"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rpfcoff7" length="40" doc="RX PFC frame transition XON to XOFF for Priority7"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rund" length="40" doc="RX undersized frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rfrg" length="40" doc="RX fragment frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rrpkt" length="40" doc="RX RUNT frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t64" length="40" doc="TX 64-byte frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t127" length="40" doc="TX 65 to 127 byte frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t255" length="40" doc="TX 128 to 255 byte frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t511" length="40" doc="TX 256 to 511 byte frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t1023" length="40" doc="TX 512 to 1023 byte frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t1518" length="40" doc="TX 1024 to 1518 byte frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tmgv" length="40" doc="TX 1519 to 1522 byte frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t2047" length="40" doc="TX 1519 to 2047 byte frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t4095" length="40" doc="TX 2048 to 4095 byte frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t9216" length="40" doc="TX 4096 to 9216 byte frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_t16383" length="40" doc="TX 9217 to 16383 byte frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tbca" length="40" doc="TX Broadcast frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfc0" length="40" doc="TX PFC frame with enable bit set for Priority0"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfcoff0" length="40" doc="TX PFC frame transition XON to XOFF for Priority0"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfc1" length="40" doc="TX PFC frame with enable bit set for Priority1"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfcoff1" length="40" doc="TX PFC frame transition XON to XOFF for Priority1"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfc2" length="40" doc="TX PFC frame with enable bit set for Priority2"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfcoff2" length="40" doc="TX PFC frame transition XON to XOFF for Priority2"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfc3" length="40" doc="TX PFC frame with enable bit set for Priority3"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfcoff3" length="40" doc="TX PFC frame transition XON to XOFF for Priority3"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfc4" length="40" doc="TX PFC frame with enable bit set for Priority4"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfcoff4" length="40" doc="TX PFC frame transition XON to XOFF for Priority4"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfc5" length="40" doc="TX PFC frame with enable bit set for Priority5"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfcoff5" length="40" doc="TX PFC frame transition XON to XOFF for Priority5"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfc6" length="40" doc="TX PFC frame with enable bit set for Priority6"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfcoff6" length="40" doc="TX PFC frame transition XON to XOFF for Priority6"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfc7" length="40" doc="TX PFC frame with enable bit set for Priority7"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpfcoff7" length="40" doc="TX PFC frame transition XON to XOFF for Priority7"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpkt" length="40" doc="TX all packets frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tpok" length="40" doc="TX good frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tuca" length="40" doc="TX UC frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tufl" length="40" doc="TX FIFO Underrun frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tmca" length="40" doc="TX MC frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_txpf" length="40" doc="TX pause frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_txpp" length="40" doc="TX PFC frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_txcf" length="40" doc="TX control frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tfcs" length="40" doc="TX FCS error frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_terr" length="40" doc="TX Error frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tovr" length="40" doc="TX Oversize frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tjbr" length="40" doc="TX jabber frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_trpkt" length="40" doc="TX RUNT frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tfrg" length="40" doc="TX runt packet with invalid FCS frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tvln" length="40" doc="TX single and double VLAN tagged frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tdvln" length="40" doc="TX double VLAN tagged frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rbyt" length="48" doc="RX Byte frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rrbyt" length="48" doc="RX Runt Byte frame"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tbyt" length="48" doc="TX Byte frame"></entry>
+                    <!-- nif eth CLU counters -->
+                    <entry counter_id="dnx_mib_counter_nif_eth_rverify" length="40" doc="RX MAC Verify MFrames"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rreply" length="40" doc="RX MAC Reply MFrames"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rmcrc" length="40" doc="RX Matched CRC Frames"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rtrfu" length="40" doc="RX Truncated Frames"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rschcrc" length="40" doc="RX SCH CRC Errors"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rx_eee_lpi_event" length="40" doc="RX EEE LPI Events"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rx_eee_lpi_duration" length="40" doc="RX EEE LPI Duration"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rx_llfc_phy" length="40" doc="RX Physical Type LLFC messages"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rx_llfc_log" length="40" doc="RX Logical Type LLFC messages"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rx_llfc_crc" length="40" doc="RX Type LLFC message with CRC errors"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rx_hcfc" length="40" doc="RX HCFC messages"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_rx_hcfc_crc" length="40" doc="RX HCFC messages with CRC Error"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tverify" length="40" doc="TX MAC Verify MFrames"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_treply" length="40" doc="TX MAC Reply MFrames"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tscl" length="40" doc="TX Single Collision Frames"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tmcl" length="40" doc="TX Multiple Collision Frames"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tlcl" length="40" doc="TX Late Collision Frames"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_txcl" length="40" doc="TX Excessive Collision Frames"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tx_eee_lpi_event" length="40" doc="TX EEE LPI Events"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tx_eee_lpi_duration" length="40" doc="TX EEE LPI Duration"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tx_llfc_log" length="40" doc="TX Logical Type LLFC messages"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tx_hcfc" length="40" doc="TX HCFC messages"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tncl" length="40" doc="TX Total Collisions"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_xthol" length="40" doc="TX End-to-End HOL packet (E2ECC/VOQFC)"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tspare0" length="48" doc="TX Spare0"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tspare1" length="48" doc="TX Spare1"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tspare2" length="48" doc="TX Spare2"></entry>
+                    <entry counter_id="dnx_mib_counter_nif_eth_tspare3" length="48" doc="TX Spare3"></entry>                                                                                                                                                                                             
+                </entries> 
+            </table>                                           
+        </tables>
+    </sub_module>
+    
+</device_data>
+
+
+

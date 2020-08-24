@@ -1,0 +1,135 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="stif" bsl_flag="BSL_LS_BCMDNX_STAT">
+    <includes>
+        <include>bcm/stat.h</include>
+    </includes>
+     <sub_module name="config" doc="configure STIF via soc properties">
+        <defines>
+            <define labels="j2p_notrev" name="sram_buffers_resolution" type="uint32" doc="scrubber sram buffers threshold resolution"> </define>
+            <define labels="j2p_notrev" name="sram_pdbs_resolution" type="uint32" doc="scrubber sram pdbs threshold resolution"> </define>
+            <define labels="j2p_notrev" name="dram_bdb_resolution"  type="uint32" doc="scrubber dram bdb threshold resolution"> </define>
+        </defines>
+     
+        <numerics>
+            <numeric labels="j2p_notrev" name="stif_packet_size" doc="Configure the packet size - for all report modes"></numeric>
+            <numeric labels="j2p_notrev" name="stif_scrubber_queue_min" doc="Scrubber queue minimum - for QSIZE"></numeric>
+            <numeric labels="j2p_notrev" name="stif_scrubber_queue_max" doc="Scrubber queue maximum - for QSIZE"></numeric>
+            <numeric labels="j2p_notrev" name="stif_scrubber_rate_min" doc="The minimal period between two conscutive scrubber reports in nanoseconds - for QSIZE"></numeric>
+            <numeric labels="j2p_notrev" name="stif_scrubber_rate_max" doc="It indicates the maximal period between two consecutive scrubber reports in nanoseconds - for QSIZE"></numeric>
+            <numeric labels="j2p_notrev" name="stif_report_mode" doc="stif report mode value - qsize/billing/ billing ingress" > </numeric>
+            <numeric labels="j2p_notrev" name="stif_report_size_ingress" doc="ingress stif report size in bytes"> </numeric>
+            <numeric labels="j2p_notrev" name="stif_report_size_egress" doc="egress stif report size in bytes"> </numeric>
+            <numeric labels="j2p_notrev" name="stif_idle_report" doc="Configure if empty reports will be sent; if they will - the period will be 256"></numeric>
+            <numeric labels="j2p_notrev" name="nof_valid_sources" doc="qsize valid sources inq/deq/scrubber; billing valid sources - inq/deq/egr "></numeric>
+        </numerics>
+     
+        <features>
+             <feature labels="j2p_notrev" name="stif_enable" doc="Enable/disable the statistic interface."></feature>
+             <feature labels="j2p_notrev" name="stif_report_mc_single_copy" doc="Billing - count all ingress MC copies as one."></feature>
+             <feature labels="j2p_notrev" name="mixing_ports_limitation" doc="activate limition of Mixing STIF and none STIF ports in one port macro"></feature>
+        </features>
+     
+        <tables>
+            <table labels="j2p_notrev" name="scrubber_buffers" doc="scrubber buffer limits">
+                <key name="thresh_id" size="4" doc="threshold id"></key>
+                <value name="sram_buffers" type="uint32" doc="scrubber sram buffers threshold"> </value>
+                <value name="sram_pdbs" type="uint32" doc="scrubber sram pdbs threshold"> </value>
+                <value name="dram_bdb"  type="uint32" doc="scrubber dram bdb threshold"> </value>
+            </table>
+            <table labels="j2p_notrev" name="selective_report_range" doc="select the range of queues for qsize report - 2 ranges">
+                <key name="range_id" size="1" doc="range id - 0/1"></key>
+                <value name="min" type="uint32" doc="min value of the range"> </value>
+                <value name="max" type="uint32" doc="max value of the range"> </value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="port" doc="stif - nif port instance values">
+        <defines>
+            <define labels="j2p_notrev" name="max_nof_instances" doc="stif-nif port instances"></define>
+            <define labels="j2p_notrev" name="stif_ethu_select_size" doc="used for dbal - size of stif ethu select in bits"></define>
+            <define labels="j2p_notrev" name="stif_lane_mapping_size" doc="used for dbal - size of stif to lane bitmap in bits"></define>
+        </defines>
+     
+        <numerics>
+        </numerics>
+     
+        <features>
+        </features>
+     
+        <tables>
+            <table labels="j2p_notrev" name="ethu_id_stif_valid" doc="stif-nif valid ethu ids for stif and their according hw value to be set">
+                <key name="ethu_id" doc="ethu id"></key>
+                <value name="valid" type="uint32" doc="valid ethu id for stif - true/false"></value>
+                <value name="hw_select_value" type="uint32" doc="hw select value to realize stif-nif mapping"></value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="report" doc="stif values related to the report">
+        <defines>
+            <define labels="j2p_notrev" name="qsize_idle_report_size" doc="default value for qsize idle report size in bytes"></define>
+            <define labels="j2p_notrev" name="qsize_idle_report_period" doc="default value for the QSIZE report period"></define>
+            <define labels="j2p_notrev" name="qsize_idle_report_period_invalid" doc="disable the idle report generation"></define>
+            <define labels="j2p_notrev" name="qsize_scrubber_report_cycles_unit" doc="Period between consecutive scrubber records is in units - unit = defined cycle periods"></define>
+            <define labels="j2p_notrev" name="max_thresholds_per_buffer" doc="scrubber buffer thresholds - the thresholds define 16 ranges of buffer occupancy"></define>
+            <define labels="j2p_notrev" name="incoming_tc" doc="STIF uses incoming TC (tc reported by PP) and cannot be changed by the user - hw value"></define>
+            <define labels="j2p_notrev" name="record_two_msb" doc="two MSB of the record should be 2'b11"></define>
+            <define labels="j2p_notrev" name="nof_source_types" doc="number of source types - ingress enq/deq/scrubber, egress - regarding bcm_stat_stif_source_type_t struct"></define>
+            <define labels="j2p_notrev" name="stat_id_max_count" doc="max count of possible statistics ids"></define>
+            <define labels="j2p_notrev" name="stat_object_size" doc="the size of a statistic object (0,1,2,3) - size in bits"></define>
+            <define labels="j2p_notrev" name="billing_format_element_packet_size" doc="get size of the  billing element for packet size - size in bits"></define>
+            <define labels="j2p_notrev" name="billing_format_msb_opcode_size" doc="get size of the  billing element opcode which the user cannot change - size in bits"></define>
+            <define labels="j2p_notrev" name="billing_format_etpp_metadata_size" doc="billing record format ETPP metadata size - size in bits"></define>
+            <define labels="j2p_notrev" name="billing_opsize_use_one_type_mask" doc="billing record format opsize mask to use one type"></define>
+            <define labels="j2p_notrev" name="billing_opsize_use_two_types_mask" doc="billing record format mask to use two types"></define>
+            <define labels="j2p_notrev" name="billing_opsize_use_three_types_mask" doc="billing record format mask to use three types"></define>
+            <define labels="j2p_notrev" name="billing_opsize_use_four_types_mask" doc="billing record format mask to use four types"></define>
+            <define labels="j2p_notrev" name="billing_enq_ing_size_wa_shift" doc="billing record ingress enqueu size=96. need to reduce wa_shift value from each element sgift value"></define>
+        </defines>
+     
+        <numerics>
+        </numerics>
+     
+        <features>
+            <feature labels="j2p_notrev" name="etpp_core_in_portmetadata" doc="set WA - etpp has no variable indication for core id and needs to be set in portmetadata[0]"></feature>
+        </features>
+     
+        <tables>
+             <table labels="j2p_notrev" name="etpp_metadata" doc="etpp metadata elements and their size in bits">
+                <key name="element" doc="metadata element type"></key>
+                <value name="size" type="uint32" doc="size of the element in bits"></value>
+            </table>
+            <table labels="j2p_notrev" name="report_size" doc="connect the soc property mapped value of the report size to the real value in bits">
+                <key name="dbal_enum" doc="the value that will get from the soc property"></key>
+                <value name="size" type="uint32" doc="size of the report corresponding to the soc property value" ></value>>
+            </table>
+        </tables>
+    </sub_module>
+     <sub_module name="flow_control" doc="stif values related to the low and high flow control calculations">
+        <defines>
+            <define labels="j2p_notrev" name="etpp_pipe_length" doc="pipe length size in clocks"></define>
+            <define labels="j2p_notrev" name="etpp_deq_size_of_fifo" doc="etpp dequeue size of fifo - reports"></define>
+            <define labels="j2p_notrev" name="cgm_pipe_length" doc="cgm pipe length in clocks"></define>
+            <define labels="j2p_notrev" name="cgm_size_of_fifo" doc="cgm size of fifo - reports"></define>
+            <define labels="j2p_notrev" name="billing_level_sampling" doc="level sampling value - used for billing flow control calculation"></define>
+            <define labels="j2p_notrev" name="fc_disable_value" doc="disable flow control value"></define>
+            <define labels="j2p_notrev" name="billing_etpp_flow_control_high" doc="billing etpp flow control max value - calculated with formula given from the architecture"></define>
+            <define labels="j2p_notrev" name="billing_etpp_flow_control_low" doc="billing etpp flow control min value - calculated with formula given from the architecture"></define>
+            <define labels="j2p_notrev" name="billing_cgm_flow_control_high" doc="billing cgm flow control max value - calculated with formula given from the architecture"></define>
+            <define labels="j2p_notrev" name="billing_cgm_flow_control_low" doc="billing cgm flow control min value - calculated with formula given from the architecture"></define>
+            <define labels="j2p_notrev" name="qsize_cgm_flow_control_high" doc="qsize cgm flow control max value - calculated with formula given from the architecture"></define>
+            <define labels="j2p_notrev" name="qsize_cgm_flow_control_low" doc="qsize cgm flow control min value - calculated with formula given from the architecture"></define>
+        </defines>
+     
+        <numerics>
+        </numerics>
+     
+        <features>
+            <feature labels="j2p_notrev" name="instance_0_must_be_on" doc="due to HW bug once instance 0 is off flow control will also be off - WA is to keep instance 0 on even if not in use "></feature>
+        </features>
+     
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>

@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="snif" bsl_flag="BSL_LS_BCMDNX_MIRROR">
+
+    <sub_module name="general" doc="SNIF general data">
+
+        <defines>
+            <define labels="j2p_notrev" name="cud_type" doc="Sniff CUD type"></define>
+        </defines>     
+        
+    </sub_module>
+    
+    <sub_module name="ingress" doc="SNIF ingress profiles data">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define labels="j2p_notrev" name="nof_profiles" doc="Number of SNIF profiles supported by ingress SNIF"></define>
+            <define labels="j2p_notrev" name="mirror_nof_profiles" doc="Number of Mirror/Snoop profiles supported by ingress SNIF"></define>
+            <define labels="j2p_notrev" name="mirror_nof_vlan_profiles" doc="Number of mirror vlan profiles supported by ingress SNIF"></define>
+            <define labels="j2p_notrev" name="mirror_default_tagged_profile" doc="The ingress default vlan profile for tagged packets"></define>
+            <define labels="j2p_notrev" name="mirror_untagged_profiles" doc="The ingress vlan profile for untagged packets"></define>
+            <define labels="j2p_notrev" name="prob_max_val" doc="Probability max value"></define>
+            <define labels="j2p_notrev" name="crop_size" doc="crop size"></define>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="keep_orig_dest_on_dsp_ext" doc="stamping destination on FTM dsp extension"></numeric>
+        </numerics>        
+        
+    </sub_module>
+    <sub_module name="egress" doc="SNIF egress profiles data">
+        
+        <features>
+            <feature labels="j2p_notrev" name="probability_sample" doc="egress mirror supports probability sampling"></feature>
+        </features>
+        
+        <defines>
+            <define labels="j2p_notrev" name="mirror_snoop_nof_profiles" doc="Number of Mirror/Snoop profiles supported by egress SNIF"></define>
+            <define labels="j2p_notrev" name="mirror_nof_vlan_profiles" doc="Number of mirror vlan profiles supported by egress SNIF"></define>
+            <define labels="j2p_notrev" name="mirror_default_profile" doc="The egress default vlan profile for tagged packets"></define>
+            <define labels="j2p_notrev" name="prob_max_val" doc="Probability max value"></define>
+            <define labels="j2p_notrev" name="crop_size" doc="crop size"></define>
+        </defines>
+
+        <numerics>
+        </numerics>        
+        
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>
+
+
+
+

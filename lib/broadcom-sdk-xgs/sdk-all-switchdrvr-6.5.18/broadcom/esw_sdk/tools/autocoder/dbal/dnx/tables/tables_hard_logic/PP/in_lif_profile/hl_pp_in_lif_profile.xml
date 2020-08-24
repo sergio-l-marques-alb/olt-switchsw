@@ -1,0 +1,412 @@
+<?xml version="1.0" encoding="UTF-8"?><!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="ENABLERS_VECTORS">
+        <OneLineDescription>includes enablers vectors for VSI profile</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ROUTING_ENABLERS_PROFILE" Size="5"/>
+            </Key>
+            <Result>
+                <Field Name="ENABLERS_VECTOR" Size="64"/>
+            </Result>
+            <TableLabels>L3 L3_IF_RIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLERS_VECTOR">
+                    <Access>
+                        <Memory Name="IPPF_MAP_RIF_PROFILE_TO_ROUTING_ENABLEm">
+                            <HwField Name="ROUTING_ENABLE_VECTORf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="IPPA_MAP_RIF_PROFILE_TO_ROUTING_ENABLEm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="ROUTING_ENABLE_VECTORf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="IPPA_MAP_RIF_PROFILE_TO_ROUTING_ENABLEm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="ROUTING_ENABLE_VECTORf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="IN_LIF_PROFILE_TABLE">
+        <OneLineDescription>includes in_lif profile properties</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="IN_LIF_PROFILE" Size="8"/>
+            </Key>
+            <Result>
+                <Field Name="RPF_MODE" Size="2"/>
+                <Field Name="IN_LIF_ORIENTATION" Size="3"/>
+                <Field Name="IN_LIF_SAME_INTERFACE"/>
+                <Field Name="L_2_CP_TRAP_HANDLING_PROFILE" Size="2"/>
+                <Field Name="ICMPV4_TRAP_HANDLING_PROFILE" Size="2"/>
+                <Field Name="ICMPV6_TRAP_HANDLING_PROFILE" Size="2"/>
+                <Field Name="ARP_TRAP_HANDLING_PROFILE" Size="2"/>
+                <Field Name="IGMP_TRAP_HANDLING_PROFILE" Size="2"/>
+                <Field Name="DHCP_TRAP_HANDLING_PROFILE" Size="2"/>
+                <Field Name="NON_AUTH_8021X_TRAP_HANDLING_PROFILE" Size="2"/>
+                <Field Name="CS_IN_LIF_VTT_PROFILE" Size="4"/>
+                <Field Name="CS_IN_LIF_FWD_PROFILE" Size="4"/>
+                <Field Name="INNER_DP_PROFILE" Type="METER_DP_PROFILE"/>
+                <Field Name="OUTER_DP_PROFILE" Type="METER_DP_PROFILE"/>
+                <Field Name="DA_NOT_FOUND_DESTINATION_PROFILE"/>
+                <Field Name="OAM_DEFAULT_PROFILE" Size="2" Type="UINT"/>
+                <Field Name="JR_MODE_IN_LIF_PROFILE" Valid="DNX_DATA.lif.in_lif.in_lif_profile_iop_mode"/>
+                <Field Name="MAPPED_IN_LIF_PROFILE" Valid="DNX_DATA.lif.in_lif.mapped_in_lif_profile"/>
+                <Field Name="MC_BRIDGE_FALLBACK_ALLOW" Size="1" Type="BOOL" Valid="DNX_DATA.lif.in_lif.mc_bridge_fallback_per_lif_profile"/> 
+                <Field Name="JR_IN_LIF_ORIENTATION" Valid="!DNX_DATA.lif.hw_bug.iop_mode_orientation_selection"/>
+                <Field Name="IN_LIF_LB_PROFILE" Size="2" Type="UINT" Valid="DNX_DATA.switch.load_balancing.hashing_selection_per_layer"/>
+            </Result>
+            <TableLabels>L3 L3_IF_RIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0" Name="RPF_MODE">
+                    <Access>
+                        <Memory Name="IPPD_IN_LIF_PROFILE_TABLEm">
+                            <HwField Name="IN_LIF_RPF_MODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="RPF_MODE">
+                    <Access>
+                        <Memory Name="IPPD_IN_LIF_PROFILE_TABLEm">
+                            <HwField Name="IN_LIF_RPF_MODE_IPV4f"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="IPPD_IN_LIF_PROFILE_TABLEm">
+                            <HwField Name="IN_LIF_RPF_MODE_IPV6f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IN_LIF_ORIENTATION">
+                    <Access>
+                        <Memory Name="ERPP_CFG_MAPPING_INLIF_PROFILEm">
+                            <HwField Name="INLIF_ORIENTATIONf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="ETPPC_INLIF_ORIENTATION_MAPPINGm">
+                            <HwField Name="INLIF_ORIENTATION_MAPPINGf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IN_LIF_SAME_INTERFACE">
+                    <Access>
+                        <Memory Name="ERPP_CFG_MAPPING_INLIF_PROFILEm">
+                            <HwField Name="INLIF_SAME_IF_FILTERf"/>
+                        </Memory>
+                    </Access>
+                </Field>                  
+                <Field Name="L_2_CP_TRAP_HANDLING_PROFILE">
+                    <Access>
+                        <Memory Name="IPPB_TRAP_PROFILING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(IN_LIF_PROFILE)+dnx_data_trap.ingress.protocol_traps_lif_profile_starting_offset_get(unit)"/>
+                            <HwField Name="L_2_CP_TRAP_HANDLING_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ICMPV4_TRAP_HANDLING_PROFILE">                
+                    <Access>
+                        <Memory Name="IPPB_TRAP_PROFILING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(IN_LIF_PROFILE)+dnx_data_trap.ingress.protocol_traps_lif_profile_starting_offset_get(unit)"/>
+                            <HwField Name="ICMPV4_TRAP_HANDLING_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ICMPV6_TRAP_HANDLING_PROFILE">
+                    <Access>
+                        <Memory Name="IPPB_TRAP_PROFILING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(IN_LIF_PROFILE)+dnx_data_trap.ingress.protocol_traps_lif_profile_starting_offset_get(unit)"/>
+                            <HwField Name="ICMPV6_TRAP_HANDLING_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IGMP_TRAP_HANDLING_PROFILE">                
+                    <Access>
+                        <Memory Name="IPPB_TRAP_PROFILING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(IN_LIF_PROFILE)+dnx_data_trap.ingress.protocol_traps_lif_profile_starting_offset_get(unit)"/>
+                            <HwField Name="IGMP_TRAP_HANDLING_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NON_AUTH_8021X_TRAP_HANDLING_PROFILE">                
+                    <Access>
+                        <Memory Name="IPPB_TRAP_PROFILING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(IN_LIF_PROFILE)+dnx_data_trap.ingress.protocol_traps_lif_profile_starting_offset_get(unit)"/>
+                            <HwField Name="NON_AUTH_8021X_TRAP_HANDLING_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DHCP_TRAP_HANDLING_PROFILE">                 
+                    <Access>
+                        <Memory Name="IPPB_TRAP_PROFILING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(IN_LIF_PROFILE)+dnx_data_trap.ingress.protocol_traps_lif_profile_starting_offset_get(unit)"/>
+                            <HwField Name="DHCP_TRAP_HANDLING_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ARP_TRAP_HANDLING_PROFILE">                
+                    <Access>
+                        <Memory Name="IPPB_TRAP_PROFILING_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(IN_LIF_PROFILE)+dnx_data_trap.ingress.protocol_traps_lif_profile_starting_offset_get(unit)"/>
+                            <HwField Name="ARP_TRAP_HANDLING_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CS_IN_LIF_VTT_PROFILE">
+                    <Access>
+                        <KeyCondition Field="IN_LIF_PROFILE" Type="LOWER_THAN" Value="128"/>
+                        <Register GroupName="INGRESS_CS_INLIF_PROFILE_MAP_LSB">
+                            <DataOffset Formula="#KEY_VALUE(IN_LIF_PROFILE)%128*#RESULT_SIZE(CS_IN_LIF_VTT_PROFILE)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="IN_LIF_PROFILE" Type="BIGGER_THAN" Value="127"/>
+                        <Register GroupName="INGRESS_CS_INLIF_PROFILE_MAP_MSB">
+                            <DataOffset Formula="#KEY_VALUE(IN_LIF_PROFILE)%128*#RESULT_SIZE(CS_IN_LIF_VTT_PROFILE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CS_IN_LIF_FWD_PROFILE">
+                    <Access>
+                        <KeyCondition Field="IN_LIF_PROFILE" Type="LOWER_THAN" Value="128"/>
+                        <Register Name="IPPB_CS_INLIF_PROFILE_MAP_0r">
+                            <DataOffset Formula="#KEY_VALUE(IN_LIF_PROFILE)%128*#RESULT_SIZE(CS_IN_LIF_FWD_PROFILE)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="IN_LIF_PROFILE" Type="BIGGER_THAN" Value="127"/>
+                        <Register Name="IPPB_CS_INLIF_PROFILE_MAP_1r">
+                            <DataOffset Formula="#KEY_VALUE(IN_LIF_PROFILE)%128*#RESULT_SIZE(CS_IN_LIF_FWD_PROFILE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="INNER_DP_PROFILE">
+                    <Access>
+                        <Memory GroupName="EGRESS_CFG_INLIF_DP_PROFILE_MAP">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()"/>
+                            <HwField Name="CFG_INLIF_DP_PROFILE_MAPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUTER_DP_PROFILE">
+                    <Access>
+                        <Memory GroupName="EGRESS_CFG_INLIF_DP_PROFILE_MAP">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()"/>
+                            <HwField Name="CFG_INLIF_DP_PROFILE_MAPf"/>
+                            <DataOffset Formula="#RESULT_SIZE(INNER_DP_PROFILE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DA_NOT_FOUND_DESTINATION_PROFILE">
+                    <Access>
+                        <Memory GroupName="INGRESS_LIF_PROFILE_ATTRIBUTES_1">
+                            <HwField Name="DA_NOT_FOUND_DESTINATION_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_DEFAULT_PROFILE">
+                    <Access>
+                        <Register Name="IPPB_OAM_IN_LIF_PROFILE_MAPr">
+                            <DataOffset Formula="#KEY_VALUE(IN_LIF_PROFILE)*#RESULT_SIZE(OAM_DEFAULT_PROFILE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 J2C_A0" Name="JR_MODE_IN_LIF_PROFILE">
+                    <Access>
+                        <Register Name="IPPD_IN_LIF_PROFILE_MAPr">
+                            <DataOffset Formula="#KEY_VALUE(IN_LIF_PROFILE)*#RESULT_SIZE(JR_MODE_IN_LIF_PROFILE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="JR_MODE_IN_LIF_PROFILE">
+                    <Access>
+                        <Register Name="IPPD_JR_2_TO_JR_IN_LIF_PROFILE_MAPr">
+                            <DataOffset Formula="#KEY_VALUE(IN_LIF_PROFILE)*#RESULT_SIZE(JR_MODE_IN_LIF_PROFILE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MAPPED_IN_LIF_PROFILE">
+                    <Access>
+                        <Memory Name="IPPD_IN_LIF_PROFILE_MAPm">
+                            <HwField Name="MAPPED_IN_LIF_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="MC_BRIDGE_FALLBACK_ALLOW">
+                    <Access>
+                        <Register Name="IPPB_LIF_MC_BRIDGE_FALLBACK_ALLOWr">
+                            <DataOffset Formula="#KEY_VALUE(IN_LIF_PROFILE)*#RESULT_SIZE(MC_BRIDGE_FALLBACK_ALLOW)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0 Q2A_A0 Q2A_B0" Name="JR_IN_LIF_ORIENTATION">
+                    <Access>
+                        <Register Name="IPPD_IN_LIF_ORIENTATION_MAPr">
+                            <DataOffset Formula="#KEY_VALUE(IN_LIF_PROFILE)*#RESULT_SIZE(JR_IN_LIF_ORIENTATION)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IN_LIF_LB_PROFILE">
+                    <Access>
+                        <Register Name="IPPB_IN_LIF_LB_PROFILE_MAPr">
+                            <DataOffset Formula="#KEY_VALUE(IN_LIF_PROFILE)*#RESULT_SIZE(IN_LIF_LB_PROFILE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="VSI_PROFILE_TABLE">
+        <OneLineDescription>includes VSI profile properties</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VSI_PROFILE" Size="10"/>
+            </Key>
+            <Result>
+                <Field Name="ROUTING_ENABLERS_PROFILE" Size="5"/>
+                <Field Name="VSI_PROFILE_IVL_SVL" Size="1"/>
+                <Field Name="VSI_PROFILE_L2_V4_MC_FWD_TYPE" Size="1"/>
+                <Field Name="VSI_PROFILE_L2_V6_MC_FWD_TYPE" Size="1"/>
+            </Result>
+            <TableLabels>L3 L3_IF_RIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ROUTING_ENABLERS_PROFILE">
+                    <Access>
+                        <Memory Name="IPPA_ROUTING_PROFILE_TABLEm">
+                            <ArrayOffset Formula="3"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/4"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()%4*#RESULT_SIZE(ROUTING_ENABLERS_PROFILE)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="IPPA_ROUTING_PROFILE_TABLEm">
+                            <ArrayOffset Formula="4"/>
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/4"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()%4*#RESULT_SIZE(ROUTING_ENABLERS_PROFILE)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="IPPF_ROUTING_PROFILE_TABLEm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/4"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()%4*#RESULT_SIZE(ROUTING_ENABLERS_PROFILE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_PROFILE_IVL_SVL">
+                    <Access>
+                        <Memory GroupName="INGRESS_FWD_DOMAIN_CS_PROFILE_MAP">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/8"/>
+                            <HwField Name="FWD_DOMAIN_CS_PROFILEf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()%8*4"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_PROFILE_L2_V4_MC_FWD_TYPE">
+                    <Access>
+                        <Memory GroupName="INGRESS_FWD_DOMAIN_CS_PROFILE_MAP">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/8"/>
+                            <HwField Name="FWD_DOMAIN_CS_PROFILEf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()%8*4+1"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_PROFILE_L2_V6_MC_FWD_TYPE">
+                    <Access>
+                        <Memory GroupName="INGRESS_FWD_DOMAIN_CS_PROFILE_MAP">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/8"/>
+                            <HwField Name="FWD_DOMAIN_CS_PROFILEf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()%8*4+2"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="JR_MODE_INLIF_PROFILE_ORIENTATION_MAP" Valid="DNX_DATA.lif.hw_bug.iop_mode_orientation_selection">
+        <OneLineDescription>JR MODE INLIF ORIENTATION MAPPING TABLE</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="JR_MODE_IN_LIF_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="JR_IN_LIF_ORIENTATION"/>
+            </Result>
+            <TableLabels>SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0 J2C_A0" Name="JR_IN_LIF_ORIENTATION">
+                    <Access>
+                        <Register Name="IPPD_IN_LIF_ORIENTATION_MAPr">
+                            <DataOffset Formula="#KEY_VALUE(JR_MODE_IN_LIF_PROFILE)*#RESULT_SIZE(JR_IN_LIF_ORIENTATION)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="JR_MODE_INLIF_PROFILE_EGRESS_REMAP">
+        <OneLineDescription>JR MODE INLIF EGRESS REMAPPING TABLEn</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="JR_MODE_SYSTEM_HEADER_RESERVED_VALUE" Size="2" Type="UINT"/>
+                <Field Name="JR_IN_LIF_ORIENTATION"/>
+                <Field Name="JR_MODE_IN_LIF_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="IN_LIF_PROFILE"/>
+            </Result>
+            <TableLabels>SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IN_LIF_PROFILE">
+                    <Access>
+                        <Memory GroupName="EGRESS_CFG_INLIF_PROFILE_MAPPED_IN_JERICHO_MODE">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()"/>
+                            <HwField Name="INLIF_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

@@ -1,0 +1,3331 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="INGRESS_IRPP_LLR_CONTEXT_PROPERTIES">
+        <OneLineDescription>Ingress LLR Context Enablers Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="IN_PP_PORT" Type="PP_PORT"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="If true, LLVP is being Enabled" Name="LLVP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LL Mirror Profile is being Enabled" Name="LL_MIRROR_PROFILE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Mirror code is being selected" Name="MIRROR_CODE_SEL" Type="BOOL"/>
+                <Field Description="If true, Acceptable Frame type is being Enabled" Name="ACCEPTABLE_FRAME_TYPE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Recycle Profile is being Enabled" Name="RECYCLE_PROFILE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Filter SA MC is being Enabled" Name="FILTER_SA_MC_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Filter SA EQ DA is being Enabled" Name="FILTER_SA_EQ_DA_ENABLE" Type="BOOL"/>
+                <Field Description="If true, header size error is being Enabled" Name="HDR_SIZE_ERROR_ENABLE" Type="BOOL"/>
+                <Field Description="If true, initial VID is being Enabled" Name="INITIAL_VID_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Mirror Code is being Enabled" Name="MIRROR_CODE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, PTC profile is being Enabled" Name="LLR_PTC_PROFILE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, In Port selection is being Enabled" Name="IN_PORT_SEL_ENABLE" Type="BOOL"/>
+                <Field Description="If true, FWD Layer index is being Enabled" Name="FWD_LAYER_INDEX_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Context is being Enabled" Name="CONTEXT_ENABLE" Type="BOOL"/>
+                <Field Description="If true, ignoring Incoming VID is being Enabled" Name="IGNORE_INCOMING_VID_ENABLE" Type="BOOL"/>
+                <Field Name="LLR_CS_PORT_CS_PROFILE"/>
+            </Result>
+            <TableLabels>L2 L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="LLVP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPE_PINFO_LLRm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LLVP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LL_MIRROR_PROFILE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPE_PINFO_LLRm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LL_MIRROR_PROFILE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MIRROR_CODE_SEL">
+                    <Access>
+                        <Memory Name="IPPE_PINFO_LLRm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MIRROR_CODE_SELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ACCEPTABLE_FRAME_TYPE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPE_PINFO_LLRm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="ACCEPTABLE_FRAME_TYPE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RECYCLE_PROFILE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPE_PINFO_LLRm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="RECYCLE_PROFILE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FILTER_SA_MC_ENABLE">
+                    <Access>
+                        <Memory Name="IPPE_PINFO_LLRm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FILTER_SA_MC_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FILTER_SA_EQ_DA_ENABLE">
+                    <Access>
+                        <Memory Name="IPPE_PINFO_LLRm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FILTER_SA_EQ_DA_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="HDR_SIZE_ERROR_ENABLE">
+                    <Access>
+                        <Memory Name="IPPE_PINFO_LLRm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="HDR_SIZE_ERROR_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INITIAL_VID_ENABLE">
+                    <Access>
+                        <Memory Name="IPPE_PINFO_LLRm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="INITIAL_VID_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MIRROR_CODE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPE_PINFO_LLRm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MIRROR_CODE_SELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LLR_PTC_PROFILE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPE_PINFO_LLRm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PTC_PROFILE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IN_PORT_SEL_ENABLE">
+                    <Access>
+                        <Memory Name="IPPE_PINFO_LLRm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IN_PORT_SELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_LAYER_INDEX_ENABLE">
+                    <Access>
+                        <Memory Name="IPPE_PINFO_LLRm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FWD_LAYER_INDEX_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CONTEXT_ENABLE">
+                    <Access>
+                        <Memory Name="IPPE_PINFO_LLRm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CONTEXT_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IGNORE_INCOMING_VID_ENABLE">
+                    <Access>
+                        <Memory Name="IPPE_PINFO_LLRm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IGNORE_INCOMING_VIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LLR_CS_PORT_CS_PROFILE">
+                    <Access>
+                        <Memory Name="IPPE_PINFO_LLRm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CONTEXT_SELECTIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_IRPP_PARSING_CONTEXT_MAP" Valid="DNX_DATA.ingress_cs.parser.parsing_context_map_enable">
+        <OneLineDescription>Ingress Parsing Context Mapping Table and it's used in case Context PRT mode is PRT_INFO</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="KBR_PARSING_CONTEXT" Size="5" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="IRPP_1ST_PARSER_PARSER_CONTEXT" Size="5"/>
+            </Result>
+            <TableLabels>L2 L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IRPP_1ST_PARSER_PARSER_CONTEXT">
+                    <Access>
+                        <Memory Name="IPPE_PRT_PARSING_CONTEXT_KBR_MAPm">
+                            <HwField Name="PARSING_CONTEXTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_IRPP_VT1_CONTEXT_PROPERTIES">
+        <OneLineDescription>Ingress VT1 Context Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VT1_CONTEXT_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Enabler for Vlan Classification" Name="VLAN_CLASSIFICATION_ENABLE" Type="BOOL"/>
+                <Field Description="Enabler for Vlan Range Compression" Name="VLAN_RANGE_COMPRESSION_ENABLE" Type="BOOL"/>
+                <Field Description="Enabler for Generic Fc" Name="GENERIC_FC_ENABLE" Type="BOOL"/>
+                <Field Description="Enabler for Coe" Name="COE_ENABLE" Type="BOOL"/>
+                <Field Description="Enabler for Filter Sa Mc" Name="FILTER_SA_MC_ENABLE" Type="BOOL"/>
+                <Field Description="Enabler for Filter Sa Eq Da" Name="FILTER_SA_EQ_DA_ENABLE" Type="BOOL"/>
+                <Field Description="Enabler for FilterAcceptableFrameType" Name="FILTER_ACCEPTABLE_FRAME_TYPE_ENABLE" Type="BOOL"/>
+                <Field Description="Enabler for Vlan Membership" Name="VLAN_MEMBERSHIP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Designated Check is being Enabled" Name="DESIGNATED_CHECK_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VLAN Membership Based port is being Enabled" Name="VLAN_MEMBERSHIP_BASED_PORT_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LLVP is being Enabled" Name="LLVP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VLAN domain is being Enabled" Name="VLAN_DOMAIN_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VLAN Edit CMD is being Enabled" Name="VLAN_EDIT_CMD_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF statistics is being Enabled" Name="LIF_STATISTICS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI statistics is being Enabled" Name="VSI_STATISTICS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, FWD Domain Assign is being Enabled" Name="FWD_DOMAIN_ASSIGN_ENABLE" Type="BOOL"/>
+                <Field Description="If true, non VSI statistics is being Enabled" Name="NON_VSI_STATISTICS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF update after ARR is being Enabled" Name="LIF_UPDATE_AFTER_ARR_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF QOS update is being Enabled" Name="LIF_QOS_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF LERAN payload is being Enabled" Name="LIF_LERAN_PAYLOAD_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF trap is being selected" Name="LIF_TRAP_SELECT" Type="BOOL"/>
+                <Field Description="If true, LIF trap is being Enabled" Name="LIF_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPv4 trap is being Enabled" Name="IPV4_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPv6 trap is being Enabled" Name="IPV6_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI trap is being Enabled" Name="VSI_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI lookup is being Enabled" Name="VSI_LOOKUP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI QOS update is being Enabled" Name="VSI_QOS_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI learn payload is being Enabled" Name="VSI_LEARN_PAYLOAD_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI learn key is being Enabled" Name="VSI_LEARN_KEY_ENABLE" Type="BOOL"/>
+                <Field Description="If true, compatible MC is being Enabled" Name="COMPATIBLE_MC_ENABLE" Type="BOOL"/>
+                <Field Description="If true, MY_MAC VRID SEL is being Enabled" Name="MY_MAC_VRID_SEL_ENABLE" Type="BOOL"/>
+                <Field Description="If true, MY_MAC VRID update is being Enabled" Name="MY_MAC_VRID_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Routing is being Enabled" Name="ROUTING_ENABLE" Type="BOOL"/>
+                <Field Description="If true, L3_LIF_SEL is being Enabled" Name="L3_LIF_SEL_ENABLE" Type="BOOL"/>
+                <Field Description="If true, MY_MAC QOS update is being Enabled" Name="MY_MAC_QOS_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, MPLS pre processing is being Enabled" Name="MPLS_PRE_PROCESSING_ENABLE" Type="BOOL"/>
+                <Field Description="If true, OAM is being Enabled" Name="OAM_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Native Ethernet is being Enabled" Name="NATIVE_ETHERNET_ENABLE" Type="BOOL"/>
+                <Field Description="If true, first Ethernet process is being Enabled" Name="FIRST_ETH_PROCESS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, second Ethernet process is being Enabled" Name="SECOND_ETH_PROCESS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, third Ethernet process is being Enabled" Name="THIRD_ETH_PROCESS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Protection Pointer is being Enabled" Name="PROTECTION_POINTER_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IS_TERMINATED_MPLS is being Enabled" Name="IS_TERMINATED_MPLS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, SKIP_FRR is being Enabled" Name="SKIP_FRR_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF ARR resolution is Enabled" Name="LIF_ARR_RESOLUTION_ENABLE" Type="BOOL"/>
+                <Field Name="STP_ENABLE"/>
+                <Field Name="MY_MAC_BASED_EXEM_ENABLE"/>
+                <Field Name="MY_MAC_BASED_VRID_ENABLE"/>
+                <Field Name="MY_MAC_BASED_VSI_ENABLE"/>
+                <Field Name="MY_MAC_BASED_UC_BACKBONE_ENABLE"/>
+                <Field Name="MY_MAC_BASED_MC_BACKBONE_ENABLE"/>
+                <Field Name="TT_PROCESS_CODE" Type="VTT_TT_PROCESS_CODE"/>
+            </Result>
+            <TableLabels>L2 L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="VLAN_CLASSIFICATION_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_INIT_CONTEXT_ENABLERSm">
+                            <HwField Name="VLAN_CLASSIFICATION_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_RANGE_COMPRESSION_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_INIT_CONTEXT_ENABLERSm">
+                            <HwField Name="VLAN_RANGE_COMPRESSION_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="GENERIC_FC_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_INIT_CONTEXT_ENABLERSm">
+                            <HwField Name="GENERIC_FC_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="COE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_INIT_CONTEXT_ENABLERSm">
+                            <HwField Name="COE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FILTER_SA_MC_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_INIT_CONTEXT_ENABLERSm">
+                            <HwField Name="FILTER_SA_MC_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FILTER_SA_EQ_DA_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_INIT_CONTEXT_ENABLERSm">
+                            <HwField Name="FILTER_SA_EQ_DA_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FILTER_ACCEPTABLE_FRAME_TYPE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_INIT_CONTEXT_ENABLERSm">
+                            <HwField Name="FILTER_ACCEPTABLE_FRAME_TYPE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_MEMBERSHIP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_INIT_CONTEXT_ENABLERSm">
+                            <HwField Name="VLAN_MEMBERSHIP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DESIGNATED_CHECK_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_INIT_CONTEXT_ENABLERSm">
+                            <HwField Name="DESIGNATED_CHECKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_MEMBERSHIP_BASED_PORT_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_INIT_CONTEXT_ENABLERSm">
+                            <HwField Name="VLAN_MEMBERSHIP_BASED_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LLVP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_INIT_CONTEXT_ENABLERSm">
+                            <HwField Name="LLVP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_DOMAIN_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_INIT_CONTEXT_ENABLERSm">
+                            <HwField Name="VLAN_DOMAIN_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_EDIT_CMD_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="VLAN_EDIT_CMD_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_STATISTICS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LIF_STATISTICS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_STATISTICS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="VSI_STATISTICS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_DOMAIN_ASSIGN_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FWD_DOMAIN_ASSIGN_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NON_VSI_STATISTICS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="NON_VSI_STATISTICS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_UPDATE_AFTER_ARR_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LIF_UPDATE_AFTER_ARR_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_QOS_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LIF_QOS_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_LERAN_PAYLOAD_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LIF_LEARN_PAYLOAD_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_TRAP_SELECT">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MPLS_TRAP_SELECTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LIF_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV4_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IPV4_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV6_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IPV6_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="VSI_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_LOOKUP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="VSI_LOOKUP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_QOS_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="VSI_QOS_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_LEARN_PAYLOAD_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="VSI_LEARN_PAYLOAD_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_LEARN_KEY_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="VSI_LEARN_KEY_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_ARR_RESOLUTION_ENABLE">
+                    <Access>
+                        <Register Name="IPPF_CFG_MAP_CTX_TO_LIF_LOOKUP_ENABLEr">
+                            <HwField Name="CFG_MAP_CTX_TO_LIF_LOOKUP_ENABLEf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="STP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="COMPATIBLE_MC_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="COMPATIBLE_MC_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_EXEM_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MY_MAC_BASED_EXEM_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_VRID_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MY_MAC_BASED_VRID_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_VRID_SEL_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MY_MAC_VRID_SELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_VRID_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MY_MAC_VRID_UPDATEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_VSI_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MY_MAC_BASED_VSI_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_MC_BACKBONE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MY_MAC_BASED_MC_BACKBONE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_UC_BACKBONE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MY_MAC_BASED_UC_BACKBONE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ROUTING_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="ROUTING_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="L3_LIF_SEL_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="L_3_LIF_SELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_QOS_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MY_MAC_QOS_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MPLS_PRE_PROCESSING_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MPLS_PRE_PROCESSING_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="OAM_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NATIVE_ETHERNET_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="NATIVE_ETHERNET_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FIRST_ETH_PROCESS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FIRST_ETH_PROCESS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SECOND_ETH_PROCESS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="SECOND_ETH_PROCESS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="THIRD_ETH_PROCESS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="THIRD_ETH_PROCESS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PROTECTION_POINTER_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PROTECTION_POINTER_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_TERMINATED_MPLS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IS_TERMINATED_MPLSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SKIP_FRR_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="SKIP_FRR_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TT_PROCESS_CODE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="TT_PROCESS_CODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_IRPP_VT2_CONTEXT_PROPERTIES">
+        <OneLineDescription>Ingress VT2 Context Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VT2_CONTEXT_ID"/>
+            </Key>
+            <Result>
+                <Field Description="If true, VLAN Edit CMD is being Enabled" Name="VLAN_EDIT_CMD_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF statistics is being Enabled" Name="LIF_STATISTICS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI statistics is being Enabled" Name="VSI_STATISTICS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, FWD Domain Assign is being Enabled" Name="FWD_DOMAIN_ASSIGN_ENABLE" Type="BOOL"/>
+                <Field Description="If true, non VSI statistics is being Enabled" Name="NON_VSI_STATISTICS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF update after ARR is being Enabled" Name="LIF_UPDATE_AFTER_ARR_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF QOS update is being Enabled" Name="LIF_QOS_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF LERAN payload is being Enabled" Name="LIF_LERAN_PAYLOAD_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF trap is being selected" Name="LIF_TRAP_SELECT" Type="BOOL"/>
+                <Field Description="If true, LIF trap is being Enabled" Name="LIF_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPv4 trap is being Enabled" Name="IPV4_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPv6 trap is being Enabled" Name="IPV6_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI trap is being Enabled" Name="VSI_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI lookup is being Enabled" Name="VSI_LOOKUP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI QOS update is being Enabled" Name="VSI_QOS_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI learn payload is being Enabled" Name="VSI_LEARN_PAYLOAD_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI learn key is being Enabled" Name="VSI_LEARN_KEY_ENABLE" Type="BOOL"/>
+                <Field Description="If true, compatible MC is being Enabled" Name="COMPATIBLE_MC_ENABLE" Type="BOOL"/>
+                <Field Description="If true, MY_MAC VRID SEL is being Enabled" Name="MY_MAC_VRID_SEL_ENABLE" Type="BOOL"/>
+                <Field Description="If true, MY_MAC VRID update is being Enabled" Name="MY_MAC_VRID_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Routing is being Enabled" Name="ROUTING_ENABLE" Type="BOOL"/>
+                <Field Description="If true, L3_LIF_SEL is being Enabled" Name="L3_LIF_SEL_ENABLE" Type="BOOL"/>
+                <Field Description="If true, MY_MAC QOS update is being Enabled" Name="MY_MAC_QOS_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, MPLS pre processing is being Enabled" Name="MPLS_PRE_PROCESSING_ENABLE" Type="BOOL"/>
+                <Field Description="If true, OAM is being Enabled" Name="OAM_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Native Ethernet is being Enabled" Name="NATIVE_ETHERNET_ENABLE" Type="BOOL"/>
+                <Field Description="If true, first Ethernet process is being Enabled" Name="FIRST_ETH_PROCESS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, second Ethernet process is being Enabled" Name="SECOND_ETH_PROCESS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, third Ethernet process is being Enabled" Name="THIRD_ETH_PROCESS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Protection Pointer is being Enabled" Name="PROTECTION_POINTER_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IS_TERMINATED_MPLS is being Enabled" Name="IS_TERMINATED_MPLS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, SKIP_FRR is being Enabled" Name="SKIP_FRR_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF ARR resolution is Enabled" Name="LIF_ARR_RESOLUTION_ENABLE" Type="BOOL"/>
+                <Field Name="STP_ENABLE"/>
+                <Field Name="MY_MAC_BASED_EXEM_ENABLE"/>
+                <Field Name="MY_MAC_BASED_VRID_ENABLE"/>
+                <Field Name="MY_MAC_BASED_VSI_ENABLE"/>
+                <Field Name="MY_MAC_BASED_UC_BACKBONE_ENABLE"/>
+                <Field Name="MY_MAC_BASED_MC_BACKBONE_ENABLE"/>
+                <Field Name="TT_PROCESS_CODE" Type="VTT_TT_PROCESS_CODE"/>
+            </Result>
+            <TableLabels>L2 L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="VLAN_EDIT_CMD_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="VLAN_EDIT_CMD_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_STATISTICS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="LIF_STATISTICS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_STATISTICS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="VSI_STATISTICS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_DOMAIN_ASSIGN_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="FWD_DOMAIN_ASSIGN_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NON_VSI_STATISTICS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="NON_VSI_STATISTICS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_UPDATE_AFTER_ARR_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="LIF_UPDATE_AFTER_ARR_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_QOS_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="LIF_QOS_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_LERAN_PAYLOAD_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="LIF_LEARN_PAYLOAD_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_TRAP_SELECT">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="MPLS_TRAP_SELECTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="LIF_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV4_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="IPV4_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV6_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="IPV6_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="VSI_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_LOOKUP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="VSI_LOOKUP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_QOS_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="VSI_QOS_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_LEARN_PAYLOAD_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="VSI_LEARN_PAYLOAD_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_LEARN_KEY_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="VSI_LEARN_KEY_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_ARR_RESOLUTION_ENABLE">
+                    <Access>
+                        <Register Name="IPPF_CFG_MAP_CTX_TO_LIF_LOOKUP_ENABLEr">
+                            <HwField Name="CFG_MAP_CTX_TO_LIF_LOOKUP_ENABLEf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="STP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="COMPATIBLE_MC_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="COMPATIBLE_MC_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_EXEM_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="MY_MAC_BASED_EXEM_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_VRID_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="MY_MAC_BASED_VRID_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_VRID_SEL_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="MY_MAC_VRID_SELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_VRID_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="MY_MAC_VRID_UPDATEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_VSI_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="MY_MAC_BASED_VSI_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_MC_BACKBONE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="MY_MAC_BASED_MC_BACKBONE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_UC_BACKBONE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="MY_MAC_BASED_UC_BACKBONE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ROUTING_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="ROUTING_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="L3_LIF_SEL_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="L_3_LIF_SELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_QOS_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="MY_MAC_QOS_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MPLS_PRE_PROCESSING_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="MPLS_PRE_PROCESSING_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="OAM_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NATIVE_ETHERNET_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="NATIVE_ETHERNET_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FIRST_ETH_PROCESS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="FIRST_ETH_PROCESS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SECOND_ETH_PROCESS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="SECOND_ETH_PROCESS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="THIRD_ETH_PROCESS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="THIRD_ETH_PROCESS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PROTECTION_POINTER_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="PROTECTION_POINTER_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_TERMINATED_MPLS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="IS_TERMINATED_MPLSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SKIP_FRR_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="SKIP_FRR_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TT_PROCESS_CODE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="1"/>
+                            <HwField Name="TT_PROCESS_CODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_IRPP_VT3_CONTEXT_PROPERTIES">
+        <OneLineDescription>Ingress VT3 Context Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VT3_CONTEXT_ID"/>
+            </Key>
+            <Result>
+                <Field Description="If true, VLAN Edit CMD is being Enabled" Name="VLAN_EDIT_CMD_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF statistics is being Enabled" Name="LIF_STATISTICS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI statistics is being Enabled" Name="VSI_STATISTICS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, FWD Domain Assign is being Enabled" Name="FWD_DOMAIN_ASSIGN_ENABLE" Type="BOOL"/>
+                <Field Description="If true, non VSI statistics is being Enabled" Name="NON_VSI_STATISTICS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF update after ARR is being Enabled" Name="LIF_UPDATE_AFTER_ARR_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF QOS update is being Enabled" Name="LIF_QOS_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF LERAN payload is being Enabled" Name="LIF_LERAN_PAYLOAD_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF trap is being selected" Name="LIF_TRAP_SELECT" Type="BOOL"/>
+                <Field Description="If true, LIF trap is being Enabled" Name="LIF_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPv4 trap is being Enabled" Name="IPV4_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPv6 trap is being Enabled" Name="IPV6_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI trap is being Enabled" Name="VSI_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI lookup is being Enabled" Name="VSI_LOOKUP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI QOS update is being Enabled" Name="VSI_QOS_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI learn payload is being Enabled" Name="VSI_LEARN_PAYLOAD_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI learn key is being Enabled" Name="VSI_LEARN_KEY_ENABLE" Type="BOOL"/>
+                <Field Description="If true, compatible MC is being Enabled" Name="COMPATIBLE_MC_ENABLE" Type="BOOL"/>
+                <Field Description="If true, MY_MAC VRID SEL is being Enabled" Name="MY_MAC_VRID_SEL_ENABLE" Type="BOOL"/>
+                <Field Description="If true, MY_MAC VRID update is being Enabled" Name="MY_MAC_VRID_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Routing is being Enabled" Name="ROUTING_ENABLE" Type="BOOL"/>
+                <Field Description="If true, L3_LIF_SEL is being Enabled" Name="L3_LIF_SEL_ENABLE" Type="BOOL"/>
+                <Field Description="If true, MY_MAC QOS update is being Enabled" Name="MY_MAC_QOS_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, MPLS pre processing is being Enabled" Name="MPLS_PRE_PROCESSING_ENABLE" Type="BOOL"/>
+                <Field Description="If true, OAM is being Enabled" Name="OAM_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Native Ethernet is being Enabled" Name="NATIVE_ETHERNET_ENABLE" Type="BOOL"/>
+                <Field Description="If true, first Ethernet process is being Enabled" Name="FIRST_ETH_PROCESS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, second Ethernet process is being Enabled" Name="SECOND_ETH_PROCESS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, third Ethernet process is being Enabled" Name="THIRD_ETH_PROCESS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Protection Pointer is being Enabled" Name="PROTECTION_POINTER_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IS_TERMINATED_MPLS is being Enabled" Name="IS_TERMINATED_MPLS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, SKIP_FRR is being Enabled" Name="SKIP_FRR_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF ARR resolution is Enabled" Name="LIF_ARR_RESOLUTION_ENABLE" Type="BOOL"/>
+                <Field Name="STP_ENABLE"/>
+                <Field Name="MY_MAC_BASED_EXEM_ENABLE"/>
+                <Field Name="MY_MAC_BASED_VRID_ENABLE"/>
+                <Field Name="MY_MAC_BASED_VSI_ENABLE"/>
+                <Field Name="MY_MAC_BASED_UC_BACKBONE_ENABLE"/>
+                <Field Name="MY_MAC_BASED_MC_BACKBONE_ENABLE"/>
+                <Field Name="TT_PROCESS_CODE" Type="VTT_TT_PROCESS_CODE"/>
+            </Result>
+            <TableLabels>L2 L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="VLAN_EDIT_CMD_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="VLAN_EDIT_CMD_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_STATISTICS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="LIF_STATISTICS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_STATISTICS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="VSI_STATISTICS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_DOMAIN_ASSIGN_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="FWD_DOMAIN_ASSIGN_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NON_VSI_STATISTICS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="NON_VSI_STATISTICS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_UPDATE_AFTER_ARR_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="LIF_UPDATE_AFTER_ARR_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_QOS_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="LIF_QOS_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_LERAN_PAYLOAD_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="LIF_LEARN_PAYLOAD_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_TRAP_SELECT">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="MPLS_TRAP_SELECTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="LIF_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV4_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="IPV4_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV6_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="IPV6_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="VSI_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_LOOKUP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="VSI_LOOKUP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_QOS_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="VSI_QOS_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_LEARN_PAYLOAD_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="VSI_LEARN_PAYLOAD_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_LEARN_KEY_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="VSI_LEARN_KEY_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_ARR_RESOLUTION_ENABLE">
+                    <Access>
+                        <Register Name="IPPF_CFG_MAP_CTX_TO_LIF_LOOKUP_ENABLEr">
+                            <HwField Name="CFG_MAP_CTX_TO_LIF_LOOKUP_ENABLEf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="STP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="COMPATIBLE_MC_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="COMPATIBLE_MC_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_EXEM_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="MY_MAC_BASED_EXEM_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_VRID_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="MY_MAC_BASED_VRID_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_VRID_SEL_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="MY_MAC_VRID_SELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_VRID_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="MY_MAC_VRID_UPDATEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_VSI_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="MY_MAC_BASED_VSI_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_MC_BACKBONE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="MY_MAC_BASED_MC_BACKBONE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_UC_BACKBONE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="MY_MAC_BASED_UC_BACKBONE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ROUTING_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="ROUTING_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="L3_LIF_SEL_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="L_3_LIF_SELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_QOS_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="MY_MAC_QOS_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MPLS_PRE_PROCESSING_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="MPLS_PRE_PROCESSING_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="OAM_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NATIVE_ETHERNET_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="NATIVE_ETHERNET_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FIRST_ETH_PROCESS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="FIRST_ETH_PROCESS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SECOND_ETH_PROCESS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="SECOND_ETH_PROCESS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="THIRD_ETH_PROCESS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="THIRD_ETH_PROCESS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PROTECTION_POINTER_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="PROTECTION_POINTER_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_TERMINATED_MPLS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="IS_TERMINATED_MPLSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SKIP_FRR_ENABLE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="SKIP_FRR_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TT_PROCESS_CODE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="2"/>
+                            <HwField Name="TT_PROCESS_CODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_IRPP_VT4_CONTEXT_PROPERTIES">
+        <OneLineDescription>Ingress VT4 Context Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VT4_CONTEXT_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Enabler for VlanClassification" Name="VLAN_CLASSIFICATION_ENABLE" Type="BOOL"/>
+                <Field Description="Enabler for VlanRangeCompression" Name="VLAN_RANGE_COMPRESSION_ENABLE" Type="BOOL"/>
+                <Field Description="Enabler for GenericFc" Name="GENERIC_FC_ENABLE" Type="BOOL"/>
+                <Field Description="Enabler for Coe" Name="COE_ENABLE" Type="BOOL"/>
+                <Field Description="Enabler for FilterSaMc" Name="FILTER_SA_MC_ENABLE" Type="BOOL"/>
+                <Field Description="Enabler for FilterSaEqDa" Name="FILTER_SA_EQ_DA_ENABLE" Type="BOOL"/>
+                <Field Description="Enabler for FilterAcceptableFrameType" Name="FILTER_ACCEPTABLE_FRAME_TYPE_ENABLE" Type="BOOL"/>
+                <Field Description="Enabler for VlanMembership" Name="VLAN_MEMBERSHIP_ENABLE" Type="BOOL"/>
+                <Field Description="Parameter for DesignatedCheckEnable" Name="DESIGNATED_CHECK_ENABLE" Type="BOOL"/>
+                <Field Description="Parameter for VlanMembership" Name="VLAN_MEMBERSHIP_BASED_PORT_ENABLE" Type="BOOL"/>
+                <Field Description="Enable LLVP" Name="LLVP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VLAN domain is Enabled" Name="VLAN_DOMAIN_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VLAN edit cmd is being Enabled" Name="VLAN_EDIT_CMD_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF statistics is being Enabled" Name="LIF_STATISTICS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI statistics is being Enabled" Name="VSI_STATISTICS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, FWD_DOMAIN_ASSIGN is being Enabled" Name="FWD_DOMAIN_ASSIGN_ENABLE" Type="BOOL"/>
+                <Field Description="If true, non vsi statistics is being Enabled" Name="NON_VSI_STATISTICS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF update after ARR is being Enabled" Name="LIF_UPDATE_AFTER_ARR_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF QOS update is being Enabled" Name="LIF_QOS_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF LERAN payload is being Enabled" Name="LIF_LERAN_PAYLOAD_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF trap is being selected" Name="LIF_TRAP_SELECT" Type="BOOL"/>
+                <Field Description="If true, LIF trap is being Enabled" Name="LIF_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPv4 trap is being Enabled" Name="IPV4_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPv6 trap is being Enabled" Name="IPV6_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI trap is being Enabled" Name="VSI_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI lookup is being Enabled" Name="VSI_LOOKUP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI QOS update is being Enabled" Name="VSI_QOS_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI learn payload is being Enabled" Name="VSI_LEARN_PAYLOAD_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI learn key is being Enabled" Name="VSI_LEARN_KEY_ENABLE" Type="BOOL"/>
+                <Field Description="If true, compatible MC is being Enabled" Name="COMPATIBLE_MC_ENABLE" Type="BOOL"/>
+                <Field Description="If true, MY_MAC VRID SEL is being Enabled" Name="MY_MAC_VRID_SEL_ENABLE" Type="BOOL"/>
+                <Field Description="If true, MY_MAC VRID update is being Enabled" Name="MY_MAC_VRID_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Routing is being Enabled" Name="ROUTING_ENABLE" Type="BOOL"/>
+                <Field Description="If true, L3_LIF_SEL is being Enabled" Name="L3_LIF_SEL_ENABLE" Type="BOOL"/>
+                <Field Description="If true, MY_MAC QOS update is being Enabled" Name="MY_MAC_QOS_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, MPLS pre processing is being Enabled" Name="MPLS_PRE_PROCESSING_ENABLE" Type="BOOL"/>
+                <Field Description="If true, OAM is being Enabled" Name="OAM_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Native Ethernet is being Enabled" Name="NATIVE_ETHERNET_ENABLE" Type="BOOL"/>
+                <Field Description="If true, first Ethernet process is being Enabled" Name="FIRST_ETH_PROCESS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, second Ethernet process is being Enabled" Name="SECOND_ETH_PROCESS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, third Ethernet process is being Enabled" Name="THIRD_ETH_PROCESS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, protection pointer is being Enabled" Name="PROTECTION_POINTER_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IS_TERMINATED_MPLS is being Enabled" Name="IS_TERMINATED_MPLS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, SKIP_FRR is being Enabled" Name="SKIP_FRR_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF ARR resolution is Enabled" Name="LIF_ARR_RESOLUTION_ENABLE" Type="BOOL"/>
+                <Field Name="STP_ENABLE"/>
+                <Field Name="MY_MAC_BASED_EXEM_ENABLE"/>
+                <Field Name="MY_MAC_BASED_VRID_ENABLE"/>
+                <Field Name="MY_MAC_BASED_VSI_ENABLE"/>
+                <Field Name="MY_MAC_BASED_UC_BACKBONE_ENABLE"/>
+                <Field Name="MY_MAC_BASED_MC_BACKBONE_ENABLE"/>
+                <Field Name="TT_PROCESS_CODE" Type="VTT_TT_PROCESS_CODE"/>
+            </Result>
+            <TableLabels>L2 L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="VLAN_CLASSIFICATION_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="VLAN_CLASSIFICATION_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_RANGE_COMPRESSION_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="VLAN_RANGE_COMPRESSION_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="GENERIC_FC_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="GENERIC_FC_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="COE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="COE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FILTER_SA_MC_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="FILTER_SA_MC_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FILTER_SA_EQ_DA_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="FILTER_SA_EQ_DA_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FILTER_ACCEPTABLE_FRAME_TYPE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="FILTER_ACCEPTABLE_FRAME_TYPE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_MEMBERSHIP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="VLAN_MEMBERSHIP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DESIGNATED_CHECK_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="DESIGNATED_CHECKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_MEMBERSHIP_BASED_PORT_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="VLAN_MEMBERSHIP_BASED_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LLVP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="LLVP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_DOMAIN_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="VLAN_DOMAIN_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_EDIT_CMD_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="VLAN_EDIT_CMD_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_STATISTICS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="LIF_STATISTICS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_STATISTICS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="VSI_STATISTICS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_DOMAIN_ASSIGN_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="FWD_DOMAIN_ASSIGN_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NON_VSI_STATISTICS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="NON_VSI_STATISTICS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_UPDATE_AFTER_ARR_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="LIF_UPDATE_AFTER_ARR_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_QOS_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="LIF_QOS_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_LERAN_PAYLOAD_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="LIF_LEARN_PAYLOAD_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_TRAP_SELECT">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="MPLS_TRAP_SELECTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="LIF_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV4_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="IPV4_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV6_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="IPV6_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="VSI_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_LOOKUP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="VSI_LOOKUP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_QOS_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="VSI_QOS_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_LEARN_PAYLOAD_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="VSI_LEARN_PAYLOAD_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_LEARN_KEY_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="VSI_LEARN_KEY_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="LIF_ARR_RESOLUTION_ENABLE">
+                    <Access>
+                        <Register Name="IPPA_CFG_MAP_CTX_TO_LIF_LOOKUP_ENABLEr">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="CFG_MAP_CTX_TO_LIF_LOOKUP_ENABLE_3f"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="STP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="COMPATIBLE_MC_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="COMPATIBLE_MC_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_EXEM_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="MY_MAC_BASED_EXEM_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_VRID_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="MY_MAC_BASED_VRID_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_VRID_SEL_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="MY_MAC_VRID_SELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_VRID_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="MY_MAC_VRID_UPDATEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_VSI_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="MY_MAC_BASED_VSI_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_MC_BACKBONE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="MY_MAC_BASED_MC_BACKBONE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_UC_BACKBONE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="MY_MAC_BASED_UC_BACKBONE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ROUTING_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="ROUTING_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="L3_LIF_SEL_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="L_3_LIF_SELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_QOS_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="MY_MAC_QOS_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MPLS_PRE_PROCESSING_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="MPLS_PRE_PROCESSING_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="OAM_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NATIVE_ETHERNET_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="NATIVE_ETHERNET_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FIRST_ETH_PROCESS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="FIRST_ETH_PROCESS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SECOND_ETH_PROCESS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="SECOND_ETH_PROCESS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="THIRD_ETH_PROCESS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="THIRD_ETH_PROCESS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PROTECTION_POINTER_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="PROTECTION_POINTER_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_TERMINATED_MPLS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="IS_TERMINATED_MPLSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SKIP_FRR_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="SKIP_FRR_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TT_PROCESS_CODE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="3"/>
+                            <HwField Name="TT_PROCESS_CODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_IRPP_VT5_CONTEXT_PROPERTIES">
+        <OneLineDescription>Ingress VT5 Context Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VT5_CONTEXT_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Enabler for VlanClassification" Name="VLAN_CLASSIFICATION_ENABLE" Type="BOOL"/>
+                <Field Description="Enabler for VlanRangeCompression" Name="VLAN_RANGE_COMPRESSION_ENABLE" Type="BOOL"/>
+                <Field Description="Enabler for GenericFc" Name="GENERIC_FC_ENABLE" Type="BOOL"/>
+                <Field Description="Enabler for Coe" Name="COE_ENABLE" Type="BOOL"/>
+                <Field Description="Enabler for FilterSaMc" Name="FILTER_SA_MC_ENABLE" Type="BOOL"/>
+                <Field Description="Enabler for FilterSaEqDa" Name="FILTER_SA_EQ_DA_ENABLE" Type="BOOL"/>
+                <Field Description="Enabler for FilterAcceptableFrameType" Name="FILTER_ACCEPTABLE_FRAME_TYPE_ENABLE" Type="BOOL"/>
+                <Field Description="Enabler for VlanMembership" Name="VLAN_MEMBERSHIP_ENABLE" Type="BOOL"/>
+                <Field Description="Parameter for DesignatedCheckEnable" Name="DESIGNATED_CHECK_ENABLE" Type="BOOL"/>
+                <Field Description="Parameter for VlanMembership" Name="VLAN_MEMBERSHIP_BASED_PORT_ENABLE" Type="BOOL"/>
+                <Field Description="Enable LLVP" Name="LLVP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VLAN domain is Enabled" Name="VLAN_DOMAIN_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VLAN edit cmd is being Enabled" Name="VLAN_EDIT_CMD_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF statistics is being Enabled" Name="LIF_STATISTICS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI statistics is being Enabled" Name="VSI_STATISTICS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, FWD_DOMAIN_ASSIGN is being Enabled" Name="FWD_DOMAIN_ASSIGN_ENABLE" Type="BOOL"/>
+                <Field Description="If true, non vsi statistics is being Enabled" Name="NON_VSI_STATISTICS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF update after ARR is being Enabled" Name="LIF_UPDATE_AFTER_ARR_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF QOS update is being Enabled" Name="LIF_QOS_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF LERAN payload is being Enabled" Name="LIF_LERAN_PAYLOAD_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF trap is being selected" Name="LIF_TRAP_SELECT" Type="BOOL"/>
+                <Field Description="If true, LIF trap is being Enabled" Name="LIF_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPv4 trap is being Enabled" Name="IPV4_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPv6 trap is being Enabled" Name="IPV6_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI trap is being Enabled" Name="VSI_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI lookup is being Enabled" Name="VSI_LOOKUP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI QOS update is being Enabled" Name="VSI_QOS_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI learn payload is being Enabled" Name="VSI_LEARN_PAYLOAD_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VSI learn key is being Enabled" Name="VSI_LEARN_KEY_ENABLE" Type="BOOL"/>
+                <Field Description="If true, compatible MC is being Enabled" Name="COMPATIBLE_MC_ENABLE" Type="BOOL"/>
+                <Field Description="If true, MY_MAC VRID SEL is being Enabled" Name="MY_MAC_VRID_SEL_ENABLE" Type="BOOL"/>
+                <Field Description="If true, MY_MAC VRID update is being Enabled" Name="MY_MAC_VRID_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Routing is being Enabled" Name="ROUTING_ENABLE" Type="BOOL"/>
+                <Field Description="If true, L3_LIF_SEL is being Enabled" Name="L3_LIF_SEL_ENABLE" Type="BOOL"/>
+                <Field Description="If true, MY_MAC QOS update is being Enabled" Name="MY_MAC_QOS_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, MPLS pre processing is being Enabled" Name="MPLS_PRE_PROCESSING_ENABLE" Type="BOOL"/>
+                <Field Description="If true, OAM is being Enabled" Name="OAM_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Native Ethernet is being Enabled" Name="NATIVE_ETHERNET_ENABLE" Type="BOOL"/>
+                <Field Description="If true, first Ethernet process is being Enabled" Name="FIRST_ETH_PROCESS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, second Ethernet process is being Enabled" Name="SECOND_ETH_PROCESS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, third Ethernet process is being Enabled" Name="THIRD_ETH_PROCESS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, protection pointer is being Enabled" Name="PROTECTION_POINTER_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IS_TERMINATED_MPLS is being Enabled" Name="IS_TERMINATED_MPLS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, SKIP_FRR is being Enabled" Name="SKIP_FRR_ENABLE" Type="BOOL"/>
+                <Field Description="If true, LIF ARR resolution is Enabled" Name="LIF_ARR_RESOLUTION_ENABLE" Type="BOOL"/>
+                <Field Name="STP_ENABLE"/>
+                <Field Name="MY_MAC_BASED_EXEM_ENABLE"/>
+                <Field Name="MY_MAC_BASED_VRID_ENABLE"/>
+                <Field Name="MY_MAC_BASED_VSI_ENABLE"/>
+                <Field Name="MY_MAC_BASED_UC_BACKBONE_ENABLE"/>
+                <Field Name="MY_MAC_BASED_MC_BACKBONE_ENABLE"/>
+                <Field Name="TT_PROCESS_CODE" Type="VTT_TT_PROCESS_CODE"/>
+            </Result>
+            <TableLabels>L2 L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="VLAN_CLASSIFICATION_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="VLAN_CLASSIFICATION_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_RANGE_COMPRESSION_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="VLAN_RANGE_COMPRESSION_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="GENERIC_FC_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="GENERIC_FC_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="COE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="COE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FILTER_SA_MC_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="FILTER_SA_MC_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FILTER_SA_EQ_DA_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="FILTER_SA_EQ_DA_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FILTER_ACCEPTABLE_FRAME_TYPE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="FILTER_ACCEPTABLE_FRAME_TYPE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_MEMBERSHIP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="VLAN_MEMBERSHIP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DESIGNATED_CHECK_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="DESIGNATED_CHECKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_MEMBERSHIP_BASED_PORT_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="VLAN_MEMBERSHIP_BASED_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LLVP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="LLVP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_DOMAIN_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="VLAN_DOMAIN_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_EDIT_CMD_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="VLAN_EDIT_CMD_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_STATISTICS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="LIF_STATISTICS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_STATISTICS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="VSI_STATISTICS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_DOMAIN_ASSIGN_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="FWD_DOMAIN_ASSIGN_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NON_VSI_STATISTICS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="NON_VSI_STATISTICS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_UPDATE_AFTER_ARR_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="LIF_UPDATE_AFTER_ARR_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_QOS_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="LIF_QOS_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_LERAN_PAYLOAD_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="LIF_LEARN_PAYLOAD_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_TRAP_SELECT">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="MPLS_TRAP_SELECTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="LIF_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV4_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="IPV4_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV6_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="IPV6_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="VSI_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_LOOKUP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="VSI_LOOKUP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_QOS_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="VSI_QOS_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_LEARN_PAYLOAD_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="VSI_LEARN_PAYLOAD_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_LEARN_KEY_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="VSI_LEARN_KEY_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="LIF_ARR_RESOLUTION_ENABLE">
+                    <Access>
+                        <Register Name="IPPA_CFG_MAP_CTX_TO_LIF_LOOKUP_ENABLEr">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="CFG_MAP_CTX_TO_LIF_LOOKUP_ENABLE_3f"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="STP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="COMPATIBLE_MC_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="COMPATIBLE_MC_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_EXEM_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="MY_MAC_BASED_EXEM_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_VRID_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="MY_MAC_BASED_VRID_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_VRID_SEL_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="MY_MAC_VRID_SELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_VRID_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="MY_MAC_VRID_UPDATEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_VSI_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="MY_MAC_BASED_VSI_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_MC_BACKBONE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="MY_MAC_BASED_MC_BACKBONE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_UC_BACKBONE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="MY_MAC_BASED_UC_BACKBONE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ROUTING_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="ROUTING_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="L3_LIF_SEL_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="L_3_LIF_SELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_QOS_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="MY_MAC_QOS_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MPLS_PRE_PROCESSING_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="MPLS_PRE_PROCESSING_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="OAM_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NATIVE_ETHERNET_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="NATIVE_ETHERNET_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FIRST_ETH_PROCESS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="FIRST_ETH_PROCESS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SECOND_ETH_PROCESS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="SECOND_ETH_PROCESS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="THIRD_ETH_PROCESS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="THIRD_ETH_PROCESS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PROTECTION_POINTER_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="PROTECTION_POINTER_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_TERMINATED_MPLS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="IS_TERMINATED_MPLSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SKIP_FRR_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="SKIP_FRR_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TT_PROCESS_CODE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="4"/>
+                            <HwField Name="TT_PROCESS_CODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_IRPP_FWD1_CONTEXT_PROPERTIES">
+        <OneLineDescription>Ingress FWD1 Context Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FWD1_CONTEXT_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Enables the construction of the Learn Command in the MetaData" Name="LEARNING_KEY_CONSTRUCTION_ENABLE" Type="BOOL"/>
+                <Field Description="Enables use of the constructed Learn Command in the FLP lookup" Name="LEARNING_FIXED_KEY_ENABLE" Type="BOOL"/>
+                <Field Description="If true, MPLS Layer Load Balancing key calculations are being Enabled" Name="MPLS_LAYER_LB_KEY_CALCULATIONS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Load Balancing key construction is being Enabled" Name="LOAD_BALANCING_KEY_CONSTRUCTION_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Ethernet SA MC TRAP is being Enabled" Name="ETHERNET_SA_MC_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Ethernet SA equal DA Trap is being Enabled" Name="ETHERNET_SA_EQUAL_DA_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPV4 version error trap is being Enabled" Name="IPV4_VERSION_ERROR_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPV4 checksum error trap is being Enabled" Name="IPV4_CHECKSUM_ERROR_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPV4_HAS_OPTIONS_TRAP is being Enabled" Name="IPV4_HAS_OPTIONS_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPV4 SIP equal to DIP trap is being Enabled" Name="IPV4_SIP_EQUAL_DIP_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPV4 DIP zero TRAP is being Enabled" Name="IPV4_DIP_ZERO_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPV4_SIP_IS_MC_TRAP is being Enabled" Name="IPV4_SIP_IS_MC_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPV6 version error trap is being Enabled" Name="IPV6_VERSION_ERROR_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPV6 unspecified destination trap is being Enabled" Name="IPV6_UNSPECIFIED_DESTINATION_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPV6 loopback address trap is being Enabled" Name="IPV6_LOOPBACK_ADDRESS_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPV6 multicast source trap is being Enabled" Name="IPV6_MULTICAST_SOURCE_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPV6 next header null trap is being Enabled" Name="IPV6_NEXT_HEADER_NULL_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPV6 unspecified source trap is being Enabled" Name="IPV6_UNSPECIFIED_SOURCE_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPV6 Local Link destination trap is being Enabled" Name="IPV6_LOCAL_LINK_DESTINATION_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPV6 Local site destination trap is being Enabled" Name="IPV6_LOCAL_SITE_DESTINATION_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, is being Enabled" Name="IPV6_LOCAL_LINK_SOURCE_TRAP_DEST_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPV6 local site source trap is being Enabled" Name="IPV6_LOCAL_SITE_SOURCE_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPV6_IPV4 compatible destination trap is being Enabled" Name="IPV6_IPV4_COMPATIBLE_DESTINATION_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPV6_IPV4 mapped destination trap is being Enabled" Name="IPV6_IPV4_MAPPED_DESTINATION_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPV6 multicast destination trap is being Enabled" Name="IPV6_MULTICAST_DESTINATION_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, TCP SN flags zero trap is being Enabled" Name="TCP_SN_FLAGS_ZERO_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, TCP SN zero flags set trap is being Enabled" Name="TCP_SN_ZERO_FLAGS_SET_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, TCP SYN FIN trap is being Enabled" Name="TCP_SYN_FIN_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, TCP equal ports trap is being Enabled" Name="TCP_EQUAL_PORTS_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, TCP fragment incomplete header trap is being Enabled" Name="TCP_FRAGMENT_INCOMPLETE_HEADER_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, TCP fragment offset LT 8 trap is being Enabled" Name="TCP_FRAGMENT_OFFSET_LT_8_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, UDP equal ports trap is being Enabled" Name="UDP_EQUAL_PORTS_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, PHB TC DP mapping is being Enabled" Name="PHB_TC_DP_MAPPING_ENABLE" Type="BOOL"/>
+                <Field Description="If true, PHB ECN mapping is being Enabled" Name="PHB_ECN_MAPPING_ENABLE" Type="BOOL"/>
+                <Field Description="If true, DSCP remark mapping is being Enabled" Name="DSCP_REMARK_MAPPING_ENABLE" Type="BOOL"/>
+                <Field Description="If true, ESADI is being Enabled" Name="ESADI_ENABLE" Type="BOOL"/>
+                <Field Description="If true, TTL mapping is being Enabled" Name="TTL_MAPPING_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IPV4 total length trap is being Enabled" Name="IPV4_TOTAL_LENGTH_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Context learn is Enabled" Name="CONTEXT_LEARN_ALLOWED_ENABLE" Type="BOOL"/>
+                <Field Description="If true, FCOE fabric provided security is being Enabled" Name="FCOE_FABRIC_PROVIDED_SECURITY_ENABLE" Type="BOOL"/>
+                <Field Description="If true, SAVED_CONTEXT_PROFILE is being Enabled" Name="SAVED_CONTEXT_PROFILE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Identification key is being Enabled" Name="IDENTIFICATION_KEY_ENABLE" Type="BOOL"/>
+                <Field Description="If true, SET unknown address is being Enabled" Name="SET_UNKNOWN_ADDRESS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, DO_DEFAULT_ETHERNET is being Enabled" Name="DO_DEFAULT_ETHERNET_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Compatible MC bridge Fallback is being Enabled" Name="COMPATIBLE_MC_BRIDGE_FALLBACK_ENABLE" Type="BOOL"/>
+                <Field Description="If true, OAM TCAM identification is being Enabled" Name="OAM_TCAM_IDENTIFICATION_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IEEE 1588 identification is being Enabled" Name="IEEE_1588_IDENTIFICATION_ENABLE" Type="BOOL"/>
+                <Field Description="If true, IEEE 1588 TCAM identification is being Enabled" Name="IEEE_1588_TCAM_IDENTIFICATION_ENABLE" Type="BOOL"/>
+                <Field Description="If true, FWD additional Info is being Enabled" Name="FWD_ADDITIONAL_INFO_ENABLE" Type="BOOL"/>
+                <Field Description="If true, SA procedure is being Enabled" Name="SA_PROCEDURE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Learn info resolution is being Enabled" Name="LEARN_INFO_RESOLUTION_ENABLE" Type="BOOL"/>
+                <Field Description="If true, VLAN_EDIT_PCP_DEI_MAP is being Enabled" Name="VLAN_EDIT_PCP_DEI_MAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Ethernet OAM identification is being Enabled" Name="ETHERNET_OAM_IDENTIFICATION_ENABLE" Type="BOOL"/>
+                <Field Description="If true, MPLS TP or BFD identification is being Enabled" Name="MPLS_TP_OR_BFD_IDENTIFICATION_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Multi Hop BFD identification is being Enabled" Name="MULTI_HOP_BFD_IDENTIFICATION_ENABLE" Type="BOOL"/>
+                <Field Description="If true, One hop BFD identification is being Enabled" Name="ONE_HOP_BFD_IDENTIFICATION_ENABLE" Type="BOOL"/>
+                <Field Description="If true, FWD update is being Enabled" Name="FWD_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, RPF update is being Enabled" Name="RPF_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Forwarding Lookup statistics is being Enabled" Name="FORWARDING_LOOKUP_STATISTICS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Source lookup statistics is being Enabled" Name="SOURCE_LOOKUP_STATISTICS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, FWD domain statistics is being Enabled" Name="FWD_DOMAIN_STATISTICS_ENABLE" Type="BOOL"/>
+                <Field Name="SAVED_CONTEXT_PROFILE"/>
+                <Field Name="TRAP_SNP_STRENGTH"/>
+                <Field Name="TRAP_FWD_STRENGTH"/>
+                <Field Name="FORWARDING_ADDITIONAL_INFO"/>
+                <Field Description="Enable Same interface Filter per context" Name="SAME_INTERFACE" Type="BOOL"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LEARNING_KEY_CONSTRUCTION_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LEARNING_KEY_CONSTRUCTION_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LEARNING_FIXED_KEY_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LEARNING_FIXED_KEY_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MPLS_LAYER_LB_KEY_CALCULATIONS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MPLS_LAYER_LOAD_BALANCING_KEY_CALCULATIONS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LOAD_BALANCING_KEY_CONSTRUCTION_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LOAD_BALANCING_KEY_CONSTRUCTION_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ETHERNET_SA_MC_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="ETHERNET_SA_MC_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ETHERNET_SA_EQUAL_DA_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="ETHERNET_SA_EQUAL_DA_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV4_VERSION_ERROR_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IPV4_VERSION_ERROR_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV4_CHECKSUM_ERROR_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IPV4_CHECKSUM_ERROR_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV4_HAS_OPTIONS_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IPV4_HAS_OPTIONS_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV4_SIP_EQUAL_DIP_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IPV4_SIP_EQUAL_DIP_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV4_DIP_ZERO_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IPV4_DIP_ZERO_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV4_SIP_IS_MC_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IPV4_SIP_IS_MC_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV6_VERSION_ERROR_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IPV6_VERSION_ERROR_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV6_UNSPECIFIED_DESTINATION_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IPV6_UNSPECIFIED_DESTINATION_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV6_LOOPBACK_ADDRESS_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IPV6_LOOPBACK_ADDRESS_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV6_MULTICAST_SOURCE_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IPV6_MULTICAST_SOURCE_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV6_NEXT_HEADER_NULL_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IPV6_NEXT_HEADER_NULL_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV6_UNSPECIFIED_SOURCE_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IPV6_UNSPECIFIED_SOURCE_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV6_LOCAL_LINK_DESTINATION_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IPV6_LOCAL_LINK_DESTINATION_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV6_LOCAL_SITE_DESTINATION_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IPV6_LOCAL_SITE_DESTINATION_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV6_LOCAL_LINK_SOURCE_TRAP_DEST_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IPV6_LOCAL_LINK_SOURCE_TRAP_DESTINATION_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV6_LOCAL_SITE_SOURCE_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IPV6_LOCAL_SITE_SOURCE_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV6_IPV4_COMPATIBLE_DESTINATION_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IPV6_IPV4_COMPATIBLE_DESTINATION_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV6_IPV4_MAPPED_DESTINATION_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IPV6_IPV4_MAPPED_DESTINATION_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV6_MULTICAST_DESTINATION_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IPV6_MULTICAST_DESTINATION_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TCP_SN_FLAGS_ZERO_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="TCP_SN_FLAGS_ZERO_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TCP_SN_ZERO_FLAGS_SET_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="TCP_SN_ZERO_FLAGS_SET_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TCP_SYN_FIN_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="TCP_SYN_FIN_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TCP_EQUAL_PORTS_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="TCP_EQUAL_PORTS_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TCP_FRAGMENT_INCOMPLETE_HEADER_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="TCP_FRAGMENT_INCOMPLETE_HEADER_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TCP_FRAGMENT_OFFSET_LT_8_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="TCP_FRAGMENT_OFFSET_LT_8_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="UDP_EQUAL_PORTS_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="UDP_EQUAL_PORTS_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PHB_TC_DP_MAPPING_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PHB_TC_DP_MAPPING_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PHB_ECN_MAPPING_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="PHB_ECN_MAPPING_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DSCP_REMARK_MAPPING_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="DSCP_REMARK_MAPPING_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ESADI_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="ESADI_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_MAPPING_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="TTL_MAPPING_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IPV4_TOTAL_LENGTH_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IPV4_TOTAL_LENGTH_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CONTEXT_LEARN_ALLOWED_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CONTEXT_LEARN_ALLOWED_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FCOE_FABRIC_PROVIDED_SECURITY_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FCOE_FABRIC_PROVIDED_SECURITY_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SAVED_CONTEXT_PROFILE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="SAVED_CONTEXT_PROFILE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IDENTIFICATION_KEY_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IDENTIFICATION_KEY_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SET_UNKNOWN_ADDRESS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="SET_UNKNOWN_ADDRESS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DO_DEFAULT_ETHERNET_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="DO_DEFAULT_ETHERNET_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="COMPATIBLE_MC_BRIDGE_FALLBACK_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="COMPATIBLE_MC_BRIDGE_FALLBACK_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_TCAM_IDENTIFICATION_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="OAM_TCAM_IDENTIFICATION_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IEEE_1588_IDENTIFICATION_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IEEE_1588_IDENTIFICATION_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IEEE_1588_TCAM_IDENTIFICATION_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="IEEE_1588_TCAM_IDENTIFICATION_VALf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_ADDITIONAL_INFO_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FWD_ADDITIONAL_INFO_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SA_PROCEDURE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="SA_PROCEDURE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LEARN_INFO_RESOLUTION_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LEARN_INFO_RESOLUTION_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_EDIT_PCP_DEI_MAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="VLAN_EDIT_PCP_DEI_MAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ETHERNET_OAM_IDENTIFICATION_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="ETHERNET_OAM_IDENTIFICATION_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MPLS_TP_OR_BFD_IDENTIFICATION_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MPLS_TP_OR_BFD_IDENTIFICATION_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MULTI_HOP_BFD_IDENTIFICATION_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="MULTI_HOP_BFD_IDENTIFICATION_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ONE_HOP_BFD_IDENTIFICATION_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="ONE_HOP_BFD_IDENTIFICATION_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FWD_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPF_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="RPF_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FORWARDING_LOOKUP_STATISTICS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FORWARDING_LOOKUP_STATISTICS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SOURCE_LOOKUP_STATISTICS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="SOURCE_LOOKUP_STATISTICS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_DOMAIN_STATISTICS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FWD_DOMAIN_STATISTICS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                 <Field Name="SAVED_CONTEXT_PROFILE">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="SAVED_CONTEXT_PROFILE_VALf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="TRAP_SNP_STRENGTH">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="NOT_FOUND_SNP_STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_FWD_STRENGTH">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="NOT_FOUND_FWD_STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FORWARDING_ADDITIONAL_INFO">
+                    <Access>
+                        <Memory Name="IPPB_FLPA_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FWD_ADDITIONAL_INFO_VALf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SAME_INTERFACE">
+                    <Access>
+                        <Memory Name="IPPD_PER_TRAP_CONTEXT_ENABLEm">
+                            <HwField Name="SAME_INTERACEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_IRPP_FWD2_CONTEXT_PROPERTIES">
+        <OneLineDescription>Ingress FWD2 Context Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FWD2_CONTEXT_ID"/>
+            </Key>
+            <Result>
+                <Field Description="If true, OEM 0 is being Enabled" Name="OEM_0_ENABLE" Type="BOOL"/>
+                <Field Description="If true, OEM 1 is being Enabled" Name="OEM_1_ENABLE" Type="BOOL"/>
+                <Field Description="If true, OEM 2 is being Enabled" Name="OEM_2_ENABLE" Type="BOOL"/>
+                <Field Description="If true, OEM 3 is being Enabled" Name="OEM_3_ENABLE" Type="BOOL"/>
+                <Field Description="If true, SAVED_CONTEXT_PROFILE is being Enabled" Name="SAVED_CONTEXT_PROFILE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Set unknown address is being Enabled" Name="SET_UNKNOWN_ADDRESS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Action Profile is being Enabled" Name="ACTION_PROFILE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, 'Do default Ethernet' is being Enabled" Name="DO_DEFAULT_ETHERNET_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Compatible MC brridge fallback is being Enabled" Name="COMPATIBLE_MC_BRIDGE_FALLBACK_ENABLE" Type="BOOL"/>
+                <Field Description="If true, OAM classification is being Enabled" Name="OAM_CLASSIFICATION_ENABLE" Type="BOOL"/>
+                <Field Description="If true, ACL resolution is being Enabled" Name="ACL_RESOLUTION_ENABLE" Type="BOOL"/>
+                <Field Description="If true, KAPS resolution is being Enabled" Name="KAPS_RESOLUTION_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Control path traps is being Enabled" Name="CONTROL_PATH_TRAPS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, FWD additional info is being Enabled" Name="FWD_ADDITIONAL_INFO_ENABLE" Type="BOOL"/>
+                <Field Description="If true, SA procedure is being Enabled" Name="SA_PROCEDURE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, ELK error trap is being Enabled" Name="ELK_ERROR_TRAP_ENABLE" Type="BOOL"/>
+                <Field Description="If true, FWD update is being Enabled" Name="FWD_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, RPF update is being Enabled" Name="RPF_UPDATE_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Forwarding lookup statistics is being Enabled" Name="FORWARDING_LOOKUP_STATISTICS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, Source lookup statistics is being Enabled" Name="SOURCE_LOOKUP_STATISTICS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, is being Enabled" Name="FWD_DOMAIN_STATISTICS_ENABLE" Type="BOOL"/>
+                <Field Description="If true, TTL 0 is being Enabled" Name="TTL_0_ENABLE" Type="BOOL"/>
+                <Field Description="If true, TTL 1 is being Enabled" Name="TTL_1_ENABLE" Type="BOOL"/>
+                <Field Name="SAVED_CONTEXT_PROFILE"/>
+                <Field Name="OEM_APP_DB_VAL_0" Type="OEM_APP_DB_VAL"/>
+                <Field Name="OEM_APP_DB_VAL_1" Type="OEM_APP_DB_VAL"/>
+                <Field Name="OEM_APP_DB_VAL_2" Type="OEM_APP_DB_VAL"/>
+                <Field Name="OEM_APP_DB_VAL_3" Type="OEM_APP_DB_VAL"/>
+                <Field Name="FORWARDING_ADDITIONAL_INFO"/>
+                <Field Name="TTL_ACTION_PROFILE_VALUE"/>
+                <Field Description="If true, FWD cascaded priority decoder is being Enabled" Name="FWD_CASCADED_PRIORITY_DECODER_ENABLE" Type="BOOL"/>
+                <Field Description="If true, RPF cascaded priority decoder is being Enabled" Name="RPF_CASCADED_PRIORITY_DECODER_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="OEM_0_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="OEM_0_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OEM_1_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="OEM_1_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OEM_2_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="OEM_2_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OEM_3_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="OEM_3_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SAVED_CONTEXT_PROFILE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="SAVED_CONTEXT_PROFILE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SET_UNKNOWN_ADDRESS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="SET_UNKNOWN_ADDRESS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ACTION_PROFILE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="ACTION_PROFILE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DO_DEFAULT_ETHERNET_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="DO_DEFAULT_ETHERNET_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="COMPATIBLE_MC_BRIDGE_FALLBACK_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="COMPATIBLE_MC_BRIDGE_FALLBACK_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_CLASSIFICATION_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="OAM_CLASSIFICATION_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ACL_RESOLUTION_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="ACL_RESOLUTION_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="KAPS_RESOLUTION_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="KAPS_RESOLUTION_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CONTROL_PATH_TRAPS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="CONTROL_PATH_TRAPS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_ADDITIONAL_INFO_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FWD_ADDITIONAL_INFO_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SA_PROCEDURE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="SA_PROCEDURE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ELK_ERROR_TRAP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="ELK_ERROR_TRAP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FWD_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPF_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="RPF_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FORWARDING_LOOKUP_STATISTICS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FORWARDING_LOOKUP_STATISTICS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SOURCE_LOOKUP_STATISTICS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="SOURCE_LOOKUP_STATISTICS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_DOMAIN_STATISTICS_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FWD_DOMAIN_STATISTICS_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_0_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="TTL_0_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_1_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="TTL_1_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SAVED_CONTEXT_PROFILE">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="SAVED_CONTEXT_PROFILE_VALf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OEM_APP_DB_VAL_0">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="OEM_APPDB_VAL_0f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OEM_APP_DB_VAL_1">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="OEM_APPDB_VAL_1f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OEM_APP_DB_VAL_2">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="OEM_APPDB_VAL_2f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OEM_APP_DB_VAL_3">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_INIT_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="OEM_APPDB_VAL_3f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FORWARDING_ADDITIONAL_INFO">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FWD_ADDITIONAL_INFO_VALf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_ACTION_PROFILE_VALUE">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="TTL_ACTION_PROFILE_VALUEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_CASCADED_PRIORITY_DECODER_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="FWD_CASCADED_PRIORITY_DECODER_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPF_CASCADED_PRIORITY_DECODER_ENABLE">
+                    <Access>
+                        <Memory Name="IPPB_FLPB_RES_CONTEXT_ENABLERSm">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="RPF_CASCADED_PRIORITY_DECODER_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_b0" module="instru">
+    
+    <sub_module name="eventor">
+        <features>
+            <feature name="is_supported" value="1"></feature>
+        </features>
+    </sub_module>
+    
+</device_data>

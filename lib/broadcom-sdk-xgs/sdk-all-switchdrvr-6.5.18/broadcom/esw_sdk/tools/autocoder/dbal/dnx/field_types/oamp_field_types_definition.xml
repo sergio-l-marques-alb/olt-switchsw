@@ -1,0 +1,752 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Fields Types DB:
+    This xml contains the fields types DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+    According to:d88547d
+    DB Rules:
+    *********
+-->
+
+<FieldTypesDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="field_types_schema.xsd">
+
+<!-- OAMP Types, unique with printing types -->
+     <FieldType Name="MUX_SRC" Size="5" Print="ENUM">
+        <OneLineDescription>Mux input sources</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NONE" Description=""/>
+                <EnumVal Name="IN_FIFO" Description="input from FIFO"/>
+                <EnumVal Name="TC_DP_LOCAL_PORT" Description="select packet variable 0 - tc(3)+dp(2)+localport(9)"/>
+                <EnumVal Name="SYS_PORT" Description="select packet variable 1 - system port(16)"/>
+                <EnumVal Name="NS_8" Description="select packet variable 2 - nibble_select_8_var_0_1"/>
+                <EnumVal Name="NS_16_VAR_0" Description="select packet variable 3 - nibble_select_16_var_0"/>
+                <EnumVal Name="NS_16_VAR_1" Description="select packet variable 4 - nibble_select_16_var_1"/>
+                <EnumVal Name="PROG_VAR" Description="select program variable"/>
+                <EnumVal Name="TMP_REG1" Description="select PE temp register 1"/>
+                <EnumVal Name="TMP_REG2" Description="select PE temp register 2"/>
+                <EnumVal Name="TMP_REG3" Description="select PE temp register 3"/>
+                <EnumVal Name="TMP_REG4" Description="select PE temp register 4"/>
+                <EnumVal Name="FDBK_FIFO" Description="input from feedback FIFO"/>
+                <EnumVal Name="INST_VAR" Description="input from instruction const field - 8 LSB bits"/>
+                <EnumVal Name="TOD_OAM_MSB" Description="input from time of day"/>
+                <EnumVal Name="TOD_OAM_LSB" Description="input from time of day"/>
+                <EnumVal Name="TOD_NTP_MSB" Description="input from time of day"/>
+                <EnumVal Name="TOD_NTP_LSB" Description="input from time of day"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="NONE" Value="0"/>
+                <EnumVal Name="IN_FIFO" Value="1"/>
+                <EnumVal Name="TC_DP_LOCAL_PORT" Value="2"/>
+                <EnumVal Name="SYS_PORT" Value="3"/>
+                <EnumVal Name="NS_8" Value="4"/>
+                <EnumVal Name="NS_16_VAR_0" Value="5"/>
+                <EnumVal Name="NS_16_VAR_1" Value="6"/>
+                <EnumVal Name="PROG_VAR" Value="7"/>
+                <EnumVal Name="TMP_REG1" Value="8"/>
+                <EnumVal Name="TMP_REG2" Value="9"/>
+                <EnumVal Name="TMP_REG3" Value="10"/>
+                <EnumVal Name="TMP_REG4" Value="11"/>
+                <EnumVal Name="FDBK_FIFO" Value="12"/>
+                <EnumVal Name="INST_VAR" Value="13"/>
+                <EnumVal Name="TOD_OAM_MSB" Value="14"/>
+                <EnumVal Name="TOD_OAM_LSB" Value="15"/>
+                <EnumVal Name="TOD_NTP_MSB" Value="16"/>
+                <EnumVal Name="TOD_NTP_LSB" Value="17"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+     <FieldType Name="MERGE_INST" Size="2" Print="ENUM">
+        <OneLineDescription>MERGE action</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NONE" Description=""/>
+                <EnumVal Name="FEM" Description="Choose the FEM output"/>
+                <EnumVal Name="CONCATENATE" Description="CONCATENATE the outputs of two FEMs"/>
+                <EnumVal Name="OR" Description="OR the outputs of two FEMs"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="NONE" Value="0"/>
+                <EnumVal Name="FEM" Value="1"/>
+                <EnumVal Name="CONCATENATE" Value="2"/>
+                <EnumVal Name="OR" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+     <FieldType Name="BUFF_WR" Size="2" Print="ENUM">
+        <OneLineDescription>Indicates under which condition to allow MERGE output</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NEVER" Description=""/>
+                <EnumVal Name="ALWAYS" Description=""/>
+                <EnumVal Name="ON_N_CMP1" Description=""/>
+                <EnumVal Name="ON_N_CMP2" Description=""/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="NEVER" Value="0"/>
+                <EnumVal Name="ALWAYS" Value="1"/>
+                <EnumVal Name="ON_N_CMP1" Value="2"/>
+                <EnumVal Name="ON_N_CMP2" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+     <FieldType Name="BUFF_SIZE_SRC" Size="3" Print="ENUM">
+        <OneLineDescription>Where to take from the number of valid bytes written to output buffer</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NONE" Description=""/>
+                <EnumVal Name="TMP_REG1" Description="take from temp register 1"/>
+                <EnumVal Name="TMP_REG2" Description="take from temp register 2"/>
+                <EnumVal Name="TMP_REG3" Description="take from temp register 3"/>
+                <EnumVal Name="TMP_REG4" Description="take from temp register 4"/>
+                <EnumVal Name="INST_CONST" Description="take from the instruction const field - LSB nibble"/>
+                <EnumVal Name="VLD_B" Description="take all the valid bytes"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="NONE" Value="0"/>
+                <EnumVal Name="TMP_REG1" Value="1"/>
+                <EnumVal Name="TMP_REG2" Value="2"/>
+                <EnumVal Name="TMP_REG3" Value="3"/>
+                <EnumVal Name="TMP_REG4" Value="4"/>
+                <EnumVal Name="INST_CONST" Value="5"/>
+                <EnumVal Name="VLD_B" Value="6"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+     <FieldType Name="OP_SEL" Size="4" Print="ENUM">
+        <OneLineDescription>Select signal for OP1/OP2 mux</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NONE" Description=""/>
+                <EnumVal Name="TC_DP_LOCAL_PORT" Description="Select signal for OP1/OP2 mux 0 - packet variable 0 - tc(3)+dp(2)+localport(9)"/>
+                <EnumVal Name="SYS_PORT" Description="Select signal for OP1/OP2 mux 1 - packet variable 1 - system port(16)"/>
+                <EnumVal Name="NS_8" Description="Select signal for OP1/OP2 mux 2 - packet variable 2 - nibble_select_8_var_0_1"/>
+                <EnumVal Name="NS_16_VAR_0" Description="Select signal for OP1/OP2 mux 3 - packet variable 3 - nibble_select_16_var_0"/>
+                <EnumVal Name="NS_16_VAR_1" Description="Select signal for OP1/OP2 mux 4 - packet variable 4 - nibble_select_16_var_1"/>
+                <EnumVal Name="TMP_REG1" Description="temp register 1"/>
+                <EnumVal Name="TMP_REG2" Description="temp register 2"/>
+                <EnumVal Name="TMP_REG3" Description="temp register 3"/>
+                <EnumVal Name="TMP_REG4" Description="temp register 4"/>
+                <EnumVal Name="PRG_VAR" Description="select program variable"/>
+                <EnumVal Name="INST_VAR" Description="select instruction constant"/>
+                <EnumVal Name="BYTES_RD" Description="select read bytes counter"/>
+                <EnumVal Name="PDU_OFFS" Description="data offset"/>
+                <EnumVal Name="ENC_OFFS" Description="encapsulation offset"/>
+                <EnumVal Name="PKT_LNTH" Description="packet length"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="NONE" Value="0"/>
+                <EnumVal Name="TC_DP_LOCAL_PORT" Value="1"/>
+                <EnumVal Name="SYS_PORT" Value="2"/>
+                <EnumVal Name="NS_8" Value="3"/>
+                <EnumVal Name="NS_16_VAR_0" Value="4"/>
+                <EnumVal Name="NS_16_VAR_1" Value="5"/>
+                <EnumVal Name="TMP_REG1" Value="6"/>
+                <EnumVal Name="TMP_REG2" Value="7"/>
+                <EnumVal Name="TMP_REG3" Value="8"/>
+                <EnumVal Name="TMP_REG4" Value="9"/>
+                <EnumVal Name="PRG_VAR" Value="10"/>
+                <EnumVal Name="INST_VAR" Value="11"/>
+                <EnumVal Name="BYTES_RD" Value="12"/>
+                <EnumVal Name="PDU_OFFS" Value="13"/>
+                <EnumVal Name="ENC_OFFS" Value="14"/>
+                <EnumVal Name="PKT_LNTH" Value="15"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+     <FieldType Name="ALU_ACT" Size="2" Print="ENUM">
+        <OneLineDescription>ALU action select</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="ADD" Description="Add the inputs"/>
+                <EnumVal Name="SUB" Description="Subtract input 2 from input 1"/>
+                <EnumVal Name="AND" Description="AND the inputs"/>
+                <EnumVal Name="OR" Description="OR the inputs"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="ADD" Value="0"/>
+                <EnumVal Name="SUB" Value="1"/>
+                <EnumVal Name="AND" Value="2"/>
+                <EnumVal Name="OR" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+     <FieldType Name="CMP_ACT" Size="3" Print="ENUM">
+        <OneLineDescription>when CMP1/CMP2 should assert its output bit</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NEVER" Description="Assert never"/>
+                <EnumVal Name="NEG" Description="Assert if ALU result is negative"/>
+                <EnumVal Name="ZERO" Description="Assert if ALU result is zero"/>
+                <EnumVal Name="POS" Description="Assert if ALU result is positive"/>
+                <EnumVal Name="NNEG" Description="Assert if ALU result is non-negative"/>
+                <EnumVal Name="NPOS" Description="Assert if ALU result is non-positive"/>
+                <EnumVal Name="ALWAYS" Description="Assert always"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="NEVER" Value="0"/>
+                <EnumVal Name="NEG" Value="1"/>
+                <EnumVal Name="ZERO" Value="2"/>
+                <EnumVal Name="POS" Value="3"/>
+                <EnumVal Name="NNEG" Value="4"/>
+                <EnumVal Name="NPOS" Value="5"/>
+                <EnumVal Name="ALWAYS" Value="6"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+     <FieldType Name="ALU_DST" Size="2" Print="ENUM">
+        <OneLineDescription>where to store OP3 output</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="TMP_REG1" Description="Store in temp register 1"/>
+                <EnumVal Name="TMP_REG2" Description="Store in temp register 2"/>
+                <EnumVal Name="TMP_REG3" Description="Store in temp register 3"/>
+                <EnumVal Name="TMP_REG4" Description="Store in temp register 4"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="TMP_REG1" Value="0"/>
+                <EnumVal Name="TMP_REG2" Value="1"/>
+                <EnumVal Name="TMP_REG3" Value="2"/>
+                <EnumVal Name="TMP_REG4" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+     <FieldType Name="BUF_EOP" Size="2" Print="ENUM">
+        <OneLineDescription>Conditions to write EOP to buffer</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="WR_NEVER" Description="Perform never"/>
+                <EnumVal Name="WR_ON_CMP1" Description="Perform if CMP1"/>
+                <EnumVal Name="WR_ON_CMP2" Description="Perform if CMP2"/>
+                <EnumVal Name="ALWAYS" Description="Perform always"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="WR_NEVER" Value="0"/>
+                <EnumVal Name="WR_ON_CMP1" Value="1"/>
+                <EnumVal Name="WR_ON_CMP2" Value="2"/>
+                <EnumVal Name="ALWAYS" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+     <FieldType Name="OP3_SEL" Size="4" Print="ENUM">
+        <OneLineDescription>OP3 MUX select signal</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NONE" Description=""/>
+                <EnumVal Name="FEM" Description="select the FEM output"/>
+                <EnumVal Name="TMP_REG1" Description="select temp register 1"/>
+                <EnumVal Name="TMP_REG2" Description="select temp register 2"/>
+                <EnumVal Name="TMP_REG3" Description="select temp register 3"/>
+                <EnumVal Name="TMP_REG4" Description="select temp register 4"/>
+                <EnumVal Name="ALU_OUT" Description="select ALU output"/>
+                <EnumVal Name="MEM_OUT" Description="select generic memory output"/>
+                <EnumVal Name="INST_VAR" Description="select instruction variable"/>
+                <EnumVal Name="INST_VAR_MSB" Description="select instruction variable MSB"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="NONE" Value="0"/>
+                <EnumVal Name="FEM" Value="1"/>
+                <EnumVal Name="TMP_REG1" Value="2"/>
+                <EnumVal Name="TMP_REG2" Value="3"/>
+                <EnumVal Name="TMP_REG3" Value="4"/>
+                <EnumVal Name="TMP_REG4" Value="5"/>
+                <EnumVal Name="ALU_OUT" Value="6"/>
+                <EnumVal Name="MEM_OUT" Value="7"/>
+                <EnumVal Name="INST_VAR" Value="8"/>
+                <EnumVal Name="INST_VAR_MSB" Value="9"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+     <FieldType Name="INST_SRC" Size="2" Print="ENUM">
+        <OneLineDescription>how the next instruction should be chosen</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="LOP_NXT" Description="If  CMP2 asserted, step , otherwise stay on same"/>
+                <EnumVal Name="LOP_JMP" Description="If CMP2 asserted, JUMP to idx at OP3 output, otherwise stay on the same"/>
+                <EnumVal Name="NXT_JMP" Description="If CMP2 asserted, JUMP to idx at OP3 output, otherwise STEP"/>
+                <EnumVal Name="LOP_CST" Description=""/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="LOP_NXT" Value="0"/>
+                <EnumVal Name="LOP_JMP" Value="1"/>
+                <EnumVal Name="NXT_JMP" Value="2"/>
+                <EnumVal Name="LOP_CST" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+     <FieldType Name="BUFF2_SIZE" Size="2" Print="ENUM">
+        <OneLineDescription>number of bytes to concatenate from path 2 if MERGE is sel for CONCATENATE</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="1B" Description="use 1 byte"/>
+                <EnumVal Name="2B" Description="use 2 bytes"/>
+                <EnumVal Name="3B" Description="use 3 bytes"/>
+                <EnumVal Name="4B" Description="use 4 bytes"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="1B" Value="0"/>
+                <EnumVal Name="2B" Value="1"/>
+                <EnumVal Name="3B" Value="2"/>
+                <EnumVal Name="4B" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+     <FieldType Name="MSG_TYPE" Size="4" Print="ENUM">
+        <OneLineDescription>packet opcode</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="LMM_LMR_SLM_SLR" Description=""/>
+                <EnumVal Name="DMM_DMR" Description=""/>
+                <EnumVal Name="OTHER" Description=""/>
+                <EnumVal Name="GEN_RESPONSE" Description=""/>
+                <EnumVal Name="GEN_OPCODE" Description=""/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="LMM_LMR_SLM_SLR" Value="0"/>
+                <EnumVal Name="DMM_DMR" Value="1"/>
+                <EnumVal Name="OTHER" Value="2"/>
+                <EnumVal Name="GEN_RESPONSE" Value="3"/>
+                <EnumVal Name="GEN_OPCODE" Value="4"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="DEBUG_MODE" Size="2" Print="ENUM">
+        <OneLineDescription>Debug mode</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="OFF" Description="debug off"/>
+                <EnumVal Name="INST_INDEX" Description="push instruction index to buffer"/>
+                <EnumVal Name="VAR_0_1" Description="push variables 0,1 to buffer"/>
+                <EnumVal Name="VAR_2_3" Description="push variables 2,3 to buffer"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="OFF" Value="0"/>
+                <EnumVal Name="INST_INDEX" Value="1"/>
+                <EnumVal Name="VAR_0_1" Value="2"/>
+                <EnumVal Name="VAR_2_3" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="FEM_OP" Size="6" Print="UINT32">
+        <OneLineDescription>Indication whether to set bit with predefined value or use offset of input</OneLineDescription>
+        <FieldDbInterface>
+            <ChildFields>
+                <ChildField Name="FEM_OFFSET"/>
+                <ChildField Name="FEM_CONST"/>
+            </ChildFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ChildFieldsEncoding>
+                <ChildField Name="FEM_OFFSET" EncodeType="PREFIX" Value="0"/>
+                <ChildField Name="FEM_CONST" EncodeType="PREFIX" Value="1"/>
+            </ChildFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="FEM_OFFSET" Size="5" Print="UINT32">
+        <OneLineDescription>offset for bit value</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping></FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="FEM_CONST" Size="5" Print="UINT32">
+        <OneLineDescription>value to be used</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping></FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAMP_PE_INSTRUCT_INDEX" Size="11" Print="UINT32">
+        <OneLineDescription>Instruction address</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping></FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAMP_PE_PROGRAM" Size="5" Print="UINT32">
+        <OneLineDescription>Program index</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping></FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="LAST_PKT_VARS" Size="112" Print="STRUCTURE">
+        <OneLineDescription>variables of last packet</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="RESERVED" Type="UINT" Size="2"/>
+                <StructField Name="TC"/>
+                <StructField Name="DP"/>
+                <StructField Name="LOCAL_PORT" Type="UINT" Size="9"/>
+                <StructField Name="SYSTEM_PORT"/>
+                <StructField Name="NIBLE_SELECT_8_0" Type="UINT" Size="8"/>
+                <StructField Name="NIBLE_SELECT_8_1" Type="UINT" Size="8"/>
+                <StructField Name="NIBLE_SELECT_16_0" Type="UINT" Size="16"/>
+                <StructField Name="NIBLE_SELECT_16_1" Type="UINT" Size="16"/>
+                <StructField Name="PDU_OFFSET" Type="UINT" Size="8"/>
+                <StructField Name="ENCAP_OFFSET" Type="UINT" Size="8"/>
+                <StructField Name="PKT_LENGTH" Type="UINT" Size="16"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="RESERVED"/>
+                <StructField Name="DP"/>
+                <StructField Name="DP"/>
+                <StructField Name="LOCAL_PORT"/>
+                <StructField Name="SYSTEM_PORT"/>
+                <StructField Name="NIBLE_SELECT_8_0"/>
+                <StructField Name="NIBLE_SELECT_8_1"/>
+                <StructField Name="NIBLE_SELECT_16_0"/>
+                <StructField Name="NIBLE_SELECT_16_1"/>
+                <StructField Name="PDU_OFFSET"/>
+                <StructField Name="ENCAP_OFFSET"/>
+                <StructField Name="PKT_LENGTH"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAMP_PE_PROG_TCAM" Size="24" Print="HEX">
+        <OneLineDescription>Context in which processed packet looks up the the program</OneLineDescription>
+        <FieldDbInterface>
+            <ChildFields>
+                <ChildField Name="MEP_GENERATED"/>
+                <ChildField Name="MEP_RESPONSE"/>
+                <ChildField Name="PUNT_PACKET"/>
+                <ChildField Name="EVENT_PACKET"/>
+                <ChildField Name="SAT_PACKET"/>
+                <ChildField Name="DMA_PACKET_1"/>
+                <ChildField Name="DMA_PACKET_2"/>
+                <ChildField Name="TXO_PACKET"/>
+            </ChildFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ChildFieldsEncoding>
+                <ChildField Name="MEP_GENERATED" EncodeType="SUFFIX" Value="0"/>
+                <ChildField Name="MEP_RESPONSE" EncodeType="SUFFIX" Value="1"/>
+                <ChildField Name="PUNT_PACKET" EncodeType="SUFFIX" Value="2"/>
+                <ChildField Name="EVENT_PACKET" EncodeType="SUFFIX" Value="3"/>
+                <ChildField Name="SAT_PACKET" EncodeType="SUFFIX" Value="4"/>
+                <ChildField Name="DMA_PACKET_1" EncodeType="SUFFIX" Value="5"/>
+                <ChildField Name="DMA_PACKET_2" EncodeType="SUFFIX" Value="6"/>
+                <ChildField Name="TXO_PACKET" EncodeType="SUFFIX" Value="7"/>
+            </ChildFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="MEP_GENERATED" Size="21" Print="STRUCTURE">
+        <OneLineDescription>TCAM keys for MEP generated packet type</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="OAMP_MEP_TYPE"/>
+                <StructField Name="MEP_PROFILE"/>
+                <StructField Name="MEP_PE_PROFILE"/>
+                <StructField Name="MSG_TYPE"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="OAMP_MEP_TYPE"/>
+                <StructField Name="MEP_PROFILE"/>
+                <StructField Name="MEP_PE_PROFILE"/>
+                <StructField Name="MSG_TYPE"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="MEP_RESPONSE" Size="21" Print="STRUCTURE">
+        <OneLineDescription>TCAM keys for MEP generated packet type</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="OAMP_MEP_TYPE"/>
+                <StructField Name="MEP_PROFILE"/>
+                <StructField Name="MEP_PE_PROFILE"/>
+                <StructField Name="MSG_TYPE"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="OAMP_MEP_TYPE"/>
+                <StructField Name="MEP_PROFILE"/>
+                <StructField Name="MEP_PE_PROFILE"/>
+                <StructField Name="MSG_TYPE"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="PUNT_PACKET" Size="21" Print="STRUCTURE">
+        <OneLineDescription>TCAM keys for PUNT packet type</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="PUNT_RESERVED_1" Type="UINT" Size="4"/>
+                <StructField Name="PUNT_PE_PROFILE" Type="UINT" Size="2"/>
+                <StructField Name="PUNT_RESERVED_2" Type="UINT" Size="5"/>
+                <StructField Name="PUNT_TRAP_CODE" Type="UINT" Size="8"/>
+                <StructField Name="PUNT_RESERVED_3" Type="UINT" Size="2"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="PUNT_RESERVED_1"/>
+                <StructField Name="PUNT_PE_PROFILE"/>
+                <StructField Name="PUNT_RESERVED_2"/>
+                <StructField Name="PUNT_PUNT_TRAP_CODE"/>
+                <StructField Name="PUNT_RESERVED_3"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="EVENT_PACKET" Size="21" Print="STRUCTURE">
+        <OneLineDescription>TCAM keys for event packet type</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="EVENT_PACKET_PE_SEL" Type="UINT" Size="24"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="EVENT_PACKET_PE_SEL"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="SAT_PACKET" Size="21" Print="STRUCTURE">
+        <OneLineDescription>TCAM keys for SAT packet type</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="SAT_PE_KEY_MSB" Type="UINT" Size="17"/>
+                <StructField Name="GENERATOR_INDEX" Type="UINT" Size="4"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="1MEP_PACKET_PE_SEL"/>
+                <StructField Name="GENERATOR_INDEX"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="TXO_PACKET" Size="21" Print="STRUCTURE">
+        <OneLineDescription>TCAM keys for protection packet type</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="OAMP_MEP_TYPE"/>
+                <StructField Name="MEP_PROFILE"/>
+                <StructField Name="MEP_PE_PROFILE"/>
+                <StructField Name="MSG_TYPE"/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="OAMP_MEP_TYPE"/>
+                <StructField Name="MEP_PROFILE"/>
+                <StructField Name="MEP_PE_PROFILE"/>
+                <StructField Name="MSG_TYPE"/>
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="DMA_PACKET_1" Size="21" Print="UINT32">
+        <OneLineDescription>All bits are taken from the DMA packet</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping></FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="DMA_PACKET_2" Size="21" Print="UINT32">
+        <OneLineDescription>All bits are taken from the DMA packet</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping></FieldToPhyDbMapping>
+    </FieldType>
+    
+    <FieldType Name="MEP_PE_PROFILE_SW" Size="7" Print="ENUM">
+        <OneLineDescription>alternate MEP_PE_PROFILE naming, used by outer modules</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="DEFAULT" Description="request default MEP_PE_PROFILE id"/>
+                <EnumVal Name="BFD_ECHO" Description="request BFD echo MEP_PE_PROFILE id"/>
+                <EnumVal Name="DOWN_MEP_INJ_SELF_CONTAINED_MAID_48" Description="Down mep injection self_contained maid 48"/>
+                <EnumVal Name="DOWN_MEP_INJ_SELF_CONTAINED" Description="Down mep injection self_contained"/>
+                <EnumVal Name="MAID_48" Description="48 byte MAID"/>
+                <EnumVal Name="BFD_DISCR_MSB_1" Description="MEP type in discriminator feature: discriminator MSB is EP type - set to one"/>
+                <EnumVal Name="BFD_IPV6" Description="BFD over IPv6"/>
+                <EnumVal Name="BFD_IPV6_MPLS" Description="BFD over IPv6 over MPLS"/>
+                <EnumVal Name="DOWN_MEP" Description="Down mep"/>
+                <EnumVal Name="DOWN_MEP_MAID_48" Description="Down mep maid48"/>
+                <EnumVal Name="UP_MEP_SERVER" Description="UP mep server"/>
+                <EnumVal Name="UP_MEP_SERVER_MAID_48" Description="UP mep server maid48"/>
+                <EnumVal Name="1DM" Description="One-way delay measurement"/>
+                <EnumVal Name="1DM_MAID_48" Description="One-way delay measurement and 48B MAID configured"/>
+                <EnumVal Name="LMDM_FLEXIBLE_DA" Description="LM/DM flexible DMAC"/>
+                <EnumVal Name="LMDM_FLEXIBLE_DA_MAID_48" Description="LM/DM flexible DMAC and 48 bytes MAID configured"/>
+                <EnumVal Name="SIGNAL_DETECT" Description="Signal Degradation"/>
+                <EnumVal Name="SIGNAL_DETECT_MAID_48" Description="Signal Degradation wit maid48"/>
+                <EnumVal Name="DM_JUMBO_TLV_MAID_48" Description="Dm jumbo tlv with 48 bytes MAID"/>
+                <EnumVal Name="DM_JUMBO_TLV" Description="Dm jumbo tlv"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="DEFAULT" Value="0"/>
+                <EnumVal Name="BFD_ECHO" Value="1"/>
+                <EnumVal Name="DOWN_MEP_INJ_SELF_CONTAINED_MAID_48" Value="2"/>
+                <EnumVal Name="DOWN_MEP_INJ_SELF_CONTAINED" Value="3"/>
+                <EnumVal Name="MAID_48" Value="4"/>
+                <EnumVal Name="BFD_DISCR_MSB_1" Value="5"/>
+                <EnumVal Name="BFD_IPV6" Value="6"/>
+                <EnumVal Name="BFD_IPV6_MPLS" Value="7"/>
+                <EnumVal Name="DOWN_MEP" Value="8"/>
+                <EnumVal Name="DOWN_MEP_MAID_48" Value="9"/>
+                <EnumVal Name="UP_MEP_SERVER" Value="10"/>
+                <EnumVal Name="UP_MEP_SERVER_MAID_48" Value="11"/>
+                <EnumVal Name="1DM" Value="12"/>
+                <EnumVal Name="1DM_MAID_48" Value="13"/>
+                <EnumVal Name="LMDM_FLEXIBLE_DA" Value="14"/>
+                <EnumVal Name="LMDM_FLEXIBLE_DA_MAID_48" Value="15"/>
+                <EnumVal Name="SIGNAL_DETECT" Value="16"/>
+                <EnumVal Name="SIGNAL_DETECT_MAID_48" Value="17"/>
+                <EnumVal Name="DM_JUMBO_TLV_MAID_48" Value="18"/>
+                <EnumVal Name="DM_JUMBO_TLV" Value="19"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAMP_PE_PROGRAM_ENUM" Size="7" Print="ENUM">
+        <OneLineDescription>PROGRAM naming</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="DEFAULT" Description="default program"/>
+                <EnumVal Name="BFD_ECHO" Description=""/>
+                <EnumVal Name="MAID_48" Description="48 byte MAID"/>
+                <EnumVal Name="BFD_IPV6" Description="BFD over IPv6"/>
+                <EnumVal Name="BFD_IPV6_MPLS" Description="BFD over IPv6 over MPLS"/>
+                <EnumVal Name="BFD_IPV6_JR1" Description="BFD over IPv6 JR1"/>
+                <EnumVal Name="BFD_IPV6_MPLS_JR1" Description="BFD over IPv6 over MPLS JR1"/>
+                <EnumVal Name="BFD_ECHO_JR1" Description="BFD echo JR1"/>
+                <EnumVal Name="BFD_DISCR_MSB_1" Description="MEP type in discriminator feature: discriminator MSB is EP type - set to one"/>
+                <EnumVal Name="DOWN_MEP_INJ_SELF_CONTAINED_MAID_48" Description="Down mep injection self_contained maid 48"/>
+                <EnumVal Name="DOWN_MEP_INJ_SELF_CONTAINED" Description="Down mep injection self_contained"/>
+                <EnumVal Name="DOWN_MEP_ADD_UDH_JR1" Description="Down MEP add UDH for LM and DM packets for JR1"/>
+                <EnumVal Name="UP_MEP_SERVER" Description="UP-MEP Server"/>
+                <EnumVal Name="UP_MEP_SERVER_MAID_48" Description="UP-MEP Server maid48"/>
+                <EnumVal Name="1DM" Description="One-way delay measurement"/>
+                <EnumVal Name="LMDM_FLEXIBLE_DA" Description="LM/DM flexible DMAC"/>
+                <EnumVal Name="LMDM_FLEXIBLE_DA_MAID_48_CCM" Description="Handle MAID48 for CCM when LM/DM flexible DMAC enabled"/>
+                <EnumVal Name="SIGNAL_DETECT_CCM" Description="Signal Degradation for CCM packets"/>
+                <EnumVal Name="SIGNAL_DETECT_MAID_48_CCM" Description="Signal Degradation for CCM packets with maid48"/>
+                <EnumVal Name="DM_JUMBO_TLV" Description="Dm jumbo tlv"/>
+                <EnumVal Name="DM_JUMBO_TLV_RSP" Description="Dm jumbo tlv for response"/>
+                <EnumVal Name="INVALID" Description="invalid program"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="DEFAULT" Value="0"/>
+                <EnumVal Name="BFD_ECHO" Value="1"/>
+                <EnumVal Name="MAID_48" Value="2"/>
+                <EnumVal Name="BFD_IPV6" Value="3"/>
+                <EnumVal Name="BFD_IPV6_MPLS" Value="4"/>
+                <EnumVal Name="BFD_IPV6_JR1" Value="5"/>
+                <EnumVal Name="BFD_IPV6_MPLS_JR1" Value="6"/>
+                <EnumVal Name="BFD_ECHO_JR1" Value="7"/>
+                <EnumVal Name="BFD_DISCR_MSB_1" Value="8"/>
+                <EnumVal Name="DOWN_MEP_INJ_SELF_CONTAINED_MAID_48" Value="9"/>
+                <EnumVal Name="DOWN_MEP_INJ_SELF_CONTAINED" Value="10"/>
+                <EnumVal Name="DOWN_MEP_ADD_UDH_JR1" Value="11"/>
+                <EnumVal Name="UP_MEP_SERVER" Value="12"/>
+                <EnumVal Name="UP_MEP_SERVER_MAID_48" Value="13"/>
+                <EnumVal Name="1DM" Value="14"/>
+                <EnumVal Name="LMDM_FLEXIBLE_DA" Value="15"/>
+                <EnumVal Name="LMDM_FLEXIBLE_DA_MAID_48_CCM" Value="16"/>
+                <EnumVal Name="SIGNAL_DETECT_CCM" Value="17"/>
+                <EnumVal Name="SIGNAL_DETECT_MAID_48_CCM" Value="18"/>
+                <EnumVal Name="DM_JUMBO_TLV" Value="19"/>
+                <EnumVal Name="DM_JUMBO_TLV_RSP" Value="20"/>
+                <EnumVal Name="INVALID" Value="127"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAMP_PE_PROG_TCAM_ENUM" Size="7" Print="ENUM">
+        <OneLineDescription>TCAM naming</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="DOWN_MEP_INJ_SELF_CONTAINED" Description=""/>
+                <EnumVal Name="DOWN_MEP_INJ_SELF_CONTAINED_MAID_48" Description=""/>
+                <EnumVal Name="DOWN_MEP_INJ_SELF_CONTAINED_MAID_48_LM_DM" Description=""/>
+                <EnumVal Name="BFD_ECHO_JR1" Description=""/>
+                <EnumVal Name="BFD_IPV6_MPLS_JR1" Description=""/>
+                <EnumVal Name="BFD_IPV6_JR1" Description=""/>
+                <EnumVal Name="BFD_IPV6_MPLS" Description=""/>
+                <EnumVal Name="BFD_IPV6" Description=""/>
+                <EnumVal Name="MAID_48" Description=""/>
+                <EnumVal Name="BFD_ECHO" Description=""/>
+                <EnumVal Name="BFD_DISCR_MSB_1" Description=""/>
+                <EnumVal Name="DOWN_MEP_ADD_UDH_JR1" Description="Add UDH for Down Mep LMM/DMM in Jericho1 mode"/>
+                <EnumVal Name="DOWN_MEP_MAID48_CCM_UDH_JR1" Description="CCM Down mep packets should go to maid48 program"/>
+                <EnumVal Name="UP_MEP_SERVER" Description="UP MEP Server"/>
+                <EnumVal Name="UP_MEP_SERVER_MAID_48" Description="UP MEP Server maid48"/>
+                <EnumVal Name="1DM" Description="One-way delay measurement"/>
+                <EnumVal Name="1DM_MAID_48" Description="One-way delay measurement when 48B MAID is configured"/>
+                <EnumVal Name="1DM_MAID_48_CCM" Description="Handle 48B MAID for CCM when 1DM is enabled"/>
+                <EnumVal Name="LMDM_FLEXIBLE_DA" Description="LM/DM flexible DMAC"/>
+                <EnumVal Name="LMDM_FLEXIBLE_DA_MAID_48" Description="LM/DM flexible DMAC when 48 bytes MAID configured"/>
+                <EnumVal Name="LMDM_FLEXIBLE_DA_MAID_48_CCM" Description="Handle MAID48 for CCM when LM/DM flexible DMAC enabled"/>
+                <EnumVal Name="SIGNAL_DETECT_CCM" Description="Signal Degradation TCAM for CCM packets"/>
+                <EnumVal Name="SIGNAL_DETECT_MAID_48_CCM" Description="Signal Degradation TCAM for CCM packets for MAID 48 packets"/>
+                <EnumVal Name="DM_JUMBO_TLV" Description="Dm jumbo tlv"/>
+                <EnumVal Name="DM_JUMBO_TLV_RSP" Description="Dm jumbo tlv for response"/>
+                <EnumVal Name="DEFAULT" Description="default TCAM"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+</FieldTypesDbCatalog>

@@ -1,0 +1,101 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="access">
+
+    <sub_module name="mdio">
+
+        <features>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+            <numeric name="ext_divisor" value="14">
+                <property name="rate_ext_mdio_divisor" method="range" range_min="0" range_max="255">
+                    <doc>
+                        Configure external MDIO clock rate divisor
+                        ext_mdio_divisor= 0~255
+                        Default: -1
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="int_divisor" value="50">
+                <property name="rate_int_mdio_divisor" method="range" range_min="0" range_max="255">
+                    <doc>
+                        Configure internal MDIO clock rate divisor
+                        int_mdio_divisor= 0~255
+                        Default: -1
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="int_div_out_delay" value="25">
+                <property name="mdio_output_delay"  method="suffix_range" suffix="int" range_min="0" range_max="255">
+                    <doc>
+                        Configure number of clock delay between the rising edge of MDC and the starting data of MDIO
+                        mdio_output_delay= 0~255
+                        Default: -1
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="ext_div_out_delay" value="14">
+                <property name="mdio_output_delay" method="suffix_range" suffix="ext" range_min="0" range_max="255">
+                    <doc>
+                        Configure number of clock delay between the rising edge of MDC and the starting data of MDIO
+                        mdio_output_delay= 0~255
+                        Default: -1
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+    <sub_module name="rcpu">
+
+        <features>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        <table name="rx">
+            <value name="pbmp" default="0">
+                <property name="rcpu_rx_pbmp" method="pbmp">
+                <doc>
+                Configure valid ports on which RCPU packets can be received by slave device
+                    </doc>
+            </property>
+            </value>
+            </table>
+        </tables>
+
+    </sub_module>
+    
+    <sub_module name="blocks" doc="HW blocks related data">
+
+        <tables>
+            <table name="override" doc="blocks enable/disable override">
+                <key name="index" size="10"></key>
+                <value name="block_type" default="NULL"></value>
+                <value name="block_instance" default="-1"></value>
+                <value name="value" default="-1"></value>
+            </table>
+            <table name="soft_init" doc="soft_init info">
+                <value name="trigger_value" default="0x0"></value>
+                <!-- SCH should be excluded from soft init
+                     it is located in bits 187, 188
+                  -->
+                <entries>
+                    <!--                    31 - 0     63 - 32    95 - 64    127 - 96  128 - 159  191 - 160  223 - 192  255 - 224   -->
+                    <entry trigger_value="0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0xE7FFFFFF,0xFFFFFFFF,0xFFFFFFFF"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+</device_data>

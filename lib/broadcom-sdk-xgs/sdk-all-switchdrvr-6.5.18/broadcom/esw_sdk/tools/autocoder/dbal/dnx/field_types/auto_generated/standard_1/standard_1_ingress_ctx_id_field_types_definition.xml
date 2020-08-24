@@ -1,0 +1,639 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FieldTypesDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../field_types_schema.xsd">
+    <!--
+    ******************************************************
+    DBAL Fields Types DB:
+    This xml contains the fields types DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+    Auto generated synced to PEMLA
+    ******************************************************
+-->
+    <GeneralInfo image="standard_1" dynamic_loading="0"/>
+    <FieldType Name="VT1_CONTEXT_ID" Size="6" Print="ENUM">
+        <OneLineDescription>Context Ids for VT1 Stage</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="BIER___RCH_TERM_BFIR" Description="Empty"/>
+                <EnumVal Name="BRIDGE___UNTAGGED" Description="Empty"/>
+                <EnumVal Name="BRIDGE___C_TAG" Description="Empty"/>
+                <EnumVal Name="BRIDGE___S_TAG" Description="Empty"/>
+                <EnumVal Name="BRIDGE___S_C_TAGS" Description="Empty"/>
+                <EnumVal Name="BRIDGE___C_C_TAGS" Description="Empty"/>
+                <EnumVal Name="BRIDGE___S_S_TAGS" Description="Empty"/>
+                <EnumVal Name="BRIDGE___E_TAG" Description="Empty"/>
+                <EnumVal Name="BRIDGE___E_C_TAG" Description="Empty"/>
+                <EnumVal Name="BRIDGE___E_S_TAG" Description="Empty"/>
+                <EnumVal Name="BRIDGE___E_S_C_TAGS" Description="Empty"/>
+                <EnumVal Name="BRIDGE___S_PRIORITY_C_TAGS" Description="Empty"/>
+                <EnumVal Name="BRIDGE___UNTAGGED_FRR" Description="Empty"/>
+                <EnumVal Name="BRIDGE___C_TAG_FRR" Description="Empty"/>
+                <EnumVal Name="BRIDGE___S_TAG_FRR" Description="Empty"/>
+                <EnumVal Name="BRIDGE___S_C_TAGS_FRR" Description="Empty"/>
+                <EnumVal Name="BRIDGE___E_TAG_FRR" Description="Empty"/>
+                <EnumVal Name="BRIDGE___E_C_TAG_FRR" Description="Empty"/>
+                <EnumVal Name="BRIDGE___E_S_TAG_FRR" Description="Empty"/>
+                <EnumVal Name="BRIDGE___E_S_C_TAGS_FRR" Description="Empty"/>
+                <EnumVal Name="BRIDGE___S_PRIORITY_C_TAGS_FRR" Description="Empty"/>
+                <EnumVal Name="BRIDGE___PON_STC_C_TAG" Description="Empty"/>
+                <EnumVal Name="BRIDGE___PON_STC_S_TAG" Description="Empty"/>
+                <EnumVal Name="BRIDGE___PON_STC_UNTAGGED" Description="Empty"/>
+                <EnumVal Name="BRIDGE___PON_DTC_SP_C_TAG" Description="Empty"/>
+                <EnumVal Name="BRIDGE___PON_DTC_C_TAG" Description="Empty"/>
+                <EnumVal Name="BRIDGE___PON_DTC_S_TAG" Description="Empty"/>
+                <EnumVal Name="BRIDGE___PON_DTC_UNTAGGED" Description="Empty"/>
+                <EnumVal Name="GENERAL___RCH_TERM" Description="Empty"/>
+                <EnumVal Name="GENERAL___RCH_TERM_JR_MODE" Description="Empty"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Description="Empty"/>
+                <EnumVal Name="MPLS___RAW_MPLS" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="BIER___RCH_TERM_BFIR" Value="0"/>
+                <EnumVal Name="BRIDGE___UNTAGGED" Value="1"/>
+                <EnumVal Name="BRIDGE___C_TAG" Value="2"/>
+                <EnumVal Name="BRIDGE___S_TAG" Value="3"/>
+                <EnumVal Name="BRIDGE___S_C_TAGS" Value="4"/>
+                <EnumVal Name="BRIDGE___C_C_TAGS" Value="5"/>
+                <EnumVal Name="BRIDGE___S_S_TAGS" Value="6"/>
+                <EnumVal Name="BRIDGE___E_TAG" Value="7"/>
+                <EnumVal Name="BRIDGE___E_C_TAG" Value="8"/>
+                <EnumVal Name="BRIDGE___E_S_TAG" Value="9"/>
+                <EnumVal Name="BRIDGE___E_S_C_TAGS" Value="10"/>
+                <EnumVal Name="BRIDGE___S_PRIORITY_C_TAGS" Value="11"/>
+                <EnumVal Name="BRIDGE___UNTAGGED_FRR" Value="12"/>
+                <EnumVal Name="BRIDGE___C_TAG_FRR" Value="13"/>
+                <EnumVal Name="BRIDGE___S_TAG_FRR" Value="14"/>
+                <EnumVal Name="BRIDGE___S_C_TAGS_FRR" Value="15"/>
+                <EnumVal Name="BRIDGE___E_TAG_FRR" Value="16"/>
+                <EnumVal Name="BRIDGE___E_C_TAG_FRR" Value="17"/>
+                <EnumVal Name="BRIDGE___E_S_TAG_FRR" Value="18"/>
+                <EnumVal Name="BRIDGE___E_S_C_TAGS_FRR" Value="19"/>
+                <EnumVal Name="BRIDGE___S_PRIORITY_C_TAGS_FRR" Value="20"/>
+                <EnumVal Name="BRIDGE___PON_STC_C_TAG" Value="21"/>
+                <EnumVal Name="BRIDGE___PON_STC_S_TAG" Value="22"/>
+                <EnumVal Name="BRIDGE___PON_STC_UNTAGGED" Value="23"/>
+                <EnumVal Name="BRIDGE___PON_DTC_SP_C_TAG" Value="24"/>
+                <EnumVal Name="BRIDGE___PON_DTC_C_TAG" Value="25"/>
+                <EnumVal Name="BRIDGE___PON_DTC_S_TAG" Value="26"/>
+                <EnumVal Name="BRIDGE___PON_DTC_UNTAGGED" Value="27"/>
+                <EnumVal Name="GENERAL___RCH_TERM" Value="28"/>
+                <EnumVal Name="GENERAL___RCH_TERM_JR_MODE" Value="29"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="30"/>
+                <EnumVal Name="MPLS___RAW_MPLS" Value="31"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="VT2_CONTEXT_ID" Size="6" Print="ENUM">
+        <OneLineDescription>Context Ids for VT2 Stage</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="BIER___TT_P2P_MPLS" Description="Empty"/>
+                <EnumVal Name="BIER___TT_P2P_TI" Description="Empty"/>
+                <EnumVal Name="FCOE___FCF_VRF_BY_VSI" Description="Empty"/>
+                <EnumVal Name="FCOE___FCF_VRF_BY_VFT" Description="Empty"/>
+                <EnumVal Name="FCOE___FCF_VRF_BY_PORT" Description="Empty"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Description="Empty"/>
+                <EnumVal Name="IPV4___TT_P2P_TUNNEL" Description="Empty"/>
+                <EnumVal Name="IPV4___2ND_PASS_TT_P2P_TUNNEL" Description="Empty"/>
+                <EnumVal Name="IPV6___TT_SIP_MSBS" Description="Empty"/>
+                <EnumVal Name="MAC_IN_MAC___LEARN" Description="Empty"/>
+                <EnumVal Name="MPLS___TT" Description="Empty"/>
+                <EnumVal Name="MPLS___TT_COUPLED" Description="Empty"/>
+                <EnumVal Name="MPLS___TT_PER_INTERFACE_LABEL" Description="Empty"/>
+                <EnumVal Name="MPLS___2ND_PASS_TT" Description="Empty"/>
+                <EnumVal Name="MPLS___2ND_PASS_TT_COUPLED" Description="Empty"/>
+                <EnumVal Name="MPLS___2ND_PASS_TT_PER_INTERFACE_LABEL" Description="Empty"/>
+                <EnumVal Name="MPLS___EVPN_IML" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="BIER___TT_P2P_MPLS" Value="0"/>
+                <EnumVal Name="BIER___TT_P2P_TI" Value="1"/>
+                <EnumVal Name="FCOE___FCF_VRF_BY_VSI" Value="2"/>
+                <EnumVal Name="FCOE___FCF_VRF_BY_VFT" Value="3"/>
+                <EnumVal Name="FCOE___FCF_VRF_BY_PORT" Value="4"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="5"/>
+                <EnumVal Name="IPV4___TT_P2P_TUNNEL" Value="6"/>
+                <EnumVal Name="IPV4___2ND_PASS_TT_P2P_TUNNEL" Value="7"/>
+                <EnumVal Name="IPV6___TT_SIP_MSBS" Value="8"/>
+                <EnumVal Name="MAC_IN_MAC___LEARN" Value="9"/>
+                <EnumVal Name="MPLS___TT" Value="10"/>
+                <EnumVal Name="MPLS___TT_COUPLED" Value="11"/>
+                <EnumVal Name="MPLS___TT_PER_INTERFACE_LABEL" Value="12"/>
+                <EnumVal Name="MPLS___2ND_PASS_TT" Value="13"/>
+                <EnumVal Name="MPLS___2ND_PASS_TT_COUPLED" Value="14"/>
+                <EnumVal Name="MPLS___2ND_PASS_TT_PER_INTERFACE_LABEL" Value="15"/>
+                <EnumVal Name="MPLS___EVPN_IML" Value="16"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="VT3_CONTEXT_ID" Size="6" Print="ENUM">
+        <OneLineDescription>Context Ids for VT3 Stage</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="BIER___TT_MP_MPLS" Description="Empty"/>
+                <EnumVal Name="BIER___TT_MP_TI" Description="Empty"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Description="Empty"/>
+                <EnumVal Name="GRE_WITH_KEY___TNI2VRF_VTT3" Description="Empty"/>
+                <EnumVal Name="GRE_WITH_KEY___TNI2VSI_VTT3" Description="Empty"/>
+                <EnumVal Name="IPV4___TT_MP_AND_TCAM" Description="Empty"/>
+                <EnumVal Name="IPV4___2ND_PASS_TT_MP_AND_TCAM" Description="Empty"/>
+                <EnumVal Name="IPV4___TT_P2P_AND_TCAM" Description="Empty"/>
+                <EnumVal Name="IPV6___TT_DIP" Description="Empty"/>
+                <EnumVal Name="IPV6___2ND_PASS_TT_DIP" Description="Empty"/>
+                <EnumVal Name="MPLS___TT" Description="Empty"/>
+                <EnumVal Name="MPLS___TT_COUPLED" Description="Empty"/>
+                <EnumVal Name="MPLS___TT_PER_INTERFACE_LABEL" Description="Empty"/>
+                <EnumVal Name="MPLS___EVPN_IML" Description="Empty"/>
+                <EnumVal Name="MPLS___SPECULATIVE_PARSING_FIX" Description="Empty"/>
+                <EnumVal Name="PPPOE___SA_COMPRESSION" Description="Empty"/>
+                <EnumVal Name="VXLAN_GPE___VNI2VSI_VTT3" Description="Empty"/>
+                <EnumVal Name="VXLAN_GPE___VNI2VRF_VTT3" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 Q2A_A0">
+            <EnumValueMapping>
+                <EnumVal Name="BIER___TT_MP_MPLS" Value="0"/>
+                <EnumVal Name="BIER___TT_MP_TI" Value="1"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="2"/>
+                <EnumVal Name="GRE_WITH_KEY___TNI2VRF_VTT3" Value="3"/>
+                <EnumVal Name="GRE_WITH_KEY___TNI2VSI_VTT3" Value="4"/>
+                <EnumVal Name="IPV4___TT_MP_AND_TCAM" Value="5"/>
+                <EnumVal Name="IPV4___2ND_PASS_TT_MP_AND_TCAM" Value="6"/>
+                <EnumVal Name="IPV4___TT_P2P_AND_TCAM" Value="7"/>
+                <EnumVal Name="IPV6___TT_DIP" Value="8"/>
+                <EnumVal Name="IPV6___2ND_PASS_TT_DIP" Value="9"/>
+                <EnumVal Name="MPLS___TT" Value="10"/>
+                <EnumVal Name="MPLS___TT_COUPLED" Value="11"/>
+                <EnumVal Name="MPLS___TT_PER_INTERFACE_LABEL" Value="12"/>
+                <EnumVal Name="MPLS___EVPN_IML" Value="13"/>
+                <EnumVal Name="MPLS___SPECULATIVE_PARSING_FIX" Value="14"/>
+                <EnumVal Name="PPPOE___SA_COMPRESSION" Value="15"/>
+                <EnumVal Name="VXLAN_GPE___VNI2VSI_VTT3" Value="16"/>
+                <EnumVal Name="VXLAN_GPE___VNI2VRF_VTT3" Value="17"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+        <FieldToPhyDbMapping Device="J2C_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="BIER___TT_MP_MPLS" Value="0"/>
+                <EnumVal Name="BIER___TT_MP_TI" Value="1"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="2"/>
+                <EnumVal Name="GRE_WITH_KEY___TNI2VRF_VTT3" Value="3"/>
+                <EnumVal Name="GRE_WITH_KEY___TNI2VSI_VTT3" Value="4"/>
+                <EnumVal Name="IPV4___TT_MP_AND_TCAM" Value="5"/>
+                <EnumVal Name="IPV4___2ND_PASS_TT_MP_AND_TCAM" Value="6"/>
+                <EnumVal Name="IPV4___TT_P2P_AND_TCAM" Value="7"/>
+                <EnumVal Name="IPV6___TT_DIP" Value="8"/>
+                <EnumVal Name="IPV6___2ND_PASS_TT_DIP" Value="9"/>
+                <EnumVal Name="MPLS___TT" Value="10"/>
+                <EnumVal Name="MPLS___TT_COUPLED" Value="11"/>
+                <EnumVal Name="MPLS___TT_PER_INTERFACE_LABEL" Value="12"/>
+                <EnumVal Name="MPLS___EVPN_IML" Value="13"/>
+                <EnumVal Name="MPLS___SPECULATIVE_PARSING_FIX" Value="INVALID"/>
+                <EnumVal Name="PPPOE___SA_COMPRESSION" Value="15"/>
+                <EnumVal Name="VXLAN_GPE___VNI2VSI_VTT3" Value="16"/>
+                <EnumVal Name="VXLAN_GPE___VNI2VRF_VTT3" Value="17"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="VT4_CONTEXT_ID" Size="6" Print="ENUM">
+        <OneLineDescription>Context Ids for VT4 Stage</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="GENERAL___NOP_CTX" Description="Empty"/>
+                <EnumVal Name="GENERAL___2ND_PARSING" Description="Empty"/>
+                <EnumVal Name="GRE_WITH_KEY___TNI2VRF_VTT4" Description="Empty"/>
+                <EnumVal Name="GRE_WITH_KEY___TNI2VSI_VTT4" Description="Empty"/>
+                <EnumVal Name="IPV4___TT_P2P_TUNNEL" Description="Empty"/>
+                <EnumVal Name="IPV4___TT_MP_TUNNEL" Description="Empty"/>
+                <EnumVal Name="IPV6___TT_SIP_IDX_DIP_OR_DIP" Description="Empty"/>
+                <EnumVal Name="IPV6___TT_SIP_IDX_DIP" Description="Empty"/>
+                <EnumVal Name="L2TPV2___TT_WO_LENGTH" Description="Empty"/>
+                <EnumVal Name="L2TPV2___TT_W_LENGTH" Description="Empty"/>
+                <EnumVal Name="MAC_IN_MAC___ISID_WITHOUT_DOMAIN" Description="Empty"/>
+                <EnumVal Name="MAC_IN_MAC___ISID_WITH_DOMAIN" Description="Empty"/>
+                <EnumVal Name="MAC_IN_MAC___ISID_WITHOUT_DOMAIN_LEAF_NODE_OPTIMIZATION" Description="Empty"/>
+                <EnumVal Name="MAC_IN_MAC___ISID_WITH_DOMAIN_LEAF_NODE_OPTIMIZATION" Description="Empty"/>
+                <EnumVal Name="MPLS___TT" Description="Empty"/>
+                <EnumVal Name="MPLS___TT_COUPLED" Description="Empty"/>
+                <EnumVal Name="MPLS___TT_PER_INTERFACE_LABEL" Description="Empty"/>
+                <EnumVal Name="MPLS___EVPN_IML" Description="Empty"/>
+                <EnumVal Name="PPPOE___TT_CMPRS_SA" Description="Empty"/>
+                <EnumVal Name="PPPOE___TT_FULL_SA" Description="Empty"/>
+                <EnumVal Name="VXLAN_GPE___VNI2VSI_VTT4" Description="Empty"/>
+                <EnumVal Name="VXLAN_GPE___VNI2VRF_VTT4" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="0"/>
+                <EnumVal Name="GENERAL___2ND_PARSING" Value="1"/>
+                <EnumVal Name="GRE_WITH_KEY___TNI2VRF_VTT4" Value="2"/>
+                <EnumVal Name="GRE_WITH_KEY___TNI2VSI_VTT4" Value="3"/>
+                <EnumVal Name="IPV4___TT_P2P_TUNNEL" Value="4"/>
+                <EnumVal Name="IPV4___TT_MP_TUNNEL" Value="5"/>
+                <EnumVal Name="IPV6___TT_SIP_IDX_DIP_OR_DIP" Value="6"/>
+                <EnumVal Name="IPV6___TT_SIP_IDX_DIP" Value="7"/>
+                <EnumVal Name="L2TPV2___TT_WO_LENGTH" Value="8"/>
+                <EnumVal Name="L2TPV2___TT_W_LENGTH" Value="9"/>
+                <EnumVal Name="MAC_IN_MAC___ISID_WITHOUT_DOMAIN" Value="10"/>
+                <EnumVal Name="MAC_IN_MAC___ISID_WITH_DOMAIN" Value="11"/>
+                <EnumVal Name="MAC_IN_MAC___ISID_WITHOUT_DOMAIN_LEAF_NODE_OPTIMIZATION" Value="12"/>
+                <EnumVal Name="MAC_IN_MAC___ISID_WITH_DOMAIN_LEAF_NODE_OPTIMIZATION" Value="13"/>
+                <EnumVal Name="MPLS___TT" Value="14"/>
+                <EnumVal Name="MPLS___TT_COUPLED" Value="15"/>
+                <EnumVal Name="MPLS___TT_PER_INTERFACE_LABEL" Value="16"/>
+                <EnumVal Name="MPLS___EVPN_IML" Value="17"/>
+                <EnumVal Name="PPPOE___TT_CMPRS_SA" Value="18"/>
+                <EnumVal Name="PPPOE___TT_FULL_SA" Value="19"/>
+                <EnumVal Name="VXLAN_GPE___VNI2VSI_VTT4" Value="20"/>
+                <EnumVal Name="VXLAN_GPE___VNI2VRF_VTT4" Value="21"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="VT5_CONTEXT_ID" Size="6" Print="ENUM">
+        <OneLineDescription>Context Ids for VT5 Stage</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="BRIDGE___INNER_ETHERNET_0_VTAG_NWK_SCOPED" Description="Empty"/>
+                <EnumVal Name="BRIDGE___INNER_ETHERNET_1_VTAG_NWK_SCOPED" Description="Empty"/>
+                <EnumVal Name="BRIDGE___INNER_ETHERNET_2_VTAG_NWK_SCOPED" Description="Empty"/>
+                <EnumVal Name="BRIDGE___INNER_ETHERNET_0_VTAG_LIF_SCOPED" Description="Empty"/>
+                <EnumVal Name="BRIDGE___INNER_ETHERNET_1_VTAG_LIF_SCOPED" Description="Empty"/>
+                <EnumVal Name="BRIDGE___INNER_ETHERNET_2_VTAG_LIF_SCOPED" Description="Empty"/>
+                <EnumVal Name="BRIDGE___INNER_ETHERNET_0_VTAG_NWK_SCOPED_LEARN_NATIVE_AC" Description="Empty"/>
+                <EnumVal Name="BRIDGE___INNER_ETHERNET_1_VTAG_NWK_SCOPED_LEARN_NATIVE_AC" Description="Empty"/>
+                <EnumVal Name="BRIDGE___INNER_ETHERNET_2_VTAG_NWK_SCOPED_LEARN_NATIVE_AC" Description="Empty"/>
+                <EnumVal Name="BRIDGE___INNER_ETHERNET_0_VTAG_LIF_SCOPED_LEARN_NATIVE_AC" Description="Empty"/>
+                <EnumVal Name="BRIDGE___INNER_ETHERNET_1_VTAG_LIF_SCOPED_LEARN_NATIVE_AC" Description="Empty"/>
+                <EnumVal Name="BRIDGE___INNER_ETHERNET_2_VTAG_LIF_SCOPED_LEARN_NATIVE_AC" Description="Empty"/>
+                <EnumVal Name="BRIDGE___PON_DTC_OTHER" Description="Empty"/>
+                <EnumVal Name="BRIDGE___PON_DTC_C_C_TAG" Description="Empty"/>
+                <EnumVal Name="BRIDGE___PON_DTC_S_S_TAG" Description="Empty"/>
+                <EnumVal Name="BRIDGE___PON_DTC_S_C_TAG" Description="Empty"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Description="Empty"/>
+                <EnumVal Name="GRE_WITH_KEY___TNI2VRF_VTT5" Description="Empty"/>
+                <EnumVal Name="GRE_WITH_KEY___TNI2VSI_VTT5" Description="Empty"/>
+                <EnumVal Name="IPV4___TT_P2P_TUNNEL" Description="Empty"/>
+                <EnumVal Name="IPV4___TT_MP_TUNNEL" Description="Empty"/>
+                <EnumVal Name="MPLS___TT" Description="Empty"/>
+                <EnumVal Name="MPLS___TT_COUPLED" Description="Empty"/>
+                <EnumVal Name="MPLS___TT_PER_INTERFACE_LABEL" Description="Empty"/>
+                <EnumVal Name="MPLS___EVPN_IML" Description="Empty"/>
+                <EnumVal Name="PPPOE___ADDITIONAL_PROCESSING_PPP_TT_SESSION_ID_SPOOFING_CHECK" Description="Empty"/>
+                <EnumVal Name="SRV6___TUNNEL_TERMINATE" Description="Empty"/>
+                <EnumVal Name="VXLAN_GPE___VNI2VSI_VTT5" Description="Empty"/>
+                <EnumVal Name="VXLAN_GPE___VNI2VRF_VTT5" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="BRIDGE___INNER_ETHERNET_0_VTAG_NWK_SCOPED" Value="0"/>
+                <EnumVal Name="BRIDGE___INNER_ETHERNET_1_VTAG_NWK_SCOPED" Value="1"/>
+                <EnumVal Name="BRIDGE___INNER_ETHERNET_2_VTAG_NWK_SCOPED" Value="2"/>
+                <EnumVal Name="BRIDGE___INNER_ETHERNET_0_VTAG_LIF_SCOPED" Value="3"/>
+                <EnumVal Name="BRIDGE___INNER_ETHERNET_1_VTAG_LIF_SCOPED" Value="4"/>
+                <EnumVal Name="BRIDGE___INNER_ETHERNET_2_VTAG_LIF_SCOPED" Value="5"/>
+                <EnumVal Name="BRIDGE___INNER_ETHERNET_0_VTAG_NWK_SCOPED_LEARN_NATIVE_AC" Value="6"/>
+                <EnumVal Name="BRIDGE___INNER_ETHERNET_1_VTAG_NWK_SCOPED_LEARN_NATIVE_AC" Value="7"/>
+                <EnumVal Name="BRIDGE___INNER_ETHERNET_2_VTAG_NWK_SCOPED_LEARN_NATIVE_AC" Value="8"/>
+                <EnumVal Name="BRIDGE___INNER_ETHERNET_0_VTAG_LIF_SCOPED_LEARN_NATIVE_AC" Value="9"/>
+                <EnumVal Name="BRIDGE___INNER_ETHERNET_1_VTAG_LIF_SCOPED_LEARN_NATIVE_AC" Value="10"/>
+                <EnumVal Name="BRIDGE___INNER_ETHERNET_2_VTAG_LIF_SCOPED_LEARN_NATIVE_AC" Value="11"/>
+                <EnumVal Name="BRIDGE___PON_DTC_OTHER" Value="12"/>
+                <EnumVal Name="BRIDGE___PON_DTC_C_C_TAG" Value="13"/>
+                <EnumVal Name="BRIDGE___PON_DTC_S_S_TAG" Value="14"/>
+                <EnumVal Name="BRIDGE___PON_DTC_S_C_TAG" Value="15"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="16"/>
+                <EnumVal Name="GRE_WITH_KEY___TNI2VRF_VTT5" Value="17"/>
+                <EnumVal Name="GRE_WITH_KEY___TNI2VSI_VTT5" Value="18"/>
+                <EnumVal Name="IPV4___TT_P2P_TUNNEL" Value="19"/>
+                <EnumVal Name="IPV4___TT_MP_TUNNEL" Value="20"/>
+                <EnumVal Name="MPLS___TT" Value="21"/>
+                <EnumVal Name="MPLS___TT_COUPLED" Value="22"/>
+                <EnumVal Name="MPLS___TT_PER_INTERFACE_LABEL" Value="23"/>
+                <EnumVal Name="MPLS___EVPN_IML" Value="24"/>
+                <EnumVal Name="PPPOE___ADDITIONAL_PROCESSING_PPP_TT_SESSION_ID_SPOOFING_CHECK" Value="25"/>
+                <EnumVal Name="SRV6___TUNNEL_TERMINATE" Value="26"/>
+                <EnumVal Name="VXLAN_GPE___VNI2VSI_VTT5" Value="27"/>
+                <EnumVal Name="VXLAN_GPE___VNI2VRF_VTT5" Value="28"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="FWD1_CONTEXT_ID" Size="6" Print="ENUM">
+        <OneLineDescription>Context Ids for FWD1 Stage</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="BIER___TI_FORWARDING" Description="Empty"/>
+                <EnumVal Name="BIER___MPLS_FORWARDING" Description="Empty"/>
+                <EnumVal Name="BRIDGE___SVL" Description="Empty"/>
+                <EnumVal Name="BRIDGE___IPV4MC_SVL" Description="Empty"/>
+                <EnumVal Name="BRIDGE___IPV6MC_IVL" Description="Empty"/>
+                <EnumVal Name="BRIDGE___IPV6MC_SVL" Description="Empty"/>
+                <EnumVal Name="FCOE___FCF_NO_VFT" Description="Empty"/>
+                <EnumVal Name="FCOE___FCF_NPV_NO_VFT" Description="Empty"/>
+                <EnumVal Name="FCOE___FCF_VFT" Description="Empty"/>
+                <EnumVal Name="FCOE___FCF_NPV_VFT" Description="Empty"/>
+                <EnumVal Name="FCOE___TRANSIT" Description="Empty"/>
+                <EnumVal Name="FCOE___TRANSIT_FIP" Description="Empty"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Description="Empty"/>
+                <EnumVal Name="IPV4___MC_PRIVATE_PUBLIC" Description="Empty"/>
+                <EnumVal Name="IPV4___MC_PRIVATE" Description="Empty"/>
+                <EnumVal Name="IPV4___PRIVATE_PUBLIC_OPTIMIZED_UC" Description="Empty"/>
+                <EnumVal Name="IPV4___PRIVATE_UC" Description="Empty"/>
+                <EnumVal Name="IPV4___PRIVATE_PUBLIC_OPTIMIZED_UC_W_OPTIONS" Description="Empty"/>
+                <EnumVal Name="IPV4___PRIVATE_UC_W_OPTIONS" Description="Empty"/>
+                <EnumVal Name="IPV6___MC_PRIVATE_PUBLIC" Description="Empty"/>
+                <EnumVal Name="IPV6___MC_PRIVATE" Description="Empty"/>
+                <EnumVal Name="IPV6___PRIVATE_PUBLIC_OPTIMIZED_UC" Description="Empty"/>
+                <EnumVal Name="IPV6___PRIVATE_UC" Description="Empty"/>
+                <EnumVal Name="MPLS___FWD" Description="Empty"/>
+                <EnumVal Name="MPLS___FWD_PER_INTERFACE" Description="Empty"/>
+                <EnumVal Name="MPLS___FWD_COUPLED" Description="Empty"/>
+                <EnumVal Name="MPLS___OAM_ONLY" Description="Empty"/>
+                <EnumVal Name="SRV6___SEGMENT_END_POINT_FORWARDING" Description="Empty"/>
+                <EnumVal Name="BRIDGE___IVL" Description="Empty"/>
+                <EnumVal Name="BRIDGE___IPV4MC_IVL" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0">
+            <EnumValueMapping>
+                <EnumVal Name="BIER___TI_FORWARDING" Value="0"/>
+                <EnumVal Name="BIER___MPLS_FORWARDING" Value="1"/>
+                <EnumVal Name="BRIDGE___SVL" Value="3"/>
+                <EnumVal Name="BRIDGE___IPV4MC_SVL" Value="5"/>
+                <EnumVal Name="BRIDGE___IPV6MC_IVL" Value="6"/>
+                <EnumVal Name="BRIDGE___IPV6MC_SVL" Value="7"/>
+                <EnumVal Name="FCOE___FCF_NO_VFT" Value="8"/>
+                <EnumVal Name="FCOE___FCF_NPV_NO_VFT" Value="9"/>
+                <EnumVal Name="FCOE___FCF_VFT" Value="10"/>
+                <EnumVal Name="FCOE___FCF_NPV_VFT" Value="11"/>
+                <EnumVal Name="FCOE___TRANSIT" Value="12"/>
+                <EnumVal Name="FCOE___TRANSIT_FIP" Value="13"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="14"/>
+                <EnumVal Name="IPV4___MC_PRIVATE_PUBLIC" Value="15"/>
+                <EnumVal Name="IPV4___MC_PRIVATE" Value="16"/>
+                <EnumVal Name="IPV4___PRIVATE_PUBLIC_OPTIMIZED_UC" Value="17"/>
+                <EnumVal Name="IPV4___PRIVATE_UC" Value="18"/>
+                <EnumVal Name="IPV4___PRIVATE_PUBLIC_OPTIMIZED_UC_W_OPTIONS" Value="19"/>
+                <EnumVal Name="IPV4___PRIVATE_UC_W_OPTIONS" Value="20"/>
+                <EnumVal Name="IPV6___MC_PRIVATE_PUBLIC" Value="21"/>
+                <EnumVal Name="IPV6___MC_PRIVATE" Value="22"/>
+                <EnumVal Name="IPV6___PRIVATE_PUBLIC_OPTIMIZED_UC" Value="23"/>
+                <EnumVal Name="IPV6___PRIVATE_UC" Value="24"/>
+                <EnumVal Name="MPLS___FWD" Value="25"/>
+                <EnumVal Name="MPLS___FWD_PER_INTERFACE" Value="26"/>
+                <EnumVal Name="MPLS___FWD_COUPLED" Value="27"/>
+                <EnumVal Name="MPLS___OAM_ONLY" Value="28"/>
+                <EnumVal Name="SRV6___SEGMENT_END_POINT_FORWARDING" Value="29"/>
+                <EnumVal Name="BRIDGE___IVL" Value="INVALID"/>
+                <EnumVal Name="BRIDGE___IPV4MC_IVL" Value="INVALID"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+        <FieldToPhyDbMapping Device="JR2_B0 J2C_A0 Q2A_A0 Q2A_B0">
+            <EnumValueMapping>
+                <EnumVal Name="BIER___TI_FORWARDING" Value="0"/>
+                <EnumVal Name="BIER___MPLS_FORWARDING" Value="1"/>
+                <EnumVal Name="BRIDGE___SVL" Value="3"/>
+                <EnumVal Name="BRIDGE___IPV4MC_SVL" Value="5"/>
+                <EnumVal Name="BRIDGE___IPV6MC_IVL" Value="6"/>
+                <EnumVal Name="BRIDGE___IPV6MC_SVL" Value="7"/>
+                <EnumVal Name="FCOE___FCF_NO_VFT" Value="8"/>
+                <EnumVal Name="FCOE___FCF_NPV_NO_VFT" Value="9"/>
+                <EnumVal Name="FCOE___FCF_VFT" Value="10"/>
+                <EnumVal Name="FCOE___FCF_NPV_VFT" Value="11"/>
+                <EnumVal Name="FCOE___TRANSIT" Value="12"/>
+                <EnumVal Name="FCOE___TRANSIT_FIP" Value="13"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="14"/>
+                <EnumVal Name="IPV4___MC_PRIVATE_PUBLIC" Value="15"/>
+                <EnumVal Name="IPV4___MC_PRIVATE" Value="16"/>
+                <EnumVal Name="IPV4___PRIVATE_PUBLIC_OPTIMIZED_UC" Value="17"/>
+                <EnumVal Name="IPV4___PRIVATE_UC" Value="18"/>
+                <EnumVal Name="IPV4___PRIVATE_PUBLIC_OPTIMIZED_UC_W_OPTIONS" Value="19"/>
+                <EnumVal Name="IPV4___PRIVATE_UC_W_OPTIONS" Value="20"/>
+                <EnumVal Name="IPV6___MC_PRIVATE_PUBLIC" Value="21"/>
+                <EnumVal Name="IPV6___MC_PRIVATE" Value="22"/>
+                <EnumVal Name="IPV6___PRIVATE_PUBLIC_OPTIMIZED_UC" Value="23"/>
+                <EnumVal Name="IPV6___PRIVATE_UC" Value="24"/>
+                <EnumVal Name="MPLS___FWD" Value="25"/>
+                <EnumVal Name="MPLS___FWD_PER_INTERFACE" Value="26"/>
+                <EnumVal Name="MPLS___FWD_COUPLED" Value="27"/>
+                <EnumVal Name="MPLS___OAM_ONLY" Value="28"/>
+                <EnumVal Name="SRV6___SEGMENT_END_POINT_FORWARDING" Value="29"/>
+                <EnumVal Name="BRIDGE___IVL" Value="2"/>
+                <EnumVal Name="BRIDGE___IPV4MC_IVL" Value="4"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+        <FieldToPhyDbMapping Device="J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="BIER___TI_FORWARDING" Value="0"/>
+                <EnumVal Name="BIER___MPLS_FORWARDING" Value="1"/>
+                <EnumVal Name="BRIDGE___SVL" Value="3"/>
+                <EnumVal Name="BRIDGE___IPV4MC_SVL" Value="5"/>
+                <EnumVal Name="BRIDGE___IPV6MC_IVL" Value="6"/>
+                <EnumVal Name="BRIDGE___IPV6MC_SVL" Value="7"/>
+                <EnumVal Name="FCOE___FCF_NO_VFT" Value="8"/>
+                <EnumVal Name="FCOE___FCF_NPV_NO_VFT" Value="9"/>
+                <EnumVal Name="FCOE___FCF_VFT" Value="10"/>
+                <EnumVal Name="FCOE___FCF_NPV_VFT" Value="11"/>
+                <EnumVal Name="FCOE___TRANSIT" Value="12"/>
+                <EnumVal Name="FCOE___TRANSIT_FIP" Value="13"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="14"/>
+                <EnumVal Name="IPV4___MC_PRIVATE_PUBLIC" Value="15"/>
+                <EnumVal Name="IPV4___MC_PRIVATE" Value="16"/>
+                <EnumVal Name="IPV4___PRIVATE_PUBLIC_OPTIMIZED_UC" Value="17"/>
+                <EnumVal Name="IPV4___PRIVATE_UC" Value="18"/>
+                <EnumVal Name="IPV4___PRIVATE_PUBLIC_OPTIMIZED_UC_W_OPTIONS" Value="INVALID"/>
+                <EnumVal Name="IPV4___PRIVATE_UC_W_OPTIONS" Value="INVALID"/>
+                <EnumVal Name="IPV6___MC_PRIVATE_PUBLIC" Value="21"/>
+                <EnumVal Name="IPV6___MC_PRIVATE" Value="22"/>
+                <EnumVal Name="IPV6___PRIVATE_PUBLIC_OPTIMIZED_UC" Value="23"/>
+                <EnumVal Name="IPV6___PRIVATE_UC" Value="24"/>
+                <EnumVal Name="MPLS___FWD" Value="25"/>
+                <EnumVal Name="MPLS___FWD_PER_INTERFACE" Value="26"/>
+                <EnumVal Name="MPLS___FWD_COUPLED" Value="27"/>
+                <EnumVal Name="MPLS___OAM_ONLY" Value="28"/>
+                <EnumVal Name="SRV6___SEGMENT_END_POINT_FORWARDING" Value="29"/>
+                <EnumVal Name="BRIDGE___IVL" Value="2"/>
+                <EnumVal Name="BRIDGE___IPV4MC_IVL" Value="4"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="FWD2_CONTEXT_ID" Size="6" Print="ENUM">
+        <OneLineDescription>Context Ids for FWD2 Stage</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="BRIDGE___IPV4MC_SVL" Description="Empty"/>
+                <EnumVal Name="BRIDGE___IPV6MC_IVL" Description="Empty"/>
+                <EnumVal Name="BRIDGE___IPV6MC_SVL" Description="Empty"/>
+                <EnumVal Name="BRIDGE___SVL" Description="Empty"/>
+                <EnumVal Name="FCOE___FCF" Description="Empty"/>
+                <EnumVal Name="FCOE___FCF_FIP" Description="Empty"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Description="Empty"/>
+                <EnumVal Name="IPV4___MC_PRIVATE_W_BF_W_F2B" Description="Empty"/>
+                <EnumVal Name="IPV4___MC_PRIVATE_WO_BF_W_F2B" Description="Empty"/>
+                <EnumVal Name="IPV4___MC_PRIVATE_WO_BF_WO_F2B" Description="Empty"/>
+                <EnumVal Name="IPV4___PRIVATE_UC" Description="Empty"/>
+                <EnumVal Name="IPV6___MC_PRIVATE_W_BF_W_F2B" Description="Empty"/>
+                <EnumVal Name="IPV6___MC_PRIVATE_WO_BF_W_F2B" Description="Empty"/>
+                <EnumVal Name="IPV6___MC_PRIVATE_WO_BF_WO_F2B" Description="Empty"/>
+                <EnumVal Name="IPV6___PRIVATE_UC" Description="Empty"/>
+                <EnumVal Name="IPV6___PRIVATE_UC_BFD" Description="Empty"/>
+                <EnumVal Name="MPLS___OAM_ONLY" Description="Empty"/>
+                <EnumVal Name="MPLS___FWD" Description="Empty"/>
+                <EnumVal Name="SRV6___PRIVATE_UC" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_32" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_33" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_34" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_35" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_36" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_37" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_38" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_39" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_40" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_41" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_42" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_43" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_44" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_45" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_46" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_47" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_48" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_49" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_50" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_51" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_52" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_53" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_54" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_55" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_56" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_57" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_58" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_59" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_60" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_61" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_62" Description="Empty"/>
+                <EnumVal Name="ACL_CONTEXT_63" Description="Empty"/>
+                <EnumVal Name="BRIDGE___IPV4MC_IVL" Description="Empty"/>
+                <EnumVal Name="BRIDGE___IVL" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0">
+            <EnumValueMapping>
+                <EnumVal Name="BRIDGE___IPV4MC_SVL" Value="1"/>
+                <EnumVal Name="BRIDGE___IPV6MC_IVL" Value="2"/>
+                <EnumVal Name="BRIDGE___IPV6MC_SVL" Value="3"/>
+                <EnumVal Name="BRIDGE___SVL" Value="5"/>
+                <EnumVal Name="FCOE___FCF" Value="6"/>
+                <EnumVal Name="FCOE___FCF_FIP" Value="7"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="8"/>
+                <EnumVal Name="IPV4___MC_PRIVATE_W_BF_W_F2B" Value="9"/>
+                <EnumVal Name="IPV4___MC_PRIVATE_WO_BF_W_F2B" Value="10"/>
+                <EnumVal Name="IPV4___MC_PRIVATE_WO_BF_WO_F2B" Value="11"/>
+                <EnumVal Name="IPV4___PRIVATE_UC" Value="12"/>
+                <EnumVal Name="IPV6___MC_PRIVATE_W_BF_W_F2B" Value="13"/>
+                <EnumVal Name="IPV6___MC_PRIVATE_WO_BF_W_F2B" Value="14"/>
+                <EnumVal Name="IPV6___MC_PRIVATE_WO_BF_WO_F2B" Value="15"/>
+                <EnumVal Name="IPV6___PRIVATE_UC" Value="16"/>
+                <EnumVal Name="IPV6___PRIVATE_UC_BFD" Value="17"/>
+                <EnumVal Name="MPLS___OAM_ONLY" Value="18"/>
+                <EnumVal Name="MPLS___FWD" Value="19"/>
+                <EnumVal Name="SRV6___PRIVATE_UC" Value="20"/>
+                <EnumVal Name="ACL_CONTEXT_32" Value="32"/>
+                <EnumVal Name="ACL_CONTEXT_33" Value="33"/>
+                <EnumVal Name="ACL_CONTEXT_34" Value="34"/>
+                <EnumVal Name="ACL_CONTEXT_35" Value="35"/>
+                <EnumVal Name="ACL_CONTEXT_36" Value="36"/>
+                <EnumVal Name="ACL_CONTEXT_37" Value="37"/>
+                <EnumVal Name="ACL_CONTEXT_38" Value="38"/>
+                <EnumVal Name="ACL_CONTEXT_39" Value="39"/>
+                <EnumVal Name="ACL_CONTEXT_40" Value="40"/>
+                <EnumVal Name="ACL_CONTEXT_41" Value="41"/>
+                <EnumVal Name="ACL_CONTEXT_42" Value="42"/>
+                <EnumVal Name="ACL_CONTEXT_43" Value="43"/>
+                <EnumVal Name="ACL_CONTEXT_44" Value="44"/>
+                <EnumVal Name="ACL_CONTEXT_45" Value="45"/>
+                <EnumVal Name="ACL_CONTEXT_46" Value="46"/>
+                <EnumVal Name="ACL_CONTEXT_47" Value="47"/>
+                <EnumVal Name="ACL_CONTEXT_48" Value="48"/>
+                <EnumVal Name="ACL_CONTEXT_49" Value="49"/>
+                <EnumVal Name="ACL_CONTEXT_50" Value="50"/>
+                <EnumVal Name="ACL_CONTEXT_51" Value="51"/>
+                <EnumVal Name="ACL_CONTEXT_52" Value="52"/>
+                <EnumVal Name="ACL_CONTEXT_53" Value="53"/>
+                <EnumVal Name="ACL_CONTEXT_54" Value="54"/>
+                <EnumVal Name="ACL_CONTEXT_55" Value="55"/>
+                <EnumVal Name="ACL_CONTEXT_56" Value="56"/>
+                <EnumVal Name="ACL_CONTEXT_57" Value="57"/>
+                <EnumVal Name="ACL_CONTEXT_58" Value="58"/>
+                <EnumVal Name="ACL_CONTEXT_59" Value="59"/>
+                <EnumVal Name="ACL_CONTEXT_60" Value="60"/>
+                <EnumVal Name="ACL_CONTEXT_61" Value="61"/>
+                <EnumVal Name="ACL_CONTEXT_62" Value="62"/>
+                <EnumVal Name="ACL_CONTEXT_63" Value="63"/>
+                <EnumVal Name="BRIDGE___IPV4MC_IVL" Value="INVALID"/>
+                <EnumVal Name="BRIDGE___IVL" Value="INVALID"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+        <FieldToPhyDbMapping Device="JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="BRIDGE___IPV4MC_SVL" Value="1"/>
+                <EnumVal Name="BRIDGE___IPV6MC_IVL" Value="2"/>
+                <EnumVal Name="BRIDGE___IPV6MC_SVL" Value="3"/>
+                <EnumVal Name="BRIDGE___SVL" Value="5"/>
+                <EnumVal Name="FCOE___FCF" Value="6"/>
+                <EnumVal Name="FCOE___FCF_FIP" Value="7"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="8"/>
+                <EnumVal Name="IPV4___MC_PRIVATE_W_BF_W_F2B" Value="9"/>
+                <EnumVal Name="IPV4___MC_PRIVATE_WO_BF_W_F2B" Value="10"/>
+                <EnumVal Name="IPV4___MC_PRIVATE_WO_BF_WO_F2B" Value="11"/>
+                <EnumVal Name="IPV4___PRIVATE_UC" Value="12"/>
+                <EnumVal Name="IPV6___MC_PRIVATE_W_BF_W_F2B" Value="13"/>
+                <EnumVal Name="IPV6___MC_PRIVATE_WO_BF_W_F2B" Value="14"/>
+                <EnumVal Name="IPV6___MC_PRIVATE_WO_BF_WO_F2B" Value="15"/>
+                <EnumVal Name="IPV6___PRIVATE_UC" Value="16"/>
+                <EnumVal Name="IPV6___PRIVATE_UC_BFD" Value="17"/>
+                <EnumVal Name="MPLS___OAM_ONLY" Value="18"/>
+                <EnumVal Name="MPLS___FWD" Value="19"/>
+                <EnumVal Name="SRV6___PRIVATE_UC" Value="20"/>
+                <EnumVal Name="ACL_CONTEXT_32" Value="32"/>
+                <EnumVal Name="ACL_CONTEXT_33" Value="33"/>
+                <EnumVal Name="ACL_CONTEXT_34" Value="34"/>
+                <EnumVal Name="ACL_CONTEXT_35" Value="35"/>
+                <EnumVal Name="ACL_CONTEXT_36" Value="36"/>
+                <EnumVal Name="ACL_CONTEXT_37" Value="37"/>
+                <EnumVal Name="ACL_CONTEXT_38" Value="38"/>
+                <EnumVal Name="ACL_CONTEXT_39" Value="39"/>
+                <EnumVal Name="ACL_CONTEXT_40" Value="40"/>
+                <EnumVal Name="ACL_CONTEXT_41" Value="41"/>
+                <EnumVal Name="ACL_CONTEXT_42" Value="42"/>
+                <EnumVal Name="ACL_CONTEXT_43" Value="43"/>
+                <EnumVal Name="ACL_CONTEXT_44" Value="44"/>
+                <EnumVal Name="ACL_CONTEXT_45" Value="45"/>
+                <EnumVal Name="ACL_CONTEXT_46" Value="46"/>
+                <EnumVal Name="ACL_CONTEXT_47" Value="47"/>
+                <EnumVal Name="ACL_CONTEXT_48" Value="48"/>
+                <EnumVal Name="ACL_CONTEXT_49" Value="49"/>
+                <EnumVal Name="ACL_CONTEXT_50" Value="50"/>
+                <EnumVal Name="ACL_CONTEXT_51" Value="51"/>
+                <EnumVal Name="ACL_CONTEXT_52" Value="52"/>
+                <EnumVal Name="ACL_CONTEXT_53" Value="53"/>
+                <EnumVal Name="ACL_CONTEXT_54" Value="54"/>
+                <EnumVal Name="ACL_CONTEXT_55" Value="55"/>
+                <EnumVal Name="ACL_CONTEXT_56" Value="56"/>
+                <EnumVal Name="ACL_CONTEXT_57" Value="57"/>
+                <EnumVal Name="ACL_CONTEXT_58" Value="58"/>
+                <EnumVal Name="ACL_CONTEXT_59" Value="59"/>
+                <EnumVal Name="ACL_CONTEXT_60" Value="60"/>
+                <EnumVal Name="ACL_CONTEXT_61" Value="61"/>
+                <EnumVal Name="ACL_CONTEXT_62" Value="62"/>
+                <EnumVal Name="ACL_CONTEXT_63" Value="63"/>
+                <EnumVal Name="BRIDGE___IPV4MC_IVL" Value="0"/>
+                <EnumVal Name="BRIDGE___IVL" Value="4"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+</FieldTypesDbCatalog>

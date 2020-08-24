@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<top>
+    <parsing-objects>
+        <!-- ~~~~~~~~~ Dynamicly parsed ETH header ~~~~~~~~~ -->
+        <!-- This object has no structure, one of ETH0/1/2 will be used -->
+        <object name="ETH" size="176" plugin="eth_parser">
+            <description>Ethernet Header for packet parsing (Use ETH0/1/2/3 for packet compose)</description>
+        </object>
+        <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+        <object name="ETH0" size="112">
+            <description>Untagged Ethernet Header</description>
+            <next-header field="ETH0.Type" options="ETH_Next_Protocol"/>
+        </object>
+        <object name="ETH1" size="144">
+            <description>Ethernet Header with a single VLAN</description>
+            <next-header field="ETH1.Type" options="ETH_Next_Protocol"/>
+        </object>
+        <object name="ETH2" size="176">
+            <description>Ethernet Header with 2 VLANs (use Inner_VLAN/Outer_VLAN for packet compose)</description>
+            <next-header field="ETH2.Type" options="ETH_Next_Protocol"/>
+        </object>
+        <object name="ETH3" size="208">
+            <description>Ethernet Header with 3 VLANs (use Inner_VLAN/Middle_VLAN/Outer_VLAN for packet compose)</description>
+            <next-header field="ETH3.Type" options="ETH_Next_Protocol"/>
+        </object>
+        <object name="ARP" size="224">
+            <description>ARP Header</description>
+        </object>
+        <object name="MPLS" size="32">
+            <description>MPLS/PWE header</description>
+            <extension name="MPLS">
+                <condition type="field" mode="enable">
+                    <enable val="0" />
+                    <field path="MPLS.BOS" />
+                </condition>
+            </extension>
+            <extension name="MPLS_Next_Proto">
+                <condition type="field" mode="enable">
+                    <enable val="1" />
+                    <field path="MPLS.BOS" />
+                </condition>
+            </extension>
+        </object>
+        <object name="MPLS_Next_Proto" size="320" plugin="2nd_parser" structure="Invalid"/>
+        <object name="GACH" size="32">
+            <description>G-ACH Control word</description>
+            <next-header field="GACH.Channel" options="GACH_Next_Protocol"/>
+        </object>
+        <object name="Control_Word" size="32">
+            <description>PWE Control word</description>
+            <extension name="ETH"/>
+        </object>
+        <object name="BIER" size="320">
+            <description>Bier(MPLS) header</description>
+            <next-header field="BIER.Proto" options="BIER_Next_Protocol"/>
+        </object>
+        <object name="IPv4" size="480" plugin="ipv4_parser">
+            <description>IPv4 Header (Use IPv4_base for packet compose)</description>
+            <next-header field="IPv4.Protocol" options="IPV4_Next_Protocol"/>
+            <post-compose plugin="ipv4_post_processing"/>
+        </object>
+        <object name="IPv6" size="320">
+            <description>IPv6 Header</description>
+            <next-header field="IPv6.Next_Header" options="IPV6_Next_Protocol"/>
+        </object>
+        <object name="IPv6_EXT" size="1024" plugin="ipv6_ext_parser">
+            <description>IPv6-Extension header - Hop-By-Hop, Auth, Destination Options, Mobility Header, HIP, Shim6, 253, 254</description>
+            <next-header field="IPv6_EXT.Next_Header" options="IPV6_Next_Protocol"/>
+        </object>
+        <object name="IPv6_Fragment" size="64">
+            <description>IPv6-Fragment header</description>
+            <extension name="TCP">
+                <condition type="field" mode="enable">
+                    <enable val="6" />
+                    <field path="IPv6_Fragment.Next_Header"/>
+                </condition>
+                <condition type="field" mode="enable">
+                    <enable val="0" />
+                    <field path="IPv6_Fragment.Fragment_Offset" />
+                </condition>
+            </extension>
+            <extension name="UDP">
+                <condition type="field" mode="enable">
+                    <enable val="17" />
+                    <field path="IPv6_Fragment.Next_Header"/>
+                </condition>
+                <condition type="field" mode="enable">
+                    <enable val="0" />
+                    <field path="IPv6_Fragment.Fragment_Offset" />
+                </condition>
+            </extension>
+        </object>
+        <object name="TCP" size="160" structure="TCP">
+            <description>TCP Header</description>
+        </object>
+        <object name="SCTP" size="96" structure="SCTP">
+            <description>SCTP Header</description>
+        </object>        
+        <object name="UDP" size="64" structure="UDP">
+            <description>UDP Header</description>
+            <next-header field="UDP.Dst_Port" options="UDP_Applications"/>
+        </object>
+        <object name="GRE" size="32" structure="GRE">
+            <description>GRE header</description>
+            <next-header field="GRE.Protocol" options="ETH_Next_Protocol"/>
+        </object>
+        <object name="SRv6" size="1472" plugin="srv6_parser" structure="Invalid">
+            <description>SRv6 Header</description>
+           <next-header field="SRv6.Next_Header" options="IPV6_Next_Protocol"/>
+        </object>
+        <object name="BFD" size="192" structure="BFD">
+            <description>BFD PDU</description>
+        </object>
+        <object name="VXLAN" size="64" structure="VXLAN">
+            <description>VXLAN Header</description>
+            <extension name="ETH"/>
+        </object>
+        <object name="VXLAN_GPE" size="64" structure="VXLAN_GPE">
+            <description>VXLAN Header</description>
+            <extension name="ETH">
+                <condition type="field" mode="enable">
+                    <enable val="0" />
+                    <field path="VXLAN_GPE.GPE_Flags.P"/>
+                </condition>
+            </extension>
+            <extension name="IPv4">
+                <condition type="field" mode="enable">
+                    <enable val="1" />
+                    <field path="VXLAN_GPE.GPE_Flags.P"/>
+                </condition>
+                <condition type="field" mode="enable">
+                    <enable val="0x1" />
+                    <field path="VXLAN_GPE.GPE_Next_Protocol"/>
+                </condition>
+            </extension>
+            <extension name="IPv6">
+                <condition type="field" mode="enable">
+                    <enable val="1" />
+                    <field path="VXLAN_GPE.GPE_Flags.P"/>
+                </condition>
+                <condition type="field" mode="enable">
+                    <enable val="0x2" />
+                    <field path="VXLAN_GPE.GPE_Next_Protocol"/>
+                </condition>
+            </extension>
+            <extension name="ETH">
+                <condition type="field" mode="enable">
+                    <enable val="1" />
+                    <field path="VXLAN_GPE.GPE_Flags.P"/>
+                </condition>
+                <condition type="field" mode="enable">
+                    <enable val="0x3" />
+                    <field path="VXLAN_GPE.GPE_Next_Protocol"/>
+                </condition>
+            </extension>
+            <extension name="MPLS">
+                <condition type="field" mode="enable">
+                    <enable val="1" />
+                    <field path="VXLAN_GPE.GPE_Flags.P"/>
+                </condition>
+                <condition type="field" mode="enable">
+                    <enable val="0x5" />
+                    <field path="VXLAN_GPE.GPE_Next_Protocol"/>
+                </condition>
+            </extension>
+        </object>
+        <object name="ETH_OAM" size="600" structure="ETH_OAM">
+            <description>Y.1731 over ETH PDU</description>
+        </object>
+        <object name="IEEE_1588" size="272">
+            <description>PTP over ETH Header (IEEE 1588)</description>
+        </object>
+    </parsing-objects>
+    <next-headers>
+        <next-header-options name="ETH_Next_Protocol">
+            <option object="ARP"      val="0x0806"/>
+            <option object="MPLS"     val="0x8847"/>
+            <option object="MPLS"     val="0x8848"/>
+            <option object="IPv4"     val="0x0800"/>
+            <option object="IPv6"     val="0x86dd"/>
+            <option object="ETH_OAM"  val="0x8902"/>
+            <option object="IEEE_1588" val="0x88f7"/>
+        </next-header-options>
+        <next-header-options name="IPV4_Next_Protocol">
+            <option object="SCTP"             val="0x84"/>
+            <option object="UDP"              val="0x11"/>
+            <option object="GRE"              val="0x2f"/>
+            <option object="TCP"              val="0x06"/>
+            <option object="IPv4"             val="0x04"/>
+            <option object="IPv6"             val="0x29"/>
+            <option object="SRv6"             val="0x2B"/>
+        </next-header-options>        
+        <next-header-options name="IPV6_Next_Protocol">
+            <option object="SCTP"             val="0x84"/>
+            <option object="UDP"              val="0x11"/>
+            <option object="GRE"              val="0x2f"/>
+            <option object="TCP"              val="0x06"/>
+            <option object="IPv4"             val="0x04"/>
+            <option object="IPv6"             val="0x29"/>
+            <option object="SRv6"             val="0x2B"/>
+            <option object="IPv6_EXT"         val="0x00"/>
+            <option object="IPv6_Fragment"    val="0x2C"/>
+            <option object="IPv6_EXT"         val="0x33"/>
+            <option object="IPv6_EXT"         val="0x3C"/>
+            <option object="IPv6_EXT"         val="0x87"/>
+            <option object="IPv6_EXT"         val="0x8B"/>
+            <option object="IPv6_EXT"         val="0x8C"/>
+<!--
+Currently not supporting the parsing of the experimentation and testing tags: 253,254
+                    object="IPv6_EXT"         val="0xFD"
+                    object="IPv6_EXT"         val="0xFE"
+-->
+        </next-header-options>
+        <next-header-options name="UDP_Applications">
+            <option object="BFD"       val="3784"/>
+            <option object="MPLS"      val="6635"/>
+            <option object="VXLAN"     val="4789"/>
+            <option object="VXLAN"     val="0x5555"/>
+            <option object="VXLAN_GPE" val="4790"/>
+        </next-header-options>
+        <next-header-options name="BIER_Next_Protocol">
+            <option object="MPLS" val="1"/>
+            <option object="MPLS" val="2"/>
+            <option object="ETH"  val="3"/>
+            <option object="IPv4" val="4"/>
+            <option object="OAM"  val="5"/>
+            <option object="IPv6" val="6"/>
+        </next-header-options>
+        <next-header-options name="GACH_Next_Protocol">
+            <option object="ETH_OAM" val="0x8902"/>
+            <option object="BFD"     val="0x0007"/>
+        </next-header-options>
+    </next-headers>
+</top>

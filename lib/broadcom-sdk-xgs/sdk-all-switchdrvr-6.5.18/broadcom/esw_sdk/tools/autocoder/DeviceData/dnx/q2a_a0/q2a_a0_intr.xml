@@ -1,0 +1,546 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0"  module="intr">
+    <includes>
+        <include>soc/dnx/intr/auto_generated/q2a/q2a_intr.h</include>
+        <include>soc/mcm/allenum.h</include>
+        <include>soc/dnxc/dnxc_intr_corr_act_func.h</include>
+    </includes>
+    
+    <sub_module name="general">
+
+        <features>
+        </features>
+        
+        <defines>
+        </defines>
+
+        <numerics>
+             <numeric name="nof_interrupts" value="Q2A_INT_LAST"></numeric>
+        </numerics>
+
+        <tables>
+            <table name="active_on_init">
+                <!-- key size must change if entries changed -->
+                <key name="offset" size="258"></key>
+                <value name="intr" default="INVALIDr"></value>
+                <entries>
+                    <!-- vector interrupt ident -->
+                    <entry offset="0" intr="Q2A_INT_OCB_ERROR_ECC"></entry>
+                    <entry offset="1" intr="Q2A_INT_OCB_ERROR_FBC_BANK"></entry>
+                    <entry offset="2" intr="Q2A_INT_OLP_ERROR_ECC"></entry>
+                    <entry offset="3" intr="Q2A_INT_EPRE_ERROR_ECC"></entry>
+                    <entry offset="4" intr="Q2A_INT_SPB_ERROR_ECC"></entry>
+                    <entry offset="5" intr="Q2A_INT_SPB_ERROR_REASSEMBLY"></entry>
+                    <entry offset="6" intr="Q2A_INT_SPB_ERROR_FIFO"></entry>
+                    <entry offset="7" intr="Q2A_INT_PQP_ERROR_ECC"></entry>
+                    <entry offset="8" intr="Q2A_INT_FSAR_ERROR_ECC"></entry>
+                    <entry offset="9" intr="Q2A_INT_DDHB_ERROR_ECC"></entry>
+                    <entry offset="10" intr="Q2A_INT_ETPPA_ERROR_ECC"></entry>
+                    <entry offset="11" intr="Q2A_INT_ETPPA_ETPP_PRP_INT_VEC"></entry>
+                    <entry offset="12" intr="Q2A_INT_ETPPA_ETPPA_INT_VEC"></entry>
+                    <entry offset="13" intr="Q2A_INT_BDM_ERROR_ECC"></entry>
+                    <entry offset="14" intr="Q2A_INT_ILU_ERROR_ECC"></entry>
+                    <entry offset="15" intr="Q2A_INT_ERPP_ERROR_ECC"></entry>
+                    <entry offset="16" intr="Q2A_INT_ERPP_ERPP_DISCARD_INT_VEC"></entry>
+                    <entry offset="17" intr="Q2A_INT_ERPP_ERPP_DISCARD_INT_VEC_2"></entry>
+                    <entry offset="18" intr="Q2A_INT_IPT_ERROR_ECC"></entry>
+                    <entry offset="19" intr="Q2A_INT_IPT_ERROR_FIFOS"></entry>
+                    <entry offset="20" intr="Q2A_INT_IPT_ERROR_ITE"></entry>
+                    <entry offset="21" intr="Q2A_INT_EVNT_ERROR_ECC"></entry>
+                    <entry offset="22" intr="Q2A_INT_EVNT_EVENTOR_INTERRUPT"></entry>
+                    <entry offset="23" intr="Q2A_INT_TCAM_ERROR_ECC"></entry>
+                    <entry offset="24" intr="Q2A_INT_ITPPD_ERROR_ECC"></entry>
+                    <entry offset="25" intr="Q2A_INT_TDU_ERROR_ECC"></entry>
+                    <entry offset="26" intr="Q2A_INT_CFC_ERROR_ECC"></entry>
+                    <entry offset="27" intr="Q2A_INT_IPPC_ERROR_ECC"></entry>
+                    <entry offset="28" intr="Q2A_INT_FASIC_ERROR_ECC"></entry>
+                    <entry offset="29" intr="Q2A_INT_IPPF_ERROR_ECC"></entry>
+                    <entry offset="30" intr="Q2A_INT_SQM_ERROR_ECC"></entry>
+                    <entry offset="31" intr="Q2A_INT_SQM_TX_FIFOS_ERR_INT"></entry>
+                    <entry offset="32" intr="Q2A_INT_IPPE_ERROR_ECC"></entry>
+                    <entry offset="33" intr="Q2A_INT_FSCL_ERROR_ECC"></entry>
+                    <entry offset="34" intr="Q2A_INT_CDU_ERROR_ECC"></entry>
+                    <entry offset="35" intr="Q2A_INT_CDU_NBI_PKT_DROP_COUNTERS_0_75P_INTERRUPT"></entry>
+                    <entry offset="36" intr="Q2A_INT_CDU_LINK_STATUS_CHANGE_INT"></entry>
+                    <entry offset="37" intr="Q2A_INT_ETPPC_ERROR_ECC"></entry>
+                    <entry offset="38" intr="Q2A_INT_ETPPC_ETPP_TERM_INT_VEC"></entry>
+                    <entry offset="39" intr="Q2A_INT_ETPPC_ETPPC_INT_VEC"></entry>
+                    <entry offset="40" intr="Q2A_INT_CGM_ERROR_ECC"></entry>
+                    <entry offset="41" intr="Q2A_INT_CGM_VOQ_OCCUPANCY_ERR_INT"></entry>
+                    <entry offset="42" intr="Q2A_INT_CGM_VSQ_OCCUPANCY_ERR_INT"></entry>
+                    <entry offset="43" intr="Q2A_INT_CGM_VOQ_TOTAL_OCCUPANCY_ERR_INT"></entry>
+                    <entry offset="44" intr="Q2A_INT_CGM_VSQ_TOTAL_OCCUPANCY_ERR_INT"></entry>
+                    <entry offset="45" intr="Q2A_INT_CGM_CONGESTION_INT"></entry>
+                    <entry offset="46" intr="Q2A_INT_CGM_LOW_PRIORITY_INT"></entry>
+                    <entry offset="47" intr="Q2A_INT_OAMP_ERROR_ECC"></entry>
+                    <entry offset="48" intr="Q2A_INT_FQP_ERROR_ECC"></entry>
+                    <entry offset="49" intr="Q2A_INT_SCH_ERROR_ECC"></entry>
+                    <entry offset="50" intr="Q2A_INT_ETPPB_ERROR_ECC"></entry>
+                    <entry offset="51" intr="Q2A_INT_ETPPB_BTC_INT_VEC"></entry>
+                    <entry offset="52" intr="Q2A_INT_ETPPB_ETPPB_INT_VEC"></entry>
+                    <entry offset="53" intr="Q2A_INT_MTM_ERROR_ECC"></entry>
+                    <entry offset="54" intr="Q2A_INT_IQM_ERROR_ECC"></entry>
+                    <entry offset="55" intr="Q2A_INT_FEU_ERROR_ECC"></entry>
+                    <entry offset="56" intr="Q2A_INT_FEU_NBI_PKT_DROP_COUNTERS_0_75P_INTERRUPT"></entry>
+                    <entry offset="57" intr="Q2A_INT_FEU_LINK_STATUS_CHANGE_INT"></entry>
+                    <entry offset="58" intr="Q2A_INT_IRE_ERROR_ECC"></entry>
+                    <entry offset="59" intr="Q2A_INT_IRE_RCY_INTERFACE_ERROR"></entry>
+                    <entry offset="60" intr="Q2A_INT_IRE_INTERNAL_INTERFACE_ERROR"></entry>
+                    <entry offset="61" intr="Q2A_INT_IRE_NIF_ERROR"></entry>
+                    <entry offset="62" intr="Q2A_INT_IPS_ERROR_ECC"></entry>
+                    <entry offset="63" intr="Q2A_INT_IPS_ACTIVE_QUEUE_COUNT_ERR_INT"></entry>
+                    <entry offset="64" intr="Q2A_INT_KAPS_ERROR_ECC"></entry>
+                    <entry offset="65" intr="Q2A_INT_IPPD_ERROR_ECC"></entry>
+                    <entry offset="66" intr="Q2A_INT_EDB_ERROR_ECC"></entry>
+                    <entry offset="67" intr="Q2A_INT_PDM_ERROR_ECC"></entry>
+                    <entry offset="68" intr="Q2A_INT_SIF_ERROR_ECC"></entry>
+                    <entry offset="69" intr="Q2A_INT_SIF_STATISTICS_BILLING_FIFOS_ERR_INT"></entry>
+                    <entry offset="70" intr="Q2A_INT_SIF_STATISTICS_QSIZE_FIFOS_ERR_INT"></entry>
+                    <entry offset="71" intr="Q2A_INT_SIF_STATISTICS_BILLING_OPCODE_ERR_INT"></entry>
+                    <entry offset="72" intr="Q2A_INT_FLEXEWP_ERROR_ECC"></entry>
+                    <entry offset="73" intr="Q2A_INT_ECGM_ERROR_ECC"></entry>
+                    <entry offset="74" intr="Q2A_INT_ECGM_CGM_REP_AROUND_INT_VEC"></entry>
+                    <entry offset="75" intr="Q2A_INT_MACT_ERROR_ECC"></entry>
+                    <entry offset="76" intr="Q2A_INT_MACT_LOCAL_MACT_INT"></entry>
+                    <entry offset="77" intr="Q2A_INT_EPNI_ERROR_ECC"></entry>
+                    <entry offset="78" intr="Q2A_INT_DDP_ERROR_ECC"></entry>
+                    <entry offset="79" intr="Q2A_INT_DDP_ERROR_EXTERNAL_MEM"></entry>
+                    <entry offset="80" intr="Q2A_INT_DDP_ERROR_ITE"></entry>
+                    <entry offset="81" intr="Q2A_INT_PEM_ERROR_ECC"></entry>
+                    <entry offset="82" intr="Q2A_INT_CRPS_ERROR_ECC"></entry>
+                    <entry offset="83" intr="Q2A_INT_CRPS_ERROR_LM_COLLIDE"></entry>
+                    <entry offset="84" intr="Q2A_INT_CRPS_ERROR_COUNTER_OVF"></entry>
+                    <entry offset="85" intr="Q2A_INT_CRPS_DMA_0_FULLNESS_EVENT"></entry>
+                    <entry offset="86" intr="Q2A_INT_CRPS_DMA_1_FULLNESS_EVENT"></entry>
+                    <entry offset="87" intr="Q2A_INT_CRPS_CONDITIONAL_TRIGGER_OCCURED"></entry>
+                    <entry offset="88" intr="Q2A_INT_CRPS_CONDITIONAL_TRIGGER_WHILE_FIFO_IS_FULL"></entry>
+                    <entry offset="89" intr="Q2A_INT_IPPA_ERROR_ECC"></entry>
+                    <entry offset="90" intr="Q2A_INT_ITPP_ERROR_ECC"></entry>
+                    <entry offset="91" intr="Q2A_INT_MRPS_ERROR_ECC"></entry>
+                    <entry offset="92" intr="Q2A_INT_MRPS_INGRESS_ENG_WRAP_ERR_INT"></entry>
+                    <entry offset="93" intr="Q2A_INT_MRPS_EGRESS_ENG_WRAP_ERR_INT"></entry>
+                    <entry offset="94" intr="Q2A_INT_MRPS_INGRESS_ENG_OOP_FIFO_NOT_EMPTY_INT"></entry>
+                    <entry offset="95" intr="Q2A_INT_MRPS_EGRESS_ENG_OOP_FIFO_NOT_EMPTY_INT"></entry>
+                    <entry offset="96" intr="Q2A_INT_ESB_ERROR_ECC"></entry>
+                    <entry offset="97" intr="Q2A_INT_DDHA_ERROR_ECC"></entry>
+                    <entry offset="98" intr="Q2A_INT_EPS_ERROR_ECC"></entry>
+                    <entry offset="99" intr="Q2A_INT_IPPB_ERROR_ECC"></entry>
+                    <entry offset="100" intr="Q2A_INT_IPPB_LEL_INTERRUPT_REGISTER_ONE"></entry>
+                    <entry offset="101" intr="Q2A_INT_CLU_ERROR_ECC"></entry>
+                    <entry offset="102" intr="Q2A_INT_CLU_NBI_PKT_DROP_COUNTERS_0_75P_INTERRUPT"></entry>
+                    <entry offset="103" intr="Q2A_INT_CLU_LINK_STATUS_CHANGE_INT"></entry>
+                    <entry offset="104" intr="Q2A_INT_DQM_ERROR_ECC"></entry>
+                    <entry offset="105" intr="Q2A_INT_DQM_TX_FIFOS_ERR_INT"></entry>
+                    <entry offset="106" intr="Q2A_INT_RQP_ERROR_ECC"></entry>
+                    <entry offset="107" intr="Q2A_INT_MCP_ERROR_ECC"></entry>
+                    <entry offset="108" intr="Q2A_INT_ECI_ERROR_ECC"></entry>
+                    <entry offset="109" intr="Q2A_INT_ILE_ERROR_ECC"></entry>
+                    <entry offset="110" intr="Q2A_INT_MDB_ERROR_ECC"></entry>
+
+                    <!-- Parity -->
+                    <entry offset="111" intr="Q2A_INT_SPB_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="112" intr="Q2A_INT_ETPPA_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="113" intr="Q2A_INT_ILU_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="114" intr="Q2A_INT_ERPP_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="115" intr="Q2A_INT_IPPC_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="116" intr="Q2A_INT_IPPF_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="117" intr="Q2A_INT_IPPE_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="118" intr="Q2A_INT_CDU_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="119" intr="Q2A_INT_ETPPC_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="120" intr="Q2A_INT_SCH_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="121" intr="Q2A_INT_ETPPB_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="122" intr="Q2A_INT_FEU_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="123" intr="Q2A_INT_IRE_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="124" intr="Q2A_INT_IPPD_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="125" intr="Q2A_INT_IPPA_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="126" intr="Q2A_INT_IPPB_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="127" intr="Q2A_INT_CLU_ECC_PARITY_ERR_INT"></entry>
+                    <entry offset="128" intr="Q2A_INT_MDB_ECC_PARITY_ERR_INT"></entry>
+
+                    <!-- 1 bit Ecc -->
+                    <entry offset="129" intr="Q2A_INT_OCB_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="130" intr="Q2A_INT_OLP_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="131" intr="Q2A_INT_EPRE_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="132" intr="Q2A_INT_SPB_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="133" intr="Q2A_INT_PQP_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="134" intr="Q2A_INT_FSAR_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="135" intr="Q2A_INT_DDHB_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="136" intr="Q2A_INT_ETPPA_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="137" intr="Q2A_INT_BDM_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="138" intr="Q2A_INT_ILU_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="139" intr="Q2A_INT_ERPP_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="140" intr="Q2A_INT_IPT_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="141" intr="Q2A_INT_EVNT_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="142" intr="Q2A_INT_TCAM_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="143" intr="Q2A_INT_ITPPD_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="144" intr="Q2A_INT_TDU_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="145" intr="Q2A_INT_CFC_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="146" intr="Q2A_INT_IPPC_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="147" intr="Q2A_INT_FASIC_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="148" intr="Q2A_INT_IPPF_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="149" intr="Q2A_INT_SQM_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="150" intr="Q2A_INT_IPPE_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="151" intr="Q2A_INT_FSCL_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="152" intr="Q2A_INT_CDU_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="153" intr="Q2A_INT_ETPPC_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="154" intr="Q2A_INT_CGM_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="155" intr="Q2A_INT_OAMP_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="156" intr="Q2A_INT_FQP_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="157" intr="Q2A_INT_SCH_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="158" intr="Q2A_INT_ETPPB_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="159" intr="Q2A_INT_MTM_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="160" intr="Q2A_INT_IQM_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="161" intr="Q2A_INT_FEU_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="162" intr="Q2A_INT_IRE_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="163" intr="Q2A_INT_IPS_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="164" intr="Q2A_INT_KAPS_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="165" intr="Q2A_INT_IPPD_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="166" intr="Q2A_INT_EDB_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="167" intr="Q2A_INT_PDM_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="168" intr="Q2A_INT_SIF_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="169" intr="Q2A_INT_FLEXEWP_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="170" intr="Q2A_INT_ECGM_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="171" intr="Q2A_INT_MACT_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="172" intr="Q2A_INT_EPNI_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="173" intr="Q2A_INT_DDP_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="174" intr="Q2A_INT_PEM_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="175" intr="Q2A_INT_CRPS_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="176" intr="Q2A_INT_IPPA_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="177" intr="Q2A_INT_ITPP_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="178" intr="Q2A_INT_MRPS_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="179" intr="Q2A_INT_ESB_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="180" intr="Q2A_INT_DDHA_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="181" intr="Q2A_INT_EPS_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="182" intr="Q2A_INT_IPPB_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="183" intr="Q2A_INT_CLU_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="184" intr="Q2A_INT_DQM_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="185" intr="Q2A_INT_RQP_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="186" intr="Q2A_INT_MCP_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="187" intr="Q2A_INT_ECI_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="188" intr="Q2A_INT_ILE_ECC_ECC_1B_ERR_INT"></entry>
+                    <entry offset="189" intr="Q2A_INT_MDB_ECC_ECC_1B_ERR_INT"></entry>
+
+                    <!-- 2bit ECC -->
+                    <entry offset="190" intr="Q2A_INT_OCB_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="191" intr="Q2A_INT_OLP_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="192" intr="Q2A_INT_EPRE_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="193" intr="Q2A_INT_SPB_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="194" intr="Q2A_INT_PQP_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="195" intr="Q2A_INT_FSAR_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="196" intr="Q2A_INT_DDHB_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="197" intr="Q2A_INT_ETPPA_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="198" intr="Q2A_INT_BDM_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="199" intr="Q2A_INT_ILU_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="200" intr="Q2A_INT_ERPP_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="201" intr="Q2A_INT_IPT_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="202" intr="Q2A_INT_EVNT_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="203" intr="Q2A_INT_TCAM_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="204" intr="Q2A_INT_ITPPD_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="205" intr="Q2A_INT_TDU_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="206" intr="Q2A_INT_CFC_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="207" intr="Q2A_INT_IPPC_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="208" intr="Q2A_INT_FASIC_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="209" intr="Q2A_INT_IPPF_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="210" intr="Q2A_INT_SQM_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="211" intr="Q2A_INT_IPPE_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="212" intr="Q2A_INT_FSCL_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="213" intr="Q2A_INT_CDU_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="214" intr="Q2A_INT_ETPPC_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="215" intr="Q2A_INT_CGM_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="216" intr="Q2A_INT_OAMP_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="217" intr="Q2A_INT_FQP_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="218" intr="Q2A_INT_SCH_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="219" intr="Q2A_INT_ETPPB_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="220" intr="Q2A_INT_MTM_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="221" intr="Q2A_INT_IQM_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="222" intr="Q2A_INT_FEU_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="223" intr="Q2A_INT_IRE_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="224" intr="Q2A_INT_IPS_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="225" intr="Q2A_INT_KAPS_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="226" intr="Q2A_INT_IPPD_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="227" intr="Q2A_INT_EDB_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="228" intr="Q2A_INT_PDM_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="229" intr="Q2A_INT_SIF_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="230" intr="Q2A_INT_FLEXEWP_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="231" intr="Q2A_INT_ECGM_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="232" intr="Q2A_INT_MACT_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="233" intr="Q2A_INT_EPNI_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="234" intr="Q2A_INT_DDP_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="235" intr="Q2A_INT_PEM_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="236" intr="Q2A_INT_CRPS_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="237" intr="Q2A_INT_IPPA_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="238" intr="Q2A_INT_ITPP_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="239" intr="Q2A_INT_MRPS_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="240" intr="Q2A_INT_ESB_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="241" intr="Q2A_INT_DDHA_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="242" intr="Q2A_INT_EPS_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="243" intr="Q2A_INT_IPPB_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="244" intr="Q2A_INT_CLU_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="245" intr="Q2A_INT_DQM_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="246" intr="Q2A_INT_RQP_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="247" intr="Q2A_INT_MCP_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="248" intr="Q2A_INT_ECI_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="249" intr="Q2A_INT_ILE_ECC_ECC_2B_ERR_INT"></entry>
+                    <entry offset="250" intr="Q2A_INT_MDB_ECC_ECC_2B_ERR_INT"></entry>
+
+                    <!-- Tcam protection error Mechanism -->
+                    <entry offset="251" intr="Q2A_INT_TCAM_TCAM_PROTECTION_ERROR_1_BIT_ECC"></entry>
+                    <entry offset="252" intr="Q2A_INT_TCAM_TCAM_PROTECTION_ERROR_2_BIT_ECC"></entry>
+                    <!-- Buffers Quarantine Mechanism -->
+                    <entry offset="253" intr="Q2A_INT_DDP_DELETE_BDB_FIFO_NOT_EMPTY"></entry>
+                    <entry offset="254" intr="Q2A_INT_DDP_DELETE_BDB_FIFO_FULL"></entry>
+                    <!-- ILKN link status -->
+                    <entry offset="255" intr="Q2A_INT_ILE_ILKN_RX_PORT_0_STATUS_CHANGE_INT"></entry>
+                    <entry offset="256" intr="Q2A_INT_ILE_ILKN_RX_PORT_1_STATUS_CHANGE_INT"></entry>
+                    <!-- must be last -->
+                    <entry offset="257" intr="INVALIDr"></entry>
+                </entries>
+            </table>
+
+            <table name="disable_on_init">
+                <!-- key size must change if entries changed -->
+                <key name="offset" size="1"></key>
+                <value name="intr" default="INVALIDr"></value>
+                <entries>
+                    <!-- must be last -->
+                    <entry offset="0" intr="INVALIDr"></entry>
+                </entries>
+            </table>
+
+            <table name="disable_print_on_init">
+                <!-- key size must change if entries changed -->
+                <key name="offset" size="5"></key>
+                <value name="intr" default="INVALIDr"></value>
+                <entries>
+                    <entry offset="0" intr="Q2A_INT_OAMP_PENDING_EVENT"></entry>
+                    <entry offset="1" intr="Q2A_INT_OAMP_STAT_PENDING_EVENT"></entry>
+                    <entry offset="2" intr="Q2A_INT_ILE_ILKN_RX_PORT_0_STATUS_CHANGE_INT"></entry>
+                    <entry offset="3" intr="Q2A_INT_ILE_ILKN_RX_PORT_1_STATUS_CHANGE_INT"></entry>                    
+                    <!-- must be last -->
+                    <entry offset="4" intr="INVALIDr"></entry>
+                </entries>
+            </table>
+
+            <table name="block_intr_field_mapping">                
+                <!-- key size must change if entries changed -->
+                <key name="offset" size="2048"></key>
+                <value name="intr" default="INVALIDr"></value>
+                <entries>
+                    <entry offset="248" intr="BDM_0_INTERRUPTf"></entry>
+                    <!-- ignore block CDMAC -->
+                    <!-- entry offset="1072" intr="INVALIDr"></entry> -->
+                    <!-- entry offset="1088" intr="INVALIDf"></entry> -->
+                    <entry offset="1072" intr="CDU_0_PM_INTERRUPTf"></entry>
+                    <entry offset="1088" intr="CDU_1_PM_INTERRUPTf"></entry>
+                    <entry offset="508" intr="CDU_0_INTERRUPTf"></entry>
+                    <entry offset="504" intr="CDU_1_INTERRUPTf"></entry>
+                    <entry offset="100" intr="CFC_0_INTERRUPTf"></entry>
+                    <entry offset="220" intr="CGM_0_INTERRUPTf"></entry>
+                    <!-- ignore block CLMAC -->
+                    <!-- entry offset="1136" intr="INVALIDf"></entry> -->
+                    <!-- entry offset="1152" intr="INVALIDf"></entry> -->
+                    <!-- entry offset="1168" intr="INVALIDf"></entry> -->
+                    <!-- entry offset="1184" intr="INVALIDf"></entry> -->
+                    <!-- entry offset="1200" intr="INVALIDf"></entry> -->
+                    <!-- entry offset="1216" intr="INVALIDf"></entry> -->
+                    <!-- entry offset="1232" intr="INVALIDf"></entry> -->
+                    <!-- entry offset="1248" intr="INVALIDf"></entry> -->
+                    <!-- entry offset="1264" intr="INVALIDf"></entry> -->
+                    <entry offset="1136" intr="CLUP_0_PM_0_INTERRUPTf"></entry>
+                    <entry offset="1152" intr="CLUP_0_PM_1_INTERRUPTf"></entry>
+                    <entry offset="1168" intr="CLUP_0_PM_2_INTERRUPTf"></entry>
+                    <entry offset="1184" intr="CLUP_1_PM_0_INTERRUPTf"></entry>
+                    <entry offset="1200" intr="CLUP_1_PM_1_INTERRUPTf"></entry>
+                    <entry offset="1216" intr="CLUP_1_PM_2_INTERRUPTf"></entry>
+                    <entry offset="1232" intr="CLUP_2_PM_0_INTERRUPTf"></entry>
+                    <entry offset="1248" intr="CLUP_2_PM_1_INTERRUPTf"></entry>
+                    <entry offset="1264" intr="CLUP_2_PM_2_INTERRUPTf"></entry>
+                    <entry offset="544" intr="CLU_0_INTERRUPTf"></entry>
+                    <entry offset="548" intr="CLU_1_INTERRUPTf"></entry>
+                    <entry offset="552" intr="CLU_2_INTERRUPTf"></entry>
+                    <entry offset="556" intr="CLUP_0_INTERRUPTf"></entry>
+                    <entry offset="560" intr="CLUP_1_INTERRUPTf"></entry>
+                    <entry offset="564" intr="CLUP_2_INTERRUPTf"></entry>
+                    <!-- ignore block CMIC -->
+                    <!-- entry offset="7" intr="INVALIDf"></entry> -->
+                    <entry offset="256" intr="CRPS_0_INTERRUPTf"></entry>
+                    <entry offset="216" intr="DCC_0_INTERRUPTf"></entry>
+                    <entry offset="217" intr="DCC_1_INTERRUPTf"></entry>
+                    <entry offset="218" intr="DCC_2_INTERRUPTf"></entry>
+                    <entry offset="219" intr="DCC_3_INTERRUPTf"></entry>
+                    <entry offset="320" intr="DDHA_0_INTERRUPTf"></entry>
+                    <!-- FIXME DDHB_0 DDHB_0_PM_INTERRUPT ???-->
+                    <entry offset="305" intr="DDHB_0_INTERRUPTf"></entry>
+                    <entry offset="308" intr="DDHB_1_INTERRUPTf"></entry>
+                    <entry offset="312" intr="DDHB_2_INTERRUPTf"></entry>
+                    <entry offset="316" intr="DDHB_3_INTERRUPTf"></entry>
+                    <entry offset="176" intr="DDP_0_INTERRUPTf"></entry>
+                    <entry offset="212" intr="DPC_0_INTERRUPTf"></entry>
+                    <entry offset="213" intr="DPC_1_INTERRUPTf"></entry>
+                    <entry offset="228" intr="DQM_0_INTERRUPTf"></entry>
+                    <entry offset="108" intr="ECGM_0_INTERRUPTf"></entry>
+                    <entry offset="0" intr="ECI_INTERRUPTf"></entry>
+                    <entry offset="113" intr="EDB_0_INTERRUPTf"></entry>
+                    <entry offset="160" intr="EPNI_0_INTERRUPTf"></entry>
+                    <entry offset="164" intr="EPRE_0_INTERRUPTf"></entry>
+                    <entry offset="124" intr="EPS_0_INTERRUPTf"></entry>
+                    <entry offset="284" intr="ERPP_0_INTERRUPTf"></entry>
+                    <entry offset="168" intr="ESB_0_INTERRUPTf"></entry>
+                    <entry offset="132" intr="ETPPA_0_INTERRUPTf"></entry>
+                    <entry offset="152" intr="ETPPB_0_INTERRUPTf"></entry>
+                    <entry offset="156" intr="ETPPC_0_INTERRUPTf"></entry>
+                    <entry offset="332" intr="EVNT_0_INTERRUPTf"></entry>
+                    <entry offset="540" intr="FASIC_0_INTERRUPTf"></entry>
+                    <entry offset="512" intr="FEU_0_INTERRUPTf"></entry>
+                    <entry offset="528" intr="FLEXEWP_0_INTERRUPTf"></entry>
+                    <!-- ignore block FPRD -->
+                    <!-- entry offset="516" intr="INVALIDf"></entry> -->
+                    <entry offset="128" intr="FQP_0_INTERRUPTf"></entry>
+                    <entry offset="536" intr="FSAR_0_INTERRUPTf"></entry>
+                    <entry offset="532" intr="FSCL_0_INTERRUPTf"></entry>
+                    <entry offset="568" intr="ILE_0_INTERRUPTf"></entry>
+                    <entry offset="572" intr="ILE_1_INTERRUPTf"></entry>
+                    <entry offset="576" intr="ILU_0_INTERRUPTf"></entry>
+                    <entry offset="580" intr="ILU_1_INTERRUPTf"></entry>
+                    <entry offset="276" intr="IPPA_0_INTERRUPTf"></entry>
+                    <entry offset="272" intr="IPPB_0_INTERRUPTf"></entry>
+                    <entry offset="264" intr="IPPC_0_INTERRUPTf"></entry>
+                    <entry offset="289" intr="IPPD_0_INTERRUPTf"></entry>
+                    <entry offset="280" intr="IPPE_0_INTERRUPTf"></entry>
+                    <entry offset="204" intr="IPPF_0_INTERRUPTf"></entry>
+                    <!-- ignore block IPROC -->
+                    <!-- entry offset="7" intr="INVALIDf"></entry> -->
+                    <entry offset="224" intr="IPS_0_INTERRUPTf"></entry>
+                    <entry offset="190" intr="IPT_0_INTERRUPTf"></entry>
+                    <entry offset="236" intr="IQM_0_INTERRUPTf"></entry>
+                    <entry offset="172" intr="IRE_0_INTERRUPTf"></entry>
+                    <entry offset="191" intr="ITPPB_0_INTERRUPTf"></entry>
+                    <entry offset="184" intr="ITPPA_0_INTERRUPTf"></entry>
+                    <entry offset="344" intr="KAPS_0_INTERRUPTf"></entry>
+                    <entry offset="336" intr="MACT_0_INTERRUPTf"></entry>
+                    <entry offset="260" intr="MCP_0_INTERRUPTf"></entry>
+                    <entry offset="324" intr="MDB_0_INTERRUPTf"></entry>
+                    <entry offset="1792" intr="MDB_ARM_INTERRUPTf"></entry>
+                    <entry offset="252" intr="MRPS_0_INTERRUPTf"></entry>
+                    <entry offset="104" intr="MTM_0_INTERRUPTf"></entry>
+                    <entry offset="520" intr="NMG_0_INTERRUPTf"></entry>
+                    <entry offset="328" intr="OAMP_0_INTERRUPTf"></entry>
+                    <entry offset="188" intr="OCB_0_INTERRUPTf"></entry>
+                    <entry offset="340" intr="OLP_0_INTERRUPTf"></entry>
+                    <entry offset="240" intr="PDM_0_INTERRUPTf"></entry>
+                    <entry offset="136" intr="PEM_0_INTERRUPTf"></entry>
+                    <entry offset="140" intr="PEM_1_INTERRUPTf"></entry>
+                    <entry offset="144" intr="PEM_2_INTERRUPTf"></entry>
+                    <entry offset="148" intr="PEM_3_INTERRUPTf"></entry>
+                    <entry offset="120" intr="PQP_0_INTERRUPTf"></entry>
+                    <entry offset="116" intr="RQP_0_INTERRUPTf"></entry>
+                    <entry offset="200" intr="SCH_0_INTERRUPTf"></entry>
+                    <entry offset="524" intr="SIF_0_INTERRUPTf"></entry>
+                    <entry offset="180" intr="SPB_0_INTERRUPTf"></entry>
+                    <entry offset="232" intr="SQM_0_INTERRUPTf"></entry>
+                    <entry offset="304" intr="KTM_0_INTERRUPTf"></entry>
+                    <entry offset="208" intr="TDU_0_INTERRUPTf"></entry>
+                </entries>
+            </table>
+
+        </tables>
+
+    </sub_module>
+    <sub_module name="ser">
+        <defines>
+            <define name="tcam_protection_issue" value="0"></define>
+        </defines>
+        <tables>
+            <table name="mem_mask">
+                <key name="index" size="6"></key>
+                <value name="reg" default="INVALIDr"></value>
+                <value name="field" default="INVALIDf"></value>
+                <value name="mode" default="dnxc_mem_mask_mode_none"></value>
+                <entries>
+                    <entry index="0" reg="FASIC_ECC_ERR_1B_MONITOR_MEM_MASKr" field="INVALIDf" mode="dnxc_mem_mask_mode_zero"></entry>
+                    <entry index="1" reg="FASIC_ECC_ERR_2B_MONITOR_MEM_MASKr" field="INVALIDf" mode="dnxc_mem_mask_mode_zero"></entry>
+                    <entry index="2" reg="FSAR_ECC_ERR_1B_MONITOR_MEM_MASKr" field="INVALIDf" mode="dnxc_mem_mask_mode_zero"></entry>
+                    <entry index="3" reg="FSAR_ECC_ERR_2B_MONITOR_MEM_MASKr" field="INVALIDf" mode="dnxc_mem_mask_mode_zero"></entry>
+                    <entry index="4" reg="FSCL_ECC_ERR_1B_MONITOR_MEM_MASKr" field="INVALIDf" mode="dnxc_mem_mask_mode_zero"></entry>
+                    <entry index="5" reg="FSCL_ECC_ERR_2B_MONITOR_MEM_MASKr" field="INVALIDf" mode="dnxc_mem_mask_mode_zero"></entry>
+                </entries>
+            </table>
+            <table name="xor_mem">
+                <key name="index" size="38"></key>
+                <value name="mem" default="INVALIDm"></value>
+                <value name="sram_banks_bits" default="0"></value>
+                <value name="entry_used_bits" default="0"></value>
+                <value name="flags" default="0"></value>
+                <entries>
+                     <!-- The last one, invalid -->
+                    <entry index="0"   mem="CGM_IPP_MAPm"                                   sram_banks_bits="1"  entry_used_bits="9"  flags="DNXC_XOR_MEMORY_FORCE_SEVERITY_FLAGS"></entry>
+                    <entry index="1"   mem="CGM_VOQ_VSQS_PRMSm"                             sram_banks_bits="1"  entry_used_bits="12" flags="0"></entry>
+                    <entry index="2"   mem="CGM_VOQ_DRAM_BOUND_PRMSm"                       sram_banks_bits="1"  entry_used_bits="5"  flags="0"></entry>
+                    <entry index="3"   mem="CGM_VOQ_DRAM_RECOVERY_PRMSm"                    sram_banks_bits="1"  entry_used_bits="5"  flags="0"></entry>
+                    <entry index="4"   mem="CGM_SYS_RED_QSIZE_RANGESm"                      sram_banks_bits="1"  entry_used_bits="5"  flags="0"></entry>
+                    <entry index="5"   mem="CGM_VOQ_DRAM_RECOVERY_CACHE_PRMSm"              sram_banks_bits="1"  entry_used_bits="5"  flags="0"></entry>
+                    <entry index="6"   mem="CGM_VOQ_GRNTD_PRMSm"                            sram_banks_bits="1"  entry_used_bits="5"  flags="0"></entry>
+                    <entry index="7"   mem="CGM_VOQ_PROFILESm"                              sram_banks_bits="1"  entry_used_bits="12" flags="0"></entry>
+                    <entry index="8"   mem="ECGM_QQST_TABLEm"                               sram_banks_bits="1"  entry_used_bits="6"  flags="0"></entry>
+                    <entry index="9"   mem="ECGM_QDCT_TABLEm"                               sram_banks_bits="1"  entry_used_bits="6"  flags="0"></entry>
+                    <entry index="10"  mem="ERPP_PER_PP_PORT_TABLEm"                        sram_banks_bits="1"  entry_used_bits="9"  flags="0"></entry>
+                    <entry index="11"  mem="ETPPA_LAYER_NWK_QOS_TABLEm"                     sram_banks_bits="1"  entry_used_bits="10" flags="0"></entry>
+                    <entry index="12"  mem="ETPPB_NEW_QOS_MAPm"                             sram_banks_bits="1"  entry_used_bits="10" flags="0"></entry>
+                    <entry index="13"  mem="ETPPB_QOS_DP_MAPm"                              sram_banks_bits="1"  entry_used_bits="10" flags="0"></entry>
+                    <entry index="14"  mem="ETPPB_EGRESS_MEMBERSHIPm"                       sram_banks_bits="1"  entry_used_bits="11" flags="0"></entry>
+                    <entry index="15"  mem="ETPPB_SOURCE_ADRS_MAP_0m"                       sram_banks_bits="1"  entry_used_bits="5"  flags="0"></entry>
+                    <entry index="16"  mem="ETPPB_SOURCE_ADRS_MAP_1m"                       sram_banks_bits="1"  entry_used_bits="5"  flags="0"></entry>
+                    <entry index="17"  mem="ETPPB_ENC_2_ARR_0_FORMAT_CONFIGURATION_TABLEm"  sram_banks_bits="1"  entry_used_bits="5"  flags="0"></entry>
+                    <entry index="18"  mem="ETPPB_ENC_3_ARR_0_FORMAT_CONFIGURATION_TABLEm"  sram_banks_bits="1"  entry_used_bits="5"  flags="0"></entry>
+                    <entry index="19"  mem="ETPPB_ENC_4_ARR_0_FORMAT_CONFIGURATION_TABLEm"  sram_banks_bits="1"  entry_used_bits="5"  flags="0"></entry>
+                    <entry index="20"  mem="ETPPB_ENC_5_ARR_0_FORMAT_CONFIGURATION_TABLEm"  sram_banks_bits="1"  entry_used_bits="5"  flags="0"></entry>
+                    <entry index="21"  mem="ETPPC_NEW_QOS_MAPm"                             sram_banks_bits="1"  entry_used_bits="10" flags="0"></entry>
+                    <entry index="22"  mem="ETPPC_PROTECTION_TABLEm"                        sram_banks_bits="1"  entry_used_bits="12" flags="0"></entry>
+                    <entry index="23"  mem="ETPPC_QOS_DP_MAPm"                              sram_banks_bits="1"  entry_used_bits="10" flags="0"></entry>
+                    <entry index="24"  mem="ETPPC_ENC_1_ARR_0_FORMAT_CONFIGURATION_TABLEm"  sram_banks_bits="1"  entry_used_bits="5"  flags="0"></entry>
+                    <entry index="25"  mem="MRPS_EGR_ENG_PRFCFGm"                           sram_banks_bits="1"  entry_used_bits="9"  flags="0"></entry>
+                    <entry index="26"  mem="MRPS_ING_ENG_PRFCFGm"                           sram_banks_bits="1"  entry_used_bits="9"  flags="0"></entry>
+                    <entry index="27"  mem="IPPB_ETHERNET_OAM_OPCODE_MAPm"                  sram_banks_bits="1"  entry_used_bits="7"  flags="0"></entry>
+                    <entry index="28"  mem="IPPD_FEC_ECMPm"                                 sram_banks_bits="1"  entry_used_bits="10" flags="0"></entry>
+                    <entry index="29"  mem="IPPD_DESTINATION_STATUSm"                       sram_banks_bits="1"  entry_used_bits="12" flags="0"></entry>
+                    <entry index="30"  mem="IPS_QPRIORITYm"                                 sram_banks_bits="1"  entry_used_bits="10" flags="0"></entry>
+                    <entry index="31"  mem="IPS_SPMm"                                       sram_banks_bits="1"  entry_used_bits="14" flags="0"></entry>
+                    <entry index="32"  mem="IPS_CRBAL_THm"                                  sram_banks_bits="1"  entry_used_bits="4"  flags="0"></entry>
+                    <entry index="33"  mem="IPS_SLOW_FACTOR_THm"                            sram_banks_bits="1"  entry_used_bits="4"  flags="0"></entry>
+                    <entry index="34"  mem="IPS_QTYPEm"                                     sram_banks_bits="1"  entry_used_bits="11" flags="0"></entry>
+                    <entry index="35"  mem="IPS_QSPMm"                                      sram_banks_bits="1"  entry_used_bits="12" flags="0"></entry>
+                    <entry index="36"  mem="IPS_QFMm"                                       sram_banks_bits="1"  entry_used_bits="12" flags="0"></entry>
+                    <entry index="37" mem="INVALIDm"                                        sram_banks_bits="0" entry_used_bits="0"   flags="0"></entry>
+                </entries>
+            </table>
+            
+            <table name="intr_exception">
+                <key name="index" size="2"></key>
+                <value name="intr" default="INVALIDr"></value>
+                <value name="exception_get_cb" default="NULL"></value>
+                <entries>
+                    <entry index="0" intr="Q2A_INT_CGM_CONGESTION_GLBL_DRAM_BDBS_FC_INT" exception_get_cb="dnx_intr_exceptional_dram_not_present"></entry>
+                    <entry index="1" intr="Q2A_INT_CGM_LOW_PRIORITY_GLBL_DRAM_BDBS_FC_LP_INT" exception_get_cb="dnx_intr_exceptional_dram_not_present"></entry>
+                </entries>
+            </table>
+
+            <table name="mdb_mem_map">
+                <key name="index" size="8"></key>
+                <value name="acc_mem" default="INVALIDm"></value>
+                <value name="phy_mem" default="INVALIDm"></value>
+                <entries>
+                    <entry index="0" acc_mem="DDHA_MACRO_0_ENTRY_BANKm" phy_mem="DDHA_MACRO_0_PHYSICAL_ENTRY_BANKm"></entry>
+                    <entry index="1" acc_mem="DDHA_MACRO_1_ENTRY_BANKm" phy_mem="DDHA_MACRO_1_PHYSICAL_ENTRY_BANKm"></entry>
+                    <entry index="2" acc_mem="DDHA_MACRO_2_ENTRY_BANKm" phy_mem="DDHA_MACRO_2_PHYSICAL_ENTRY_BANKm"></entry>
+                    <entry index="3" acc_mem="DDHA_MACRO_3_ENTRY_BANKm" phy_mem="DDHA_MACRO_3_PHYSICAL_ENTRY_BANKm"></entry>
+                    
+                    <entry index="4" acc_mem="DDHB_MACRO_0_ENTRY_BANKm" phy_mem="DDHB_MACRO_0_PHYSICAL_ENTRY_BANKm"></entry>
+                    <entry index="5" acc_mem="DDHB_MACRO_1_ENTRY_BANKm" phy_mem="DDHB_MACRO_1_PHYSICAL_ENTRY_BANKm"></entry>
+                    <entry index="6" acc_mem="DDHB_MACRO_2_ENTRY_BANKm" phy_mem="DDHB_MACRO_2_PHYSICAL_ENTRY_BANKm"></entry>
+                    <entry index="7" acc_mem="DDHB_MACRO_3_ENTRY_BANKm" phy_mem="DDHB_MACRO_3_PHYSICAL_ENTRY_BANKm"></entry>
+
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+</device_data>

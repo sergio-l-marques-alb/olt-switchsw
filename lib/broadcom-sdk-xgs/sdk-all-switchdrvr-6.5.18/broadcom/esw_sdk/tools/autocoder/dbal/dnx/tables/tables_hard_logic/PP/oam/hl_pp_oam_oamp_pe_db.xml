@@ -1,0 +1,574 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+    <AppDB Name="OAMP_PE_PROGRAMS_TCAM">
+        <OneLineDescription>TCAM table pointing to OAMP-PE programs</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="TCAM_DIRECT">
+            <Key>
+                <Field Name="OAMP_PE_PROG_TCAM"/>
+            </Key>
+            <Result>
+                <Field Name="OAMP_PE_PROGRAM"/>
+                <Field Name="VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMappingTcam>
+                <Type Name="KEY">
+                    <Access>
+                        <Memory GroupName="OAMP_PE_PROG_TCAM"> 
+                            <HwField Name="KEYf"/>
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="KEY_MASK"> 
+                    <Access>
+                        <Memory GroupName="OAMP_PE_PROG_TCAM"> 
+                            <HwField Name="MASKf"/>
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="RESULT"> 
+                    <Access>
+                        <Memory GroupName="OAMP_PE_PROG_TCAM">
+                            <HwField Name="DATf"/>
+                        </Memory>
+                    </Access>
+                </Type>
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+
+    <AppDB Name="OAMP_PE_INSTRUCTIONS">
+        <OneLineDescription>Instructions configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OAMP_PE_INSTRUCT_INDEX"/>
+            </Key>
+            <Result>
+                <Field Name="IN_FIFO_RD" Type="BOOL"/>
+                <Field Description="FEM program to be used" Name="FEM1_SEL" Size="5" Type="UINT"/>
+                <Field Description="FEM program to be used" Name="FEM2_SEL" Size="5" Type="UINT"/>
+                <Field Name="MUX1_SRC" Type="MUX_SRC"/>
+                <Field Name="MERGE_INST"/>
+                <Field Name="SHIFT1_SRC" Type="BUFF_SIZE_SRC"/>
+                <Field Name="SHIFT2_SRC" Type="BUFF_SIZE_SRC"/>
+                <Field Name="FDBK_FF_WR_BIT" Type="BOOL"/>
+                <Field Name="BUFF_WR"/>
+                <Field Name="BUFF_SIZE_SRC"/>
+                <Field Name="OP1_SEL" Type="OP_SEL"/>
+                <Field Name="OP2_SEL" Type="OP_SEL"/>
+                <Field Name="ALU_ACT"/>
+                <Field Name="CMP1_ACT" Type="CMP_ACT"/>
+                <Field Name="ALU_DST"/>
+                <Field Name="BUF_EOP"/>
+                <Field Description="used for general use - 0-3 bits can be used for BUFF1_SIZE, 4-7 bits can be used for SHIFT1_SRC" Name="INST_CONST" Size="11" Type="UINT"/>
+                <Field Name="FDBK_FF_RD_BIT" Type="BOOL"/>
+                <Field Name="OP3_SEL"/>
+                <Field Name="CMP2_ACT" Type="CMP_ACT"/>
+                <Field Name="INST_SRC"/>
+                <Field Name="MUX2_SRC" Type="MUX_SRC"/>
+                <Field Name="BUFF2_SIZE"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IN_FIFO_RD">
+                    <Access>
+                        <Memory Name="OAMP_PE_PROGRAMm">
+                            <HwField Name="PROG_DATAf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FEM1_SEL">
+                    <Access>
+                        <Memory Name="OAMP_PE_PROGRAMm">
+                            <HwField Name="PROG_DATAf"/>
+                            <DataOffset Formula="#RESULT_SIZE(IN_FIFO_RD)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FEM2_SEL">
+                    <Access>
+                        <Memory Name="OAMP_PE_PROGRAMm">
+                            <HwField Name="PROG_DATAf"/>
+                            <DataOffset Formula="#RESULT_SIZE(IN_FIFO_RD)+#RESULT_SIZE(FEM1_SEL)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MUX1_SRC">
+                    <Access>
+                        <Memory Name="OAMP_PE_PROGRAMm">
+                            <HwField Name="PROG_DATAf"/>
+                            <DataOffset Formula="#RESULT_SIZE(IN_FIFO_RD)+#RESULT_SIZE(FEM1_SEL)+#RESULT_SIZE(FEM2_SEL)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MERGE_INST">
+                    <Access>
+                        <Memory Name="OAMP_PE_PROGRAMm">
+                            <HwField Name="PROG_DATAf"/>
+                            <DataOffset Formula="#RESULT_SIZE(IN_FIFO_RD)+#RESULT_SIZE(FEM1_SEL)+#RESULT_SIZE(FEM2_SEL)+#RESULT_SIZE(MUX1_SRC)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SHIFT1_SRC">
+                    <Access>
+                        <Memory Name="OAMP_PE_PROGRAMm">
+                            <HwField Name="PROG_DATAf"/>
+                            <DataOffset Formula="#RESULT_SIZE(IN_FIFO_RD)+#RESULT_SIZE(FEM1_SEL)+#RESULT_SIZE(FEM2_SEL)+#RESULT_SIZE(MUX1_SRC)+#RESULT_SIZE(MERGE_INST)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SHIFT2_SRC">
+                    <Access>
+                        <Memory Name="OAMP_PE_PROGRAMm">
+                            <HwField Name="PROG_DATAf"/>
+                            <DataOffset Formula="#RESULT_SIZE(IN_FIFO_RD)+#RESULT_SIZE(FEM1_SEL)+#RESULT_SIZE(FEM2_SEL)+#RESULT_SIZE(MUX1_SRC)+#RESULT_SIZE(MERGE_INST)+#RESULT_SIZE(SHIFT1_SRC)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FDBK_FF_WR_BIT">
+                    <Access>
+                        <Memory Name="OAMP_PE_PROGRAMm">
+                            <HwField Name="PROG_DATAf"/>
+                            <DataOffset Formula="#RESULT_SIZE(IN_FIFO_RD)+#RESULT_SIZE(FEM1_SEL)+#RESULT_SIZE(FEM2_SEL)+#RESULT_SIZE(MUX1_SRC)+#RESULT_SIZE(MERGE_INST)+#RESULT_SIZE(SHIFT1_SRC)+#RESULT_SIZE(SHIFT2_SRC)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="BUFF_WR">
+                    <Access>
+                        <Memory Name="OAMP_PE_PROGRAMm">
+                            <HwField Name="PROG_DATAf"/>
+                            <DataOffset Formula="#RESULT_SIZE(IN_FIFO_RD)+#RESULT_SIZE(FEM1_SEL)+#RESULT_SIZE(FEM2_SEL)+#RESULT_SIZE(MUX1_SRC)+#RESULT_SIZE(MERGE_INST)+#RESULT_SIZE(SHIFT1_SRC)+#RESULT_SIZE(SHIFT2_SRC)+#RESULT_SIZE(FDBK_FF_WR_BIT)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="BUFF_SIZE_SRC">
+                    <Access>
+                        <Memory Name="OAMP_PE_PROGRAMm">
+                            <HwField Name="PROG_DATAf"/>
+                            <DataOffset Formula="#RESULT_SIZE(IN_FIFO_RD)+#RESULT_SIZE(FEM1_SEL)+#RESULT_SIZE(FEM2_SEL)+#RESULT_SIZE(MUX1_SRC)+#RESULT_SIZE(MERGE_INST)+#RESULT_SIZE(SHIFT1_SRC)+#RESULT_SIZE(SHIFT2_SRC)+#RESULT_SIZE(FDBK_FF_WR_BIT)+#RESULT_SIZE(BUFF_WR)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OP1_SEL">
+                    <Access>
+                        <Memory Name="OAMP_PE_PROGRAMm">
+                            <HwField Name="PROG_DATAf"/>
+                            <DataOffset Formula="#RESULT_SIZE(IN_FIFO_RD)+#RESULT_SIZE(FEM1_SEL)+#RESULT_SIZE(FEM2_SEL)+#RESULT_SIZE(MUX1_SRC)+#RESULT_SIZE(MERGE_INST)+#RESULT_SIZE(SHIFT1_SRC)+#RESULT_SIZE(SHIFT2_SRC)+#RESULT_SIZE(FDBK_FF_WR_BIT)+#RESULT_SIZE(BUFF_WR)+#RESULT_SIZE(BUFF_SIZE_SRC)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OP2_SEL">
+                    <Access>
+                        <Memory Name="OAMP_PE_PROGRAMm">
+                            <HwField Name="PROG_DATAf"/>
+                            <DataOffset Formula="#RESULT_SIZE(IN_FIFO_RD)+#RESULT_SIZE(FEM1_SEL)+#RESULT_SIZE(FEM2_SEL)+#RESULT_SIZE(MUX1_SRC)+#RESULT_SIZE(MERGE_INST)+#RESULT_SIZE(SHIFT1_SRC)+#RESULT_SIZE(SHIFT2_SRC)+#RESULT_SIZE(FDBK_FF_WR_BIT)+#RESULT_SIZE(BUFF_WR)+#RESULT_SIZE(BUFF_SIZE_SRC)+#RESULT_SIZE(OP1_SEL)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ALU_ACT">
+                    <Access>
+                        <Memory Name="OAMP_PE_PROGRAMm">
+                            <HwField Name="PROG_DATAf"/>
+                            <DataOffset Formula="#FULL_RESULT_SIZE()-#RESULT_SIZE(BUFF2_SIZE)-#RESULT_SIZE(MUX2_SRC)-#RESULT_SIZE(INST_SRC)-#RESULT_SIZE(CMP2_ACT)-#RESULT_SIZE(OP3_SEL)-#RESULT_SIZE(FDBK_FF_RD_BIT)-#RESULT_SIZE(INST_CONST)-#RESULT_SIZE(BUF_EOP)-#RESULT_SIZE(ALU_DST)-#RESULT_SIZE(CMP1_ACT)-#RESULT_SIZE(ALU_ACT)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CMP1_ACT">
+                    <Access>
+                        <Memory Name="OAMP_PE_PROGRAMm">
+                            <HwField Name="PROG_DATAf"/>
+                            <DataOffset Formula="#FULL_RESULT_SIZE()-#RESULT_SIZE(BUFF2_SIZE)-#RESULT_SIZE(MUX2_SRC)-#RESULT_SIZE(INST_SRC)-#RESULT_SIZE(CMP2_ACT)-#RESULT_SIZE(OP3_SEL)-#RESULT_SIZE(FDBK_FF_RD_BIT)-#RESULT_SIZE(INST_CONST)-#RESULT_SIZE(BUF_EOP)-#RESULT_SIZE(ALU_DST)-#RESULT_SIZE(CMP1_ACT)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ALU_DST">
+                    <Access>
+                        <Memory Name="OAMP_PE_PROGRAMm">
+                            <HwField Name="PROG_DATAf"/>
+                            <DataOffset Formula="#FULL_RESULT_SIZE()-#RESULT_SIZE(BUFF2_SIZE)-#RESULT_SIZE(MUX2_SRC)-#RESULT_SIZE(INST_SRC)-#RESULT_SIZE(CMP2_ACT)-#RESULT_SIZE(OP3_SEL)-#RESULT_SIZE(FDBK_FF_RD_BIT)-#RESULT_SIZE(INST_CONST)-#RESULT_SIZE(BUF_EOP)-#RESULT_SIZE(ALU_DST)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="BUF_EOP">
+                    <Access>
+                        <Memory Name="OAMP_PE_PROGRAMm">
+                            <HwField Name="PROG_DATAf"/>
+                            <DataOffset Formula="#FULL_RESULT_SIZE()-#RESULT_SIZE(BUFF2_SIZE)-#RESULT_SIZE(MUX2_SRC)-#RESULT_SIZE(INST_SRC)-#RESULT_SIZE(CMP2_ACT)-#RESULT_SIZE(OP3_SEL)-#RESULT_SIZE(FDBK_FF_RD_BIT)-#RESULT_SIZE(INST_CONST)-#RESULT_SIZE(BUF_EOP)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INST_CONST">
+                    <Access>
+                        <Memory Name="OAMP_PE_PROGRAMm">
+                            <HwField Name="PROG_DATAf"/>
+                            <DataOffset Formula="#FULL_RESULT_SIZE()-#RESULT_SIZE(BUFF2_SIZE)-#RESULT_SIZE(MUX2_SRC)-#RESULT_SIZE(INST_SRC)-#RESULT_SIZE(CMP2_ACT)-#RESULT_SIZE(OP3_SEL)-#RESULT_SIZE(FDBK_FF_RD_BIT)-#RESULT_SIZE(INST_CONST)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FDBK_FF_RD_BIT">
+                    <Access>
+                        <Memory Name="OAMP_PE_PROGRAMm">
+                            <HwField Name="PROG_DATAf"/>
+                            <DataOffset Formula="#FULL_RESULT_SIZE()-#RESULT_SIZE(BUFF2_SIZE)-#RESULT_SIZE(MUX2_SRC)-#RESULT_SIZE(INST_SRC)-#RESULT_SIZE(CMP2_ACT)-#RESULT_SIZE(OP3_SEL)-#RESULT_SIZE(FDBK_FF_RD_BIT)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OP3_SEL">
+                    <Access>
+                        <Memory Name="OAMP_PE_PROGRAMm">
+                            <HwField Name="PROG_DATAf"/>
+                            <DataOffset Formula="#FULL_RESULT_SIZE()-#RESULT_SIZE(BUFF2_SIZE)-#RESULT_SIZE(MUX2_SRC)-#RESULT_SIZE(INST_SRC)-#RESULT_SIZE(CMP2_ACT)-#RESULT_SIZE(OP3_SEL)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CMP2_ACT">
+                    <Access>
+                        <Memory Name="OAMP_PE_PROGRAMm">
+                            <HwField Name="PROG_DATAf"/>
+                            <DataOffset Formula="#FULL_RESULT_SIZE()-#RESULT_SIZE(BUFF2_SIZE)-#RESULT_SIZE(MUX2_SRC)-#RESULT_SIZE(INST_SRC)-#RESULT_SIZE(CMP2_ACT)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INST_SRC">
+                    <Access>
+                        <Memory Name="OAMP_PE_PROGRAMm">
+                            <HwField Name="PROG_DATAf"/>
+                            <DataOffset Formula="#FULL_RESULT_SIZE()-#RESULT_SIZE(BUFF2_SIZE)-#RESULT_SIZE(MUX2_SRC)-#RESULT_SIZE(INST_SRC)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MUX2_SRC">
+                    <Access>
+                        <Memory Name="OAMP_PE_PROGRAMm">
+                            <HwField Name="PROG_DATAf"/>
+                            <DataOffset Formula="#FULL_RESULT_SIZE()-#RESULT_SIZE(BUFF2_SIZE)-#RESULT_SIZE(MUX2_SRC)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="BUFF2_SIZE">
+                    <Access>
+                        <Memory Name="OAMP_PE_PROGRAMm">
+                            <HwField Name="PROG_DATAf"/>
+                            <DataOffset Formula="#FULL_RESULT_SIZE()-#RESULT_SIZE(BUFF2_SIZE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OAMP_PE_PROGRAMS_PROPERTIES">
+        <OneLineDescription>Program properties</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OAMP_PE_PROGRAM_INDEX" Size="5" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Const value provided to the program" Name="CONST_VALUE" Size="32" Type="UINT"/>
+                <Field Description="Address of first instruction" Name="PROGRAM_ADRESS" Type="OAMP_PE_INSTRUCT_INDEX"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CONST_VALUE">
+                    <Access>
+                        <Register Name="OAMP_PE_CONSTr">
+                            <ArrayOffset Formula="#KEY_VALUE(OAMP_PE_PROGRAM_INDEX)"/>
+                            <HwField Name="PE_CONST_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PROGRAM_ADRESS">
+                    <Access>
+                        <Register Name="OAMP_PE_PTRr">
+                            <ArrayOffset Formula="#KEY_VALUE(OAMP_PE_PROGRAM_INDEX)"/>
+                            <HwField Name="PE_PTR_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OAMP_PE_FEMS">
+        <OneLineDescription>FEM configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="30" Name="OAM_PE_FEM_INDEX" Size="5" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="FEM_OP" NofInstances="16"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FEM_OP">
+                    <Access instanceIndex="ALL">
+                        <Register Name="OAMP_PE_FEM_MAPr">
+                            <ArrayOffset Formula="#KEY_VALUE(OAM_PE_FEM_INDEX)"/>
+                            <HwField Name="PE_FEM_MAPf"/>
+                            <DataOffset Formula="#RESULT_SIZE(FEM_OP)*#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OAMP_MEP_PE_PROFILES">
+        <OneLineDescription>Profiles properties</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="MEP_PE_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Description="offset of first byte in nibbles" Name="BYTE_0_OFFSET" Size="6" Type="UINT"/>
+                <Field Description="offset of second byte in nibbles" Name="BYTE_1_OFFSET" Size="6" Type="UINT"/>
+                <Field Description="offset of first 2 bytes in nibbles" Name="WORD_0_OFFSET" Size="6" Type="UINT"/>
+                <Field Description="offset of second 2 bytes in nibbles" Name="WORD_1_OFFSET" Size="6" Type="UINT"/>
+                <Field Description="add relevant MEP DB entry as prefix before the generated packet" Name="MEP_INSERT" Type="BOOL"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="BYTE_0_OFFSET">
+                    <Access>
+                        <Register Name="OAMP_PE_PROFr">
+                            <ArrayOffset Formula="#KEY_VALUE(MEP_PE_PROFILE)"/>
+                            <HwField Name="PE_VAR_8_NIBBLE_SELECT_0_PROF_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BYTE_1_OFFSET">
+                    <Access>
+                        <Register Name="OAMP_PE_PROFr">
+                            <ArrayOffset Formula="#KEY_VALUE(MEP_PE_PROFILE)"/>
+                            <HwField Name="PE_VAR_8_NIBBLE_SELECT_1_PROF_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="WORD_0_OFFSET">
+                    <Access>
+                        <Register Name="OAMP_PE_PROFr">
+                            <ArrayOffset Formula="#KEY_VALUE(MEP_PE_PROFILE)"/>
+                            <HwField Name="PE_VAR_16_NIBBLE_SELECT_0_PROF_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="WORD_1_OFFSET">
+                    <Access>
+                        <Register Name="OAMP_PE_PROFr">
+                            <ArrayOffset Formula="#KEY_VALUE(MEP_PE_PROFILE)"/>
+                            <HwField Name="PE_VAR_16_NIBBLE_SELECT_1_PROF_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MEP_INSERT">
+                    <Access>
+                        <Register Name="OAMP_PE_PROFr">
+                            <ArrayOffset Formula="#KEY_VALUE(MEP_PE_PROFILE)"/>
+                            <HwField Name="PE_MEP_INSERT_PROF_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OAMP_PE_INSTRUCTION_GENERAL">
+        <OneLineDescription>Instructions properties</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Address of default instruction" Name="DEFAULT_INST_ADDR" Type="OAMP_PE_INSTRUCT_INDEX"/>
+                <Field Description="Maximal number of allowed instructions in single program" Name="MAX_INST" Size="13" Type="UINT"/>
+                <Field Name="DEBUG_MODE"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DEFAULT_INST_ADDR">
+                    <Access>
+                        <Register Name="OAMP_PE_INSTr">
+                            <HwField Name="DEFAULT_INST_ADDRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MAX_INST">
+                    <Access>
+                        <Register Name="OAMP_PE_INSTr">
+                            <HwField Name="MAX_INSTR_COUNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DEBUG_MODE">
+                    <Access>
+                        <Register Name="OAMP_PE_INSTr">
+                            <HwField Name="PE_DEBUG_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="OAMP_PE_STATUS">
+        <OneLineDescription>Status of last packet going through OAMP-PE</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="last key used by PE unit" Name="OAMP_PE_LAST_KEY" Permission="READONLY" Type="OAMP_PE_PROG_TCAM"/>
+                <Field Description="Last programm index used by PE unit" Name="LAST_PROG_IDX" Permission="READONLY" Type="OAMP_PE_PROGRAM"/>
+                <Field Description="Last TCAM hit index of PE unit" Name="LAST_TCAM_IDX" Permission="READONLY" Size="6" Type="UINT"/>
+                <Field Description="Last TCAM access was successful for PE unit" Name="LAST_TCAM_HIT" Permission="READONLY" Type="BOOL"/>
+                <Field Description="last packet variables used by unit" Name="LAST_PKT_VARS" Permission="READONLY"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="OAMP_PE_LAST_KEY">
+                    <Access>
+                        <KeyCondition Field="CORE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="OAMP_PE_STATUS_1r">
+                            <HwField Name="LAST_KEY_1f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                         <KeyCondition Field="CORE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="OAMP_PE_STATUS_2r">
+                            <HwField Name="LAST_KEY_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LAST_PROG_IDX">
+                    <Access>
+                        <KeyCondition Field="CORE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="OAMP_PE_STATUS_1r">
+                            <HwField Name="LAST_PROG_IDX_1f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                         <KeyCondition Field="CORE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="OAMP_PE_STATUS_2r">
+                            <HwField Name="LAST_PROG_IDX_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LAST_TCAM_IDX">
+                    <Access>
+                        <KeyCondition Field="CORE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="OAMP_PE_STATUS_1r">
+                            <HwField Name="LAST_TCAM_IDX_1f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                         <KeyCondition Field="CORE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="OAMP_PE_STATUS_2r">
+                            <HwField Name="LAST_TCAM_IDX_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LAST_TCAM_HIT">
+                    <Access>
+                        <KeyCondition Field="CORE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="OAMP_PE_STATUS_1r">
+                            <HwField Name="LAST_TCAM_HIT_1f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                         <KeyCondition Field="CORE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="OAMP_PE_STATUS_2r">
+                            <HwField Name="LAST_TCAM_HIT_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LAST_PKT_VARS">
+                    <Access>
+                        <KeyCondition Field="CORE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="OAMP_PE_STATUS_1r">
+                            <HwField Name="LAST_PKT_VARS_1f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                         <KeyCondition Field="CORE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="OAMP_PE_STATUS_2r">
+                            <HwField Name="LAST_PKT_VARS_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="OAMP_PE_GEN_MEM_DATA">
+        <OneLineDescription> OAMP PE  gen memory data config</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="GEN_MEM_INDEX" Type="UINT" Size="14"/>
+            </Key>
+            <Result>
+                <Field Name="PE_GEN_DATA" Type="UINT" Size="16" Description=" memory data"/>
+            </Result>
+            <TableLabels>OAM </TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PE_GEN_DATA">
+                    <Access>
+                        <Memory Name="OAMP_PE_GEN_MEMm"> 
+                            <HwField Name="PE_GEN_DATAf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

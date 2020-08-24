@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="INGRESS_VLAN_EDIT_COMMAND_MAPPING">
+    <OneLineDescription>Mapping table to an IVEC index</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="VLAN_EDIT_PROFILE" Size="6"/>                               
+        <Field Name="INCOMING_TAG_STRUCTURE"/>
+      </Key>
+      <Result>
+        <Field Name="VLAN_EDIT_CMD_INDEX"/>
+      </Result>
+      <TableLabels>VLAN_TRANSLATION</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+      <CoreMode Mode="SBC"/>
+      <FieldMapping>
+        <Field Name="VLAN_EDIT_CMD_INDEX">
+          <Access>
+            <Memory GroupName="INGRESS_VLAN_EDIT_COMMAND_TABLE">
+              <EntryOffset Formula="#FULL_KEY_VALUE()/8"/>
+              <DataOffset Formula="#FULL_KEY_VALUE()%8*#FULL_RESULT_SIZE()"/>
+            </Memory>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+    <AppDB Name="EGRESS_VLAN_EDIT_COMMAND_MAPPING">
+    <OneLineDescription>Mapping table to an EVEC index</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="VLAN_EDIT_PROFILE" Size="6"/>                               
+        <Field Name="INCOMING_TAG_STRUCTURE"/>
+      </Key>
+      <Result>
+        <Field Name="VLAN_EDIT_CMD_INDEX"/>
+        <Field Description="Enable /Disable to Remove or not Outer VLAN by TX-TAG functionality, 1-remove, 0-keep" Name="POST_EVE_REMOVE_TX_TAG_ENABLE" Type="BOOL"/>
+        <Field Name="POST_EVE_VLAN_MIRROR"/>
+        <Field Name="POST_EVE_VLAN_MEMBERSHIP"/>
+      </Result>
+      <TableLabels>VLAN_TRANSLATION</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+      <CoreMode Mode="SBC"/>
+      <FieldMapping>
+        <Field Name="VLAN_EDIT_CMD_INDEX">
+          <Access>
+            <Memory Name="ETPPC_FWD_MAP_EGRESS_VLAN_EDITING_TABLEm">
+              <HwField Name="EGRESS_VLAN_EDIT_COMMANDf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="POST_EVE_REMOVE_TX_TAG_ENABLE">
+          <Access>
+            <Memory Name="ETPPC_FWD_MAP_EGRESS_VLAN_EDITING_TABLEm">
+              <HwField Name="REMOVE_TX_TAGf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="POST_EVE_VLAN_MIRROR">
+          <Access>
+            <Memory Name="ETPPC_FWD_MAP_EGRESS_VLAN_EDITING_TABLEm">
+              <HwField Name="VLAN_MIRRORf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="POST_EVE_VLAN_MEMBERSHIP">
+          <Access>
+            <Memory Name="ETPPC_FWD_MAP_EGRESS_VLAN_EDITING_TABLEm">
+              <HwField Name="VLAN_MEMBERSHIPf"/>
+            </Memory>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+    <AppDB Name="INGRESS_VLAN_EDIT_COMMAND">
+    <OneLineDescription>IVE Commands table in the ERPP and ETPP</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="VLAN_EDIT_CMD_INDEX" Size="7"/>
+      </Key>
+      <Result>
+        <Field Name="OUTER_TPID_INDEX" Size="3" Type="TPID_INDEX"/>
+        <Field Name="IVE_OUTER_VID_SRC" Size="3"/>
+        <Field Name="IVE_OUTER_PCP_DEI_SRC" Size="3"/>
+        <Field Name="INNER_TPID_INDEX" Size="3" Type="TPID_INDEX"/>
+        <Field Name="IVE_INNER_VID_SRC" Size="3"/>
+        <Field Name="IVE_INNER_PCP_DEI_SRC" Size="3"/>
+        <Field Name="TAGS_TO_REMOVE" Size="2" Type="UINT"/>
+      </Result>
+      <TableLabels>VLAN_TRANSLATION</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+      <CoreMode Mode="SBC"/>
+      <FieldMapping>
+        <Field Name="OUTER_TPID_INDEX">
+          <Access>
+            <Memory GroupName="EGRESS_IVEC_TABLE">
+              <HwField Name="OUTER_TPID_INDEXf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="IVE_OUTER_VID_SRC">
+          <Access>
+            <Memory GroupName="EGRESS_IVEC_TABLE">
+              <HwField Name="OUTER_VID_SRCf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="IVE_OUTER_PCP_DEI_SRC">
+          <Access>
+            <Memory GroupName="EGRESS_IVEC_TABLE">
+              <HwField Name="OUTER_PCP_DEI_SRCf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="INNER_TPID_INDEX">
+          <Access>
+            <Memory GroupName="EGRESS_IVEC_TABLE">
+              <HwField Name="INNER_TPID_INDEXf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="IVE_INNER_VID_SRC">
+          <Access>
+            <Memory GroupName="EGRESS_IVEC_TABLE">
+              <HwField Name="INNER_VID_SRCf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="IVE_INNER_PCP_DEI_SRC">
+          <Access>
+            <Memory GroupName="EGRESS_IVEC_TABLE">
+              <HwField Name="INNER_PCP_DEI_SRCf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="TAGS_TO_REMOVE">
+          <Access>
+            <Memory GroupName="EGRESS_IVEC_TABLE">
+              <HwField Name="TAGS_TO_REMOVEf"/>
+            </Memory>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+    <AppDB Name="EGRESS_VLAN_EDIT_COMMAND_ENCAP">
+    <OneLineDescription>EVE Commands table in the ETPP encap stages</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="VLAN_EDIT_PROFILE" Size="6"/>
+      </Key>
+      <Result>
+        <Field Description="Enable /Disable to Remove or not Outer VLAN by TX-TAG functionality, 1-remove, 0-keep" Name="POST_EVE_REMOVE_TX_TAG_ENABLE" Type="BOOL"/>
+        <Field Name="POST_EVE_VLAN_MIRROR"/>
+        <Field Name="POST_EVE_VLAN_MEMBERSHIP"/>
+        <Field Name="OUTER_TPID_INDEX" Size="4" Type="TPID_INDEX"/>
+        <Field Name="EVE_OUTER_VID_SRC" Size="3"/>
+        <Field Name="EVE_OUTER_PCP_DEI_SRC" Size="2" Type="EVE_PCP_DEI_SRC"/>
+        <Field Name="INNER_TPID_INDEX" Size="4" Type="TPID_INDEX"/>
+        <Field Name="EVE_INNER_VID_SRC" Size="3"/>
+        <Field Name="EVE_INNER_PCP_DEI_SRC" Size="2" Type="EVE_PCP_DEI_SRC"/>
+      </Result>
+      <TableLabels>VLAN_TRANSLATION</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+      <CoreMode Mode="SBC"/>
+      <FieldMapping>
+        <Field Name="POST_EVE_REMOVE_TX_TAG_ENABLE">
+          <Access>
+            <Memory GroupName="ETPP_VLAN_EDIT_PROFILE_MAP_TABLE">
+              <HwField Name="VLAN_TX_TAGf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="POST_EVE_VLAN_MIRROR">
+          <Access>
+            <Memory GroupName="ETPP_VLAN_EDIT_PROFILE_MAP_TABLE">
+              <HwField Name="VLAN_MIRRORf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="POST_EVE_VLAN_MEMBERSHIP">
+          <Access>
+            <Memory GroupName="ETPP_VLAN_EDIT_PROFILE_MAP_TABLE">
+              <HwField Name="VLAN_MEMBERSHIPf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="OUTER_TPID_INDEX">
+          <Access>
+            <Memory GroupName="ETPP_VLAN_EDIT_PROFILE_MAP_TABLE">
+              <HwField Name="OUTER_TPID_INDEXf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="EVE_OUTER_VID_SRC">
+          <Access>
+            <Memory GroupName="ETPP_VLAN_EDIT_PROFILE_MAP_TABLE">
+              <HwField Name="OUTER_VID_SOURCEf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="EVE_OUTER_PCP_DEI_SRC">
+          <Access>
+            <Memory GroupName="ETPP_VLAN_EDIT_PROFILE_MAP_TABLE">
+              <HwField Name="OUTER_PCP_DEI_SOURCEf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="INNER_TPID_INDEX">
+          <Access>
+            <Memory GroupName="ETPP_VLAN_EDIT_PROFILE_MAP_TABLE">
+              <HwField Name="INNER_TPID_INDEXf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="EVE_INNER_VID_SRC">
+          <Access>
+            <Memory GroupName="ETPP_VLAN_EDIT_PROFILE_MAP_TABLE">
+              <HwField Name="INNER_VID_SOURCEf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="EVE_INNER_PCP_DEI_SRC">
+          <Access>
+            <Memory GroupName="ETPP_VLAN_EDIT_PROFILE_MAP_TABLE">
+              <HwField Name="INNER_PCP_DEI_SOURCEf"/>
+            </Memory>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+    <AppDB Name="EGRESS_VLAN_EDIT_COMMAND_FWD">
+    <OneLineDescription>EVE Commands table in the Egress forwarding stage</OneLineDescription>
+    <AccessMethod>HARD_LOGIC</AccessMethod>
+    <Maturity Level="HIGH"/>
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="VLAN_EDIT_CMD_INDEX" Size="7"/>
+      </Key>
+      <Result>
+        <Field Name="OUTER_TPID_INDEX" Size="4" Type="TPID_INDEX"/>
+        <Field Name="EVE_OUTER_VID_SRC" Size="3"/>
+        <Field Name="EVE_OUTER_PCP_DEI_SRC" Size="2" Type="EVE_PCP_DEI_SRC"/>
+        <Field Name="INNER_TPID_INDEX" Size="4" Type="TPID_INDEX"/>
+        <Field Name="EVE_INNER_VID_SRC" Size="3"/>
+        <Field Name="EVE_INNER_PCP_DEI_SRC" Size="2" Type="EVE_PCP_DEI_SRC"/>
+        <Field Name="TAGS_TO_REMOVE" Size="2" Type="UINT"/>
+      </Result>
+      <TableLabels>VLAN_TRANSLATION</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+      <CoreMode Mode="SBC"/>
+      <FieldMapping>
+        <Field Name="OUTER_TPID_INDEX">
+          <Access>
+            <Memory Name="ETPPC_FWD_MAP_EGRESS_VLAN_EDIT_COMMAND_TABLEm">
+              <HwField Name="OUTER_TPID_INDEXf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="EVE_OUTER_VID_SRC">
+          <Access>
+            <Memory Name="ETPPC_FWD_MAP_EGRESS_VLAN_EDIT_COMMAND_TABLEm">
+              <HwField Name="OUTER_VID_SOURCEf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="EVE_OUTER_PCP_DEI_SRC">
+          <Access>
+            <Memory Name="ETPPC_FWD_MAP_EGRESS_VLAN_EDIT_COMMAND_TABLEm">
+              <HwField Name="OUTER_PCP_DEI_SOURCEf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="INNER_TPID_INDEX">
+          <Access>
+            <Memory Name="ETPPC_FWD_MAP_EGRESS_VLAN_EDIT_COMMAND_TABLEm">
+              <HwField Name="INNER_TPID_INDEXf"/>
+            </Memory> 
+          </Access>
+        </Field>
+        <Field Name="EVE_INNER_VID_SRC">
+          <Access>
+            <Memory Name="ETPPC_FWD_MAP_EGRESS_VLAN_EDIT_COMMAND_TABLEm">
+              <HwField Name="INNER_VID_SOURCEf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="EVE_INNER_PCP_DEI_SRC">
+          <Access>
+            <Memory Name="ETPPC_FWD_MAP_EGRESS_VLAN_EDIT_COMMAND_TABLEm">
+              <HwField Name="INNER_PCP_DEI_SOURCEf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="TAGS_TO_REMOVE">
+          <Access>
+            <Memory Name="ETPPC_FWD_MAP_EGRESS_VLAN_EDIT_COMMAND_TABLEm">
+              <HwField Name="TAGS_TO_REMOVEf"/>
+            </Memory>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+</AppDbCatalog>

@@ -1,0 +1,1113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FieldTypesDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../field_types_schema.xsd">
+    <!--
+    ******************************************************
+    DBAL Fields Types DB:
+    This xml contains the fields types DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+    Auto generated synced to PEMLA
+    ******************************************************
+-->
+    <GeneralInfo image="standard_1" dynamic_loading="0"/>
+    <FieldType Name="PRP2_CONTEXT_ID" Size="6" Print="ENUM">
+        <OneLineDescription>Context Ids for PRP2 Stage</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="GENERAL___CPU_PORT" Description="Empty"/>
+                <EnumVal Name="GENERAL___CPU_PORT_CANCEL_SYSHDR_ENC" Description="Empty"/>
+                <EnumVal Name="GENERAL___RAW_PORT_CANCEL_SYSHDR_ENC" Description="Empty"/>
+                <EnumVal Name="GENERAL___CANCEL_SYSHDR_LIF_PORT_BASED_LIF" Description="Empty"/>
+                <EnumVal Name="GENERAL___JR1_IP_FORWARD_CODE_FIX" Description="Empty"/>
+                <EnumVal Name="GENERAL___NOP" Description="Empty"/>
+                <EnumVal Name="OAM___MPLS_DM_INJECTION" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="GENERAL___CPU_PORT" Value="0"/>
+                <EnumVal Name="GENERAL___CPU_PORT_CANCEL_SYSHDR_ENC" Value="1"/>
+                <EnumVal Name="GENERAL___RAW_PORT_CANCEL_SYSHDR_ENC" Value="2"/>
+                <EnumVal Name="GENERAL___CANCEL_SYSHDR_LIF_PORT_BASED_LIF" Value="3"/>
+                <EnumVal Name="GENERAL___JR1_IP_FORWARD_CODE_FIX" Value="4"/>
+                <EnumVal Name="GENERAL___NOP" Value="5"/>
+                <EnumVal Name="OAM___MPLS_DM_INJECTION" Value="6"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="TERM_CONTEXT_ID" Size="6" Print="ENUM">
+        <OneLineDescription>Context Ids for TERM Stage</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="GENERAL___HEADER_TERMINATION" Description="Empty"/>
+                <EnumVal Name="GENERAL___HEADER_TERMINATION_AND_POP" Description="Empty"/>
+                <EnumVal Name="GENERAL___HEADER_TERMINATION_DEEP" Description="Empty"/>
+                <EnumVal Name="GENERAL___W_FWD_PLUS_1_REMARK_HEADER_TERMINATION" Description="Empty"/>
+                <EnumVal Name="GENERAL___1588" Description="Empty"/>
+                <EnumVal Name="GENERAL___OAM" Description="Empty"/>
+                <EnumVal Name="GENERAL___OAM_TX_INJECT_JR1" Description="Empty"/>
+                <EnumVal Name="GENERAL___INT" Description="Empty"/>
+                <EnumVal Name="GENERAL___IPT_TAIL" Description="Empty"/>
+                <EnumVal Name="GENERAL___IPT_IFA" Description="Empty"/>
+                <EnumVal Name="GENERAL___IPT_IFA_FIRST_DP" Description="Empty"/>
+                <EnumVal Name="GENERAL___IPT_UDP_GPE" Description="Empty"/>
+                <EnumVal Name="GENERAL___IPT_FIRST_UDP_GPE" Description="Empty"/>
+                <EnumVal Name="GENERAL___IPT_LAST_UDP_GPE" Description="Empty"/>
+                <EnumVal Name="GENERAL___RAW_PROC" Description="Empty"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Description="Empty"/>
+                <EnumVal Name="GENERAL___INGRESS_TRAPPED_OAMP" Description="Empty"/>
+                <EnumVal Name="GENERAL___CPU_PORT" Description="Empty"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_DP" Description="Empty"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_SAMP" Description="Empty"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_FIRST" Description="Empty"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_SECOND" Description="Empty"/>
+                <EnumVal Name="GENERAL___MIRROR_OR_SS" Description="Empty"/>
+                <EnumVal Name="MPLS___TRANSIT_CCM_SD" Description="Empty"/>
+                <EnumVal Name="MPLS___PHP" Description="Empty"/>
+                <EnumVal Name="MPLS___PHP_1588" Description="Empty"/>
+                <EnumVal Name="REFLECTORS___TWAMPOIPV4_1ST_PASS" Description="Empty"/>
+                <EnumVal Name="REFLECTORS___TWAMPOIPV6_1ST_PASS" Description="Empty"/>
+                <EnumVal Name="REFLECTORS___TWAMP_2ND_PASS" Description="Empty"/>
+                <EnumVal Name="REFLECTORS___L2_OAM_TERM" Description="Empty"/>
+                <EnumVal Name="REFLECTORS___UDP_SWAP" Description="Empty"/>
+                <EnumVal Name="SRV6___SEGMENT_ENDPOINT" Description="Empty"/>
+                <EnumVal Name="SRV6___PSP" Description="Empty"/>
+                <EnumVal Name="TM___TX_INJECT" Description="Empty"/>
+                <EnumVal Name="TM___MACT_WA_JR1_DSP_DEST_SWITCH_BETWEEN_JR1_ARAD_ENCODING" Description="Empty"/>
+                <EnumVal Name="TM___MACT_WA_JR2_DSP_CMD_TO_REFRESH" Description="Empty"/>
+                <EnumVal Name="TM___ETH_INTO_COE" Description="Empty"/>
+                <EnumVal Name="GENERAL___IOAM_JP" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="Q2A_A0 Q2A_B0">
+            <EnumValueMapping>
+                <EnumVal Name="GENERAL___HEADER_TERMINATION" Value="0"/>
+                <EnumVal Name="GENERAL___HEADER_TERMINATION_AND_POP" Value="1"/>
+                <EnumVal Name="GENERAL___HEADER_TERMINATION_DEEP" Value="2"/>
+                <EnumVal Name="GENERAL___W_FWD_PLUS_1_REMARK_HEADER_TERMINATION" Value="3"/>
+                <EnumVal Name="GENERAL___1588" Value="4"/>
+                <EnumVal Name="GENERAL___OAM" Value="5"/>
+                <EnumVal Name="GENERAL___OAM_TX_INJECT_JR1" Value="6"/>
+                <EnumVal Name="GENERAL___INT" Value="7"/>
+                <EnumVal Name="GENERAL___IPT_TAIL" Value="8"/>
+                <EnumVal Name="GENERAL___IPT_IFA" Value="9"/>
+                <EnumVal Name="GENERAL___IPT_IFA_FIRST_DP" Value="10"/>
+                <EnumVal Name="GENERAL___IPT_UDP_GPE" Value="11"/>
+                <EnumVal Name="GENERAL___IPT_FIRST_UDP_GPE" Value="12"/>
+                <EnumVal Name="GENERAL___IPT_LAST_UDP_GPE" Value="13"/>
+                <EnumVal Name="GENERAL___RAW_PROC" Value="14"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="15"/>
+                <EnumVal Name="GENERAL___INGRESS_TRAPPED_OAMP" Value="17"/>
+                <EnumVal Name="GENERAL___CPU_PORT" Value="18"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_DP" Value="19"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_SAMP" Value="20"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_FIRST" Value="21"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_SECOND" Value="22"/>
+                <EnumVal Name="GENERAL___MIRROR_OR_SS" Value="23"/>
+                <EnumVal Name="MPLS___TRANSIT_CCM_SD" Value="24"/>
+                <EnumVal Name="MPLS___PHP" Value="25"/>
+                <EnumVal Name="MPLS___PHP_1588" Value="26"/>
+                <EnumVal Name="REFLECTORS___TWAMPOIPV4_1ST_PASS" Value="27"/>
+                <EnumVal Name="REFLECTORS___TWAMPOIPV6_1ST_PASS" Value="28"/>
+                <EnumVal Name="REFLECTORS___TWAMP_2ND_PASS" Value="29"/>
+                <EnumVal Name="REFLECTORS___L2_OAM_TERM" Value="30"/>
+                <EnumVal Name="REFLECTORS___UDP_SWAP" Value="31"/>
+                <EnumVal Name="SRV6___SEGMENT_ENDPOINT" Value="32"/>
+                <EnumVal Name="SRV6___PSP" Value="33"/>
+                <EnumVal Name="TM___TX_INJECT" Value="34"/>
+                <EnumVal Name="TM___MACT_WA_JR1_DSP_DEST_SWITCH_BETWEEN_JR1_ARAD_ENCODING" Value="35"/>
+                <EnumVal Name="TM___MACT_WA_JR2_DSP_CMD_TO_REFRESH" Value="36"/>
+                <EnumVal Name="TM___ETH_INTO_COE" Value="37"/>
+                <EnumVal Name="GENERAL___IOAM_JP" Value="16"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="GENERAL___HEADER_TERMINATION" Value="0"/>
+                <EnumVal Name="GENERAL___HEADER_TERMINATION_AND_POP" Value="1"/>
+                <EnumVal Name="GENERAL___HEADER_TERMINATION_DEEP" Value="2"/>
+                <EnumVal Name="GENERAL___W_FWD_PLUS_1_REMARK_HEADER_TERMINATION" Value="3"/>
+                <EnumVal Name="GENERAL___1588" Value="4"/>
+                <EnumVal Name="GENERAL___OAM" Value="5"/>
+                <EnumVal Name="GENERAL___OAM_TX_INJECT_JR1" Value="6"/>
+                <EnumVal Name="GENERAL___INT" Value="7"/>
+                <EnumVal Name="GENERAL___IPT_TAIL" Value="8"/>
+                <EnumVal Name="GENERAL___IPT_IFA" Value="9"/>
+                <EnumVal Name="GENERAL___IPT_IFA_FIRST_DP" Value="10"/>
+                <EnumVal Name="GENERAL___IPT_UDP_GPE" Value="11"/>
+                <EnumVal Name="GENERAL___IPT_FIRST_UDP_GPE" Value="12"/>
+                <EnumVal Name="GENERAL___IPT_LAST_UDP_GPE" Value="13"/>
+                <EnumVal Name="GENERAL___RAW_PROC" Value="14"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="15"/>
+                <EnumVal Name="GENERAL___INGRESS_TRAPPED_OAMP" Value="17"/>
+                <EnumVal Name="GENERAL___CPU_PORT" Value="18"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_DP" Value="19"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_SAMP" Value="20"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_FIRST" Value="21"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_SECOND" Value="22"/>
+                <EnumVal Name="GENERAL___MIRROR_OR_SS" Value="23"/>
+                <EnumVal Name="MPLS___TRANSIT_CCM_SD" Value="24"/>
+                <EnumVal Name="MPLS___PHP" Value="25"/>
+                <EnumVal Name="MPLS___PHP_1588" Value="26"/>
+                <EnumVal Name="REFLECTORS___TWAMPOIPV4_1ST_PASS" Value="27"/>
+                <EnumVal Name="REFLECTORS___TWAMPOIPV6_1ST_PASS" Value="28"/>
+                <EnumVal Name="REFLECTORS___TWAMP_2ND_PASS" Value="29"/>
+                <EnumVal Name="REFLECTORS___L2_OAM_TERM" Value="30"/>
+                <EnumVal Name="REFLECTORS___UDP_SWAP" Value="31"/>
+                <EnumVal Name="SRV6___SEGMENT_ENDPOINT" Value="32"/>
+                <EnumVal Name="SRV6___PSP" Value="33"/>
+                <EnumVal Name="TM___TX_INJECT" Value="34"/>
+                <EnumVal Name="TM___MACT_WA_JR1_DSP_DEST_SWITCH_BETWEEN_JR1_ARAD_ENCODING" Value="35"/>
+                <EnumVal Name="TM___MACT_WA_JR2_DSP_CMD_TO_REFRESH" Value="36"/>
+                <EnumVal Name="TM___ETH_INTO_COE" Value="37"/>
+                <EnumVal Name="GENERAL___IOAM_JP" Value="INVALID"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="FWD_CONTEXT_ID" Size="6" Print="ENUM">
+        <OneLineDescription>Context Ids for FWD Stage</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="BIER___TI_FORWARDING" Description="Empty"/>
+                <EnumVal Name="BRIDGE___ETPP_FORWARDING" Description="Empty"/>
+                <EnumVal Name="BRIDGE___ETPP_FORWARDING_WO_ETPS_POP" Description="Empty"/>
+                <EnumVal Name="FCOE___FCF" Description="Empty"/>
+                <EnumVal Name="FCOE___FCF_VFT" Description="Empty"/>
+                <EnumVal Name="GENERAL___DO_NOT_EDIT" Description="Empty"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Description="Empty"/>
+                <EnumVal Name="GENERAL___IPT_TAIL" Description="Empty"/>
+                <EnumVal Name="GENERAL___IPT_TAIL_AM" Description="Empty"/>
+                <EnumVal Name="GENERAL___IPT_IFA" Description="Empty"/>
+                <EnumVal Name="GENERAL___IPT_IFA_FIRST_DP" Description="Empty"/>
+                <EnumVal Name="GENERAL___IPT_UDP_GPE" Description="Empty"/>
+                <EnumVal Name="GENERAL___IPT_FIRST_UDP_GPE" Description="Empty"/>
+                <EnumVal Name="GENERAL___IPT_LAST_UDP_GPE" Description="Empty"/>
+                <EnumVal Name="GENERAL___RAW_PROC" Description="Empty"/>
+                <EnumVal Name="GENERAL___NOP_AND_POP_2" Description="Empty"/>
+                <EnumVal Name="GENERAL___NOP_AND_POP" Description="Empty"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_DP" Description="Empty"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_SAMP" Description="Empty"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_FIRST" Description="Empty"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_SECOND" Description="Empty"/>
+                <EnumVal Name="IPV4___FORWARDING" Description="Empty"/>
+                <EnumVal Name="IPV4___ETPP_FORWARDING_WO_ETPS_POP" Description="Empty"/>
+                <EnumVal Name="IPV4___ETPP_FORWARDING_WO_ETPS_POP_REMARK_TOS_P1" Description="Empty"/>
+                <EnumVal Name="IPV6___FORWARDING" Description="Empty"/>
+                <EnumVal Name="IPV6___ETPP_FORWARDING_WO_ETPS_POP" Description="Empty"/>
+                <EnumVal Name="IPV6___ETPP_FORWARDING_WO_ETPS_POP_REMARK_TOS_P1" Description="Empty"/>
+                <EnumVal Name="MPLS___SWAP" Description="Empty"/>
+                <EnumVal Name="MPLS___SWAPTOSELF" Description="Empty"/>
+                <EnumVal Name="MPLS___SWAP_COUPLED" Description="Empty"/>
+                <EnumVal Name="MPLS___PHP" Description="Empty"/>
+                <EnumVal Name="OAM___OAM_REFLECTOR" Description="Empty"/>
+                <EnumVal Name="PPP___NOP_CTX" Description="Empty"/>
+                <EnumVal Name="REFLECTORS___L2_SWAP" Description="Empty"/>
+                <EnumVal Name="REFLECTORS___L2_SWAP_AND_MC_SA" Description="Empty"/>
+                <EnumVal Name="REFLECTORS___IPV4_SWAP" Description="Empty"/>
+                <EnumVal Name="REFLECTORS___IPV6_SWAP" Description="Empty"/>
+                <EnumVal Name="REFLECTORS___TWAMP_IPV4" Description="Empty"/>
+                <EnumVal Name="REFLECTORS___TWAMP_IPV6" Description="Empty"/>
+                <EnumVal Name="SRV6___SRV6_SEGMENT_ENDPOINT" Description="Empty"/>
+                <EnumVal Name="SRV6___SRV6_SEGMENT_ENDPOINT_PSP" Description="Empty"/>
+                <EnumVal Name="TM___MACT_WA_JR1_DSP_COPY_DSP_LSBS_AS_IS" Description="Empty"/>
+                <EnumVal Name="TM___ETH_INTO_COE" Description="Empty"/>
+                <EnumVal Name="TM___MACT_WA_JR1_DSP_COPY_DSP_LSBS_AND_CMD_TO_REFRESH" Description="Empty"/>
+                <EnumVal Name="IPV4___BFD_SIP_WA" Description="Empty"/>
+                <EnumVal Name="MPLS___SWAP_WO_ETPS_POP" Description="Empty"/>
+                <EnumVal Name="GENERAL___IOAM_JP" Description="Empty"/>
+                <EnumVal Name="BRIDGE___ETPP_FORWARDING_SVTAG" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0">
+            <EnumValueMapping>
+                <EnumVal Name="BIER___TI_FORWARDING" Value="0"/>
+                <EnumVal Name="BRIDGE___ETPP_FORWARDING" Value="1"/>
+                <EnumVal Name="BRIDGE___ETPP_FORWARDING_WO_ETPS_POP" Value="2"/>
+                <EnumVal Name="FCOE___FCF" Value="4"/>
+                <EnumVal Name="FCOE___FCF_VFT" Value="5"/>
+                <EnumVal Name="GENERAL___DO_NOT_EDIT" Value="6"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="7"/>
+                <EnumVal Name="GENERAL___IPT_TAIL" Value="8"/>
+                <EnumVal Name="GENERAL___IPT_TAIL_AM" Value="9"/>
+                <EnumVal Name="GENERAL___IPT_IFA" Value="10"/>
+                <EnumVal Name="GENERAL___IPT_IFA_FIRST_DP" Value="11"/>
+                <EnumVal Name="GENERAL___IPT_UDP_GPE" Value="12"/>
+                <EnumVal Name="GENERAL___IPT_FIRST_UDP_GPE" Value="13"/>
+                <EnumVal Name="GENERAL___IPT_LAST_UDP_GPE" Value="14"/>
+                <EnumVal Name="GENERAL___RAW_PROC" Value="15"/>
+                <EnumVal Name="GENERAL___NOP_AND_POP_2" Value="16"/>
+                <EnumVal Name="GENERAL___NOP_AND_POP" Value="17"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_DP" Value="18"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_SAMP" Value="19"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_FIRST" Value="20"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_SECOND" Value="21"/>
+                <EnumVal Name="IPV4___FORWARDING" Value="23"/>
+                <EnumVal Name="IPV4___ETPP_FORWARDING_WO_ETPS_POP" Value="24"/>
+                <EnumVal Name="IPV4___ETPP_FORWARDING_WO_ETPS_POP_REMARK_TOS_P1" Value="25"/>
+                <EnumVal Name="IPV6___FORWARDING" Value="27"/>
+                <EnumVal Name="IPV6___ETPP_FORWARDING_WO_ETPS_POP" Value="28"/>
+                <EnumVal Name="IPV6___ETPP_FORWARDING_WO_ETPS_POP_REMARK_TOS_P1" Value="29"/>
+                <EnumVal Name="MPLS___SWAP" Value="30"/>
+                <EnumVal Name="MPLS___SWAPTOSELF" Value="32"/>
+                <EnumVal Name="MPLS___SWAP_COUPLED" Value="33"/>
+                <EnumVal Name="MPLS___PHP" Value="34"/>
+                <EnumVal Name="OAM___OAM_REFLECTOR" Value="35"/>
+                <EnumVal Name="PPP___NOP_CTX" Value="36"/>
+                <EnumVal Name="REFLECTORS___L2_SWAP" Value="37"/>
+                <EnumVal Name="REFLECTORS___L2_SWAP_AND_MC_SA" Value="38"/>
+                <EnumVal Name="REFLECTORS___IPV4_SWAP" Value="39"/>
+                <EnumVal Name="REFLECTORS___IPV6_SWAP" Value="40"/>
+                <EnumVal Name="REFLECTORS___TWAMP_IPV4" Value="41"/>
+                <EnumVal Name="REFLECTORS___TWAMP_IPV6" Value="42"/>
+                <EnumVal Name="SRV6___SRV6_SEGMENT_ENDPOINT" Value="43"/>
+                <EnumVal Name="SRV6___SRV6_SEGMENT_ENDPOINT_PSP" Value="44"/>
+                <EnumVal Name="TM___MACT_WA_JR1_DSP_COPY_DSP_LSBS_AS_IS" Value="45"/>
+                <EnumVal Name="TM___ETH_INTO_COE" Value="46"/>
+                <EnumVal Name="TM___MACT_WA_JR1_DSP_COPY_DSP_LSBS_AND_CMD_TO_REFRESH" Value="47"/>
+                <EnumVal Name="IPV4___BFD_SIP_WA" Value="INVALID"/>
+                <EnumVal Name="MPLS___SWAP_WO_ETPS_POP" Value="INVALID"/>
+                <EnumVal Name="GENERAL___IOAM_JP" Value="INVALID"/>
+                <EnumVal Name="BRIDGE___ETPP_FORWARDING_SVTAG" Value="INVALID"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+        <FieldToPhyDbMapping Device="JR2_B0 J2C_A0">
+            <EnumValueMapping>
+                <EnumVal Name="BIER___TI_FORWARDING" Value="0"/>
+                <EnumVal Name="BRIDGE___ETPP_FORWARDING" Value="1"/>
+                <EnumVal Name="BRIDGE___ETPP_FORWARDING_WO_ETPS_POP" Value="2"/>
+                <EnumVal Name="FCOE___FCF" Value="4"/>
+                <EnumVal Name="FCOE___FCF_VFT" Value="5"/>
+                <EnumVal Name="GENERAL___DO_NOT_EDIT" Value="6"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="7"/>
+                <EnumVal Name="GENERAL___IPT_TAIL" Value="8"/>
+                <EnumVal Name="GENERAL___IPT_TAIL_AM" Value="9"/>
+                <EnumVal Name="GENERAL___IPT_IFA" Value="10"/>
+                <EnumVal Name="GENERAL___IPT_IFA_FIRST_DP" Value="11"/>
+                <EnumVal Name="GENERAL___IPT_UDP_GPE" Value="12"/>
+                <EnumVal Name="GENERAL___IPT_FIRST_UDP_GPE" Value="13"/>
+                <EnumVal Name="GENERAL___IPT_LAST_UDP_GPE" Value="14"/>
+                <EnumVal Name="GENERAL___RAW_PROC" Value="15"/>
+                <EnumVal Name="GENERAL___NOP_AND_POP_2" Value="16"/>
+                <EnumVal Name="GENERAL___NOP_AND_POP" Value="17"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_DP" Value="18"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_SAMP" Value="19"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_FIRST" Value="20"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_SECOND" Value="21"/>
+                <EnumVal Name="IPV4___FORWARDING" Value="23"/>
+                <EnumVal Name="IPV4___ETPP_FORWARDING_WO_ETPS_POP" Value="24"/>
+                <EnumVal Name="IPV4___ETPP_FORWARDING_WO_ETPS_POP_REMARK_TOS_P1" Value="25"/>
+                <EnumVal Name="IPV6___FORWARDING" Value="27"/>
+                <EnumVal Name="IPV6___ETPP_FORWARDING_WO_ETPS_POP" Value="28"/>
+                <EnumVal Name="IPV6___ETPP_FORWARDING_WO_ETPS_POP_REMARK_TOS_P1" Value="29"/>
+                <EnumVal Name="MPLS___SWAP" Value="30"/>
+                <EnumVal Name="MPLS___SWAPTOSELF" Value="32"/>
+                <EnumVal Name="MPLS___SWAP_COUPLED" Value="33"/>
+                <EnumVal Name="MPLS___PHP" Value="34"/>
+                <EnumVal Name="OAM___OAM_REFLECTOR" Value="35"/>
+                <EnumVal Name="PPP___NOP_CTX" Value="36"/>
+                <EnumVal Name="REFLECTORS___L2_SWAP" Value="37"/>
+                <EnumVal Name="REFLECTORS___L2_SWAP_AND_MC_SA" Value="38"/>
+                <EnumVal Name="REFLECTORS___IPV4_SWAP" Value="39"/>
+                <EnumVal Name="REFLECTORS___IPV6_SWAP" Value="40"/>
+                <EnumVal Name="REFLECTORS___TWAMP_IPV4" Value="41"/>
+                <EnumVal Name="REFLECTORS___TWAMP_IPV6" Value="42"/>
+                <EnumVal Name="SRV6___SRV6_SEGMENT_ENDPOINT" Value="43"/>
+                <EnumVal Name="SRV6___SRV6_SEGMENT_ENDPOINT_PSP" Value="44"/>
+                <EnumVal Name="TM___MACT_WA_JR1_DSP_COPY_DSP_LSBS_AS_IS" Value="45"/>
+                <EnumVal Name="TM___ETH_INTO_COE" Value="46"/>
+                <EnumVal Name="TM___MACT_WA_JR1_DSP_COPY_DSP_LSBS_AND_CMD_TO_REFRESH" Value="47"/>
+                <EnumVal Name="IPV4___BFD_SIP_WA" Value="26"/>
+                <EnumVal Name="MPLS___SWAP_WO_ETPS_POP" Value="31"/>
+                <EnumVal Name="GENERAL___IOAM_JP" Value="INVALID"/>
+                <EnumVal Name="BRIDGE___ETPP_FORWARDING_SVTAG" Value="INVALID"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+        <FieldToPhyDbMapping Device="Q2A_A0 Q2A_B0">
+            <EnumValueMapping>
+                <EnumVal Name="BIER___TI_FORWARDING" Value="0"/>
+                <EnumVal Name="BRIDGE___ETPP_FORWARDING" Value="1"/>
+                <EnumVal Name="BRIDGE___ETPP_FORWARDING_WO_ETPS_POP" Value="2"/>
+                <EnumVal Name="FCOE___FCF" Value="4"/>
+                <EnumVal Name="FCOE___FCF_VFT" Value="5"/>
+                <EnumVal Name="GENERAL___DO_NOT_EDIT" Value="6"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="7"/>
+                <EnumVal Name="GENERAL___IPT_TAIL" Value="8"/>
+                <EnumVal Name="GENERAL___IPT_TAIL_AM" Value="9"/>
+                <EnumVal Name="GENERAL___IPT_IFA" Value="10"/>
+                <EnumVal Name="GENERAL___IPT_IFA_FIRST_DP" Value="11"/>
+                <EnumVal Name="GENERAL___IPT_UDP_GPE" Value="12"/>
+                <EnumVal Name="GENERAL___IPT_FIRST_UDP_GPE" Value="13"/>
+                <EnumVal Name="GENERAL___IPT_LAST_UDP_GPE" Value="14"/>
+                <EnumVal Name="GENERAL___RAW_PROC" Value="15"/>
+                <EnumVal Name="GENERAL___NOP_AND_POP_2" Value="16"/>
+                <EnumVal Name="GENERAL___NOP_AND_POP" Value="17"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_DP" Value="18"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_SAMP" Value="19"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_FIRST" Value="20"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_SECOND" Value="21"/>
+                <EnumVal Name="IPV4___FORWARDING" Value="23"/>
+                <EnumVal Name="IPV4___ETPP_FORWARDING_WO_ETPS_POP" Value="24"/>
+                <EnumVal Name="IPV4___ETPP_FORWARDING_WO_ETPS_POP_REMARK_TOS_P1" Value="25"/>
+                <EnumVal Name="IPV6___FORWARDING" Value="27"/>
+                <EnumVal Name="IPV6___ETPP_FORWARDING_WO_ETPS_POP" Value="28"/>
+                <EnumVal Name="IPV6___ETPP_FORWARDING_WO_ETPS_POP_REMARK_TOS_P1" Value="29"/>
+                <EnumVal Name="MPLS___SWAP" Value="30"/>
+                <EnumVal Name="MPLS___SWAPTOSELF" Value="32"/>
+                <EnumVal Name="MPLS___SWAP_COUPLED" Value="33"/>
+                <EnumVal Name="MPLS___PHP" Value="34"/>
+                <EnumVal Name="OAM___OAM_REFLECTOR" Value="35"/>
+                <EnumVal Name="PPP___NOP_CTX" Value="36"/>
+                <EnumVal Name="REFLECTORS___L2_SWAP" Value="37"/>
+                <EnumVal Name="REFLECTORS___L2_SWAP_AND_MC_SA" Value="38"/>
+                <EnumVal Name="REFLECTORS___IPV4_SWAP" Value="39"/>
+                <EnumVal Name="REFLECTORS___IPV6_SWAP" Value="40"/>
+                <EnumVal Name="REFLECTORS___TWAMP_IPV4" Value="41"/>
+                <EnumVal Name="REFLECTORS___TWAMP_IPV6" Value="42"/>
+                <EnumVal Name="SRV6___SRV6_SEGMENT_ENDPOINT" Value="43"/>
+                <EnumVal Name="SRV6___SRV6_SEGMENT_ENDPOINT_PSP" Value="44"/>
+                <EnumVal Name="TM___MACT_WA_JR1_DSP_COPY_DSP_LSBS_AS_IS" Value="45"/>
+                <EnumVal Name="TM___ETH_INTO_COE" Value="46"/>
+                <EnumVal Name="TM___MACT_WA_JR1_DSP_COPY_DSP_LSBS_AND_CMD_TO_REFRESH" Value="47"/>
+                <EnumVal Name="IPV4___BFD_SIP_WA" Value="26"/>
+                <EnumVal Name="MPLS___SWAP_WO_ETPS_POP" Value="31"/>
+                <EnumVal Name="GENERAL___IOAM_JP" Value="22"/>
+                <EnumVal Name="BRIDGE___ETPP_FORWARDING_SVTAG" Value="INVALID"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+        <FieldToPhyDbMapping Device="J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="BIER___TI_FORWARDING" Value="0"/>
+                <EnumVal Name="BRIDGE___ETPP_FORWARDING" Value="1"/>
+                <EnumVal Name="BRIDGE___ETPP_FORWARDING_WO_ETPS_POP" Value="2"/>
+                <EnumVal Name="FCOE___FCF" Value="4"/>
+                <EnumVal Name="FCOE___FCF_VFT" Value="5"/>
+                <EnumVal Name="GENERAL___DO_NOT_EDIT" Value="6"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="7"/>
+                <EnumVal Name="GENERAL___IPT_TAIL" Value="8"/>
+                <EnumVal Name="GENERAL___IPT_TAIL_AM" Value="9"/>
+                <EnumVal Name="GENERAL___IPT_IFA" Value="10"/>
+                <EnumVal Name="GENERAL___IPT_IFA_FIRST_DP" Value="11"/>
+                <EnumVal Name="GENERAL___IPT_UDP_GPE" Value="12"/>
+                <EnumVal Name="GENERAL___IPT_FIRST_UDP_GPE" Value="13"/>
+                <EnumVal Name="GENERAL___IPT_LAST_UDP_GPE" Value="14"/>
+                <EnumVal Name="GENERAL___RAW_PROC" Value="15"/>
+                <EnumVal Name="GENERAL___NOP_AND_POP_2" Value="16"/>
+                <EnumVal Name="GENERAL___NOP_AND_POP" Value="17"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_DP" Value="18"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_SAMP" Value="19"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_FIRST" Value="20"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_SECOND" Value="21"/>
+                <EnumVal Name="IPV4___FORWARDING" Value="23"/>
+                <EnumVal Name="IPV4___ETPP_FORWARDING_WO_ETPS_POP" Value="24"/>
+                <EnumVal Name="IPV4___ETPP_FORWARDING_WO_ETPS_POP_REMARK_TOS_P1" Value="25"/>
+                <EnumVal Name="IPV6___FORWARDING" Value="27"/>
+                <EnumVal Name="IPV6___ETPP_FORWARDING_WO_ETPS_POP" Value="28"/>
+                <EnumVal Name="IPV6___ETPP_FORWARDING_WO_ETPS_POP_REMARK_TOS_P1" Value="29"/>
+                <EnumVal Name="MPLS___SWAP" Value="30"/>
+                <EnumVal Name="MPLS___SWAPTOSELF" Value="32"/>
+                <EnumVal Name="MPLS___SWAP_COUPLED" Value="33"/>
+                <EnumVal Name="MPLS___PHP" Value="34"/>
+                <EnumVal Name="OAM___OAM_REFLECTOR" Value="35"/>
+                <EnumVal Name="PPP___NOP_CTX" Value="36"/>
+                <EnumVal Name="REFLECTORS___L2_SWAP" Value="37"/>
+                <EnumVal Name="REFLECTORS___L2_SWAP_AND_MC_SA" Value="38"/>
+                <EnumVal Name="REFLECTORS___IPV4_SWAP" Value="39"/>
+                <EnumVal Name="REFLECTORS___IPV6_SWAP" Value="40"/>
+                <EnumVal Name="REFLECTORS___TWAMP_IPV4" Value="41"/>
+                <EnumVal Name="REFLECTORS___TWAMP_IPV6" Value="42"/>
+                <EnumVal Name="SRV6___SRV6_SEGMENT_ENDPOINT" Value="43"/>
+                <EnumVal Name="SRV6___SRV6_SEGMENT_ENDPOINT_PSP" Value="44"/>
+                <EnumVal Name="TM___MACT_WA_JR1_DSP_COPY_DSP_LSBS_AS_IS" Value="45"/>
+                <EnumVal Name="TM___ETH_INTO_COE" Value="46"/>
+                <EnumVal Name="TM___MACT_WA_JR1_DSP_COPY_DSP_LSBS_AND_CMD_TO_REFRESH" Value="47"/>
+                <EnumVal Name="IPV4___BFD_SIP_WA" Value="26"/>
+                <EnumVal Name="MPLS___SWAP_WO_ETPS_POP" Value="31"/>
+                <EnumVal Name="GENERAL___IOAM_JP" Value="INVALID"/>
+                <EnumVal Name="BRIDGE___ETPP_FORWARDING_SVTAG" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ENCAP_1_CONTEXT_ID" Size="6" Print="ENUM">
+        <OneLineDescription>Context Ids for ENCAP_1 Stage</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="BRIDGE___ETH_COMPATIBLE_MC_BASIC" Description="Empty"/>
+                <EnumVal Name="BRIDGE___IN_ETH_COMPATIBLE_MC_WO_ETPS_POP" Description="Empty"/>
+                <EnumVal Name="BRIDGE___IN_ETH_W_1_ETPS_POP" Description="Empty"/>
+                <EnumVal Name="BRIDGE___ARP_AC_ETH" Description="Empty"/>
+                <EnumVal Name="BRIDGE___ARP_PLUS_AC_ETH" Description="Empty"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Description="Empty"/>
+                <EnumVal Name="GENERAL___NOP_AND_POP_CTX" Description="Empty"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_DP" Description="Empty"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_SAMP" Description="Empty"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_FIRST" Description="Empty"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_SECOND" Description="Empty"/>
+                <EnumVal Name="GENERAL___IPT_IFA_FIRST_DP" Description="Empty"/>
+                <EnumVal Name="GENERAL___IPT_IFA" Description="Empty"/>
+                <EnumVal Name="GENERAL___RAW_DATA_AT_VAR_SIZE" Description="Empty"/>
+                <EnumVal Name="L2TPV2___WO_PPP" Description="Empty"/>
+                <EnumVal Name="L2TPV2___W_PPP" Description="Empty"/>
+                <EnumVal Name="MPLS___IMPLICIT_NULL_WO_AH" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_1" Description="Empty"/>
+                <EnumVal Name="MPLS___1_MPLS_W_AH" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_2" Description="Empty"/>
+                <EnumVal Name="MPLS___2_MPLS_1_AH" Description="Empty"/>
+                <EnumVal Name="MPLS___2_MPLS_2_AH" Description="Empty"/>
+                <EnumVal Name="MPLS___2_MPLS_3_AH" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_1PLUS1" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_1PLUS2" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS1" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS1_RFC8321" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS2" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS2_RFC8321" Description="Empty"/>
+                <EnumVal Name="MPLS___EVPN_WITH_ESI" Description="Empty"/>
+                <EnumVal Name="MPLS___EVPN_NO_ESI" Description="Empty"/>
+                <EnumVal Name="PPPOE___WO_PPP" Description="Empty"/>
+                <EnumVal Name="PPPOE___W_PPP" Description="Empty"/>
+                <EnumVal Name="SRV6___ENCAP_SEGMENT_N_TH" Description="Empty"/>
+                <EnumVal Name="TELEMETRY___ERSPANV2" Description="Empty"/>
+                <EnumVal Name="TELEMETRY___ERSPANV3" Description="Empty"/>
+                <EnumVal Name="TELEMETRY___IPFIX_PSAMP__OVER_UDP_OR_TCP" Description="Empty"/>
+                <EnumVal Name="TELEMETRY___INT_P4_TBD" Description="Empty"/>
+                <EnumVal Name="TELEMETRY___INT_FB_TBD" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_2_BOS_LABEL_USED_IN_FWD_AS_SWAP" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS1_BOS_LABEL_USED_IN_FWD_AS_SWAP" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS2_BOS_LABEL_USED_IN_FWD_AS_SWAP" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0">
+            <EnumValueMapping>
+                <EnumVal Name="BRIDGE___ETH_COMPATIBLE_MC_BASIC" Value="0"/>
+                <EnumVal Name="BRIDGE___IN_ETH_COMPATIBLE_MC_WO_ETPS_POP" Value="1"/>
+                <EnumVal Name="BRIDGE___IN_ETH_W_1_ETPS_POP" Value="2"/>
+                <EnumVal Name="BRIDGE___ARP_AC_ETH" Value="3"/>
+                <EnumVal Name="BRIDGE___ARP_PLUS_AC_ETH" Value="4"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="5"/>
+                <EnumVal Name="GENERAL___NOP_AND_POP_CTX" Value="6"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_DP" Value="7"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_SAMP" Value="8"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_FIRST" Value="9"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_SECOND" Value="10"/>
+                <EnumVal Name="GENERAL___IPT_IFA_FIRST_DP" Value="11"/>
+                <EnumVal Name="GENERAL___IPT_IFA" Value="12"/>
+                <EnumVal Name="GENERAL___RAW_DATA_AT_VAR_SIZE" Value="13"/>
+                <EnumVal Name="L2TPV2___WO_PPP" Value="14"/>
+                <EnumVal Name="L2TPV2___W_PPP" Value="15"/>
+                <EnumVal Name="MPLS___IMPLICIT_NULL_WO_AH" Value="16"/>
+                <EnumVal Name="MPLS___MPLS_1" Value="17"/>
+                <EnumVal Name="MPLS___1_MPLS_W_AH" Value="18"/>
+                <EnumVal Name="MPLS___MPLS_2" Value="19"/>
+                <EnumVal Name="MPLS___2_MPLS_1_AH" Value="21"/>
+                <EnumVal Name="MPLS___2_MPLS_2_AH" Value="22"/>
+                <EnumVal Name="MPLS___2_MPLS_3_AH" Value="23"/>
+                <EnumVal Name="MPLS___MPLS_1PLUS1" Value="24"/>
+                <EnumVal Name="MPLS___MPLS_1PLUS2" Value="25"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS1" Value="26"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS1_RFC8321" Value="27"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS2" Value="28"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS2_RFC8321" Value="29"/>
+                <EnumVal Name="MPLS___EVPN_WITH_ESI" Value="32"/>
+                <EnumVal Name="MPLS___EVPN_NO_ESI" Value="33"/>
+                <EnumVal Name="PPPOE___WO_PPP" Value="34"/>
+                <EnumVal Name="PPPOE___W_PPP" Value="35"/>
+                <EnumVal Name="SRV6___ENCAP_SEGMENT_N_TH" Value="36"/>
+                <EnumVal Name="TELEMETRY___ERSPANV2" Value="37"/>
+                <EnumVal Name="TELEMETRY___ERSPANV3" Value="38"/>
+                <EnumVal Name="TELEMETRY___IPFIX_PSAMP__OVER_UDP_OR_TCP" Value="39"/>
+                <EnumVal Name="TELEMETRY___INT_P4_TBD" Value="40"/>
+                <EnumVal Name="TELEMETRY___INT_FB_TBD" Value="41"/>
+                <EnumVal Name="MPLS___MPLS_2_BOS_LABEL_USED_IN_FWD_AS_SWAP" Value="INVALID"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS1_BOS_LABEL_USED_IN_FWD_AS_SWAP" Value="INVALID"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS2_BOS_LABEL_USED_IN_FWD_AS_SWAP" Value="INVALID"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+        <FieldToPhyDbMapping Device="JR2_B0 J2C_A0 Q2A_A0 Q2A_B0">
+            <EnumValueMapping>
+                <EnumVal Name="BRIDGE___ETH_COMPATIBLE_MC_BASIC" Value="0"/>
+                <EnumVal Name="BRIDGE___IN_ETH_COMPATIBLE_MC_WO_ETPS_POP" Value="1"/>
+                <EnumVal Name="BRIDGE___IN_ETH_W_1_ETPS_POP" Value="2"/>
+                <EnumVal Name="BRIDGE___ARP_AC_ETH" Value="3"/>
+                <EnumVal Name="BRIDGE___ARP_PLUS_AC_ETH" Value="4"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="5"/>
+                <EnumVal Name="GENERAL___NOP_AND_POP_CTX" Value="6"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_DP" Value="7"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_SAMP" Value="8"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_FIRST" Value="9"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_SECOND" Value="10"/>
+                <EnumVal Name="GENERAL___IPT_IFA_FIRST_DP" Value="11"/>
+                <EnumVal Name="GENERAL___IPT_IFA" Value="12"/>
+                <EnumVal Name="GENERAL___RAW_DATA_AT_VAR_SIZE" Value="13"/>
+                <EnumVal Name="L2TPV2___WO_PPP" Value="14"/>
+                <EnumVal Name="L2TPV2___W_PPP" Value="15"/>
+                <EnumVal Name="MPLS___IMPLICIT_NULL_WO_AH" Value="16"/>
+                <EnumVal Name="MPLS___MPLS_1" Value="17"/>
+                <EnumVal Name="MPLS___1_MPLS_W_AH" Value="INVALID"/>
+                <EnumVal Name="MPLS___MPLS_2" Value="19"/>
+                <EnumVal Name="MPLS___2_MPLS_1_AH" Value="INVALID"/>
+                <EnumVal Name="MPLS___2_MPLS_2_AH" Value="INVALID"/>
+                <EnumVal Name="MPLS___2_MPLS_3_AH" Value="INVALID"/>
+                <EnumVal Name="MPLS___MPLS_1PLUS1" Value="24"/>
+                <EnumVal Name="MPLS___MPLS_1PLUS2" Value="25"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS1" Value="26"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS1_RFC8321" Value="27"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS2" Value="28"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS2_RFC8321" Value="29"/>
+                <EnumVal Name="MPLS___EVPN_WITH_ESI" Value="32"/>
+                <EnumVal Name="MPLS___EVPN_NO_ESI" Value="33"/>
+                <EnumVal Name="PPPOE___WO_PPP" Value="34"/>
+                <EnumVal Name="PPPOE___W_PPP" Value="35"/>
+                <EnumVal Name="SRV6___ENCAP_SEGMENT_N_TH" Value="36"/>
+                <EnumVal Name="TELEMETRY___ERSPANV2" Value="37"/>
+                <EnumVal Name="TELEMETRY___ERSPANV3" Value="38"/>
+                <EnumVal Name="TELEMETRY___IPFIX_PSAMP__OVER_UDP_OR_TCP" Value="39"/>
+                <EnumVal Name="TELEMETRY___INT_P4_TBD" Value="40"/>
+                <EnumVal Name="TELEMETRY___INT_FB_TBD" Value="41"/>
+                <EnumVal Name="MPLS___MPLS_2_BOS_LABEL_USED_IN_FWD_AS_SWAP" Value="20"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS1_BOS_LABEL_USED_IN_FWD_AS_SWAP" Value="30"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS2_BOS_LABEL_USED_IN_FWD_AS_SWAP" Value="31"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+        <FieldToPhyDbMapping Device="J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="BRIDGE___ETH_COMPATIBLE_MC_BASIC" Value="0"/>
+                <EnumVal Name="BRIDGE___IN_ETH_COMPATIBLE_MC_WO_ETPS_POP" Value="1"/>
+                <EnumVal Name="BRIDGE___IN_ETH_W_1_ETPS_POP" Value="2"/>
+                <EnumVal Name="BRIDGE___ARP_AC_ETH" Value="3"/>
+                <EnumVal Name="BRIDGE___ARP_PLUS_AC_ETH" Value="4"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="5"/>
+                <EnumVal Name="GENERAL___NOP_AND_POP_CTX" Value="6"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_DP" Value="7"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_SAMP" Value="8"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_FIRST" Value="9"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_SECOND" Value="10"/>
+                <EnumVal Name="GENERAL___IPT_IFA_FIRST_DP" Value="11"/>
+                <EnumVal Name="GENERAL___IPT_IFA" Value="12"/>
+                <EnumVal Name="GENERAL___RAW_DATA_AT_VAR_SIZE" Value="13"/>
+                <EnumVal Name="L2TPV2___WO_PPP" Value="14"/>
+                <EnumVal Name="L2TPV2___W_PPP" Value="15"/>
+                <EnumVal Name="MPLS___IMPLICIT_NULL_WO_AH" Value="16"/>
+                <EnumVal Name="MPLS___MPLS_1" Value="17"/>
+                <EnumVal Name="MPLS___1_MPLS_W_AH" Value="INVALID"/>
+                <EnumVal Name="MPLS___MPLS_2" Value="19"/>
+                <EnumVal Name="MPLS___2_MPLS_1_AH" Value="INVALID"/>
+                <EnumVal Name="MPLS___2_MPLS_2_AH" Value="INVALID"/>
+                <EnumVal Name="MPLS___2_MPLS_3_AH" Value="INVALID"/>
+                <EnumVal Name="MPLS___MPLS_1PLUS1" Value="24"/>
+                <EnumVal Name="MPLS___MPLS_1PLUS2" Value="25"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS1" Value="26"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS1_RFC8321" Value="27"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS2" Value="28"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS2_RFC8321" Value="29"/>
+                <EnumVal Name="MPLS___EVPN_WITH_ESI" Value="32"/>
+                <EnumVal Name="MPLS___EVPN_NO_ESI" Value="33"/>
+                <EnumVal Name="PPPOE___WO_PPP" Value="34"/>
+                <EnumVal Name="PPPOE___W_PPP" Value="35"/>
+                <EnumVal Name="SRV6___ENCAP_SEGMENT_N_TH" Value="36"/>
+                <EnumVal Name="TELEMETRY___ERSPANV2" Value="37"/>
+                <EnumVal Name="TELEMETRY___ERSPANV3" Value="38"/>
+                <EnumVal Name="TELEMETRY___IPFIX_PSAMP__OVER_UDP_OR_TCP" Value="39"/>
+                <EnumVal Name="TELEMETRY___INT_P4_TBD" Value="40"/>
+                <EnumVal Name="TELEMETRY___INT_FB_TBD" Value="41"/>
+                <EnumVal Name="MPLS___MPLS_2_BOS_LABEL_USED_IN_FWD_AS_SWAP" Value="20"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS1_BOS_LABEL_USED_IN_FWD_AS_SWAP" Value="INVALID"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS2_BOS_LABEL_USED_IN_FWD_AS_SWAP" Value="INVALID"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ENCAP_2_CONTEXT_ID" Size="6" Print="ENUM">
+        <OneLineDescription>Context Ids for ENCAP_2 Stage</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="GENERAL___NOP_CTX" Description="Empty"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_DP" Description="Empty"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_SAMP" Description="Empty"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_FIRST" Description="Empty"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_SECOND" Description="Empty"/>
+                <EnumVal Name="GENERAL___IPT_IFA_FIRST_DP" Description="Empty"/>
+                <EnumVal Name="GENERAL___IPT_IFA" Description="Empty"/>
+                <EnumVal Name="GENERAL___RAW_DATA_AT_VAR_SIZE" Description="Empty"/>
+                <EnumVal Name="IPV4___TUNNEL" Description="Empty"/>
+                <EnumVal Name="IPV4___IPV4_VXLAN" Description="Empty"/>
+                <EnumVal Name="IPV4___IPV4_VXLAN_ECN" Description="Empty"/>
+                <EnumVal Name="IPV4___IPV4_GRE_WO_TNI" Description="Empty"/>
+                <EnumVal Name="IPV4___IPV4_UDP" Description="Empty"/>
+                <EnumVal Name="IPV4___IPV4_GRE8_GRE12_GENEVE" Description="Empty"/>
+                <EnumVal Name="IPV6___TUNNEL" Description="Empty"/>
+                <EnumVal Name="IPV6___TUNNEL_ECN" Description="Empty"/>
+                <EnumVal Name="IPV6___VXLAN_ONLY" Description="Empty"/>
+                <EnumVal Name="IPV6___GENEVE_ONLY" Description="Empty"/>
+                <EnumVal Name="IPV6___GRE_ONLY" Description="Empty"/>
+                <EnumVal Name="IPV6___GRE_ONLY_WO_TNI" Description="Empty"/>
+                <EnumVal Name="IPV6___UDP_ONLY" Description="Empty"/>
+                <EnumVal Name="MPLS___IMPLICIT_NULL_WO_AH" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_1" Description="Empty"/>
+                <EnumVal Name="MPLS___1_MPLS_W_AH" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_2" Description="Empty"/>
+                <EnumVal Name="MPLS___2_MPLS_1_AH" Description="Empty"/>
+                <EnumVal Name="MPLS___2_MPLS_2_AH" Description="Empty"/>
+                <EnumVal Name="MPLS___2_MPLS_3_AH" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_1PLUS1" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_1PLUS2" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS1" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS1_RFC8321" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS2" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS2_RFC8321" Description="Empty"/>
+                <EnumVal Name="MPLS___EVPN_WITH_ESI" Description="Empty"/>
+                <EnumVal Name="SRV6___ENCAP_2_SEGMENTS" Description="Empty"/>
+                <EnumVal Name="SRV6___ENCAP_1_SEGMENT" Description="Empty"/>
+                <EnumVal Name="SRV6___ENCAP_0_SEGMENTS" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0">
+            <EnumValueMapping>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="0"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_DP" Value="1"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_SAMP" Value="2"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_FIRST" Value="3"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_SECOND" Value="4"/>
+                <EnumVal Name="GENERAL___IPT_IFA_FIRST_DP" Value="5"/>
+                <EnumVal Name="GENERAL___IPT_IFA" Value="6"/>
+                <EnumVal Name="GENERAL___RAW_DATA_AT_VAR_SIZE" Value="7"/>
+                <EnumVal Name="IPV4___TUNNEL" Value="8"/>
+                <EnumVal Name="IPV4___IPV4_VXLAN" Value="9"/>
+                <EnumVal Name="IPV4___IPV4_VXLAN_ECN" Value="10"/>
+                <EnumVal Name="IPV4___IPV4_GRE_WO_TNI" Value="11"/>
+                <EnumVal Name="IPV4___IPV4_UDP" Value="12"/>
+                <EnumVal Name="IPV4___IPV4_GRE8_GRE12_GENEVE" Value="13"/>
+                <EnumVal Name="IPV6___TUNNEL" Value="14"/>
+                <EnumVal Name="IPV6___TUNNEL_ECN" Value="15"/>
+                <EnumVal Name="IPV6___VXLAN_ONLY" Value="16"/>
+                <EnumVal Name="IPV6___GENEVE_ONLY" Value="17"/>
+                <EnumVal Name="IPV6___GRE_ONLY" Value="18"/>
+                <EnumVal Name="IPV6___GRE_ONLY_WO_TNI" Value="19"/>
+                <EnumVal Name="IPV6___UDP_ONLY" Value="20"/>
+                <EnumVal Name="MPLS___IMPLICIT_NULL_WO_AH" Value="21"/>
+                <EnumVal Name="MPLS___MPLS_1" Value="22"/>
+                <EnumVal Name="MPLS___1_MPLS_W_AH" Value="23"/>
+                <EnumVal Name="MPLS___MPLS_2" Value="24"/>
+                <EnumVal Name="MPLS___2_MPLS_1_AH" Value="25"/>
+                <EnumVal Name="MPLS___2_MPLS_2_AH" Value="26"/>
+                <EnumVal Name="MPLS___2_MPLS_3_AH" Value="27"/>
+                <EnumVal Name="MPLS___MPLS_1PLUS1" Value="28"/>
+                <EnumVal Name="MPLS___MPLS_1PLUS2" Value="29"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS1" Value="30"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS1_RFC8321" Value="31"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS2" Value="32"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS2_RFC8321" Value="33"/>
+                <EnumVal Name="MPLS___EVPN_WITH_ESI" Value="34"/>
+                <EnumVal Name="SRV6___ENCAP_2_SEGMENTS" Value="35"/>
+                <EnumVal Name="SRV6___ENCAP_1_SEGMENT" Value="36"/>
+                <EnumVal Name="SRV6___ENCAP_0_SEGMENTS" Value="37"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+        <FieldToPhyDbMapping Device="JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="0"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_DP" Value="1"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_SAMP" Value="2"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_FIRST" Value="3"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_SECOND" Value="4"/>
+                <EnumVal Name="GENERAL___IPT_IFA_FIRST_DP" Value="5"/>
+                <EnumVal Name="GENERAL___IPT_IFA" Value="6"/>
+                <EnumVal Name="GENERAL___RAW_DATA_AT_VAR_SIZE" Value="7"/>
+                <EnumVal Name="IPV4___TUNNEL" Value="8"/>
+                <EnumVal Name="IPV4___IPV4_VXLAN" Value="9"/>
+                <EnumVal Name="IPV4___IPV4_VXLAN_ECN" Value="10"/>
+                <EnumVal Name="IPV4___IPV4_GRE_WO_TNI" Value="11"/>
+                <EnumVal Name="IPV4___IPV4_UDP" Value="12"/>
+                <EnumVal Name="IPV4___IPV4_GRE8_GRE12_GENEVE" Value="13"/>
+                <EnumVal Name="IPV6___TUNNEL" Value="14"/>
+                <EnumVal Name="IPV6___TUNNEL_ECN" Value="15"/>
+                <EnumVal Name="IPV6___VXLAN_ONLY" Value="16"/>
+                <EnumVal Name="IPV6___GENEVE_ONLY" Value="17"/>
+                <EnumVal Name="IPV6___GRE_ONLY" Value="18"/>
+                <EnumVal Name="IPV6___GRE_ONLY_WO_TNI" Value="19"/>
+                <EnumVal Name="IPV6___UDP_ONLY" Value="20"/>
+                <EnumVal Name="MPLS___IMPLICIT_NULL_WO_AH" Value="21"/>
+                <EnumVal Name="MPLS___MPLS_1" Value="22"/>
+                <EnumVal Name="MPLS___1_MPLS_W_AH" Value="INVALID"/>
+                <EnumVal Name="MPLS___MPLS_2" Value="24"/>
+                <EnumVal Name="MPLS___2_MPLS_1_AH" Value="INVALID"/>
+                <EnumVal Name="MPLS___2_MPLS_2_AH" Value="INVALID"/>
+                <EnumVal Name="MPLS___2_MPLS_3_AH" Value="INVALID"/>
+                <EnumVal Name="MPLS___MPLS_1PLUS1" Value="28"/>
+                <EnumVal Name="MPLS___MPLS_1PLUS2" Value="29"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS1" Value="30"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS1_RFC8321" Value="31"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS2" Value="32"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS2_RFC8321" Value="33"/>
+                <EnumVal Name="MPLS___EVPN_WITH_ESI" Value="34"/>
+                <EnumVal Name="SRV6___ENCAP_2_SEGMENTS" Value="35"/>
+                <EnumVal Name="SRV6___ENCAP_1_SEGMENT" Value="36"/>
+                <EnumVal Name="SRV6___ENCAP_0_SEGMENTS" Value="37"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ENCAP_3_CONTEXT_ID" Size="6" Print="ENUM">
+        <OneLineDescription>Context Ids for ENCAP_3 Stage</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="BIER___BIER_MPLS_64" Description="Empty"/>
+                <EnumVal Name="BIER___BIER_TI_64" Description="Empty"/>
+                <EnumVal Name="BIER___BIER_MPLS_256_128" Description="Empty"/>
+                <EnumVal Name="BIER___BIER_TI_256_128" Description="Empty"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Description="Empty"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_DP" Description="Empty"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_SAMP" Description="Empty"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_FIRST" Description="Empty"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_SECOND" Description="Empty"/>
+                <EnumVal Name="GENERAL___IPT_IFA_FIRST_DP" Description="Empty"/>
+                <EnumVal Name="GENERAL___IPT_IFA" Description="Empty"/>
+                <EnumVal Name="GENERAL___RAW_DATA_AT_VAR_SIZE" Description="Empty"/>
+                <EnumVal Name="IPV4___TUNNEL" Description="Empty"/>
+                <EnumVal Name="IPV4___IPV4_VXLAN" Description="Empty"/>
+                <EnumVal Name="IPV4___IPV4_VXLAN_ECN" Description="Empty"/>
+                <EnumVal Name="IPV4___IPV4_GRE_WO_TNI" Description="Empty"/>
+                <EnumVal Name="IPV4___IPV4_UDP" Description="Empty"/>
+                <EnumVal Name="IPV4___IPV4_GRE8_GRE12_GENEVE" Description="Empty"/>
+                <EnumVal Name="IPV6___TUNNEL" Description="Empty"/>
+                <EnumVal Name="IPV6___TUNNEL_ECN" Description="Empty"/>
+                <EnumVal Name="IPV6___VXLAN_ONLY" Description="Empty"/>
+                <EnumVal Name="IPV6___GENEVE_ONLY" Description="Empty"/>
+                <EnumVal Name="IPV6___GRE_ONLY" Description="Empty"/>
+                <EnumVal Name="IPV6___GRE_ONLY_WO_TNI" Description="Empty"/>
+                <EnumVal Name="IPV6___UDP_ONLY" Description="Empty"/>
+                <EnumVal Name="MPLS___IMPLICIT_NULL_WO_AH" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_1" Description="Empty"/>
+                <EnumVal Name="MPLS___1_MPLS_W_AH" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_2" Description="Empty"/>
+                <EnumVal Name="MPLS___2_MPLS_1_AH" Description="Empty"/>
+                <EnumVal Name="MPLS___2_MPLS_2_AH" Description="Empty"/>
+                <EnumVal Name="MPLS___2_MPLS_3_AH" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_1PLUS1" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_1PLUS2" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS1" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS1_RFC8321" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS2" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS2_RFC8321" Description="Empty"/>
+                <EnumVal Name="SRV6___SRH_AND_2_SEGMENTS" Description="Empty"/>
+                <EnumVal Name="SRV6___SRH_AND_1_SEGMENT" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0">
+            <EnumValueMapping>
+                <EnumVal Name="BIER___BIER_MPLS_64" Value="0"/>
+                <EnumVal Name="BIER___BIER_TI_64" Value="1"/>
+                <EnumVal Name="BIER___BIER_MPLS_256_128" Value="2"/>
+                <EnumVal Name="BIER___BIER_TI_256_128" Value="3"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="4"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_DP" Value="5"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_SAMP" Value="6"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_FIRST" Value="7"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_SECOND" Value="8"/>
+                <EnumVal Name="GENERAL___IPT_IFA_FIRST_DP" Value="9"/>
+                <EnumVal Name="GENERAL___IPT_IFA" Value="10"/>
+                <EnumVal Name="GENERAL___RAW_DATA_AT_VAR_SIZE" Value="11"/>
+                <EnumVal Name="IPV4___TUNNEL" Value="12"/>
+                <EnumVal Name="IPV4___IPV4_VXLAN" Value="13"/>
+                <EnumVal Name="IPV4___IPV4_VXLAN_ECN" Value="14"/>
+                <EnumVal Name="IPV4___IPV4_GRE_WO_TNI" Value="15"/>
+                <EnumVal Name="IPV4___IPV4_UDP" Value="16"/>
+                <EnumVal Name="IPV4___IPV4_GRE8_GRE12_GENEVE" Value="17"/>
+                <EnumVal Name="IPV6___TUNNEL" Value="18"/>
+                <EnumVal Name="IPV6___TUNNEL_ECN" Value="19"/>
+                <EnumVal Name="IPV6___VXLAN_ONLY" Value="20"/>
+                <EnumVal Name="IPV6___GENEVE_ONLY" Value="21"/>
+                <EnumVal Name="IPV6___GRE_ONLY" Value="22"/>
+                <EnumVal Name="IPV6___GRE_ONLY_WO_TNI" Value="23"/>
+                <EnumVal Name="IPV6___UDP_ONLY" Value="24"/>
+                <EnumVal Name="MPLS___IMPLICIT_NULL_WO_AH" Value="25"/>
+                <EnumVal Name="MPLS___MPLS_1" Value="26"/>
+                <EnumVal Name="MPLS___1_MPLS_W_AH" Value="27"/>
+                <EnumVal Name="MPLS___MPLS_2" Value="28"/>
+                <EnumVal Name="MPLS___2_MPLS_1_AH" Value="29"/>
+                <EnumVal Name="MPLS___2_MPLS_2_AH" Value="30"/>
+                <EnumVal Name="MPLS___2_MPLS_3_AH" Value="31"/>
+                <EnumVal Name="MPLS___MPLS_1PLUS1" Value="32"/>
+                <EnumVal Name="MPLS___MPLS_1PLUS2" Value="33"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS1" Value="34"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS1_RFC8321" Value="35"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS2" Value="36"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS2_RFC8321" Value="37"/>
+                <EnumVal Name="SRV6___SRH_AND_2_SEGMENTS" Value="38"/>
+                <EnumVal Name="SRV6___SRH_AND_1_SEGMENT" Value="39"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+        <FieldToPhyDbMapping Device="JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="BIER___BIER_MPLS_64" Value="0"/>
+                <EnumVal Name="BIER___BIER_TI_64" Value="1"/>
+                <EnumVal Name="BIER___BIER_MPLS_256_128" Value="2"/>
+                <EnumVal Name="BIER___BIER_TI_256_128" Value="3"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="4"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_DP" Value="5"/>
+                <EnumVal Name="GENERAL___SFLOW_HDR_SAMP" Value="6"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_FIRST" Value="7"/>
+                <EnumVal Name="GENERAL___SFLOW_EXT_SECOND" Value="8"/>
+                <EnumVal Name="GENERAL___IPT_IFA_FIRST_DP" Value="9"/>
+                <EnumVal Name="GENERAL___IPT_IFA" Value="10"/>
+                <EnumVal Name="GENERAL___RAW_DATA_AT_VAR_SIZE" Value="11"/>
+                <EnumVal Name="IPV4___TUNNEL" Value="12"/>
+                <EnumVal Name="IPV4___IPV4_VXLAN" Value="13"/>
+                <EnumVal Name="IPV4___IPV4_VXLAN_ECN" Value="14"/>
+                <EnumVal Name="IPV4___IPV4_GRE_WO_TNI" Value="15"/>
+                <EnumVal Name="IPV4___IPV4_UDP" Value="16"/>
+                <EnumVal Name="IPV4___IPV4_GRE8_GRE12_GENEVE" Value="17"/>
+                <EnumVal Name="IPV6___TUNNEL" Value="18"/>
+                <EnumVal Name="IPV6___TUNNEL_ECN" Value="19"/>
+                <EnumVal Name="IPV6___VXLAN_ONLY" Value="20"/>
+                <EnumVal Name="IPV6___GENEVE_ONLY" Value="21"/>
+                <EnumVal Name="IPV6___GRE_ONLY" Value="22"/>
+                <EnumVal Name="IPV6___GRE_ONLY_WO_TNI" Value="23"/>
+                <EnumVal Name="IPV6___UDP_ONLY" Value="24"/>
+                <EnumVal Name="MPLS___IMPLICIT_NULL_WO_AH" Value="25"/>
+                <EnumVal Name="MPLS___MPLS_1" Value="26"/>
+                <EnumVal Name="MPLS___1_MPLS_W_AH" Value="INVALID"/>
+                <EnumVal Name="MPLS___MPLS_2" Value="28"/>
+                <EnumVal Name="MPLS___2_MPLS_1_AH" Value="INVALID"/>
+                <EnumVal Name="MPLS___2_MPLS_2_AH" Value="INVALID"/>
+                <EnumVal Name="MPLS___2_MPLS_3_AH" Value="INVALID"/>
+                <EnumVal Name="MPLS___MPLS_1PLUS1" Value="32"/>
+                <EnumVal Name="MPLS___MPLS_1PLUS2" Value="33"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS1" Value="34"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS1_RFC8321" Value="35"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS2" Value="36"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS2_RFC8321" Value="37"/>
+                <EnumVal Name="SRV6___SRH_AND_2_SEGMENTS" Value="38"/>
+                <EnumVal Name="SRV6___SRH_AND_1_SEGMENT" Value="39"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ENCAP_4_CONTEXT_ID" Size="6" Print="ENUM">
+        <OneLineDescription>Context Ids for ENCAP_4 Stage</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="BIER___BIER_MPLS_128_64" Description="Empty"/>
+                <EnumVal Name="BIER___BIER_MPLS_256" Description="Empty"/>
+                <EnumVal Name="BIER___BIER_TI_128_64" Description="Empty"/>
+                <EnumVal Name="BIER___BIER_TI_256" Description="Empty"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Description="Empty"/>
+                <EnumVal Name="GENERAL___RAW_DATA_AT_VAR_SIZE" Description="Empty"/>
+                <EnumVal Name="IPV4___TUNNEL" Description="Empty"/>
+                <EnumVal Name="IPV4___IPV4_VXLAN" Description="Empty"/>
+                <EnumVal Name="IPV4___IPV4_VXLAN_ECN" Description="Empty"/>
+                <EnumVal Name="IPV4___IPV4_GRE_WO_TNI" Description="Empty"/>
+                <EnumVal Name="IPV4___IPV4_UDP" Description="Empty"/>
+                <EnumVal Name="IPV4___IPV4_GRE8_GRE12_GENEVE" Description="Empty"/>
+                <EnumVal Name="IPV6___TUNNEL" Description="Empty"/>
+                <EnumVal Name="IPV6___TUNNEL_ECN" Description="Empty"/>
+                <EnumVal Name="MPLS___IMPLICIT_NULL_WO_AH" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_1" Description="Empty"/>
+                <EnumVal Name="MPLS___1_MPLS_W_AH" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_2" Description="Empty"/>
+                <EnumVal Name="MPLS___2_MPLS_1_AH" Description="Empty"/>
+                <EnumVal Name="MPLS___2_MPLS_2_AH" Description="Empty"/>
+                <EnumVal Name="MPLS___2_MPLS_3_AH" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_1PLUS1" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_1PLUS2" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS1" Description="Empty"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS2" Description="Empty"/>
+                <EnumVal Name="SRV6___SRV6_IPV6_HEADER" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0">
+            <EnumValueMapping>
+                <EnumVal Name="BIER___BIER_MPLS_128_64" Value="0"/>
+                <EnumVal Name="BIER___BIER_MPLS_256" Value="1"/>
+                <EnumVal Name="BIER___BIER_TI_128_64" Value="2"/>
+                <EnumVal Name="BIER___BIER_TI_256" Value="3"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="4"/>
+                <EnumVal Name="GENERAL___RAW_DATA_AT_VAR_SIZE" Value="5"/>
+                <EnumVal Name="IPV4___TUNNEL" Value="6"/>
+                <EnumVal Name="IPV4___IPV4_VXLAN" Value="7"/>
+                <EnumVal Name="IPV4___IPV4_VXLAN_ECN" Value="8"/>
+                <EnumVal Name="IPV4___IPV4_GRE_WO_TNI" Value="9"/>
+                <EnumVal Name="IPV4___IPV4_UDP" Value="10"/>
+                <EnumVal Name="IPV4___IPV4_GRE8_GRE12_GENEVE" Value="11"/>
+                <EnumVal Name="IPV6___TUNNEL" Value="12"/>
+                <EnumVal Name="IPV6___TUNNEL_ECN" Value="13"/>
+                <EnumVal Name="MPLS___IMPLICIT_NULL_WO_AH" Value="14"/>
+                <EnumVal Name="MPLS___MPLS_1" Value="15"/>
+                <EnumVal Name="MPLS___1_MPLS_W_AH" Value="16"/>
+                <EnumVal Name="MPLS___MPLS_2" Value="17"/>
+                <EnumVal Name="MPLS___2_MPLS_1_AH" Value="18"/>
+                <EnumVal Name="MPLS___2_MPLS_2_AH" Value="19"/>
+                <EnumVal Name="MPLS___2_MPLS_3_AH" Value="20"/>
+                <EnumVal Name="MPLS___MPLS_1PLUS1" Value="21"/>
+                <EnumVal Name="MPLS___MPLS_1PLUS2" Value="22"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS1" Value="23"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS2" Value="24"/>
+                <EnumVal Name="SRV6___SRV6_IPV6_HEADER" Value="25"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+        <FieldToPhyDbMapping Device="JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="BIER___BIER_MPLS_128_64" Value="0"/>
+                <EnumVal Name="BIER___BIER_MPLS_256" Value="1"/>
+                <EnumVal Name="BIER___BIER_TI_128_64" Value="2"/>
+                <EnumVal Name="BIER___BIER_TI_256" Value="3"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="4"/>
+                <EnumVal Name="GENERAL___RAW_DATA_AT_VAR_SIZE" Value="5"/>
+                <EnumVal Name="IPV4___TUNNEL" Value="6"/>
+                <EnumVal Name="IPV4___IPV4_VXLAN" Value="7"/>
+                <EnumVal Name="IPV4___IPV4_VXLAN_ECN" Value="8"/>
+                <EnumVal Name="IPV4___IPV4_GRE_WO_TNI" Value="9"/>
+                <EnumVal Name="IPV4___IPV4_UDP" Value="10"/>
+                <EnumVal Name="IPV4___IPV4_GRE8_GRE12_GENEVE" Value="11"/>
+                <EnumVal Name="IPV6___TUNNEL" Value="12"/>
+                <EnumVal Name="IPV6___TUNNEL_ECN" Value="13"/>
+                <EnumVal Name="MPLS___IMPLICIT_NULL_WO_AH" Value="14"/>
+                <EnumVal Name="MPLS___MPLS_1" Value="15"/>
+                <EnumVal Name="MPLS___1_MPLS_W_AH" Value="INVALID"/>
+                <EnumVal Name="MPLS___MPLS_2" Value="17"/>
+                <EnumVal Name="MPLS___2_MPLS_1_AH" Value="INVALID"/>
+                <EnumVal Name="MPLS___2_MPLS_2_AH" Value="INVALID"/>
+                <EnumVal Name="MPLS___2_MPLS_3_AH" Value="INVALID"/>
+                <EnumVal Name="MPLS___MPLS_1PLUS1" Value="21"/>
+                <EnumVal Name="MPLS___MPLS_1PLUS2" Value="22"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS1" Value="23"/>
+                <EnumVal Name="MPLS___MPLS_2PLUS2" Value="24"/>
+                <EnumVal Name="SRV6___SRV6_IPV6_HEADER" Value="25"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ENCAP_5_CONTEXT_ID" Size="6" Print="ENUM">
+        <OneLineDescription>Context Ids for ENCAP_5 Stage</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="BRIDGE___ARP_AC_ETH" Description="Empty"/>
+                <EnumVal Name="BRIDGE___ARP_PLUS_AC_ETH" Description="Empty"/>
+                <EnumVal Name="FCOE___NPV_US" Description="Empty"/>
+                <EnumVal Name="GENERAL___RCH_ENC" Description="Empty"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Description="Empty"/>
+                <EnumVal Name="BRIDGE___ARP_AC_ETH_SVTAG" Description="Empty"/>
+                <EnumVal Name="BRIDGE___ARP_PLUS_AC_ETH_SVTAG" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0">
+            <EnumValueMapping>
+                <EnumVal Name="BRIDGE___ARP_AC_ETH" Value="0"/>
+                <EnumVal Name="BRIDGE___ARP_PLUS_AC_ETH" Value="1"/>
+                <EnumVal Name="FCOE___NPV_US" Value="4"/>
+                <EnumVal Name="GENERAL___RCH_ENC" Value="5"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="6"/>
+                <EnumVal Name="BRIDGE___ARP_AC_ETH_SVTAG" Value="INVALID"/>
+                <EnumVal Name="BRIDGE___ARP_PLUS_AC_ETH_SVTAG" Value="INVALID"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+        <FieldToPhyDbMapping Device="J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="BRIDGE___ARP_AC_ETH" Value="0"/>
+                <EnumVal Name="BRIDGE___ARP_PLUS_AC_ETH" Value="1"/>
+                <EnumVal Name="FCOE___NPV_US" Value="4"/>
+                <EnumVal Name="GENERAL___RCH_ENC" Value="5"/>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="6"/>
+                <EnumVal Name="BRIDGE___ARP_AC_ETH_SVTAG" Value="2"/>
+                <EnumVal Name="BRIDGE___ARP_PLUS_AC_ETH_SVTAG" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="TRAP_CONTEXT_ID" Size="6" Print="ENUM">
+        <OneLineDescription>Context Ids for TRAP Stage</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="GENERAL___NOP_CTX" Description="Empty"/>
+                <EnumVal Name="GENERAL___TRJ_TRACE_TYPE2" Description="Empty"/>
+                <EnumVal Name="GENERAL___RCH_ENC" Description="Empty"/>
+                <EnumVal Name="GENERAL___RCH_PTCH_ENC" Description="Empty"/>
+                <EnumVal Name="GENERAL___RECYCLE_W_PTCH2" Description="Empty"/>
+                <EnumVal Name="GENERAL___OAM_UPMEP_REFLECTOR" Description="Empty"/>
+                <EnumVal Name="GENERAL___NORMAL_FWD" Description="Empty"/>
+                <EnumVal Name="GENERAL___NORMAL_FWD_NO_MIRROR" Description="Empty"/>
+                <EnumVal Name="GENERAL___DROP_PKT" Description="Empty"/>
+                <EnumVal Name="GENERAL___VISIBILITY" Description="Empty"/>
+                <EnumVal Name="GENERAL___CPU_PORT_TRAPPED" Description="Empty"/>
+                <EnumVal Name="GENERAL___USER_TRAP_1" Description="Empty"/>
+                <EnumVal Name="GENERAL___USER_TRAP_2" Description="Empty"/>
+                <EnumVal Name="GENERAL___USER_TRAP_3" Description="Empty"/>
+                <EnumVal Name="GENERAL___USER_TRAP_4" Description="Empty"/>
+                <EnumVal Name="GENERAL___EGRESS_TRAPPED" Description="Empty"/>
+                <EnumVal Name="GENERAL___STACKING_LEFT" Description="Empty"/>
+                <EnumVal Name="GENERAL___STACKING_RIGHT" Description="Empty"/>
+                <EnumVal Name="GENERAL___IPT_IFA_FIRST_DP" Description="Empty"/>
+                <EnumVal Name="OAM___OAM_DM_TO_OAMP" Description="Empty"/>
+                <EnumVal Name="OAM___OAM_DM_TO_CPU" Description="Empty"/>
+                <EnumVal Name="OAM___OAM_DM_TO_FPGA" Description="Empty"/>
+                <EnumVal Name="OAM___OAM_LM_TO_OAMP" Description="Empty"/>
+                <EnumVal Name="OAM___OAM_LM_TO_CPU" Description="Empty"/>
+                <EnumVal Name="OAM___OAM_LM_TO_FPGA" Description="Empty"/>
+                <EnumVal Name="OAM___OAM_CCM_TO_OAMP" Description="Empty"/>
+                <EnumVal Name="OAM___OAM_CCM_TO_CPU" Description="Empty"/>
+                <EnumVal Name="OAM___OAM_CCM_TO_FPGA" Description="Empty"/>
+                <EnumVal Name="OAM___OAM_LVLERR" Description="Empty"/>
+                <EnumVal Name="OAM___OAM_PSVERR" Description="Empty"/>
+                <EnumVal Name="OAM___OAM_REFLECTOR" Description="Empty"/>
+                <EnumVal Name="SRV6___PSP" Description="Empty"/>
+                <EnumVal Name="TELEMETRY___IFA1_EGRESS_PORT" Description="Empty"/>
+                <EnumVal Name="TM___RAW_PORT" Description="Empty"/>
+                <EnumVal Name="TM___DEFAULT" Description="Empty"/>
+                <EnumVal Name="TM___JR1_COMP_MACT_LEARNING_WA_JR2_TO_JR1" Description="Empty"/>
+                <EnumVal Name="TM___TDM_NO_OTMH" Description="Empty"/>
+                <EnumVal Name="TM___TDM_STAMP_MC_CUD_ON_OTMH" Description="Empty"/>
+                <EnumVal Name="TM___TDM_STAMP_PORT_VAL_ON_OTMH" Description="Empty"/>
+                <EnumVal Name="TM___TDM_STAMP_NOTHING_ON_OTMH" Description="Empty"/>
+                <EnumVal Name="TM___TDM_STAMP_MC_CUD_ON_FTMH" Description="Empty"/>
+                <EnumVal Name="TM___TDM_STAMP_PORT_VAL_ON_FTMH" Description="Empty"/>
+                <EnumVal Name="TM___TDM_STAMP_NOTHING_ON_FTMH" Description="Empty"/>
+                <EnumVal Name="TM___TDM_STAMP_MC_CUD_ON_OPT_FTMH" Description="Empty"/>
+                <EnumVal Name="TM___TDM_STAMP_PORT_VAL_ON_OPT_FTMH" Description="Empty"/>
+                <EnumVal Name="TM___TDM_STAMP_NOTHING_ON_OPT_FTMH" Description="Empty"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <EnumValueMapping>
+                <EnumVal Name="GENERAL___NOP_CTX" Value="0"/>
+                <EnumVal Name="GENERAL___TRJ_TRACE_TYPE2" Value="1"/>
+                <EnumVal Name="GENERAL___RCH_ENC" Value="2"/>
+                <EnumVal Name="GENERAL___RCH_PTCH_ENC" Value="3"/>
+                <EnumVal Name="GENERAL___RECYCLE_W_PTCH2" Value="4"/>
+                <EnumVal Name="GENERAL___OAM_UPMEP_REFLECTOR" Value="5"/>
+                <EnumVal Name="GENERAL___NORMAL_FWD" Value="6"/>
+                <EnumVal Name="GENERAL___NORMAL_FWD_NO_MIRROR" Value="7"/>
+                <EnumVal Name="GENERAL___DROP_PKT" Value="8"/>
+                <EnumVal Name="GENERAL___VISIBILITY" Value="9"/>
+                <EnumVal Name="GENERAL___CPU_PORT_TRAPPED" Value="10"/>
+                <EnumVal Name="GENERAL___USER_TRAP_1" Value="11"/>
+                <EnumVal Name="GENERAL___USER_TRAP_2" Value="12"/>
+                <EnumVal Name="GENERAL___USER_TRAP_3" Value="13"/>
+                <EnumVal Name="GENERAL___USER_TRAP_4" Value="14"/>
+                <EnumVal Name="GENERAL___EGRESS_TRAPPED" Value="15"/>
+                <EnumVal Name="GENERAL___STACKING_LEFT" Value="16"/>
+                <EnumVal Name="GENERAL___STACKING_RIGHT" Value="17"/>
+                <EnumVal Name="GENERAL___IPT_IFA_FIRST_DP" Value="18"/>
+                <EnumVal Name="OAM___OAM_DM_TO_OAMP" Value="19"/>
+                <EnumVal Name="OAM___OAM_DM_TO_CPU" Value="20"/>
+                <EnumVal Name="OAM___OAM_DM_TO_FPGA" Value="21"/>
+                <EnumVal Name="OAM___OAM_LM_TO_OAMP" Value="22"/>
+                <EnumVal Name="OAM___OAM_LM_TO_CPU" Value="23"/>
+                <EnumVal Name="OAM___OAM_LM_TO_FPGA" Value="24"/>
+                <EnumVal Name="OAM___OAM_CCM_TO_OAMP" Value="25"/>
+                <EnumVal Name="OAM___OAM_CCM_TO_CPU" Value="26"/>
+                <EnumVal Name="OAM___OAM_CCM_TO_FPGA" Value="27"/>
+                <EnumVal Name="OAM___OAM_LVLERR" Value="28"/>
+                <EnumVal Name="OAM___OAM_PSVERR" Value="29"/>
+                <EnumVal Name="OAM___OAM_REFLECTOR" Value="30"/>
+                <EnumVal Name="SRV6___PSP" Value="31"/>
+                <EnumVal Name="TELEMETRY___IFA1_EGRESS_PORT" Value="32"/>
+                <EnumVal Name="TM___RAW_PORT" Value="33"/>
+                <EnumVal Name="TM___DEFAULT" Value="34"/>
+                <EnumVal Name="TM___JR1_COMP_MACT_LEARNING_WA_JR2_TO_JR1" Value="35"/>
+                <EnumVal Name="TM___TDM_NO_OTMH" Value="36"/>
+                <EnumVal Name="TM___TDM_STAMP_MC_CUD_ON_OTMH" Value="37"/>
+                <EnumVal Name="TM___TDM_STAMP_PORT_VAL_ON_OTMH" Value="38"/>
+                <EnumVal Name="TM___TDM_STAMP_NOTHING_ON_OTMH" Value="39"/>
+                <EnumVal Name="TM___TDM_STAMP_MC_CUD_ON_FTMH" Value="40"/>
+                <EnumVal Name="TM___TDM_STAMP_PORT_VAL_ON_FTMH" Value="41"/>
+                <EnumVal Name="TM___TDM_STAMP_NOTHING_ON_FTMH" Value="42"/>
+                <EnumVal Name="TM___TDM_STAMP_MC_CUD_ON_OPT_FTMH" Value="43"/>
+                <EnumVal Name="TM___TDM_STAMP_PORT_VAL_ON_OPT_FTMH" Value="44"/>
+                <EnumVal Name="TM___TDM_STAMP_NOTHING_ON_OPT_FTMH" Value="45"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+</FieldTypesDbCatalog>

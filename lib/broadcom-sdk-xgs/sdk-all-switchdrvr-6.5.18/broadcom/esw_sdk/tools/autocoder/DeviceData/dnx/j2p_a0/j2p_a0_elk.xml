@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2p_a0"  module="elk">
+    <includes>
+        <include>soc/dnxc/dnxc_port.h</include>
+        <include>soc/kbp/alg_kbp/include/init.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_device.h</include>
+        <include>soc/dnx/dbal/auto_generated/dbal_defines_tables.h</include>
+    </includes>
+
+    <sub_module name="general">
+        <defines>
+            <define name="egw_max_opcode" value="127"></define>
+        </defines>
+    </sub_module>
+</device_data>

@@ -1,0 +1,104 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0" module="lif">
+    <sub_module name="global_lif">
+       <features>
+            <feature name="prevent_tunnel_update_rif" value="1"></feature>
+        </features>
+       <defines>
+            <define name="glem_rif_optimization_enabled" value="1"></define>
+            <define name="wa_null_lif" value="0"></define>
+        </defines >
+
+        <numerics>
+             <numeric name="egress_in_lif_null_value" value="0x0">
+                <property name="system_headers_mode" method="direct_map">
+                    <map name="0" value="0x0"></map>
+                    <map name="1" value="0x0"></map>
+                    <doc>IN_LIF null value in egress stage</doc>
+                </property>
+            </numeric>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="out_lif">
+        <features>
+        </features>
+
+        <numerics>
+            <numeric name="outlif_pointer_size" value="18">
+                <property name="outlif_nof_bits"  method="direct_map">
+                    <map name="18" value="18"></map>
+                    <map name="19" value="19"></map>
+                    <doc>NULL</doc>
+                </property>
+            </numeric>
+            
+            <numeric name="local_outlif_width" value="18">
+                <property name="outlif_nof_bits"  method="direct_map">
+                    <map name="18" value="18"></map>
+                    <map name="19" value="19"></map>
+                    <doc>DATA(lif,out_lif,outlif_pointer_size)</doc>
+                </property>
+            </numeric>
+
+            <numeric name="allocation_bank_size" value="4096">
+                <property name="outlif_nof_bits"  method="direct_map">
+                    <map name="18" value="4096"></map>
+                    <map name="19" value="8192"></map>
+                    <doc>8192 + (DATA(lif,out_lif,outlif_pointer_size)-19)*8192</doc>
+                </property>
+            </numeric>
+
+            <numeric name="nof_local_out_lifs" value="0x40000">
+                <property name="outlif_nof_bits"  method="direct_map">
+                    <map name="18" value="0x40000"></map>
+                    <map name="19" value="0x80000"></map>
+                    <doc>1 &lt;&lt; DATA(lif,out_lif,outlif_pointer_size)</doc>
+                </property>
+            </numeric>
+            
+            <numeric name="physical_bank_size" value="0x800">
+                <property name="outlif_nof_bits"  method="direct_map">
+                    <map name="18" value="0x800"></map>
+                    <map name="19" value="0x1000"></map>
+                    <doc>1 &lt;&lt; (DATA(lif,out_lif,outlif_pointer_size) - DATA(lif,out_lif,physical_bank_pointer_size))</doc>
+                </property>
+            </numeric>
+            
+            <numeric name="outlif_profile_width" value="1">
+                <property name="outlif_nof_bits"  method="direct_map">
+                    <map name="18" value="1"></map>
+                    <map name="19" value="0"></map>
+                    <doc>DATA(lif,out_lif,glem_result)-DATA(lif,out_lif,local_outlif_width)</doc>
+                </property>
+            </numeric>
+            
+        </numerics>
+        
+        <defines>
+            <define name="glem_result" value="19"></define>
+            <define name="outlif_eedb_banks_pointer_size" value="18"></define>
+        </defines >
+
+        <tables>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="in_lif">
+        <features>
+            <feature name="mapped_in_lif_profile" value="1"></feature>
+            <feature name="in_lif_profile_iop_mode" value="0"></feature>
+        </features>
+
+    </sub_module>
+    
+    <sub_module name="hw_bug">
+        <features>
+            <feature name="iop_mode_orientation_selection" value="0"></feature>
+        </features>
+
+    </sub_module>
+</device_data>

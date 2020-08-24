@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_b0"  module="l2">
+
+    <sub_module name="general">
+
+        <features>
+            <feature name="ivl_feature_support" value="1"></feature>
+        </features>
+
+    </sub_module>
+
+    <sub_module name="hw_bug" doc="L2 related HW bugs">
+        <features>
+        <feature name="age_out_and_refresh_profile_selection" value="0"></feature>
+        <feature name="age_machine_pause_after_flush" value="0"></feature>
+        <feature name="age_state_not_updated" value="0"></feature>
+        <feature name="eth_qual_is_mc" value="1"></feature>
+        <feature name="bc_same_as_unknown_mc" value="1"></feature>
+        <feature name="transplant_instead_of_refresh" value="0"></feature>        
+        <feature name="static_mac_age_out" value="0"></feature> 
+        <feature name="vmv_for_limit_in_wrong_location" value="0"></feature>
+        <feature name="learn_limit" value="1"></feature>    
+        <feature name="wrong_limit_interrupt_handling" value="0"></feature>
+        <feature name="learn_events_wrong_command" value="1"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+</device_data>

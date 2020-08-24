@@ -1,0 +1,1286 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="INGRESS_CONG_CGM_VOQ_OCCUPANCY">
+        <OneLineDescription>Table for the occupancy level of all VOQs</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="VOQ"/>
+            </Key>
+            <Result>
+                <Field Name="SIZE_IN_WORDS" Permission="READONLY" Size="28" Type="UINT"/>
+                <Field Name="SIZE_IN_WORDS_SRAM" Permission="READONLY" Size="20" Type="UINT"/>
+                <Field Name="BUFFERS_SIZE_SRAM" Permission="READONLY" Size="16" Type="UINT"/>
+                <Field Name="NOF_PDS_SRAM" Permission="READONLY" Size="17" Type="UINT"/>
+                <Field Name="SIZE_AVRG" Permission="READONLY" Size="28" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIZE_IN_WORDS"> 
+                    <Access>
+                        <Memory Name="CGM_VOQ_STATE_MEMm"> 
+                            <HwField Name="WORDS_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIZE_IN_WORDS_SRAM"> 
+                    <Access>
+                        <Memory Name="CGM_VOQ_STATE_MEMm"> 
+                            <HwField Name="SRAM_WORDS_SIZEf"/>
+                        </Memory>
+                    </Access>                  
+                </Field>
+                <Field Name="BUFFERS_SIZE_SRAM"> 
+                    <Access>
+                        <Memory Name="CGM_VOQ_STATE_MEMm"> 
+                            <HwField Name="SRAM_BUFFERS_SIZEf"/>
+                        </Memory>
+                    </Access>                  
+                </Field>
+                <Field Name="NOF_PDS_SRAM"> 
+                    <Access>
+                        <Memory Name="CGM_VOQ_STATE_MEMm"> 
+                            <HwField Name="SRAM_PDS_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIZE_AVRG"> 
+                    <Access>
+                        <Memory Name="CGM_VOQ_STATE_MEMm"> 
+                            <HwField Name="AVRG_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="INGRESS_CONG_CGM_FREE_RESOURCE_COUNTERS">
+        <OneLineDescription>Table for the minimum free occupancy level for several resource types. </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="FREE_SRAM_BUFFERS_ST" Permission="READONLY" Size="DNX_DATA.ingr_congestion.dbal.sram_buffer_nof_bits" Type="UINT"/>
+                <Field Name="FREE_SRAM_PDBS_ST" Permission="READONLY" Size="DNX_DATA.ingr_congestion.dbal.sram_pdbs_nof_bits" Type="UINT"/>
+                <Field Name="FREE_DRAM_BDBS_ST" Permission="READONLY" Size="DNX_DATA.ingr_congestion.dbal.dram_bdbs_nof_bits" Type="UINT"/>
+                <Field Name="MIN_FREE_SRAM_BUFFERS_ST" Permission="READONLY" Size="DNX_DATA.ingr_congestion.dbal.sram_buffer_nof_bits" Type="UINT"/>
+                <Field Name="MIN_FREE_SRAM_PDBS_ST" Permission="READONLY" Size="DNX_DATA.ingr_congestion.dbal.sram_pdbs_nof_bits" Type="UINT"/>
+                <Field Name="MIN_FREE_DRAM_BDBS_ST" Permission="READONLY" Size="DNX_DATA.ingr_congestion.dbal.dram_bdbs_nof_bits" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="FREE_SRAM_BUFFERS_ST">
+                    <Access>
+                        <Register Name="CGM_SRAM_BUFFERS_FREE_STATUSr">
+                            <HwField Name="SRAM_BUFFERS_FREE_STATUSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FREE_SRAM_PDBS_ST">
+                    <Access>
+                        <Register Name="CGM_SRAM_PDBS_FREE_STATUSr">
+                            <HwField Name="SRAM_PDBS_FREE_STATUSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FREE_DRAM_BDBS_ST">
+                    <Access>
+                        <Register Name="CGM_DRAM_BDBS_FREE_STATUSr">
+                            <HwField Name="DRAM_BDBS_FREE_STATUSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MIN_FREE_SRAM_BUFFERS_ST">
+                    <Access>
+                        <Register Name="CGM_SRAM_BUFFERS_FREE_MIN_STATUSr">
+                            <HwField Name="SRAM_BUFFERS_FREE_MIN_STATUSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MIN_FREE_SRAM_PDBS_ST">
+                    <Access>
+                        <Register Name="CGM_SRAM_PDBS_FREE_MIN_STATUSr">
+                            <HwField Name="SRAM_PDBS_FREE_MIN_STATUSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MIN_FREE_DRAM_BDBS_ST">
+                    <Access>
+                        <Register Name="CGM_DRAM_BDBS_FREE_MIN_STATUSr">
+                            <HwField Name="DRAM_BDBS_FREE_MIN_STATUSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_CONG_CGM_VSQ_PRG_CTR_STATS">
+        <OneLineDescription>CGM VSQ counter info</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+           </Key>
+            <Result>
+                <Field MaxValue="5" Name="VSQ_GROUP" Size="3" Type="UINT"/>
+                <Field Name="VSQ_ID" Size="#log2_round_up(DNX_DATA.ingr_congestion.vsq.vsq_f_nof)" Type="UINT"/>
+                <Field Name="VSQ_ID_MASK" Size="#log2_round_up(DNX_DATA.ingr_congestion.vsq.vsq_f_nof)" Type="UINT"/>
+                <Field Name="SRAM_ENQ_PKT_CTR" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Name="SRAM_ENQ_RJCT_PKT_CTR" Permission="READONLY" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="VSQ_GROUP">
+                    <Access>
+                        <Register Name="CGM_PRG_CTR_SETTINGSr">
+                             <HwField Name="VSQ_PRG_CTR_GROUP_SELECTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="VSQ_ID">
+                    <Access>
+                        <Register Name="CGM_PRG_CTR_SETTINGSr">
+                             <HwField Name="VSQ_PRG_CTR_QNUM_INDEXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="VSQ_ID_MASK">
+                    <Access>
+                        <Register Name="CGM_PRG_CTR_SETTINGSr">
+                             <HwField Name="VSQ_PRG_CTR_QNUM_INDEX_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+
+                <Field Name="SRAM_ENQ_PKT_CTR">
+                    <Access>
+                        <Register Name="CGM_VSQ_SRAM_ENQ_PKT_CTRr">
+                             <HwField Name="VSQ_SRAM_ENQ_PKT_CTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_ENQ_RJCT_PKT_CTR">
+                    <Access>
+                        <Register Name="CGM_VSQ_SRAM_ENQ_RJCT_PKT_CTRr">
+                             <HwField Name="VSQ_SRAM_ENQ_RJCT_PKT_CTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_CONG_CGM_VOQ_PRG_CTR_STATS">
+        <OneLineDescription>DRAM bound state thresholds</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+           </Key>
+            <Result>
+                <Field Name="VOQ_ID" Type="VOQ"/>
+                <Field Name="VOQ_MASK" Type="VOQ"/>
+                <Field Name="SRAM_ENQ_PKT_CTR" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Name="SRAM_ENQ_RJCT_PKT_CTR" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Name="SRAM_TO_DRAM_DEQ_PKT_CTR" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Name="SRAM_TO_FABRIC_DEQ_PKT_CTR" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Name="SRAM_DEL_PKT_CTR" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Name="DRAM_DEQ_BUNDLE_CTR" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Name="DRAM_DEL_BUNDLE_CTR" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Name="SRAM_ENQ_BYTE_CTR" Permission="READONLY" Size="43" Type="ARRAY32"/>
+                <Field Name="SRAM_ENQ_RJCT_BYTE_CTR" Permission="READONLY" Size="43" Type="ARRAY32"/>
+                <Field Name="SRAM_DEL_BYTE_CTR" Permission="READONLY" Size="43" Type="ARRAY32"/>
+                <Field Name="SRAM_TO_DRAM_DEQ_BYTE_CTR" Permission="READONLY" Size="43" Type="ARRAY32"/>
+                <Field Name="SRAM_TO_FABRIC_DEQ_BYTE_CTR" Permission="READONLY" Size="43" Type="ARRAY32"/>
+                <Field Name="DRAM_DEQ_TO_FABRIC_BYTE_CTR" Permission="READONLY" Size="43" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="VOQ_ID">
+                    <Access>
+                        <Register Name="CGM_PRG_CTR_SETTINGSr">
+                             <HwField Name="VOQ_PRG_CTR_QNUM_INDEXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="VOQ_MASK">
+                    <Access>
+                        <Register Name="CGM_PRG_CTR_SETTINGSr">
+                             <HwField Name="VOQ_PRG_CTR_QNUM_INDEX_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_ENQ_PKT_CTR">
+                    <Access>
+                        <Register Name="CGM_VOQ_SRAM_ENQ_PKT_CTRr">
+                             <HwField Name="VOQ_SRAM_ENQ_PKT_CTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_ENQ_RJCT_PKT_CTR">
+                    <Access>
+                        <Register Name="CGM_VOQ_SRAM_ENQ_RJCT_PKT_CTRr">
+                             <HwField Name="VOQ_SRAM_ENQ_RJCT_PKT_CTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_TO_DRAM_DEQ_PKT_CTR">
+                    <Access>
+                        <Register Name="CGM_VOQ_SRAM_DEQ_TO_DRAM_PKT_CTRr">
+                             <HwField Name="VOQ_SRAM_DEQ_TO_DRAM_PKT_CTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_TO_FABRIC_DEQ_PKT_CTR">
+                    <Access>
+                        <Register Name="CGM_VOQ_SRAM_DEQ_TO_FABRIC_PKT_CTRr">
+                             <HwField Name="VOQ_SRAM_DEQ_TO_FABRIC_PKT_CTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_DEL_PKT_CTR">
+                    <Access>
+                        <Register Name="CGM_VOQ_SRAM_DEL_PKT_CTRr">
+                             <HwField Name="VOQ_SRAM_DEL_PKT_CTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_DEQ_BUNDLE_CTR">
+                    <Access>
+                        <Register Name="CGM_VOQ_DRAM_DEQ_TO_FABRIC_BUNDLE_CTRr">
+                             <HwField Name="VOQ_DRAM_DEQ_TO_FABRIC_BUNDLE_CTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_DEL_BUNDLE_CTR">
+                    <Access>
+                        <Register Name="CGM_VOQ_DRAM_DEL_BUNDLE_CTRr">
+                             <HwField Name="VOQ_DRAM_DEL_BUNDLE_CTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_ENQ_BYTE_CTR">
+                    <Access>
+                        <Register Name="CGM_VOQ_SRAM_ENQ_BYTE_CTRr">
+                             <HwField Name="VOQ_SRAM_ENQ_BYTE_CTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_ENQ_RJCT_BYTE_CTR">
+                    <Access>
+                        <Register Name="CGM_VOQ_SRAM_ENQ_RJCT_BYTE_CTRr">
+                             <HwField Name="VOQ_SRAM_ENQ_RJCT_BYTE_CTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_DEL_BYTE_CTR">
+                    <Access>
+                        <Register Name="CGM_VOQ_SRAM_DEL_BYTE_CTRr">
+                             <HwField Name="VOQ_SRAM_DEL_BYTE_CTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_TO_DRAM_DEQ_BYTE_CTR">
+                    <Access>
+                        <Register Name="CGM_VOQ_SRAM_DEQ_TO_DRAM_BYTE_CTRr">
+                             <HwField Name="VOQ_SRAM_DEQ_TO_DRAM_BYTE_CTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_TO_FABRIC_DEQ_BYTE_CTR">
+                    <Access>
+                        <Register Name="CGM_VOQ_SRAM_DEQ_TO_FABRIC_BYTE_CTRr">
+                             <HwField Name="VOQ_SRAM_DEQ_TO_FABRIC_BYTE_CTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_DEQ_TO_FABRIC_BYTE_CTR">
+                    <Access>
+                        <Register Name="CGM_VOQ_DRAM_DEQ_TO_FABRIC_BYTE_CTRr">
+                             <HwField Name="VOQ_DRAM_DEQ_TO_FABRIC_BYTE_CTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB> 
+    
+    <AppDB Name="INGRESS_CONG_VSQ_GROUP_A_OCCUPANCY">  
+        <OneLineDescription>Table to retrieve the VSQ occupancy levels</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="VSQ_A_ID"/>         
+            </Key>
+            <Result>
+                <Field Name="SIZE_IN_WORDS" Permission="TRIGGER" Size="28" Type="UINT"/>
+                <Field Name="SIZE_IN_WORDS_AVRG" Permission="TRIGGER" Size="28" Type="UINT"/>
+                <Field Name="NOF_BUFFERS_SRAM" Permission="TRIGGER" Size="24" Type="UINT"/>
+                <Field Name="NOF_PDS_SRAM" Permission="TRIGGER" Size="17" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIZE_IN_WORDS">
+                    <Access>
+                        <Memory Name="CGM_VSQA_WORDS_STATEm">
+                            <HwField Name="WORDS_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIZE_IN_WORDS_AVRG">
+                    <Access>
+                        <Memory Name="CGM_VSQA_WORDS_STATEm">
+                            <HwField Name="AVRG_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_BUFFERS_SRAM">
+                    <Access>
+                        <Memory Name="CGM_VSQA_SRAM_BUFFERS_STATEm">
+                            <HwField Name="SRAM_BUFFERS_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_PDS_SRAM">
+                    <Access>
+                        <Memory Name="CGM_VSQA_SRAM_PDS_STATEm">
+                            <HwField Name="SRAM_PDS_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+
+    <AppDB Name="INGRESS_CONG_VSQ_GROUP_B_OCCUPANCY">  
+        <OneLineDescription>Table to retrieve the VSQ occupancy levels</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="VSQ_B_ID"/>
+            </Key>
+            <Result>
+                <Field Name="SIZE_IN_WORDS" Permission="TRIGGER" Size="28" Type="UINT"/>
+                <Field Name="SIZE_IN_WORDS_AVRG" Permission="TRIGGER" Size="28" Type="UINT"/>
+                <Field Name="NOF_BUFFERS_SRAM" Permission="TRIGGER" Size="24" Type="UINT"/>
+                <Field Name="NOF_PDS_SRAM" Permission="TRIGGER" Size="17" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIZE_IN_WORDS">
+                    <Access>
+                        <Memory Name="CGM_VSQB_WORDS_STATEm">
+                            <HwField Name="WORDS_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIZE_IN_WORDS_AVRG">
+                    <Access>
+                        <Memory Name="CGM_VSQB_WORDS_STATEm">
+                            <HwField Name="AVRG_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_BUFFERS_SRAM">
+                    <Access>
+                        <Memory Name="CGM_VSQB_SRAM_BUFFERS_STATEm">
+                            <HwField Name="SRAM_BUFFERS_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_PDS_SRAM">
+                    <Access>
+                        <Memory Name="CGM_VSQB_SRAM_PDS_STATEm">
+                            <HwField Name="SRAM_PDS_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+
+    <AppDB Name="INGRESS_CONG_VSQ_GROUP_C_OCCUPANCY">  
+        <OneLineDescription>Table to retrieve the VSQ occupancy levels</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="VSQ_C_ID"/>         
+            </Key>
+            <Result>
+                <Field Name="SIZE_IN_WORDS" Permission="TRIGGER" Size="28" Type="UINT"/>
+                <Field Name="SIZE_IN_WORDS_AVRG" Permission="TRIGGER" Size="28" Type="UINT"/>
+                <Field Name="NOF_BUFFERS_SRAM" Permission="TRIGGER" Size="24" Type="UINT"/>
+                <Field Name="NOF_PDS_SRAM" Permission="TRIGGER" Size="17" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Hook="1">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIZE_IN_WORDS">
+                    <Access>
+                        <Memory Name="CGM_VSQC_WORDS_STATEm">
+                            <HwField Name="WORDS_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIZE_IN_WORDS_AVRG">
+                    <Access>
+                        <Memory Name="CGM_VSQC_WORDS_STATEm">
+                            <HwField Name="AVRG_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_BUFFERS_SRAM">
+                    <Access>
+                        <Memory Name="CGM_VSQC_SRAM_BUFFERS_STATEm">
+                            <HwField Name="SRAM_BUFFERS_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_PDS_SRAM">
+                    <Access>
+                        <Memory Name="CGM_VSQC_SRAM_PDS_STATEm">
+                            <HwField Name="SRAM_PDS_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+
+    <AppDB Name="INGRESS_CONG_VSQ_GROUP_D_OCCUPANCY">  
+        <OneLineDescription>Table to retrieve the VSQ occupancy levels</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="VSQ_D_ID"/>         
+            </Key>
+            <Result>
+                <Field Name="SIZE_IN_WORDS" Permission="TRIGGER" Size="28" Type="UINT"/>
+                <Field Name="SIZE_IN_WORDS_AVRG" Permission="TRIGGER" Size="28" Type="UINT"/>
+                <Field Name="NOF_BUFFERS_SRAM" Permission="TRIGGER" Size="24" Type="UINT"/>
+                <Field Name="NOF_PDS_SRAM" Permission="TRIGGER" Size="17" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Hook="1">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIZE_IN_WORDS">
+                    <Access>
+                        <Memory Name="CGM_VSQD_WORDS_STATEm">
+                            <HwField Name="WORDS_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIZE_IN_WORDS_AVRG">
+                    <Access>
+                        <Memory Name="CGM_VSQD_WORDS_STATEm">
+                            <HwField Name="AVRG_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_BUFFERS_SRAM">
+                    <Access>
+                        <Memory Name="CGM_VSQD_SRAM_BUFFERS_STATEm">
+                            <HwField Name="SRAM_BUFFERS_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_PDS_SRAM">
+                    <Access>
+                        <Memory Name="CGM_VSQD_SRAM_PDS_STATEm">
+                            <HwField Name="SRAM_PDS_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+
+    <AppDB Name="INGRESS_CONG_VSQ_GROUP_E_OCCUPANCY">  
+        <OneLineDescription>Table to retrieve the VSQ occupancy levels</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="VSQ_E_ID"/>
+            </Key>
+            <Result>
+                <Field Name="SIZE_IN_WORDS_GRNTD" NofInstances="2" Permission="TRIGGER" Size="28" Type="UINT"/>
+                <Field Name="SIZE_IN_WORDS_SHRD" NofInstances="2" Permission="TRIGGER" Size="28" Type="UINT"/>
+                <Field Name="SIZE_IN_WORDS_HDRM" NofInstances="2" Permission="TRIGGER" Size="28" Type="UINT"/>
+                <Field Name="SIZE_IN_WORDS_AVRG" NofInstances="2" Permission="TRIGGER" Size="28" Type="UINT"/>
+                <Field Name="NOF_BUFFERS_SRAM_GRNTD" NofInstances="2" Permission="TRIGGER" Size="24" Type="UINT"/>
+                <Field Name="NOF_BUFFERS_SRAM_SHRD" NofInstances="2" Permission="TRIGGER" Size="24" Type="UINT"/>
+                <Field Name="NOF_BUFFERS_SRAM_HDRM" NofInstances="2" Permission="TRIGGER" Size="24" Type="UINT"/>
+                <Field Name="NOF_PDS_SRAM_GRNTD" NofInstances="2" Permission="TRIGGER" Size="17" Type="UINT"/>
+                <Field Name="NOF_PDS_SRAM_SHRD" NofInstances="2" Permission="TRIGGER" Size="17" Type="UINT"/>
+                <Field Name="NOF_PDS_SRAM_HDRM" NofInstances="2" Permission="TRIGGER" Size="17" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0" Hook="1">
+            <!-- on j2_a0 MSB is pool id. all data is for pool 0 , except the shared -->
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIZE_IN_WORDS_GRNTD">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="CGM_VSQE_WORDS_STATEm">
+                            <EntryOffset Formula="#INSTANCE_IDX()*64+#KEY_VALUE(VSQ_E_ID)"/>
+                            <HwField Name="GRNTD_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIZE_IN_WORDS_SHRD">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="CGM_VSQE_WORDS_STATEm">
+                            <EntryOffset Formula="#INSTANCE_IDX()*64+#KEY_VALUE(VSQ_E_ID)"/>
+                            <HwField Name="SHRD_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIZE_IN_WORDS_HDRM">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="CGM_VSQE_WORDS_STATEm">
+                            <EntryOffset Formula="#INSTANCE_IDX()*64+#KEY_VALUE(VSQ_E_ID)"/>
+                            <HwField Name="HDRM_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIZE_IN_WORDS_AVRG">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="CGM_VSQE_WORDS_STATEm">
+                            <EntryOffset Formula="#INSTANCE_IDX()*64+#KEY_VALUE(VSQ_E_ID)"/>
+                            <HwField Name="AVRG_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+
+                <Field Name="NOF_BUFFERS_SRAM_GRNTD">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="CGM_VSQE_SRAM_BUFFERS_STATEm">
+                            <EntryOffset Formula="#INSTANCE_IDX()*64+#KEY_VALUE(VSQ_E_ID)"/>
+                            <HwField Name="GRNTD_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_BUFFERS_SRAM_SHRD">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="CGM_VSQE_SRAM_BUFFERS_STATEm">
+                            <EntryOffset Formula="#INSTANCE_IDX()*64+#KEY_VALUE(VSQ_E_ID)"/>
+                            <HwField Name="SHRD_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_BUFFERS_SRAM_HDRM">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="CGM_VSQE_SRAM_BUFFERS_STATEm">
+                            <EntryOffset Formula="#INSTANCE_IDX()*64+#KEY_VALUE(VSQ_E_ID)"/>
+                            <HwField Name="HDRM_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+
+                <Field Name="NOF_PDS_SRAM_GRNTD">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="CGM_VSQE_SRAM_PDS_STATEm">
+                            <EntryOffset Formula="#INSTANCE_IDX()*64+#KEY_VALUE(VSQ_E_ID)"/>
+                            <HwField Name="GRNTD_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_PDS_SRAM_SHRD">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="CGM_VSQE_SRAM_PDS_STATEm">
+                            <EntryOffset Formula="#INSTANCE_IDX()*64+#KEY_VALUE(VSQ_E_ID)"/>
+                            <HwField Name="SHRD_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_PDS_SRAM_HDRM">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="CGM_VSQE_SRAM_PDS_STATEm">
+                            <EntryOffset Formula="#INSTANCE_IDX()*64+#KEY_VALUE(VSQ_E_ID)"/>
+                            <HwField Name="HDRM_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Hook="1">
+            <!-- starting j2_b0 LSB is pool id -->
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIZE_IN_WORDS_GRNTD">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="CGM_VSQE_WORDS_STATEm">
+                            <EntryOffset Formula="#KEY_VALUE(VSQ_E_ID)*2+#INSTANCE_IDX()"/>
+                            <HwField Name="GRNTD_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIZE_IN_WORDS_SHRD">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="CGM_VSQE_WORDS_STATEm">
+                            <EntryOffset Formula="#KEY_VALUE(VSQ_E_ID)*2+#INSTANCE_IDX()"/>
+                            <HwField Name="SHRD_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIZE_IN_WORDS_HDRM">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="CGM_VSQE_WORDS_STATEm">
+                            <EntryOffset Formula="#KEY_VALUE(VSQ_E_ID)*2+#INSTANCE_IDX()"/>
+                            <HwField Name="HDRM_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIZE_IN_WORDS_AVRG">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="CGM_VSQE_WORDS_STATEm">
+                            <EntryOffset Formula="#KEY_VALUE(VSQ_E_ID)*2+#INSTANCE_IDX()"/>
+                            <HwField Name="AVRG_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+
+                <Field Name="NOF_BUFFERS_SRAM_GRNTD">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="CGM_VSQE_SRAM_BUFFERS_STATEm">
+                            <EntryOffset Formula="#KEY_VALUE(VSQ_E_ID)*2+#INSTANCE_IDX()"/>
+                            <HwField Name="GRNTD_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_BUFFERS_SRAM_SHRD">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="CGM_VSQE_SRAM_BUFFERS_STATEm">
+                            <EntryOffset Formula="#KEY_VALUE(VSQ_E_ID)*2+#INSTANCE_IDX()"/>
+                            <HwField Name="SHRD_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_BUFFERS_SRAM_HDRM">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="CGM_VSQE_SRAM_BUFFERS_STATEm">
+                            <EntryOffset Formula="#KEY_VALUE(VSQ_E_ID)*2+#INSTANCE_IDX()"/>
+                            <HwField Name="HDRM_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+
+                <Field Name="NOF_PDS_SRAM_GRNTD">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="CGM_VSQE_SRAM_PDS_STATEm">
+                            <EntryOffset Formula="#KEY_VALUE(VSQ_E_ID)*2+#INSTANCE_IDX()"/>
+                            <HwField Name="GRNTD_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_PDS_SRAM_SHRD">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="CGM_VSQE_SRAM_PDS_STATEm">
+                            <EntryOffset Formula="#KEY_VALUE(VSQ_E_ID)*2+#INSTANCE_IDX()"/>
+                            <HwField Name="SHRD_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_PDS_SRAM_HDRM">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="CGM_VSQE_SRAM_PDS_STATEm">
+                            <EntryOffset Formula="#KEY_VALUE(VSQ_E_ID)*2+#INSTANCE_IDX()"/>
+                            <HwField Name="HDRM_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+    <AppDB Name="INGRESS_CONG_VSQ_GROUP_F_OCCUPANCY">  
+        <OneLineDescription>Table to retrieve the VSQ occupancy levels</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="VSQ_F_ID"/>         
+            </Key>
+            <Result>
+                <Field Name="SIZE_IN_WORDS_GRNTD" Permission="TRIGGER" Size="28" Type="UINT"/>
+                <Field Name="SIZE_IN_WORDS_SHRD" Permission="TRIGGER" Size="28" Type="UINT"/>
+                <Field Name="SIZE_IN_WORDS_HDRM" Permission="TRIGGER" Size="28" Type="UINT"/>
+                <Field Name="SIZE_IN_WORDS_AVRG" Permission="TRIGGER" Size="28" Type="UINT"/>
+                <Field Name="NOF_BUFFERS_SRAM_GRNTD" Permission="TRIGGER" Size="24" Type="UINT"/>
+                <Field Name="NOF_BUFFERS_SRAM_SHRD" Permission="TRIGGER" Size="24" Type="UINT"/>
+                <Field Name="NOF_BUFFERS_SRAM_HDRM" Permission="TRIGGER" Size="24" Type="UINT"/>
+                <Field Name="NOF_BUFFERS_SRAM_HDRME" Permission="TRIGGER" Size="24" Type="UINT"/>
+                <Field Name="NOF_PDS_SRAM_GRNTD" Permission="TRIGGER" Size="17" Type="UINT"/>
+                <Field Name="NOF_PDS_SRAM_SHRD" Permission="TRIGGER" Size="17" Type="UINT"/>
+                <Field Name="NOF_PDS_SRAM_HDRM" Permission="TRIGGER" Size="17" Type="UINT"/>
+                <Field Name="NOF_PDS_SRAM_HDRME" Permission="TRIGGER" Size="17" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Hook="1">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SIZE_IN_WORDS_GRNTD">
+                    <Access>
+                        <Memory Name="CGM_VSQF_WORDS_STATEm">
+                            <HwField Name="GRNTD_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIZE_IN_WORDS_SHRD">
+                    <Access>
+                        <Memory Name="CGM_VSQF_WORDS_STATEm">
+                            <HwField Name="SHRD_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIZE_IN_WORDS_HDRM">
+                    <Access>
+                        <Memory Name="CGM_VSQF_WORDS_STATEm">
+                            <HwField Name="HDRM_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SIZE_IN_WORDS_AVRG">
+                    <Access>
+                        <Memory Name="CGM_VSQF_WORDS_STATEm">
+                            <HwField Name="AVRG_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+
+                <Field Name="NOF_BUFFERS_SRAM_GRNTD">
+                    <Access>
+                        <Memory Name="CGM_VSQF_SRAM_BUFFERS_STATEm">
+                            <HwField Name="GRNTD_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_BUFFERS_SRAM_SHRD">
+                    <Access>
+                        <Memory Name="CGM_VSQF_SRAM_BUFFERS_STATEm">
+                            <HwField Name="SHRD_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_BUFFERS_SRAM_HDRM">
+                    <Access>
+                        <Memory Name="CGM_VSQF_SRAM_BUFFERS_STATEm">
+                            <HwField Name="HDRM_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_BUFFERS_SRAM_HDRME">
+                    <Access>
+                        <Memory Name="CGM_VSQF_SRAM_BUFFERS_STATEm">
+                            <HwField Name="HDRME_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+
+
+                <Field Name="NOF_PDS_SRAM_GRNTD">
+                    <Access>
+                        <Memory Name="CGM_VSQF_SRAM_PDS_STATEm">
+                            <HwField Name="GRNTD_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_PDS_SRAM_SHRD">
+                    <Access>
+                        <Memory Name="CGM_VSQF_SRAM_PDS_STATEm">
+                            <HwField Name="SHRD_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_PDS_SRAM_HDRM">
+                    <Access>
+                        <Memory Name="CGM_VSQF_SRAM_PDS_STATEm">
+                            <HwField Name="HDRM_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NOF_PDS_SRAM_HDRME">
+                    <Access>
+                        <Memory Name="CGM_VSQF_SRAM_PDS_STATEm">
+                            <HwField Name="HDRME_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="INGRESS_CONG_VOQ_DRAM_BOUND_STATE">
+        <OneLineDescription> VOQ DRAM-Bound state memory </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="VOQ"/>
+            </Key>
+            <Result>
+                <Field Name="DRAM_BOUND_STATE" Permission="READONLY"/>
+            </Result>
+            <TableLabels>J2P_NOTREV IQS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="DRAM_BOUND_STATE">
+                    <Access>
+                        <Memory Name="CGM_AUTO_DOC_NAME_87m">
+                            <EntryOffset Formula="#KEY_VALUE(VOQ)/32"/>
+                            <HwField Name="AUTO_DOC_NAME_88f"/>
+                            <DataOffset Formula="#KEY_VALUE(VOQ)%32*2"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="DRAM_BOUND_STATE">
+                    <Access>
+                        <Memory Name="CGM_VOQ_STATE_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(VOQ)"/>
+                            <HwField Name="DRAM_BOUND_STATEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_IPT_COUNTER">
+        <OneLineDescription>Ingress IPT counter</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+           </Key>
+            <Result>
+                <Field Name="CGM_S_2D_CMD_PACKET_COUNTER" Permission="READONLY" Size="DNX_DATA.iqs.dbal.ipt_counters_nof_bits" Type="UINT"/>
+                <Field Name="SPB_PACKET_COUNT" Permission="READONLY" Size="DNX_DATA.iqs.dbal.ipt_counters_nof_bits" Type="UINT"/>
+                <Field Name="PACKET_DISCARD" Permission="READONLY" Size="DNX_DATA.iqs.dbal.ipt_counters_nof_bits" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CGM_S_2D_CMD_PACKET_COUNTER">
+                    <Access>
+                        <Register Name="IPT_PDQ_S_2D_GLB_DEBUGr">
+                             <HwField Name="CGM_S_2D_CMD_PACKET_COUNTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SPB_PACKET_COUNT">
+                    <Access>
+                        <Register Name="IPT_SRAM_RRF_GLB_DEBUGr">
+                             <HwField Name="SPB_PACKET_COUNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PACKET_DISCARD">
+                    <Access>
+                        <Register Name="IPT_ITE_DEBUGr">
+                             <HwField Name="PACKET_DISCARDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB> 
+
+    <AppDB Name="INGRESS_SQM_COUNTER">
+        <OneLineDescription>Ingress SQM counter</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+           </Key>
+            <Result>
+                <Field Name="PKT_DEQ_CTR" Permission="READONLY" Size="48" Type="ARRAY32"/>
+                <Field Name="PKT_ENQ_CTR" Permission="READONLY" Size="48" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="PKT_DEQ_CTR">
+                    <Access>
+                        <Register Name="SQM_PKT_DEQ_CTRr">
+                             <HwField Name="PKT_DEQ_CTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PKT_ENQ_CTR">
+                    <Access>
+                        <Register Name="SQM_PKT_ENQ_CTRr">
+                             <HwField Name="PKT_ENQ_CTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_CONG_VSQ_GROUP_A_MAX_OCCUPANCY" Valid="DNX_DATA.ingr_congestion.vsq.size_watermark_support">
+        <OneLineDescription>Table to retrieve the VSQ max occupancy levels</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="VSQ_A_ID"/>
+            </Key>
+            <Result>
+                <Field Name="MAX_SIZE_IN_WORDS" Permission="READONLY" Size="28" Type="UINT"/>
+                <Field Name="MAX_NOF_BUFFERS_SRAM" Permission="READONLY" Size="24" Type="UINT"/>
+                <Field Name="MAX_NOF_PDS_SRAM" Permission="READONLY" Size="17" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="MAX_SIZE_IN_WORDS">
+                    <Access>
+                        <Memory Name="CGM_VSQA_MAX_SIZE_MEMm">
+                            <HwField Name="WORDS_MAX_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAX_NOF_BUFFERS_SRAM">
+                    <Access>
+                        <Memory Name="CGM_VSQA_MAX_SIZE_MEMm">
+                            <HwField Name="SRAM_BUFFERS_MAX_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAX_NOF_PDS_SRAM">
+                    <Access>
+                        <Memory Name="CGM_VSQA_MAX_SIZE_MEMm">
+                            <HwField Name="SRAM_PDS_MAX_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_CONG_VSQ_GROUP_B_MAX_OCCUPANCY" Valid="DNX_DATA.ingr_congestion.vsq.size_watermark_support">
+        <OneLineDescription>Table to retrieve the VSQ max occupancy levels</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="VSQ_B_ID"/>
+            </Key>
+            <Result>
+                <Field Name="MAX_SIZE_IN_WORDS" Permission="READONLY" Size="28" Type="UINT"/>
+                <Field Name="MAX_NOF_BUFFERS_SRAM" Permission="READONLY" Size="24" Type="UINT"/>
+                <Field Name="MAX_NOF_PDS_SRAM" Permission="READONLY" Size="17" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="MAX_SIZE_IN_WORDS">
+                    <Access>
+                        <Memory Name="CGM_VSQB_MAX_SIZE_MEMm">
+                            <HwField Name="WORDS_MAX_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAX_NOF_BUFFERS_SRAM">
+                    <Access>
+                        <Memory Name="CGM_VSQB_MAX_SIZE_MEMm">
+                            <HwField Name="SRAM_BUFFERS_MAX_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAX_NOF_PDS_SRAM">
+                    <Access>
+                        <Memory Name="CGM_VSQB_MAX_SIZE_MEMm">
+                            <HwField Name="SRAM_PDS_MAX_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_CONG_VSQ_GROUP_C_MAX_OCCUPANCY" Valid="DNX_DATA.ingr_congestion.vsq.size_watermark_support">
+        <OneLineDescription>Table to retrieve the VSQ max occupancy levels</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="VSQ_C_ID"/>
+            </Key>
+            <Result>
+                <Field Name="MAX_SIZE_IN_WORDS" Permission="READONLY" Size="28" Type="UINT"/>
+                <Field Name="MAX_NOF_BUFFERS_SRAM" Permission="READONLY" Size="24" Type="UINT"/>
+                <Field Name="MAX_NOF_PDS_SRAM" Permission="READONLY" Size="17" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="MAX_SIZE_IN_WORDS">
+                    <Access>
+                        <Memory Name="CGM_VSQC_MAX_SIZE_MEMm">
+                            <HwField Name="WORDS_MAX_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAX_NOF_BUFFERS_SRAM">
+                    <Access>
+                        <Memory Name="CGM_VSQC_MAX_SIZE_MEMm">
+                            <HwField Name="SRAM_BUFFERS_MAX_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAX_NOF_PDS_SRAM">
+                    <Access>
+                        <Memory Name="CGM_VSQC_MAX_SIZE_MEMm">
+                            <HwField Name="SRAM_PDS_MAX_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_CONG_VSQ_GROUP_D_MAX_OCCUPANCY" Valid="DNX_DATA.ingr_congestion.vsq.size_watermark_support">
+        <OneLineDescription>Table to retrieve the VSQ max occupancy levels</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="VSQ_D_ID"/>
+            </Key>
+            <Result>
+                <Field Name="MAX_SIZE_IN_WORDS" Permission="READONLY" Size="28" Type="UINT"/>
+                <Field Name="MAX_NOF_BUFFERS_SRAM" Permission="READONLY" Size="24" Type="UINT"/>
+                <Field Name="MAX_NOF_PDS_SRAM" Permission="READONLY" Size="17" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="MAX_SIZE_IN_WORDS">
+                    <Access>
+                        <Memory Name="CGM_VSQD_MAX_SIZE_MEMm">
+                            <HwField Name="WORDS_MAX_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAX_NOF_BUFFERS_SRAM">
+                    <Access>
+                        <Memory Name="CGM_VSQD_MAX_SIZE_MEMm">
+                            <HwField Name="SRAM_BUFFERS_MAX_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAX_NOF_PDS_SRAM">
+                    <Access>
+                        <Memory Name="CGM_VSQD_MAX_SIZE_MEMm">
+                            <HwField Name="SRAM_PDS_MAX_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_CONG_VSQ_GROUP_E_MAX_OCCUPANCY" Valid="DNX_DATA.ingr_congestion.vsq.size_watermark_support">
+        <OneLineDescription>Table to retrieve the VSQ max occupancy levels</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="VSQ_E_ID"/>
+            </Key>
+            <Result>
+                <Field Name="MAX_SIZE_IN_WORDS" NofInstances="2" Permission="READONLY" Size="28" Type="UINT"/>
+                <Field Name="MAX_NOF_BUFFERS_SRAM" NofInstances="2" Permission="READONLY" Size="24" Type="UINT"/>
+                <Field Name="MAX_NOF_PDS_SRAM" NofInstances="2" Permission="READONLY" Size="17" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0">
+            <!-- on j2_a0 MSB is pool id. -->
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="MAX_SIZE_IN_WORDS">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="CGM_VSQE_MAX_SIZE_MEMm">
+                            <EntryOffset Formula="#INSTANCE_IDX()*64+#KEY_VALUE(VSQ_E_ID)"/>
+                            <HwField Name="WORDS_MAX_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAX_NOF_BUFFERS_SRAM">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="CGM_VSQE_MAX_SIZE_MEMm">
+                            <EntryOffset Formula="#INSTANCE_IDX()*64+#KEY_VALUE(VSQ_E_ID)"/>
+                            <HwField Name="SRAM_BUFFERS_MAX_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAX_NOF_PDS_SRAM">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="CGM_VSQE_MAX_SIZE_MEMm">
+                            <EntryOffset Formula="#INSTANCE_IDX()*64+#KEY_VALUE(VSQ_E_ID)"/>
+                            <HwField Name="SRAM_PDS_MAX_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping>
+            <!-- starting j2_b0 LSB is pool id -->
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="MAX_SIZE_IN_WORDS">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="CGM_VSQE_MAX_SIZE_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(VSQ_E_ID)*2+#INSTANCE_IDX()"/>
+                            <HwField Name="WORDS_MAX_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAX_NOF_BUFFERS_SRAM">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="CGM_VSQE_MAX_SIZE_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(VSQ_E_ID)*2+#INSTANCE_IDX()"/>
+                            <HwField Name="SRAM_BUFFERS_MAX_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAX_NOF_PDS_SRAM">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="CGM_VSQE_MAX_SIZE_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(VSQ_E_ID)*2+#INSTANCE_IDX()"/>
+                            <HwField Name="SRAM_PDS_MAX_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_CONG_VSQ_GROUP_F_MAX_OCCUPANCY" Valid="DNX_DATA.ingr_congestion.vsq.size_watermark_support">
+        <OneLineDescription>Table to retrieve the VSQ max occupancy levels</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="VSQ_F_ID"/>
+            </Key>
+            <Result>
+                <Field Name="MAX_SIZE_IN_WORDS" Permission="READONLY" Size="28" Type="UINT"/>
+                <Field Name="MAX_NOF_BUFFERS_SRAM" Permission="READONLY" Size="24" Type="UINT"/>
+                <Field Name="MAX_NOF_PDS_SRAM" Permission="READONLY" Size="17" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="MAX_SIZE_IN_WORDS">
+                    <Access>
+                        <Memory Name="CGM_VSQF_MAX_SIZE_MEMm">
+                            <HwField Name="WORDS_MAX_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAX_NOF_BUFFERS_SRAM">
+                    <Access>
+                        <Memory Name="CGM_VSQF_MAX_SIZE_MEMm">
+                            <HwField Name="SRAM_BUFFERS_MAX_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAX_NOF_PDS_SRAM">
+                    <Access>
+                        <Memory Name="CGM_VSQF_MAX_SIZE_MEMm">
+                            <HwField Name="SRAM_PDS_MAX_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

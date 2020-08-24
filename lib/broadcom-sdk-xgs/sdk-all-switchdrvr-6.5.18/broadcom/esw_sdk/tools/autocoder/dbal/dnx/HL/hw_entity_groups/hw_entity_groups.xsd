@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+    <xs:include schemaLocation="../../dbal_types_definition.xsd" />
+
+    <xs:complexType name="RegisterElementType">
+    <xs:sequence>
+            <xs:element name="Register" minOccurs="1" maxOccurs="100"> <!--DBAL_MAX_NUMBER_OF_HW_ELEMENTS-->
+              <xs:complexType>
+              <xs:attributeGroup ref="RegisterNameAttr"/>
+              </xs:complexType>
+            </xs:element>
+    </xs:sequence>
+    <xs:attribute name="Device" type="DeviceType"/>
+    </xs:complexType>
+    
+    <xs:complexType name="MemoryElementType">
+     <xs:sequence>
+           <xs:element name="Memory" minOccurs="1" maxOccurs="100"> <!--DBAL_MAX_NUMBER_OF_HW_ELEMENTS-->
+              <xs:complexType>
+              <xs:attributeGroup ref="MemoryNameAttr"/>
+                </xs:complexType>
+            </xs:element>
+    </xs:sequence>
+    <xs:attribute name="Device" type="DeviceType"/>
+    </xs:complexType>
+    
+    <xs:element name="HwGroups">
+    <xs:complexType>
+    <xs:sequence>
+        <xs:element name="Group" maxOccurs="unbounded">
+        <xs:complexType>
+        <xs:sequence>
+            <xs:element name="OneLineDescription" type="xs:string" minOccurs="1" maxOccurs="1" />
+        <xs:choice>
+            <xs:element name="Memories" type="MemoryElementType" minOccurs="1" maxOccurs="unbounded" />
+            <xs:element name="Registers" type="RegisterElementType" minOccurs="1" maxOccurs="unbounded" />
+        </xs:choice>
+        </xs:sequence>
+            <xs:attributeGroup ref="ShortNameAttr"/>
+        </xs:complexType>
+        </xs:element>
+    </xs:sequence>
+    </xs:complexType>
+
+        <!-- In AppDBCatalog, AppDB names are unique -->
+        <xs:unique name="UniqueGroupDBName">
+            <xs:selector xpath="Group" />
+            <xs:field xpath="@Name" />
+        </xs:unique> 
+        
+    </xs:element>
+
+</xs:schema>

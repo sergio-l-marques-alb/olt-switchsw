@@ -1,0 +1,189 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_b0"  module="stat">
+    <includes>
+        <include>bcm/stat.h</include>
+    </includes>
+    <sub_module name="stat_pp">    
+        <features>
+        </features>
+        
+        <defines>
+            <define name="max_irpp_profile_value" value="31"></define>
+            <define name="max_erpp_profile_value" value="8"></define>
+            <define name="max_etpp_profile_value" value="31"></define>
+            <define name="etpp_reversed_stat_cmd" value="0"></define>
+            <define name="etpp_enc_stat_cmd_is_reversed" value="0"></define>
+            <define name="etpp_egress_vsi_always_pushed" value="1"></define>
+            <define name="irpp_start_profile_value" value="1"></define>
+            <define name="erpp_start_profile_value" value="1"></define>
+            <define name="etpp_start_profile_value" value="1"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="drop_reasons">
+     
+        <defines>
+            <define name="nof_drop_reasons" value="46"></define> 
+        </defines>
+     
+        <numerics>
+        </numerics>
+     
+        <features>
+        </features>
+     
+        <tables>
+            <table name="group_drop_reason_index">
+                <key name="group" size="bcmStatCounterGroupFilterCount"></key>
+                <value name="index" default="-1"></value>
+                <entries>
+                    <entry group="bcmStatCounterGroupFilterGlobalResourcesDrop" index="0"></entry>
+                    <entry group="bcmStatCounterGroupFilterVoqResourcesDrop" index="1"></entry>
+                    <entry group="bcmStatCounterGroupFilterWredDrop" index="2"></entry>
+                    <entry group="bcmStatCounterGroupFilterOcbResourcesDrop" index="3"></entry>
+                    <entry group="bcmStatCounterGroupFilterVsqResourcesDrop" index="4"></entry>
+                    <entry group="bcmStatCounterGroupFilterLatencyDrop" index="5"></entry>
+                    <entry group="bcmStatCounterGroupFilterMiscDrop" index="6"></entry>
+                    <entry group="bcmStatCounterGroupFilterUserDefinedGroup" index="7"></entry>
+                </entries>
+            </table>
+            <table name="drop_reason_index">
+                <key name="drop_reason_bit" size="bcmCosqDropReasonRejectCount"></key>
+                <value name="index" default="-1"></value>
+                <entries>
+                    <entry drop_reason_bit="bcmCosqDropReasonGlobalDramBdbsReject" index="0"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonGlobalSramBuffersReject" index="1"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonGlobalSramPdbsReject" index="2"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonDropPrecedenceLevelReject" index="3"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonQueueNumResolutionErrorReject" index="4"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonQueueNumNotValidReject" index="5"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonMulticastReplicationErrorReject" index="6"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonMulticastFifoFullReject" index="7"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonTarFifoFullReject" index="8"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonPacketSizeErrorReject" index="9"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonSramResourceErrorReject" index="10"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonExternalErrorReject" index="11"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonVoqSramPdsTotalFreeSharedReject" index="12"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonVoqSramPdsSharedMaxSizeReject" index="13"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonVoqSramBuffersTotalFreeSharedReject" index="14"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonVoqSramBuffersSharedMaxSizeReject" index="15"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonVoqWordsTotalFreeSharedReject" index="16"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonVoqWordsSharedMaxSizeReject" index="17"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonVoqSystemRedReject" index="18"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonVoqWredReject" index="19"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonVoqDramBlockReject" index="20"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonPbVsqSramPdsTotalFreeSharedReject" index="21"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonPbVsqSramPdsSharedMaxSizeReject" index="22"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonVsqDSramPdsSharedMaxSizeReject" index="23"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonVsqCSramPdsSharedMaxSizeReject" index="24"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonVsqBSramPdsSharedMaxSizeReject" index="25"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonVsqASramPdsSharedMaxSizeReject" index="26"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonPbVsqSramBuffersTotalFreeSharedReject" index="27"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonPbVsqSramBuffersSharedMaxSizeReject" index="28"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonVsqDSramBuffersSharedMaxSizeReject" index="29"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonVsqCSramBuffersSharedMaxSizeReject" index="30"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonVsqBSramBuffersSharedMaxSizeReject" index="31"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonVsqASramBuffersSharedMaxSizeReject" index="32"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonPbVsqWordsTotalFreeSharedReject" index="33"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonPbVsqWordsSharedMaxSizeReject" index="34"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonVsqDWordsSharedMaxSizeReject" index="35"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonVsqCWordsSharedMaxSizeReject" index="36"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonVsqBWordsSharedMaxSizeReject" index="37"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonVsqAWordsSharedMaxSizeReject" index="38"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonVsqFWredReject" index="39"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonVsqEWredReject" index="40"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonVsqDWredReject" index="41"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonVsqCWredReject" index="42"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonVsqBWredReject" index="43"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonVsqAWredReject" index="44"></entry>
+                    <entry drop_reason_bit="bcmCosqDropReasonLatencyReject" index="45"></entry>
+                </entries>
+            </table>
+            <table name="drop_reasons_groups">
+                <!-- Bitmap representation
+                            0    CGM_ADMT_RJCT_BMP_GLBL_DRAM_BDBS_BIT
+                            1     CGM_ADMT_RJCT_BMP_GLBL_SRAM_BUFFERS_BIT                                                                                     
+                            2     CGM_ADMT_RJCT_BMP_GLBL_SRAM_PDBS_BIT
+                            3     CGM_ADMT_RJCT_BMP_GLBL_DP_LEVEL_BIT
+                            4     CGM_ADMT_RJCT_BMP_GLBL_QNUM_RES_ERR_BIT
+                            5     CGM_ADMT_RJCT_BMP_GLBL_QNUM_NOT_VALID_BIT
+                            6     CGM_ADMT_RJCT_BMP_GLBL_MC_REP_ERR_BIT
+                            7     CGM_ADMT_RJCT_BMP_GLBL_MC_FIFO_FULL_BIT
+                            8     CGM_ADMT_RJCT_BMP_GLBL_TAR_FIFO_RJCT_BIT
+                            9     CGM_ADMT_RJCT_BMP_GLBL_PKT_SIZE_ERR_BIT
+                            10     CGM_ADMT_RJCT_BMP_GLBL_SRAM_RSRC_ERR_BIT
+                            11     CGM_ADMT_RJCT_BMP_GLBL_EXT_ERR_BIT
+                            12     CGM_ADMT_RJCT_BMP_VOQ_SRAM_PDS_SHRD_FR_BIT
+                            13     CGM_ADMT_RJCT_BMP_VOQ_SRAM_PDS_MAX_QSIZE_BIT
+                            14     CGM_ADMT_RJCT_BMP_VOQ_SRAM_BUFFERS_SHRD_FR_BIT
+                            15     CGM_ADMT_RJCT_BMP_VOQ_SRAM_BUFFERS_MAX_QSIZE_BIT
+                            16     CGM_ADMT_RJCT_BMP_VOQ_WORDS_SHRD_FR_BIT
+                            17     CGM_ADMT_RJCT_BMP_VOQ_WORDS_MAX_QSIZE_BIT
+                            18     CGM_ADMT_RJCT_BMP_VOQ_SYS_RED_BIT
+                            19     CGM_ADMT_RJCT_BMP_VOQ_WRED_BIT
+                            20     CGM_ADMT_RJCT_BMP_VOQ_DRAM_BLOCK_BIT
+                            21     CGM_ADMT_RJCT_BMP_VSQ_PB_VSQ_SRAM_PDS_SHRD_FR_BIT
+                            22     CGM_ADMT_RJCT_BMP_VSQ_PB_VSQ_SRAM_PDS_MAX_QSIZE_BIT
+                            23     CGM_ADMT_RJCT_BMP_VSQ_VSQD_SRAM_PDS_MAX_QSIZE_BIT
+                            24     CGM_ADMT_RJCT_BMP_VSQ_VSQC_SRAM_PDS_MAX_QSIZE_BIT
+                            25     CGM_ADMT_RJCT_BMP_VSQ_VSQB_SRAM_PDS_MAX_QSIZE_BIT
+                            26     CGM_ADMT_RJCT_BMP_VSQ_VSQA_SRAM_PDS_MAX_QSIZE_BIT
+                            27     CGM_ADMT_RJCT_BMP_VSQ_PB_VSQ_SRAM_BUFFERS_SHRD_FR_BIT
+                            28     CGM_ADMT_RJCT_BMP_VSQ_PB_VSQ_SRAM_BUFFERS_MAX_QSIZE_BIT
+                            29    CGM_ADMT_RJCT_BMP_VSQ_VSQD_SRAM_BUFFERS_MAX_QSIZE_BIT
+                            30    CGM_ADMT_RJCT_BMP_VSQ_VSQC_SRAM_BUFFERS_MAX_QSIZE_BIT
+                            31     CGM_ADMT_RJCT_BMP_VSQ_VSQB_SRAM_BUFFERS_MAX_QSIZE_BIT
+                            32     CGM_ADMT_RJCT_BMP_VSQ_VSQA_SRAM_BUFFERS_MAX_QSIZE_BIT
+                            33     CGM_ADMT_RJCT_BMP_VSQ_PB_VSQ_WORDS_SHRD_FR_BIT
+                            34     CGM_ADMT_RJCT_BMP_VSQ_PB_VSQ_WORDS_MAX_QSIZE_BIT
+                            35     CGM_ADMT_RJCT_BMP_VSQ_VSQD_WORDS_MAX_QSIZE_BIT
+                            36     CGM_ADMT_RJCT_BMP_VSQ_VSQC_WORDS_MAX_QSIZE_BIT
+                            37     CGM_ADMT_RJCT_BMP_VSQ_VSQB_WORDS_MAX_QSIZE_BIT
+                            38     CGM_ADMT_RJCT_BMP_VSQ_VSQA_WORDS_MAX_QSIZE_BIT    
+                            39     CGM_ADMT_RJCT_BMP_VSQ_VSQF_WRED_BIT
+                            40     CGM_ADMT_RJCT_BMP_VSQ_VSQE_WRED_BIT
+                            41     CGM_ADMT_RJCT_BMP_VSQ_VSQD_WRED_BIT
+                            42     CGM_ADMT_RJCT_BMP_VSQ_VSQC_WRED_BIT
+                            43     CGM_ADMT_RJCT_BMP_VSQ_VSQB_WRED_BIT
+                            44     CGM_ADMT_RJCT_BMP_VSQ_VSQA_WRED_BIT
+                            45     CGM_ADMT_RJCT_BMP_LATENCY_DROP_BIT
+
+                                                                                                           |  
+                           000-GlobalResourcesDrop   =b'0 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0111=0x7
+                           001-VOQResourcesDrop     =b'0 0000 0000 0000 0000 0000 0000 0011 0000 0000 0000 0000=0x30000
+                           010-WREDDrop                    =b'1 1111 1000 0000 0000 0000 0000 1100 0000 0000 0000 0000=0x1F80000C0000
+                           011-OCBResourcesDrop      =b'0 0000 0000 0000 0000 0000 0000 0000 1111 0000 0000 0000=0xF000
+                           100-VSQResourcesDrop      =b'0 0000 0111 1111 1111 1111 1110 0000 0000 0000 0000 0000=0x7FFFE00000
+                           110-MiscDrop                        =b'0 0000 0000 0000 0000 0000 0001 0000 0000 0111 1111 1000=0x1007F8
+                           101-LatencyDrop                   =b'10 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000=0x200000000000
+                           111-Reserved                        = b'0 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000=0x0
+                 -->
+                <key name="name" size="bcmStatCounterGroupFilterCount"></key>
+                <value name="drop_reasons" default="bcmCosqDropReasonRejectCount"></value>
+                <entries>
+                    <entry name="bcmStatCounterGroupFilterGlobalResourcesDrop" drop_reasons="bcmCosqDropReasonGlobalDramBdbsReject, bcmCosqDropReasonGlobalSramBuffersReject, bcmCosqDropReasonGlobalSramPdbsReject, bcmCosqDropReasonRejectCount"></entry>
+                    <entry name="bcmStatCounterGroupFilterVoqResourcesDrop" drop_reasons="bcmCosqDropReasonVoqWordsTotalFreeSharedReject , bcmCosqDropReasonVoqWordsSharedMaxSizeReject, bcmCosqDropReasonRejectCount"></entry>
+                    <entry name="bcmStatCounterGroupFilterWredDrop" drop_reasons="bcmCosqDropReasonVoqSystemRedReject, bcmCosqDropReasonVoqWredReject, bcmCosqDropReasonVsqFWredReject, bcmCosqDropReasonVsqEWredReject, 
+bcmCosqDropReasonVsqDWredReject, bcmCosqDropReasonVsqCWredReject, bcmCosqDropReasonVsqBWredReject, bcmCosqDropReasonVsqAWredReject, bcmCosqDropReasonRejectCount"></entry>
+                    <entry name="bcmStatCounterGroupFilterOcbResourcesDrop" drop_reasons="bcmCosqDropReasonVoqSramPdsTotalFreeSharedReject, bcmCosqDropReasonVoqSramPdsSharedMaxSizeReject, 
+bcmCosqDropReasonVoqSramBuffersTotalFreeSharedReject, bcmCosqDropReasonVoqSramBuffersSharedMaxSizeReject, bcmCosqDropReasonRejectCount"></entry>
+                    <entry name="bcmStatCounterGroupFilterVsqResourcesDrop" drop_reasons="bcmCosqDropReasonPbVsqSramPdsTotalFreeSharedReject, bcmCosqDropReasonPbVsqSramPdsSharedMaxSizeReject, 
+bcmCosqDropReasonVsqDSramPdsSharedMaxSizeReject, bcmCosqDropReasonVsqCSramPdsSharedMaxSizeReject, bcmCosqDropReasonVsqBSramPdsSharedMaxSizeReject,
+bcmCosqDropReasonVsqASramPdsSharedMaxSizeReject, bcmCosqDropReasonPbVsqSramBuffersTotalFreeSharedReject, bcmCosqDropReasonPbVsqSramBuffersSharedMaxSizeReject, bcmCosqDropReasonVsqDSramBuffersSharedMaxSizeReject,
+bcmCosqDropReasonVsqCSramBuffersSharedMaxSizeReject, bcmCosqDropReasonVsqBSramBuffersSharedMaxSizeReject, bcmCosqDropReasonVsqASramBuffersSharedMaxSizeReject, bcmCosqDropReasonPbVsqWordsTotalFreeSharedReject,
+bcmCosqDropReasonPbVsqWordsSharedMaxSizeReject, bcmCosqDropReasonVsqDWordsSharedMaxSizeReject, bcmCosqDropReasonVsqCWordsSharedMaxSizeReject, bcmCosqDropReasonVsqBWordsSharedMaxSizeReject,
+bcmCosqDropReasonVsqAWordsSharedMaxSizeReject, bcmCosqDropReasonRejectCount"></entry>
+                    <entry name="bcmStatCounterGroupFilterLatencyDrop" drop_reasons="bcmCosqDropReasonLatencyReject, bcmCosqDropReasonRejectCount"></entry>
+                    <entry name="bcmStatCounterGroupFilterMiscDrop" drop_reasons="bcmCosqDropReasonDropPrecedenceLevelReject, bcmCosqDropReasonQueueNumResolutionErrorReject, bcmCosqDropReasonQueueNumNotValidReject,
+bcmCosqDropReasonMulticastReplicationErrorReject, bcmCosqDropReasonMulticastFifoFullReject, bcmCosqDropReasonTarFifoFullReject, bcmCosqDropReasonPacketSizeErrorReject, bcmCosqDropReasonSramResourceErrorReject, bcmCosqDropReasonVoqDramBlockReject, bcmCosqDropReasonRejectCount"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+</device_data>

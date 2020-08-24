@@ -1,0 +1,619 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+    <AppDB Name="SRAM_PACKET_BUFFER_DYNAMIC_CONFIGURATION">
+        <OneLineDescription>spb dynamic configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="ENABLE_DATA_PATH" Size="1" Type="UINT"/>
+                <Field Name="MAX_BUFFERS_THRESHOLD" Size="6" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="ENABLE_DATA_PATH">
+                    <Access>
+                        <Register Name="SPB_DYNAMIC_CONFIGURATIONr">
+                            <HwField Name="ENABLE_DATA_PATHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MAX_BUFFERS_THRESHOLD">
+                    <Access>
+                        <Register Name="SPB_DYNAMIC_CONFIGURATIONr">
+                            <HwField Name="AUTO_DOC_NAME_7f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SRAM_PACKET_BUFFER_CONTEXT_MRU">
+        <OneLineDescription>reception size limits per reassembly context</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="REASSEMBLY_CONTEXT"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="MAX_SIZE" Size="14" Type="UINT"/>
+                <Field Name="MAX_ORIG_SIZE" Size="14" Type="UINT"/>
+                <Field Name="MIN_SIZE" Size="14" Type="UINT"/>
+                <Field Name="MIN_ORIG_SIZE" Size="14" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping> 
+                <Field Name="MAX_SIZE">
+                    <Access>
+                        <Memory Name="SPB_CONTEXT_MRUm">
+                            <HwField Name="MAX_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAX_ORIG_SIZE">
+                    <Access>
+                        <Memory Name="SPB_CONTEXT_MRUm">
+                            <HwField Name="MAX_ORG_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MIN_SIZE">
+                    <Access>
+                        <Memory Name="SPB_CONTEXT_MRUm">
+                            <HwField Name="MIN_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MIN_ORIG_SIZE">
+                    <Access>
+                        <Memory Name="SPB_CONTEXT_MRUm">
+                            <HwField Name="MIN_ORG_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="NEXT_QUARANTINED_BDB_IN_FIFO">
+        <OneLineDescription>Reads the next BDB in quarantined FIFO</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="QUARANTINED_BUFFER_IS_VALID" Permission="READONLY" Size="1" Type="UINT"/>
+                <Field Name="QUARANTINED_BDB" Permission="READONLY" Size="#log2_round_up(DNX_DATA.dram.buffers.nof_bdbs)" Type="UINT"/>
+                <Field Name="QUARANTINE_REASON" Permission="READONLY"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping> 
+                <Field Name="QUARANTINED_BUFFER_IS_VALID">
+                    <Access>
+                        <Register Name="DDP_DELETE_BDB_FIFO_HEADr">
+                            <HwField Name="DELETED_BDB_VALIDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="QUARANTINED_BDB">
+                    <Access>
+                        <Register Name="DDP_DELETE_BDB_FIFO_HEADr">
+                            <HwField Name="DELETED_BDB_NUMf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="QUARANTINE_REASON">
+                    <Access>
+                        <Register Name="DDP_DELETE_BDB_FIFO_HEADr">
+                            <HwField Name="DELETED_BDB_REASONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="RELEASE_BDB_CONTROL">
+        <OneLineDescription>Release BDB from quarantine fifo back to main usable BDBs pool</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="RELEASE_ACTIVATE" Permission="TRIGGER" Size="1" Type="UINT"/>
+                <Field Name="BDB_TO_RELEASE" Size="#log2_round_up(DNX_DATA.dram.buffers.nof_bdbs)" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping> 
+                <Field Name="RELEASE_ACTIVATE">
+                    <Access>
+                        <Register Name="DDP_CPU_RELEASE_BDB_CONTROLr">
+                            <HwField Name="CPU_RELEASE_BDB_VALIDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BDB_TO_RELEASE">
+                    <Access>
+                        <Register Name="DDP_CPU_RELEASE_BDB_CONTROLr">
+                            <HwField Name="BDB_TO_RELEASEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="DELETE_BDB_CONTROL">
+        <OneLineDescription>Delete BDB and insert it to the quarantine fifo next time it is read</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="DELETE_ACTIVATE" Size="1" Type="UINT"/>
+                <Field Name="BDB_TO_DELETE" Size="#log2_round_up(DNX_DATA.dram.buffers.nof_bdbs)" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping> 
+                <Field Name="DELETE_ACTIVATE">
+                    <Access>
+                        <Register Name="DDP_CPU_DELETE_BDB_CONTROLr">
+                            <HwField Name="CPU_DELETE_BDB_VALIDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BDB_TO_DELETE">
+                    <Access>
+                        <Register Name="DDP_CPU_DELETE_BDB_CONTROLr">
+                            <HwField Name="BDB_TO_DELETEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="DELETED_BDB_COUNTER">
+        <OneLineDescription>SW counter to count the number of deleted BDBs</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Name="DELETED_BDB_COUNTER" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="DELETED_BDB_COUNTER">
+                    <Access>
+                        <SwState SwType="SW"/> 
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FREE_BDB_COUNTER">
+        <OneLineDescription>counter of free BDBs</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="FREE_BDB_COUNTER" Permission="READONLY" Size="#log2_round_up(DNX_DATA.dram.buffers.nof_bdbs)+1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping> 
+                <Field Name="FREE_BDB_COUNTER">
+                    <Access>
+                        <Register Name="BDM_FPC_STATUSr">
+                            <HwField Name="BDB_STATUSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="DELETE_BDB_POINTER" Valid="DNX_DATA.dram.hbm.is_delete_bdb_supported">
+        <OneLineDescription>Handling of 'delete from pool' operation on BDB pointer</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <!-- This is an identifier of the BDB to delete (from the list of active buffers)  -->
+                <Field Name="PTR_TO_DELETE" Size="#log2_round_up(DNX_DATA.dram.buffers.nof_bdbs)" Type="UINT"/>
+                <!-- If, after a 'delete' attempt, this bit is set then the operation has failed, for some reason  -->
+                <Field Name="DELETE_PTR_FAILED" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping> 
+                <Field Name="PTR_TO_DELETE">
+                    <Access>
+                        <Register Name="BDM_FPC_DELETEr">
+                            <HwField Name="FPC_DELETE_PTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DELETE_PTR_FAILED">
+                    <Access>
+                        <Register Name="BDM_FPC_DELETEr">
+                            <HwField Name="FPC_DELETE_PTR_FAILEDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="DQM_CONTROL">
+        <OneLineDescription>DQM control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Name="ENQ_EN" Type="BOOL"/>
+                <Field Name="DEQ_EN" Type="BOOL"/>
+                <Field Name="RELEASE_ALL_BDBS" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="ENQ_EN">
+                    <Access>
+                        <Register Name="DQM_DQM_ENABLERSr">
+                            <HwField Name="ENQ_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DEQ_EN">
+                    <Access>
+                        <Register Name="DQM_DQM_ENABLERSr">
+                            <HwField Name="DEQ_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="Q2A_A0 Q2A_B0" Name="RELEASE_ALL_BDBS">
+                    <Access>
+                        <Register Name="DQM_REG_0213r">
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 J2C_A0" Name="RELEASE_ALL_BDBS">
+                    <Access>
+                        <Register Name="DQM_AUTO_DOC_NAME_31r">
+                            <HwField Name="AUTO_DOC_NAME_32f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="BDB_CONFIG">
+        <OneLineDescription>BDB configurations, for example BDB allocation enable</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Name="BDB_ALLOCATE_EN" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="BDB_ALLOCATE_EN">
+                    <Access>
+                        <Register Name="BDM_BDB_CONFIGr">
+                            <HwField Name="ALLOCATE_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="BDM_FPC_CONFIG">
+        <OneLineDescription>Configuration of the BDM Free Pointer Controler</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Name="FPC_FIRST_PTR" NofInstances="4" Size="#log2_round_up(DNX_DATA.dram.buffers.nof_bdbs)-2" Type="UINT"/>
+                <Field Name="FPC_LAST_PTR" NofInstances="4" Size="#log2_round_up(DNX_DATA.dram.buffers.nof_bdbs)-2" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="FPC_FIRST_PTR">
+                    <Access instanceIndex="ALL">
+                        <Register Name="BDM_FPC_CONTROLr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()"/>
+                            <HwField Name="FPC_N_FIRST_PTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FPC_LAST_PTR">
+                    <Access instanceIndex="ALL">
+                        <Register Name="BDM_FPC_CONTROLr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()"/>
+                            <HwField Name="FPC_N_LAST_PTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="BDM_INIT">
+        <OneLineDescription>Init the FPC after configuration is done</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Name="FPC_INIT" Permission="TRIGGER" Type="BOOL"/>
+                <Field Name="BDM_INIT_STATUS" Permission="READONLY" Type="BOOL"/>
+                <Field Name="MOVE_ALL_PTR_TO_MEM" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Device="JR2_B0" Name="MOVE_ALL_PTR_TO_MEM">
+                    <Access>
+                        <Register Name="BDM_FPC_CONFIGr">
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 Q2A_A0 Q2A_B0 J2C_A0" Name="MOVE_ALL_PTR_TO_MEM">
+                    <Access>
+                        <Register Name="BDM_FPC_CONFIGr">
+                            <HwField Name="AUTO_DOC_NAME_6f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FPC_INIT">
+                    <Access>
+                        <Register Name="BDM_FPC_CONFIGr">
+                            <HwField Name="FPC_INITf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BDM_INIT_STATUS">
+                    <Access>
+                        <Register Name="BDM_BDB_STATUSr">
+                            <HwField Name="BDM_INIT_STATUSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="PDM_INIT">
+        <OneLineDescription>init Packet Descriptor Memory</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Name="FPC_INIT" Type="BOOL"/>
+                <Field Name="FPC_INIT_STATUS" Permission="READONLY" Type="BOOL"/>
+                <Field Name="FPC_ALLOCATE_EN" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping> 
+                <Field Name="FPC_INIT">
+                    <Access>
+                        <Register Name="PDM_FPC_CONTROLr">
+                            <HwField Name="FPC_INITf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FPC_INIT_STATUS">
+                    <Access>
+                        <Register Name="PDM_FPC_STATUSr">
+                            <HwField Name="FPC_INIT_STATf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FPC_ALLOCATE_EN">
+                    <Access>
+                        <Register Name="PDM_FPC_CONTROLr">
+                            <HwField Name="FPC_ALLOCATE_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="BDB_ERRORS_COUNTER">
+        <OneLineDescription>SW counter to count the number of times each BDB was inserted into the quarantine FIFO</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="BDB_INDEX" Size="17" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="ERROR_COUNTER" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping> 
+                <Field Name="ERROR_COUNTER">
+                    <Access>
+                        <SwState SwType="SW"/> 
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="DELETE_BDB_CONFIGS">
+        <OneLineDescription>Configuration for reasons a BDB is inserted into the quarantine FIFO</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Name="DELETE_LAST_BUFF_CRC_EN" Type="BOOL"/>
+                <Field Name="DELETE_TDU_ERR_EN" Type="BOOL"/>
+                <Field Name="DELETE_TDU_CORRECTED_ERR_EN" Type="BOOL" Valid="DNX_DATA.dram.buffers.quarantine_buffers_if_tdu_corrected_errors"/>
+                <Field Name="DELETE_CPYDAT_ECC_ERR_EN" Type="BOOL"/>
+                <Field Name="DELETE_CPYDAT_CRC_ERR_EN" Type="BOOL"/>
+                <Field Name="DELETE_CPYDAT_PKTSIZE_ERR_EN" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DELETE_LAST_BUFF_CRC_EN">
+                    <Access>
+                        <Register Name="DDP_DELETE_BDB_CONFIGSr">
+                            <HwField Name="DELETE_LAST_BUFF_CRC_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DELETE_TDU_ERR_EN">
+                    <Access>
+                        <Register Name="DDP_DELETE_BDB_CONFIGSr">
+                            <HwField Name="DELETE_TDU_ERR_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DELETE_TDU_CORRECTED_ERR_EN">
+                    <Access>
+                        <Register Name="DDP_DELETE_BDB_CONFIGSr">
+                            <HwField Name="DELETE_TDU_CORRECTED_ERR_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DELETE_CPYDAT_ECC_ERR_EN">
+                    <Access>
+                        <Register Name="DDP_DELETE_BDB_CONFIGSr">
+                            <HwField Name="DELETE_CPYDAT_ECC_ERR_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DELETE_CPYDAT_CRC_ERR_EN">
+                    <Access>
+                        <Register Name="DDP_DELETE_BDB_CONFIGSr">
+                            <HwField Name="DELETE_CPYDAT_CRC_ERR_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DELETE_CPYDAT_PKTSIZE_ERR_EN">
+                    <Access>
+                        <Register Name="DDP_DELETE_BDB_CONFIGSr">
+                            <HwField Name="DELETE_CPYDAT_PKTSIZE_ERR_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="DDP_GENERAL_CONFIGURATION">
+        <OneLineDescription>DDP general configurations</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Name="WR_DATA_PATH_EN" Type="BOOL"/>
+                <Field Name="RD_DATA_PATH_EN" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="WR_DATA_PATH_EN">
+                    <Access>
+                        <Register Name="DDP_DDP_GENERAL_CONFIGURATIONr">
+                            <HwField Name="WR_DATA_PATH_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RD_DATA_PATH_EN">
+                    <Access>
+                        <Register Name="DDP_DDP_GENERAL_CONFIGURATIONr">
+                            <HwField Name="RD_DATA_PATH_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

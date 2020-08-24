@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0"  module="iqs">
+
+    <sub_module name="credit">
+        <features>
+            <feature name="watchdog_fixed_period" value="0"></feature>
+        </features>
+        
+        <defines>
+            <define name="fmq_credit_fc_on_th" support="0"></define>
+            <define name="fmq_credit_fc_off_th" support="0"></define>
+            <define name="fmq_byte_fc_on_th" support="0"></define>
+            <define name="fmq_byte_fc_off_th" support="0"></define>
+            <define name="fmq_eir_credit_fc_th" support="0"></define>
+            <define name="fmq_eir_byte_fc_th" support="0"></define>
+            <define name="fmq_nof_be_classes" support="0"></define>
+            <define name="fmq_max_be_weight" support="0"></define>
+            <define name="fmq_max_burst_max" support="0"></define>
+            <define name="fmq_shp_crdt_rate_mltp" support="0"></define>
+            <define name="fmq_shp_crdt_rate_delta" support="0"></define>
+        </defines>
+        
+        <numerics>
+            <numeric name="fmq_shp_rate_max" support="0"></numeric>
+            
+        </numerics>
+    </sub_module>
+    
+    <sub_module name="deq_default">
+        <features>
+            <feature name="dqcq_fc_to_dram" value="1"></feature>
+        </features>
+    </sub_module>
+    
+    <sub_module name="dqcq">
+        <features>
+            <feature name="8_priorities" value="1"></feature>
+        </features>
+        
+        <defines>
+            <define name="max_nof_contexts" value="1"></define> 
+            <define name="nof_priorities" value="8"></define>
+        </defines>
+        
+        <numerics>
+        </numerics>
+        
+        <tables>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="dbal">
+        <features>
+        </features>
+        
+        <defines>
+            <define name="ipt_counters_nof_bits" value="32"></define>
+        </defines>
+        
+        <numerics>
+        </numerics>
+        
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>

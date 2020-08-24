@@ -1,0 +1,276 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="crps">
+    <includes>
+        <include>bcm/stat.h</include>
+    </includes>
+    <sub_module name="engine">
+        
+        <features>
+            <feature name="valid_address_admission_is_supported" value="0"></feature>
+            <feature name="last_input_command_is_supported" value="0"></feature>
+        </features>
+        
+        <defines>
+            <define name="nof_engines" value="22"></define>
+            <define name="nof_mid_engines" value="8"></define>
+            <define name="nof_big_engines" value="6"></define>
+            <define name="nof_databases" value="22"></define>
+            <define name="data_mapping_table_size" value="1024"></define>
+            <define name="max_counter_set_size" value="32"></define>
+            <define name="oam_counter_set_size" value="1"></define>
+            <define  name="last_address_nof_bits" value="15"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>   
+            <table name="engines_info" >
+                <key name="engine_id" size="22"></key>
+                <value name="nof_counters" default="4096"></value>
+                <value name="meter_shared" default="0"></value>                
+                <entries>
+                    <entry engine_id="0" nof_counters="4096" meter_shared="1"></entry>
+                    <entry engine_id="1" nof_counters="4096" meter_shared="1"></entry>                    
+                    <entry engine_id="2" nof_counters="4096"></entry>                   
+                    <entry engine_id="3" nof_counters="4096"></entry>
+                    <entry engine_id="4" nof_counters="4096"></entry>
+                    <entry engine_id="5" nof_counters="4096"></entry>
+                    <entry engine_id="6" nof_counters="4096"></entry>
+                    <entry engine_id="7" nof_counters="4096"></entry>
+                    <entry engine_id="8" nof_counters="8192"></entry>
+                    <entry engine_id="9" nof_counters="8192"></entry>
+                    <entry engine_id="10" nof_counters="8192"></entry>
+                    <entry engine_id="11" nof_counters="8192"></entry>
+                    <entry engine_id="12" nof_counters="8192"></entry>
+                    <entry engine_id="13" nof_counters="8192"></entry>
+                    <entry engine_id="14" nof_counters="8192"></entry>
+                    <entry engine_id="15" nof_counters="8192"></entry>
+                    <entry engine_id="16" nof_counters="16384" meter_shared="1"></entry>
+                    <entry engine_id="17" nof_counters="16384" meter_shared="1"></entry>
+                    <entry engine_id="18" nof_counters="16384" meter_shared="1"></entry>
+                    <entry engine_id="19" nof_counters="16384" meter_shared="1"></entry>
+                    <entry engine_id="20" nof_counters="16384" meter_shared="1"></entry>
+                    <entry engine_id="21" nof_counters="16384" meter_shared="1"></entry>
+                </entries>
+            </table>    
+            <table name="source_base" >
+                <key name="source" size="bcmStatCounterInterfaceCount"></key>
+                <value name="base_val" default="0"></value>
+                
+                <entries>
+                    <entry source="bcmStatCounterInterfaceIngressReceivePp" base_val="2"></entry>
+                    <entry source="bcmStatCounterInterfaceIngressOam" base_val="12"></entry>                    
+                    <entry source="bcmStatCounterInterfaceIngressVoq" base_val="0"></entry>
+                    <entry source="bcmStatCounterInterfaceIngressTransmitPp" base_val="15"></entry>
+                    <entry source="bcmStatCounterInterfaceEgressReceivePp" base_val="17"></entry>
+                    <entry source="bcmStatCounterInterfaceEgressReceiveQueue" base_val="16"></entry>
+                    <entry source="bcmStatCounterInterfaceEgressTransmitPp" base_val="19"></entry>
+                    <entry source="bcmStatCounterInterfaceEgressOam" base_val="25"></entry>
+                    <entry source="bcmStatCounterInterfaceOamp" base_val="28"></entry>
+                </entries>              
+            </table>   
+        </tables>
+         
+    </sub_module>
+    <sub_module name="eviction" >
+        
+        <features>
+            <feature name="algorithmic_is_supported" value="1"></feature>
+            <feature name="probabilistic_is_supported" value="0"></feature>
+            <feature name="conditional_action_is_supported" value="0"></feature>
+        </features>
+        
+        <defines>
+            <define name="counters_fifo_depth" value="16384"></define>
+            <define name="nof_counters_fifo" value="2"></define>      
+            <define name="dma_record_entry_nof_bits" value="120"></define>
+            <define name="packet_and_bytes_packet_size" value="30"></define>
+            <define name="bubble_before_request_timeout" value="500"></define>          
+            <define name="bubble_after_request_timeout" value="500"></define>   
+            <define name="seq_address_nof_bits" value="15"></define>
+        </defines>
+
+        <numerics>
+            <numeric name="bg_thread_enable" value="1">
+                <property name="counter_engine_sampling_interval" method="enable">
+                    <doc>
+                        enable/disable counters bg thread operation. possible values: counter_engine_sampling_interval=0/1
+                    </doc>
+                </property>
+            </numeric>          
+        </numerics>
+        
+        <tables>
+            <table name="phy_record_format">
+                <value name="obj_type_size" default="8"></value>
+                <value name="obj_type_offset" default="104"></value>
+                <value name="reserved0_size" default="8"></value>
+                <value name="reserved0_offset" default="96"></value>
+                <value name="opcode_size" default="2"></value>
+                <value name="opcode_offset" default="94"></value>
+                <value name="err_ind_size" default="1"></value>
+                <value name="err_ind_offset" default="93"></value>
+                <value name="reserved1_size" default="3"></value>
+                <value name="reserved1_offset" default="90"></value>
+                <value name="core_id_size" default="1"></value>
+                <value name="core_id_offset" default="89"></value>
+                <value name="engine_id_size" default="6"></value>
+                <value name="engine_id_offset" default="83"></value>
+                <value name="local_ctr_id_size" default="15"></value>
+                <value name="local_ctr_id_offset" default="68"></value>
+                <value name="ctr_value_size" default="68"></value> 
+                <value name="ctr_value_offset" default="0"></value>
+            </table>    
+            <table name="condional_action_valid">
+                <key name="action_idx" size="5"></key>
+                <value name="valid" default="0"></value>                
+                <entries>
+                    <entry action_idx="0" valid="0"></entry> <!--BCM_STAT_EVICTION_CONDIONAL_ACTION_EVICT_COUNTER-->
+                    <entry action_idx="1" valid="0"></entry> <!--BCM_STAT_EVICTION_CONDIONAL_ACTION_RESET_COUNTER-->
+                    <entry action_idx="2" valid="0"></entry> <!--BCM_STAT_EVICTION_CONDIONAL_ACTION_EVICT_TIME-->
+                    <entry action_idx="3" valid="0"></entry> <!--BCM_STAT_EVICTION_CONDIONAL_ACTION_INTERRUPT-->
+                    <entry action_idx="4" valid="0"></entry> <!--BCM_STAT_EVICTION_CONDIONAL_ACTION_NO_EVICTION-->
+                </entries>              
+            </table>       
+        </tables>
+    </sub_module>  
+    <sub_module name="expansion" >
+        
+        <features>
+        </features>
+
+        
+        <defines>
+            <define name="expansion_size" value="10"></define>  
+        </defines>
+        <numerics>
+        </numerics>
+        <tables>
+            <table name="irpp_types">
+                <value name="valid_types" 
+                 default="bcmStatExpansionTypeTmDropReason, bcmStatExpansionTypeDispositionIsDrop, 
+                 bcmStatExpansionTypeTrafficClass, bcmStatExpansionTypeDropPrecedenceMeter0Valid, 
+                 bcmStatExpansionTypeDropPrecedenceMeter0Value, bcmStatExpansionTypeDropPrecedenceMeter1Valid, 
+                 bcmStatExpansionTypDropPrecedenceMeter1Value, bcmStatExpansionTypeDropPrecedenceMeter2Valid, 
+                 bcmStatExpansionTypeDropPrecedenceMeter2Value, bcmStatExpansionTypeDropPrecedenceMeterResolved, 
+                 bcmStatExpansionTypeMetaData, bcmStatExpansionTypeMax"></value>
+                <value name="total_nof_bits" default="36"></value>
+                <value name="drop_reason_offset" default="9"></value>
+                <value name="disposition_offset" default="13"></value>
+                <value name="tc_offset" default="16"></value>
+                <value name="dp0_valid_offset" default="8"></value>
+                <value name="dp0_value_offset" default="6"></value>
+                <value name="dp1_valid_offset" default="5"></value>
+                <value name="dp1_value_offset" default="3"></value>
+                <value name="dp2_valid_offset" default="2"></value>
+                <value name="dp2_value_offset" default="0"></value>
+                <value name="final_dp_offset" default="14"></value>
+                <value name="reject_all_copies_offset" default="12"></value>
+                <value name="metadata_offset" default="19"></value>
+            </table>       
+            <table name="itm_types">
+                <value name="valid_types" 
+                default="bcmStatExpansionTypeTmDropReason, bcmStatExpansionTypeDispositionIsDrop, bcmStatExpansionTypeTrafficClass, 
+                bcmStatExpansionTypeDropPrecedenceMeterResolved, bcmStatExpansionTypeMax"></value>
+                <value name="total_nof_bits" default="9"></value>               
+                <value name="drop_reason_offset" default="0"></value>
+                <value name="disposition_offset" default="3"></value>
+                <value name="tc_offset" default="4"></value>
+                <value name="final_dp_offset" default="7"></value>
+                <value name="last_copy_offset" default="9"></value> <!-- not supported for a0 -->        
+            </table>       
+            <table name="itpp_types">
+                <value name="valid_types" 
+                default="bcmStatExpansionTypeLatencyBin, bcmStatExpansionTypeTrafficClass, bcmStatExpansionTypeLatencyFlowProfile, bcmStatExpansionTypeMax"></value>
+                <value name="total_nof_bits" default="11"></value>              
+                <value name="latency_bin_offset" default="0"></value>
+                <value name="tc_offset" default="3"></value>
+                <value name="latency_profile_offset" default="6"></value> 
+                <value name="mc_offset" default="11"></value><!-- not supported for jericho2 -->
+            </table>       
+            <table name="erpp_types">
+                <value name="valid_types" default="bcmStatExpansionTypeMetaData, bcmStatExpansionTypeDropPrecedenceMeterResolved, 
+                bcmStatExpansionTypeTrafficClass, bcmStatExpansionTypeSystemMultiCast, bcmStatExpansionTypeEgressTmActionType, 
+                bcmStatExpansionTypePpDropReason, bcmStatExpansionTypeMax"></value>
+                <value name="total_nof_bits" default="16"></value>
+                <value name="metadata_offset" default="0"></value>
+                <value name="dp_offset" default="4"></value>
+                <value name="tc_offset" default="6"></value>
+                <value name="mc_offset" default="9"></value>
+                <value name="tm_action_type_offset" default="10"></value>
+                <value name="pp_drop_reason_offset" default="12"></value>
+            </table>       
+            <table name="etm_types">
+                <value name="valid_types" 
+                default="bcmStatExpansionTypeDropPrecedenceMeterResolved, bcmStatExpansionTypeTrafficClass, 
+                bcmStatExpansionTypeDiscardPp, bcmStatExpansionTypeDiscardTm,
+                bcmStatExpansionTypeTmDropReason, bcmStatExpansionTypeMax"></value>
+                <value name="total_nof_bits" default="10"></value>
+                <value name="drop_reason_offset" default="7"></value>
+                <value name="tm_discard_offset" default="1"></value>
+                <value name="pp_discard_offset" default="0"></value>
+                <value name="tc_offset" default="4"></value>
+                <value name="dp_offset" default="2"></value>
+            </table>       
+            <table name="etpp_types">
+                <value name="valid_types" 
+                default="bcmStatExpansionTypeDropPrecedenceMeterResolved, bcmStatExpansionTypeTrafficClass, 
+                bcmStatExpansionTypeSystemMultiCast, bcmStatExpansionTypeEcnEligibleAndCni, bcmStatExpansionTypePortMetaData, 
+                bcmStatExpansionTypePpDropReason, bcmStatExpansionTypeMetaData, bcmStatExpansionTypeMax"></value>
+                <value name="total_nof_bits" default="24"></value>
+            </table>       
+
+        </tables>
+    </sub_module> 
+    <sub_module name="src_interface">
+     
+        <defines>       
+        </defines>
+     
+        <numerics>
+        </numerics>
+     
+        <features>
+        </features>
+     
+        <tables>
+            <table name="command_id">
+                <key name="source" size="bcmStatCounterInterfaceCount"></key>
+                <value name="size" default="0" ></value>
+                <value name="base" default="0" ></value>
+                <entries>
+                    <entry source="bcmStatCounterInterfaceIngressReceivePp" size="10" base="0"></entry>
+                    <entry source="bcmStatCounterInterfaceIngressOam" size="3" base="7"></entry>
+                    <entry source="bcmStatCounterInterfaceIngressVoq" size="2" base="0"></entry>
+                    <entry source="bcmStatCounterInterfaceIngressTransmitPp" size="1" base="0"></entry>
+                    <entry source="bcmStatCounterInterfaceEgressReceivePp" size="2" base="0"></entry>
+                    <entry source="bcmStatCounterInterfaceEgressReceiveQueue" size="1" base="0"></entry>
+                    <entry source="bcmStatCounterInterfaceEgressTransmitPp" size="6" base="0"></entry>
+                    <entry source="bcmStatCounterInterfaceEgressOam" size="3" base="0"></entry>
+                    <entry source="bcmStatCounterInterfaceOamp" size="1" base="0"></entry>
+                </entries>
+            </table>
+
+        </tables>
+    </sub_module>
+    <sub_module name="latency">  
+        <features>
+        </features>
+        
+        <defines>
+            <define name="etpp_command_id" value="5"></define>      
+            <define name="stat_id_port_offset" value="0"></define>
+            <define name="stat_id_tc_offset" value="8"></define>
+            <define name="stat_id_multicast_offset" value="11"></define>
+        </defines>  
+        <numerics>
+        </numerics>
+
+        <tables>  
+        </tables>       
+    </sub_module>       
+</device_data>
+
+
+

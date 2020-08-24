@@ -1,0 +1,2239 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="SAT_GEN_CONFIG">
+        <OneLineDescription>SAT general configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="During CRC calculation the packet data bits are reversed" Name="RVERSED_DATA_FOR_CRC" Size="1" Type="BOOL"/>
+                <Field Description="During CRC calculation the result is inverted and reversed before stamping" Name="INVERT_REVERSED_CRC" Size="1" Type="BOOL"/>
+                <Field Description="During CRC calculations, reset CRC value is taken to be 32'hffffffff" Name="RST_CRC_TO_HIGH" Size="1" Type="BOOL"/>
+                <Field Description="During PRBS calculations the next bit is created using NXOR (and not XOR)" Name="USE_NXOR_FOR_PRBS" Size="1" Type="BOOL"/>
+                <Field Description="If set, SAT statistics is uses NTP time of day format, otherwise 1588 is used" Name="USE_NTP_TOD" Size="1" Type="BOOL"/>
+                <Field Description="If set, SAT is operated in TWAMP mode: Each packet is received is replicated to be processed as two RX flows." Name="TWAMP_MODE" Size="1" Type="BOOL" Valid="DNX_DATA.sat.rx_flow_param.twamp_mode"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="RVERSED_DATA_FOR_CRC">
+                    <Access>
+                        <Register Name="OAMP_SAT_GEN_CONFIGr"> 
+                            <HwField Name="REV_CRC_DATAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="INVERT_REVERSED_CRC">
+                    <Access>
+                        <Register Name="OAMP_SAT_GEN_CONFIGr"> 
+                            <HwField Name="INV_CRC_RESf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RST_CRC_TO_HIGH">
+                    <Access>
+                        <Register Name="OAMP_SAT_GEN_CONFIGr"> 
+                            <HwField Name="RST_CRC_F_1Z0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="USE_NXOR_FOR_PRBS">
+                    <Access>
+                        <Register Name="OAMP_SAT_GEN_CONFIGr"> 
+                            <HwField Name="SAT_PRBS_USE_NXORf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="USE_NTP_TOD">
+                    <Access>
+                        <Register Name="OAMP_SAT_GEN_CONFIGr"> 
+                            <HwField Name="USE_NTP_TODf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TWAMP_MODE">
+                    <Access>
+                        <Register Name="OAMP_SAT_GEN_CONFIGr"> 
+                            <HwField Name="TWAMP_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_TX_CONFIG">
+        <OneLineDescription>SAT TX Configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="SAT_PIPE_ID" Size="2" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="redit Count Backpressure. Set to 34 to disable pipe" Name="CREDIT_BACKPRESSURE" Size="7" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CREDIT_BACKPRESSURE">
+                    <Access>
+                        <Register Name="OAMP_SAT_TX_CONFIGr"> 
+                            <DataOffset Formula="#KEY_VALUE(SAT_PIPE_ID)*#RESULT_SIZE(CREDIT_BACKPRESSURE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_SEQ_NUM_WRAP_AROUND" Valid="DNX_DATA.sat.tx_flow_param.seq_number_wrap_around">
+        <OneLineDescription>SEQ number wrap-around set</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="SEQ number wrap-around " Name="SEQ_NUM_WRAP_AROUND" Size="1" Type="UINT"/> 
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="SEQ_NUM_WRAP_AROUND">
+                    <Access>
+                        <Register Name="OAMP_CFG_SAT_TX_WRAP_AROUND_NUMr">
+                            <HwField Name="CFG_SAT_TX_WRAP_AROUND_NUM_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_TIMER_CONFIG">
+        <OneLineDescription>SAT timer configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Number of clocks between pulses for leaky backets" Name="NUM_CLKS_IN_CYCLE" Size="32" Type="UINT"/>
+                <Field Description="Number of system clock cycles in one second; default value reflects 720MHz clock" Name="NUM_CLOCKS_SEC" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="NUM_CLKS_IN_CYCLE">
+                    <Access>
+                        <Register Name="OAMP_SAT_GEN_CONFIGr"> 
+                            <HwField Name="RATE_NUM_CLKS_CYCLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="NUM_CLOCKS_SEC">
+                    <Access>
+                        <Register Name="OAMP_TIMER_CONFIGr"> 
+                            <HwField Name="NUM_CLOCKS_SECf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_EVC_PAIR_CONFIG">
+        <OneLineDescription>SAT EVC paring set </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="EVC_ID" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="If set, two flow will be paring" Name="EVC_PAIR_SET" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="EVC_PAIR_SET">
+                    <Access>
+                        <Register Name="OAMP_SAT_EVC_RATE_CONTROLr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(EVC_ID)"/>
+                            <HwField Name="PAIRING__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_TX_ENABLE">
+        <OneLineDescription>SAT TX flow enable</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TX_FLOW_ID" Size="6" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="If set, GTF start to send packet" Name="PKT_GEN_ENABLE" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PKT_GEN_ENABLE">
+                    <Access>
+                        <Register Name="OAMP_SAT_TX_GEN_FLOW_RATE_CONTROLr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(TX_FLOW_ID)"/>
+                            <HwField Name="PKT_GEN_EN__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_TX_BANDWIDTH_CONTROL">
+        <OneLineDescription>SAT TX Bandwidth configure</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TX_FLOW_ID" Size="6" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="number of byest to add to credidts every cycle - mantissa " Name="BYTES_PER_CYCLE_MANTISSA" Size="16" Type="UINT"/>
+                <Field Description="number of byest to add to credidts every cycle - exponent " Name="BYTES_PER_CYCLE_EXPONENT" Size="4" Type="UINT"/>
+                <Field Description="upper limit on number of accumulated credits - mantissa" Name="MAX_CREDITS_MANTISSA" Size="16" Type="UINT"/>
+                <Field Description="upper limit on number of accumulated credits - exponent" Name="MAX_CREDITS_EXPONENT" Size="4" Type="UINT"/>
+                <Field Description="If set, rate is counted in packets rather than bytes" Name="CREDITS_PER_PACKET_EN" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="BYTES_PER_CYCLE_MANTISSA">
+                    <Access>
+                        <Register Name="OAMP_SAT_TX_GEN_FLOW_RATE_CONTROLr">
+                            <ArrayOffset Formula="#KEY_VALUE(TX_FLOW_ID)"/>
+                            <HwField Name="BYTES_PER_CYCLE_MNT__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BYTES_PER_CYCLE_EXPONENT">
+                    <Access>
+                        <Register Name="OAMP_SAT_TX_GEN_FLOW_RATE_CONTROLr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(TX_FLOW_ID)"/>
+                            <HwField Name="BYTES_PER_CYCLE_EXP__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MAX_CREDITS_MANTISSA">
+                    <Access>
+                        <Register Name="OAMP_SAT_TX_GEN_FLOW_RATE_CONTROLr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(TX_FLOW_ID)"/>
+                            <HwField Name="MAX_CREDITS_MNT__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MAX_CREDITS_EXPONENT">
+                    <Access>
+                        <Register Name="OAMP_SAT_TX_GEN_FLOW_RATE_CONTROLr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(TX_FLOW_ID)"/>
+                            <HwField Name="MAX_CREDITS_EXP__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CREDITS_PER_PACKET_EN">
+                    <Access>
+                        <Register Name="OAMP_SAT_TX_GEN_FLOW_RATE_CONTROLr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(TX_FLOW_ID)"/>
+                            <HwField Name="CRDT_PER_PKT__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_TX_RATE_CONTROL">
+        <OneLineDescription>SAT TX rate control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TX_FLOW_ID" Size="6" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="upper threshold - mantissa" Name="THRESHOLD_UPPER_MANTISSA" Size="16" Type="UINT"/>
+                <Field Description="upper threshold - exponent" Name="THRESHOLD_UPPER_EXPONENT" Size="4" Type="UINT"/>
+                <Field Description="lower threshold - mantissa" Name="THRESHOLD_LOWER_MANTISSA" Size="16" Type="UINT"/>
+                <Field Description="lower threshold - exponent" Name="THRESHOLD_LOWER_EXPONENT" Size="4" Type="UINT"/>
+                <Field Description="leave BURST state when this limit is reached " Name="STOP_BURST_CNT" Size="32" Type="UINT"/>
+                <Field Description="leave INTERVAL state when this limit is reached " Name="STOP_INTERVAL_CNT" Size="32" Type="UINT"/>
+                <Field Description="Every packet in BURST state increases the counter by this value " Name="BURST_PKT_WEIGHT" Size="32" Type="UINT"/>
+                <Field Description="Every packet in INTERVAL state increases the counter by this value " Name="INTERVAL_PKT_WEIGHT" Size="32" Type="UINT"/>
+                <Field Description="If set, INTERVAL state limit is set to the configuration, otherwise to the number of packets sent in BURST state" Name="SET_INTRVAL_CNT_TO_CFG" Size="1" Type="BOOL"/>
+                <Field Description="If set, INTERVAL state limit is set to the configuration, otherwise to the number of packets sent in BURST state " Name="BURST_MODE" Size="2" Type="UINT"/>
+                <Field Description="Stop after this number of iterations " Name="STOP_ITER_CNT" Size="10" Type="UINT"/>
+                <Field Description="Reset stop iterations " Name="STOP_ITER_CNT_RESET" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="THRESHOLD_UPPER_MANTISSA">
+                    <Access>
+                        <Register Name="OAMP_SAT_TX_GEN_FLOW_RATE_CONTROLr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(TX_FLOW_ID)"/>
+                            <HwField Name="THRESHOLD_UPPER_MNT__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="THRESHOLD_UPPER_EXPONENT">
+                    <Access>
+                        <Register Name="OAMP_SAT_TX_GEN_FLOW_RATE_CONTROLr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(TX_FLOW_ID)"/>
+                            <HwField Name="THRESHOLD_UPPER_EXP__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="THRESHOLD_LOWER_MANTISSA">
+                    <Access>
+                        <Register Name="OAMP_SAT_TX_GEN_FLOW_RATE_CONTROLr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(TX_FLOW_ID)"/>
+                            <HwField Name="THRESHOLD_LOWER_MNT__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="THRESHOLD_LOWER_EXPONENT">
+                    <Access>
+                        <Register Name="OAMP_SAT_TX_GEN_FLOW_RATE_CONTROLr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(TX_FLOW_ID)"/>
+                            <HwField Name="THRESHOLD_LOWER_EXP__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STOP_BURST_CNT">
+                    <Access>
+                        <Register Name="OAMP_SAT_TX_GEN_FLOW_RATE_CONTROLr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(TX_FLOW_ID)"/>
+                            <HwField Name="STOP_BURST_CNT__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STOP_INTERVAL_CNT">
+                    <Access>
+                        <Register Name="OAMP_SAT_TX_GEN_FLOW_RATE_CONTROLr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(TX_FLOW_ID)"/>
+                            <HwField Name="STOP_INTERVAL_CNT_CFG__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BURST_PKT_WEIGHT">
+                    <Access>
+                        <Register Name="OAMP_SAT_TX_GEN_FLOW_RATE_CONTROLr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(TX_FLOW_ID)"/>
+                            <HwField Name="BURST_PKT_WEIGHT__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="INTERVAL_PKT_WEIGHT">
+                    <Access>
+                        <Register Name="OAMP_SAT_TX_GEN_FLOW_RATE_CONTROLr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(TX_FLOW_ID)"/>
+                            <HwField Name="INTERVAL_PKT_WEIGHT__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SET_INTRVAL_CNT_TO_CFG">
+                    <Access>
+                        <Register Name="OAMP_SAT_TX_GEN_FLOW_RATE_CONTROLr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(TX_FLOW_ID)"/>
+                            <HwField Name="SET_INTRVAL_CNT_TO_CFG__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BURST_MODE">
+                    <Access>
+                        <Register Name="OAMP_SAT_TX_GEN_FLOW_RATE_CONTROLr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(TX_FLOW_ID)"/>
+                            <HwField Name="BURST_MODE__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STOP_ITER_CNT">
+                    <Access>
+                        <Register Name="OAMP_SAT_TX_GEN_FLOW_RATE_CONTROLr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(TX_FLOW_ID)"/>
+                            <HwField Name="STOP_ITER_CNT__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STOP_ITER_CNT_RESET">
+                    <Access>
+                        <Register Name="OAMP_SAT_TX_GEN_FLOW_RATE_CONTROLr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(TX_FLOW_ID)"/>
+                            <HwField Name="STOP_ITER_CNT_RST__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_TX_PKT_HEADER_CONFIG">
+        <OneLineDescription>SAT TX packet header</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="SAT_PACKET_HEADER_INDEX" Size="5" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="packet header" Name="TX_PACKET_HEADER_LOW" Size="512" Type="ARRAY32"/>
+                <Field Description="packet header" Name="TX_PACKET_HEADER_HIGH" Size="512" Type="ARRAY32"/> 
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TX_PACKET_HEADER_LOW">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_HEADERm"> 
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TX_PACKET_HEADER_HIGH">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_HEADERm"> 
+                            <DataOffset Formula="#RESULT_SIZE(TX_PACKET_HEADER_LOW)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_TX_PKT_PARAM_CONFIG">
+        <OneLineDescription>SAT TX packet parameter configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TX_FLOW_ID" Size="6" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="packet length " Name="PKT_LENGTH_0" Size="16" Type="UINT"/>
+                <Field Description="packet length " Name="PKT_LENGTH_1" Size="16" Type="UINT"/>
+                <Field Description="packet length " Name="PKT_LENGTH_2" Size="16" Type="UINT"/>
+                <Field Description="packet length " Name="PKT_LENGTH_3" Size="16" Type="UINT"/>
+                <Field Description="packet length " Name="PKT_LENGTH_4" Size="16" Type="UINT"/>
+                <Field Description="packet length " Name="PKT_LENGTH_5" Size="16" Type="UINT"/>
+                <Field Description="packet length " Name="PKT_LENGTH_6" Size="16" Type="UINT"/>
+                <Field Description="packet length " Name="PKT_LENGTH_7" Size="16" Type="UINT"/>
+                <Field Description="If set , add crc" Name="CRC_32_ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="crc offset" Name="CRC_32_OFFSET" Size="16" Type="UINT"/>
+                <Field Description="Packet Length Pattern" Name="LENGTH_PATTERN" Size="96" Type="ARRAY32"/>
+                <Field Description="Length Pattern Size" Name="LENGTH_PATTERN_SIZE" Size="5" Type="UINT"/>
+                <Field Description="If set , add EndTlv" Name="ADD_END_TLV" Size="1" Type="BOOL"/>
+                <Field Description="If set, enable 8 bit counter stamp" Name="CNTR_8_BIT_ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="Stamp offset in bits - where to stamp the counter, beginning from start of packet " Name="CNTR_8_BIT_OFFSET" Size="16" Type="UINT"/>
+                <Field Description="" Name="CNTR_8_BIT_SHIFT" Size="3" Type="UINT"/>
+                <Field Description="" Name="CNTR_8_BIT_MASK" Size="8" Type="UINT"/>
+                <Field Description="Increment step - by 8 the  counter should be incremented" Name="CNTR_8_BIT_INC_STEP" Size="7" Type="UINT"/>
+                <Field Description="Increment period - counter may be incremented every 1/2/4/8 packets" Name="CNTR_8_BIT_PERIOD" Size="2" Type="UINT"/>
+                <Field Description="Next 8 bits value" Name="CNTR_8_BIT_NEXT_VALUE" Size="8" Type="UINT"/>
+                <Field Description="If set, enable 16 bit counter stamp" Name="CNTR_16_BIT_ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="Stamp offset in bits - where to stamp the counter, beginning from start of packet " Name="CNTR_16_BIT_OFFSET" Size="16" Type="UINT"/>
+                <Field Description="" Name="CNTR_16_BIT_SHIFT" Size="3" Type="UINT"/>
+                <Field Description="" Name="CNTR_16_BIT_MASK" Size="16" Type="UINT"/>
+                <Field Description="Increment step - by 16 the  counter should be incremented" Name="CNTR_16_BIT_INC_STEP" Size="15" Type="UINT"/>
+                <Field Description="Increment period - counter may be incremented every 1/2/4/8 packets" Name="CNTR_16_BIT_PERIOD" Size="2" Type="UINT"/>
+                <Field Description="Next 16 bits value" Name="CNTR_16_BIT_NEXT_VALUE" Size="16" Type="UINT"/>
+                <Field Description="If set, 16 bit stamp - constant value to stamp into the packet " Name="STMP_16_BIT_ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="Stamp offset" Name="STMP_16_BIT_OFFSET" Size="16" Type="UINT"/>
+                <Field Description="" Name="STMP_16_BIT_SHIFT" Size="3" Type="UINT"/>
+                <Field Description="Stamp value" Name="STMP_16_BIT_VALUE" Size="16" Type="UINT"/>
+                <Field Description="If set, add sequence number" Name="SEQ_NUM_ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="Sequence stamp offset" Name="SEQ_NUM_OFFSET" Size="16" Type="UINT"/>
+                <Field Description="Sequence stamp period" Name="SEQ_NUM_PERIOD" Size="2" Type="UINT"/>
+                <Field Description="Next sequence value" Name="SEQ_NUM_NEXT_VALUE" Size="16" Type="UINT"/>
+                <Field Description="Next packet length " Name="PKT_LENGTH_NEXT" Size="16" Type="UINT"/>
+                <Field Description="Pkt Header Length" Name="PKT_HEADER_LENGTH" Size="7" Type="UINT"/>
+                <Field Description="SAT PAYLOAD TYPE: SAT_PAYLOAD_TYPE_8_BYTES,SAT_PAYLOAD_TYPE_4_BYTES,SAT_PAYLOAD_TYPE_PRBS_31" Name="PAYLOAD_TYPE" Size="2" Type="SAT_PAYLOAD_TYPE"/>
+                <Field Description="Repeatable pattern to be used as paylaod" Name="RPT_PATTERN" Size="64" Type="ARRAY32"/>
+                <Field Description="Set source channel" Name="CHANNEL_NUM" Size="8" Type="UINT"/>
+                <Field Description="Per flow core ID (0 or 1) for SAT to transmit packets." Name="FLOW_CORE_ID" Size="1" Type="UINT"/>
+                <Field Description="Points to start of flow's packet header in PktHeader memory, 4B aligned. " Name="PKT_HEADER_POINT" Size="10" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PKT_LENGTH_0">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="PKT_LENGTH_0f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PKT_LENGTH_1">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="PKT_LENGTH_1f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PKT_LENGTH_2">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="PKT_LENGTH_2f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PKT_LENGTH_3">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="PKT_LENGTH_3f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PKT_LENGTH_4">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="PKT_LENGTH_4f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PKT_LENGTH_5">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="PKT_LENGTH_5f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PKT_LENGTH_6">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="PKT_LENGTH_6f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PKT_LENGTH_7">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="PKT_LENGTH_7f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CRC_32_ENABLE">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="CRC_32_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CRC_32_OFFSET">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="CRC_32_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LENGTH_PATTERN">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="LENGTH_PATTERNf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LENGTH_PATTERN_SIZE">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="LENGTH_PATTERN_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ADD_END_TLV">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="ADD_END_TLVf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CNTR_8_BIT_ENABLE">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="CNTR_8_BIT_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CNTR_8_BIT_OFFSET">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="CNTR_8_BIT_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CNTR_8_BIT_SHIFT">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="CNTR_8_BIT_SHIFTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CNTR_8_BIT_MASK">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="CNTR_8_BIT_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CNTR_8_BIT_INC_STEP">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="CNTR_8_BIT_INC_STEPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CNTR_8_BIT_PERIOD">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="CNTR_8_BIT_PERIODf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CNTR_8_BIT_NEXT_VALUE">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_ODDm"> 
+                            <HwField Name="CNTR_8_BIT_NEXT_VALUEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CNTR_16_BIT_ENABLE">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="CNTR_16_BIT_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CNTR_16_BIT_OFFSET">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="CNTR_16_BIT_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CNTR_16_BIT_SHIFT">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="CNTR_16_BIT_SHIFTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CNTR_16_BIT_MASK">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="CNTR_16_BIT_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CNTR_16_BIT_INC_STEP">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="CNTR_16_BIT_INC_STEPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CNTR_16_BIT_PERIOD">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="CNTR_16_BIT_PERIODf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CNTR_16_BIT_NEXT_VALUE">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_ODDm"> 
+                            <HwField Name="CNTR_16_BIT_NEXT_VALUEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="STMP_16_BIT_ENABLE">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="STMP_16_BIT_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="STMP_16_BIT_OFFSET">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="STMP_16_BIT_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="STMP_16_BIT_SHIFT">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="STMP_16_BIT_SHIFTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="STMP_16_BIT_VALUE">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="STMP_16_BIT_VALUEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SEQ_NUM_ENABLE">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="SEQ_NUM_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SEQ_NUM_OFFSET">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="SEQ_NUM_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SEQ_NUM_PERIOD">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="SEQ_NUM_PERIODf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SEQ_NUM_NEXT_VALUE">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_ODDm"> 
+                            <HwField Name="SEQ_NUM_NXT_VALUEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PKT_LENGTH_NEXT">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_ODDm"> 
+                            <HwField Name="PKT_LENGTH_NEXTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PKT_HEADER_LENGTH">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="PKT_HEADER_LENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PAYLOAD_TYPE">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="PAYLOAD_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPT_PATTERN">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_EVENm"> 
+                            <HwField Name="RPT_PATTERNf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CHANNEL_NUM">
+                    <Access>
+                        <Memory Name="OAMP_SAT_TX_GEN_PKT_PARAMS_1_ODDm"> 
+                            <HwField Name="CHAN_NUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FLOW_CORE_ID">
+                    <Access>
+                        <Register Name="OAMP_SAT_TX_GEN_FLOW_RATE_CONTROLr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(TX_FLOW_ID)"/>
+                            <HwField Name="CORE_ID__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PKT_HEADER_POINT">
+                    <Access>
+                        <Register Name="OAMP_SAT_TX_GEN_FLOW_RATE_CONTROLr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(TX_FLOW_ID)"/>
+                            <HwField Name="PKT_HEADER_BASE__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_TX_STAT_GET">
+        <OneLineDescription>Get TX stat</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TX_FLOW_ID" Size="6" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Packet counters" Name="TX_PKT_COUNTERS" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Description="Byte counters" Name="TX_BYTE_COUNTERS" Permission="READONLY" Size="34" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TX_PKT_COUNTERS">
+                    <Access>
+                        <Register Name="OAMP_SAT_TX_GEN_CNTRr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(TX_FLOW_ID)"/>
+                            <HwField Name="SAT_TX_GEN_PKT_CNTR__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TX_BYTE_COUNTERS">
+                    <Access>
+                        <Register Name="OAMP_SAT_TX_GEN_CNTRr"> 
+                            <ArrayOffset Formula="#KEY_VALUE(TX_FLOW_ID)"/>
+                            <HwField Name="SAT_TX_GEN_BYTE_CNTR__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_RX_PKT_PARAM_CONFIG" Valid="DNX_DATA.sat.rx_flow_param.natural_id">
+        <OneLineDescription>SAT RX packet parameter configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="RX_FLOW_ID" Size="7" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Payload Offset" Name="PAYLOAD_OFFSET" Size="16" Type="UINT"/>
+                <Field Description="First CRC coverred byte - from the OAM PDU start" Name="CRC_OFFSET" Size="16" Type="UINT"/>
+                <Field Description="Sequence number offset - from the OAM PDU start" Name="SEQ_NUM_OFFSET" Size="16" Type="UINT"/>
+                <Field Description="Expected repeatable pattern bits" Name="EXP_RPT_PATTERN" Size="64" Type="ARRAY32"/>
+                <Field Description="If set, add end TLV" Name="ADD_END_TLV" Size="1" Type="BOOL"/>
+                <Field Description="If set, add end CRC" Name="ADD_CRC" Size="1" Type="BOOL"/>
+                <Field Description="TimeStamp Offset" Name="TIME_STAMP_OFFSET" Size="16" Type="UINT"/>
+                <Field Description="Use 4 byte repeatable pattern in the payload" Name="USE_4_BYTE_PATTERN" Size="1" Type="BOOL"/>
+                <Field Description="Use Prbs Payload" Name="USE_PRBS_PAYLOAD" Size="1" Type="BOOL"/>
+                <Field Description="Use Rpt pattern Payload" Name="USE_RPT_PTRN_PAYLOAD" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0"> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PAYLOAD_OFFSET">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMSm"> 
+                            <HwField Name="PAYLOAD_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CRC_OFFSET">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMSm"> 
+                            <HwField Name="CRC_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SEQ_NUM_OFFSET">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMSm"> 
+                            <HwField Name="SEQ_NUM_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EXP_RPT_PATTERN">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMSm"> 
+                            <HwField Name="EXP_RPT_PATTERNf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ADD_END_TLV">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMSm"> 
+                            <HwField Name="ADD_END_TLVf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ADD_CRC">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMSm"> 
+                            <HwField Name="ADD_CRCf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TIME_STAMP_OFFSET">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMSm"> 
+                            <HwField Name="TIME_STAMP_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="USE_4_BYTE_PATTERN">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMSm"> 
+                            <HwField Name="USE_4_BYTE_PATTERNf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="USE_PRBS_PAYLOAD">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMSm"> 
+                            <HwField Name="USE_PRBS_PAYLOADf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="USE_RPT_PTRN_PAYLOAD">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMSm"> 
+                            <HwField Name="USE_RPT_PTRN_PAYLOADf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_RX_PKT_PARAM_ODD_CONFIG" Valid="DNX_DATA.sat.rx_flow_param.odd_even_id">
+        <OneLineDescription>SAT RX packet parameter configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ODD_FLOW_ID" Size="6" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Payload Offset" Name="PAYLOAD_OFFSET" Size="16" Type="UINT"/>
+                <Field Description="First CRC coverred byte - from the OAM PDU start" Name="CRC_OFFSET" Size="16" Type="UINT"/>
+                <Field Description="Sequence number offset - from the OAM PDU start" Name="SEQ_NUM_OFFSET" Size="16" Type="UINT"/>
+                <Field Description="Expected repeatable pattern bits" Name="EXP_RPT_PATTERN" Size="64" Type="ARRAY32"/>
+                <Field Description="If set, add end TLV" Name="ADD_END_TLV" Size="1" Type="BOOL"/>
+                <Field Description="If set, add end CRC" Name="ADD_CRC" Size="1" Type="BOOL"/>
+                <Field Description="TimeStamp Offset" Name="TIME_STAMP_OFFSET" Size="16" Type="UINT"/>
+                <Field Description="Use 4 byte repeatable pattern in the payload" Name="USE_4_BYTE_PATTERN" Size="1" Type="BOOL"/>
+                <Field Description="Use Prbs Payload" Name="USE_PRBS_PAYLOAD" Size="1" Type="BOOL"/>
+                <Field Description="Use Rpt pattern Payload" Name="USE_RPT_PTRN_PAYLOAD" Size="1" Type="BOOL"/>
+                <Field Description="RX timestamp offset, counted from OAM PDU start - Use in TWAMP mode only, for Reflector RX" Name="RX_TIME_STAMP_OFFSET" Size="16" Type="UINT" Valid="DNX_DATA.sat.rx_flow_param.twamp_rx_time_stamp"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PAYLOAD_OFFSET">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_ODDm"> 
+                            <HwField Name="PAYLOAD_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CRC_OFFSET">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_ODDm"> 
+                            <HwField Name="CRC_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SEQ_NUM_OFFSET">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_ODDm"> 
+                            <HwField Name="SEQ_NUM_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EXP_RPT_PATTERN">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_ODDm"> 
+                            <HwField Name="EXP_RPT_PATTERNf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ADD_END_TLV">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_ODDm"> 
+                            <HwField Name="ADD_END_TLVf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ADD_CRC">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_ODDm"> 
+                            <HwField Name="ADD_CRCf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TIME_STAMP_OFFSET">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_ODDm"> 
+                            <HwField Name="TIME_STAMP_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="USE_4_BYTE_PATTERN">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_ODDm"> 
+                            <HwField Name="USE_4_BYTE_PATTERNf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="USE_PRBS_PAYLOAD">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_ODDm"> 
+                            <HwField Name="USE_PRBS_PAYLOADf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="USE_RPT_PTRN_PAYLOAD">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_ODDm"> 
+                            <HwField Name="USE_RPT_PTRN_PAYLOADf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RX_TIME_STAMP_OFFSET">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_ODDm"> 
+                            <HwField Name="RX_TIME_STAMP_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_RX_PKT_PARAM_EVEN_CONFIG" Valid="DNX_DATA.sat.rx_flow_param.odd_even_id">
+        <OneLineDescription>SAT RX packet parameter configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="EVEN_FLOW_ID" Size="6" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Payload Offset" Name="PAYLOAD_OFFSET" Size="16" Type="UINT"/>
+                <Field Description="First CRC coverred byte - from the OAM PDU start" Name="CRC_OFFSET" Size="16" Type="UINT"/>
+                <Field Description="Sequence number offset - from the OAM PDU start" Name="SEQ_NUM_OFFSET" Size="16" Type="UINT"/>
+                <Field Description="Expected repeatable pattern bits" Name="EXP_RPT_PATTERN" Size="64" Type="ARRAY32"/>
+                <Field Description="If set, add end TLV" Name="ADD_END_TLV" Size="1" Type="BOOL"/>
+                <Field Description="If set, add end CRC" Name="ADD_CRC" Size="1" Type="BOOL"/>
+                <Field Description="TimeStamp Offset" Name="TIME_STAMP_OFFSET" Size="16" Type="UINT"/>
+                <Field Description="Use 4 byte repeatable pattern in the payload" Name="USE_4_BYTE_PATTERN" Size="1" Type="BOOL"/>
+                <Field Description="Use Prbs Payload" Name="USE_PRBS_PAYLOAD" Size="1" Type="BOOL"/>
+                <Field Description="Use Rpt pattern Payload" Name="USE_RPT_PTRN_PAYLOAD" Size="1" Type="BOOL"/>
+                <Field Description="RX timestamp offset, counted from OAM PDU start - Use in TWAMP mode only, for Reflector RX" Name="RX_TIME_STAMP_OFFSET" Size="16" Type="UINT" Valid="DNX_DATA.sat.rx_flow_param.twamp_rx_time_stamp"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PAYLOAD_OFFSET">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_EVENm"> 
+                            <HwField Name="PAYLOAD_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CRC_OFFSET">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_EVENm"> 
+                            <HwField Name="CRC_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SEQ_NUM_OFFSET">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_EVENm"> 
+                            <HwField Name="SEQ_NUM_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EXP_RPT_PATTERN">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_EVENm"> 
+                            <HwField Name="EXP_RPT_PATTERNf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ADD_END_TLV">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_EVENm"> 
+                            <HwField Name="ADD_END_TLVf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ADD_CRC">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_EVENm"> 
+                            <HwField Name="ADD_CRCf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TIME_STAMP_OFFSET">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_EVENm"> 
+                            <HwField Name="TIME_STAMP_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="USE_4_BYTE_PATTERN">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_EVENm"> 
+                            <HwField Name="USE_4_BYTE_PATTERNf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="USE_PRBS_PAYLOAD">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_EVENm"> 
+                            <HwField Name="USE_PRBS_PAYLOADf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="USE_RPT_PTRN_PAYLOAD">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_EVENm"> 
+                            <HwField Name="USE_RPT_PTRN_PAYLOADf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RX_TIME_STAMP_OFFSET">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_EVENm"> 
+                            <HwField Name="RX_TIME_STAMP_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="SAT_RX_FLOW_IDENTIFY_MAP">
+        <OneLineDescription>SAT CTF flow identify mapping</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TC" Size="3"/>
+                <Field Name="COLOR" Size="2" Type="UINT"/>
+                <Field Name="TRAP_ID" Size="2" Type="UINT"/>
+                <Field Name="SAT_SESSION_ID" Size="6" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Flow id" Name="FLOW_ID_TO_READ" Size="7" Type="UINT"/>
+                <Field Description="Flow is valid or not" Name="FLOW_IS_VALID" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FLOW_ID_TO_READ">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_IDm"> 
+                            <HwField Name="FLOW_IDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FLOW_IS_VALID">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_IDm"> 
+                            <HwField Name="FLOW_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_RX_TRAP_CONFIG">
+        <OneLineDescription>SAT RX trap configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Trap code to compare against the trap code of the received packet" Name="RX_TRAP_CODE_0" Size="9" Type="UINT"/>
+                <Field Description="Trap code to compare against the trap code of the received packet" Name="RX_TRAP_CODE_1" Size="9" Type="UINT"/>
+                <Field Description="Trap code to compare against the trap code of the received packet" Name="RX_TRAP_CODE_2" Size="9" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="RX_TRAP_CODE_0">
+                    <Access>
+                        <Register Name="OAMP_SAT_RX_CONFIGr"> 
+                            <HwField Name="RX_TRAP_CODE_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RX_TRAP_CODE_1">
+                    <Access>
+                        <Register Name="OAMP_SAT_RX_CONFIGr"> 
+                            <HwField Name="RX_TRAP_CODE_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RX_TRAP_CODE_2">
+                    <Access>
+                        <Register Name="OAMP_SAT_RX_CONFIGr"> 
+                            <HwField Name="RX_TRAP_CODE_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_RX_BIN_LIMIT">
+        <OneLineDescription>SAT Flv Bin delay limitation configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Limit for Flv Bin delay counters" Name="LIMIT_FLV_BIN_DELAY_COUNTERS_0" Size="32" Type="UINT"/>
+                <Field Description="Limit for Flv Bin delay counters" Name="LIMIT_FLV_BIN_DELAY_COUNTERS_1" Size="32" Type="UINT"/>
+                <Field Description="Limit for Flv Bin delay counters" Name="LIMIT_FLV_BIN_DELAY_COUNTERS_2" Size="32" Type="UINT"/>
+                <Field Description="Limit for Flv Bin delay counters" Name="LIMIT_FLV_BIN_DELAY_COUNTERS_3" Size="32" Type="UINT"/>
+                <Field Description="Limit for Flv Bin delay counters" Name="LIMIT_FLV_BIN_DELAY_COUNTERS_4" Size="32" Type="UINT"/>
+                <Field Description="Limit for Flv Bin delay counters" Name="LIMIT_FLV_BIN_DELAY_COUNTERS_5" Size="32" Type="UINT"/>
+                <Field Description="Limit for Flv Bin delay counters" Name="LIMIT_FLV_BIN_DELAY_COUNTERS_6" Size="32" Type="UINT"/>
+                <Field Description="Limit for Flv Bin delay counters" Name="LIMIT_FLV_BIN_DELAY_COUNTERS_7" Size="32" Type="UINT"/>
+                <Field Description="Limit for Flv Bin delay counters" Name="LIMIT_FLV_BIN_DELAY_COUNTERS_8" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LIMIT_FLV_BIN_DELAY_COUNTERS_0">
+                    <Access>
+                        <Register Name="OAMP_SAT_RX_CONFIGr"> 
+                            <HwField Name="RX_FLV_BIN_LIMIT_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LIMIT_FLV_BIN_DELAY_COUNTERS_1">
+                    <Access>
+                        <Register Name="OAMP_SAT_RX_CONFIGr"> 
+                            <HwField Name="RX_FLV_BIN_LIMIT_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LIMIT_FLV_BIN_DELAY_COUNTERS_2">
+                    <Access>
+                        <Register Name="OAMP_SAT_RX_CONFIGr"> 
+                            <HwField Name="RX_FLV_BIN_LIMIT_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LIMIT_FLV_BIN_DELAY_COUNTERS_3">
+                    <Access>
+                        <Register Name="OAMP_SAT_RX_CONFIGr"> 
+                            <HwField Name="RX_FLV_BIN_LIMIT_3f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LIMIT_FLV_BIN_DELAY_COUNTERS_4">
+                    <Access>
+                        <Register Name="OAMP_SAT_RX_CONFIGr"> 
+                            <HwField Name="RX_FLV_BIN_LIMIT_4f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LIMIT_FLV_BIN_DELAY_COUNTERS_5">
+                    <Access>
+                        <Register Name="OAMP_SAT_RX_CONFIGr"> 
+                            <HwField Name="RX_FLV_BIN_LIMIT_5f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LIMIT_FLV_BIN_DELAY_COUNTERS_6">
+                    <Access>
+                        <Register Name="OAMP_SAT_RX_CONFIGr"> 
+                            <HwField Name="RX_FLV_BIN_LIMIT_6f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LIMIT_FLV_BIN_DELAY_COUNTERS_7">
+                    <Access>
+                        <Register Name="OAMP_SAT_RX_CONFIGr"> 
+                            <HwField Name="RX_FLV_BIN_LIMIT_7f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LIMIT_FLV_BIN_DELAY_COUNTERS_8">
+                    <Access>
+                        <Register Name="OAMP_SAT_RX_CONFIGr"> 
+                            <HwField Name="RX_FLV_BIN_LIMIT_8f"/>
+                        </Register>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_RX_AVARIBLE_SET">
+        <OneLineDescription>SAT RX flow avaliable set</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="number of slots for statistics state machine to switch state" Name="NUM_SLTS_FOR_STATS_TO_SWTICH" Size="5" Type="UINT"/>
+                <Field Description="Threshold on number of lost in slot to decide on good/bad slot" Name="THRSH_IN_SLOT_TO_CHANGE_GOOD_BAD" Size="28" Type="UINT"/>
+                <Field Description="reset state machine" Name="RST_STATE_MCHN" Size="1" Type="BOOL"/>
+                <Field Description="Flow ID to be read" Name="RX_STATS_FLOW_ID" Size="7" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="NUM_SLTS_FOR_STATS_TO_SWTICH">
+                    <Access>
+                        <Register Name="OAMP_SAT_RX_STATr"> 
+                            <HwField Name="RX_STATS_NEW_NUM_SLTSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="THRSH_IN_SLOT_TO_CHANGE_GOOD_BAD">
+                    <Access>
+                        <Register Name="OAMP_SAT_RX_STATr"> 
+                            <HwField Name="RX_STATS_NEW_THRSHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RST_STATE_MCHN">
+                    <Access>
+                        <Register Name="OAMP_SAT_RX_STATr"> 
+                            <HwField Name="RX_STATS_RST_STATE_MCHNf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RX_STATS_FLOW_ID">
+                    <Access>
+                        <Register Name="OAMP_SAT_RX_STATr"> 
+                            <HwField Name="RX_STATS_FLOW_IDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_RX_STATE_SET">
+        <OneLineDescription>SAT rx statistic set</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="reset state machine" Name="RST_STATE_MCHN" Size="1" Type="BOOL"/>
+                <Field Description="Statistics counters are updated both in Available and Non-Available states" Name="UPDATE_CNTR_ALWS" Size="1" Type="BOOL"/>
+                <Field Description="Flow ID to be read" Name="FLOW_TOBE_COUNT" Size="7" Type="UINT"/>
+                <Field Description="If set, al the statistics for the accessed flow ID are cleared" Name="CLEAR_ON_READ" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="RST_STATE_MCHN">
+                    <Access>
+                        <Register Name="OAMP_SAT_RX_STATr"> 
+                            <HwField Name="RX_STATS_RST_STATE_MCHNf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="UPDATE_CNTR_ALWS">
+                    <Access>
+                        <Register Name="OAMP_SAT_RX_STATr"> 
+                            <HwField Name="RX_STATS_UPDT_CNTR_ALWSf"/>
+                        </Register>
+                    </Access>
+                </Field> 
+                <Field Name="FLOW_TOBE_COUNT">
+                    <Access>
+                        <Register Name="OAMP_SAT_RX_STATr"> 
+                            <HwField Name="RX_STATS_FLOW_IDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CLEAR_ON_READ">
+                    <Access>
+                        <Register Name="OAMP_SAT_RX_STATr"> 
+                            <HwField Name="RX_STATS_CLR_ON_RDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_RX_FLOW_SET" Valid="DNX_DATA.sat.rx_flow_param.natural_id">
+        <OneLineDescription>SAT RX flow configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="RX_FLOW_ID" Size="7" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="If set, FDV bins are calculated per flow, otherwise use global configuration" Name="CALC_EQUAL_FDV_BINS" Size="1" Type="BOOL"/>
+                <Field Description="Minimum expected delay, for FDV bin claculation" Name="FDV_BIN_MIN_DELAY" Size="32" Type="UINT"/>
+                <Field Description="Size of calculated FDV bin" Name="FDV_BIN_STEP" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0"> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CALC_EQUAL_FDV_BINS">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMSm"> 
+                            <HwField Name="CALC_EQUAL_FDV_BINSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FDV_BIN_MIN_DELAY">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMSm"> 
+                            <HwField Name="FDV_BIN_MIN_DELAYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FDV_BIN_STEP">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMSm"> 
+                            <HwField Name="FDV_BIN_STEPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0 Q2A_A0 Q2A_B0"> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CALC_EQUAL_FDV_BINS">
+                    <Access>
+                        <KeyCondition Field="RX_FLOW_ID" Type="IS_EVEN"/>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_EVENm"> 
+                            <HwField Name="CALC_EQUAL_FDV_BINSf"/>
+                        </Memory>
+                    </Access>
+                   <Access>
+                        <KeyCondition Field="RX_FLOW_ID" Type="IS_ODD"/>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_ODDm"> 
+                            <HwField Name="CALC_EQUAL_FDV_BINSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FDV_BIN_MIN_DELAY">
+                    <Access>
+                        <KeyCondition Field="RX_FLOW_ID" Type="IS_EVEN"/>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_EVENm"> 
+                            <HwField Name="FDV_BIN_MIN_DELAYf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="RX_FLOW_ID" Type="IS_ODD"/>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_ODDm"> 
+                            <HwField Name="FDV_BIN_MIN_DELAYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FDV_BIN_STEP">
+                    <Access>
+                        <KeyCondition Field="RX_FLOW_ID" Type="IS_EVEN"/>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_EVENm"> 
+                            <HwField Name="FDV_BIN_STEPf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="RX_FLOW_ID" Type="IS_ODD"/>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_ODDm"> 
+                            <HwField Name="FDV_BIN_STEPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_RX_FLOW_ODD_SET" Valid="DNX_DATA.sat.rx_flow_param.odd_even_id">
+        <OneLineDescription>SAT RX flow configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ODD_FLOW_ID" Size="6" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="If set, FDV bins are calculated per flow, otherwise use global configuration" Name="CALC_EQUAL_FDV_BINS" Size="1" Type="BOOL"/>
+                <Field Description="Minimum expected delay, for FDV bin claculation" Name="FDV_BIN_MIN_DELAY" Size="32" Type="UINT"/>
+                <Field Description="Size of calculated FDV bin" Name="FDV_BIN_STEP" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CALC_EQUAL_FDV_BINS">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_ODDm"> 
+                            <HwField Name="CALC_EQUAL_FDV_BINSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FDV_BIN_MIN_DELAY">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_ODDm"> 
+                            <HwField Name="FDV_BIN_MIN_DELAYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FDV_BIN_STEP">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_ODDm"> 
+                            <HwField Name="FDV_BIN_STEPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_RX_FLOW_EVEN_SET" Valid="DNX_DATA.sat.rx_flow_param.odd_even_id">
+        <OneLineDescription>SAT RX flow configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="EVEN_FLOW_ID" Size="6" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="If set, FDV bins are calculated per flow, otherwise use global configuration" Name="CALC_EQUAL_FDV_BINS" Size="1" Type="BOOL"/>
+                <Field Description="Minimum expected delay, for FDV bin claculation" Name="FDV_BIN_MIN_DELAY" Size="32" Type="UINT"/>
+                <Field Description="Size of calculated FDV bin" Name="FDV_BIN_STEP" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CALC_EQUAL_FDV_BINS">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_EVENm"> 
+                            <HwField Name="CALC_EQUAL_FDV_BINSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FDV_BIN_MIN_DELAY">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_EVENm"> 
+                            <HwField Name="FDV_BIN_MIN_DELAYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FDV_BIN_STEP">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_EVENm"> 
+                            <HwField Name="FDV_BIN_STEPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_RX_STAT_PER_FLOW_SET" Valid="DNX_DATA.sat.rx_flow_param.natural_id">
+        <OneLineDescription>SAT RX flow statistic and windows zise configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="RX_FLOW_ID" Size="7" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="If set, RX counter will update in both avaliable ans unavailable state" Name="ALWAYS_UPDATE_CNTRS" Size="1" Type="BOOL"/>
+                <Field Description="Windos size of RX avaliable" Name="WINDOW_SIZE" Size="5" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ALWAYS_UPDATE_CNTRS">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_1_SEC_ACCUM_STATSm">
+                            <HwField Name="UPDATE_CNTRS_ALWAYSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="WINDOW_SIZE">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_1_SEC_ACCUM_STATSm">
+                            <HwField Name="WINDOW_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_RX_STAT_PER_FLOW_ODD_SET" Valid="DNX_DATA.sat.rx_flow_param.odd_even_id">
+        <OneLineDescription>SAT RX flow statistic and windows zise configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ODD_FLOW_ID" Size="6" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="If set, RX counter will update in both avaliable ans unavailable state" Name="ALWAYS_UPDATE_CNTRS" Size="1" Type="BOOL"/>
+                <Field Description="Windos size of RX avaliable" Name="WINDOW_SIZE" Size="5" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ALWAYS_UPDATE_CNTRS">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_1_SEC_ACCUM_STATS_ODDm"> 
+                            <HwField Name="UPDATE_CNTRS_ALWAYSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="WINDOW_SIZE">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_1_SEC_ACCUM_STATS_ODDm"> 
+                            <HwField Name="WINDOW_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_RX_STAT_PER_FLOW_EVEN_SET" Valid="DNX_DATA.sat.rx_flow_param.odd_even_id">
+        <OneLineDescription>SAT RX flow statistic and windows zise configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="EVEN_FLOW_ID" Size="6" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="If set, RX counter will update in both avaliable ans unavailable state" Name="ALWAYS_UPDATE_CNTRS" Size="1" Type="BOOL"/>
+                <Field Description="Windos size of RX avaliable" Name="WINDOW_SIZE" Size="5" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ALWAYS_UPDATE_CNTRS">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_1_SEC_ACCUM_STATS_EVENm">
+                            <HwField Name="UPDATE_CNTRS_ALWAYSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="WINDOW_SIZE">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_1_SEC_ACCUM_STATS_EVENm">
+                            <HwField Name="WINDOW_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_RX_STAT_GET">
+        <OneLineDescription>SAT RX statistic get</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="RX_FLOW_ID" Size="7" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="accumulated packet counter" Name="RCVD_PKT_CNTR_ACCUM" Permission="READONLY" Size="42" Type="ARRAY32"/>
+                <Field Description="accumulated Counter for out of order packet" Name="OOO_PKT_CNTR_ACCUM" Permission="READONLY" Size="42" Type="ARRAY32"/>
+                <Field Description="accumulated Counter for error packet" Name="ERR_PKT_CNTR_ACCUM" Permission="READONLY" Size="42" Type="ARRAY32"/>
+                <Field Description="accumulated Counter for received octet" Name="RCVD_OCTET_CNTR_ACCUM" Permission="READONLY" Size="48" Type="ARRAY32"/>
+                <Field Description="accumulated Counter for out of order octet" Name="OOO_OCTET_CNTR_ACCUM" Permission="READONLY" Size="48" Type="ARRAY32"/>
+                <Field Description="accumulated Counter for error octet" Name="ERR_OCTET_CNTR_ACCUM" Permission="READONLY" Size="48" Type="ARRAY32"/>
+                <Field Description="accumulated counter for last packet delay" Name="LAST_PKT_DELAY_ACCUM" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Description="Counters for bin delay" Name="FDV_BIN_0_PKT_CNTR_ACCUM" Permission="READONLY" Size="42" Type="ARRAY32"/>
+                <Field Description="Counters for bin delay" Name="FDV_BIN_1_PKT_CNTR_ACCUM" Permission="READONLY" Size="42" Type="ARRAY32"/>
+                <Field Description="Counters for bin delay" Name="FDV_BIN_2_PKT_CNTR_ACCUM" Permission="READONLY" Size="42" Type="ARRAY32"/>
+                <Field Description="Counters for bin delay" Name="FDV_BIN_3_PKT_CNTR_ACCUM" Permission="READONLY" Size="42" Type="ARRAY32"/>
+                <Field Description="Counters for bin delay" Name="FDV_BIN_4_PKT_CNTR_ACCUM" Permission="READONLY" Size="42" Type="ARRAY32"/>
+                <Field Description="Counters for bin delay" Name="FDV_BIN_5_PKT_CNTR_ACCUM" Permission="READONLY" Size="42" Type="ARRAY32"/>
+                <Field Description="Counters for bin delay" Name="FDV_BIN_6_PKT_CNTR_ACCUM" Permission="READONLY" Size="42" Type="ARRAY32"/>
+                <Field Description="Counters for bin delay" Name="FDV_BIN_7_PKT_CNTR_ACCUM" Permission="READONLY" Size="42" Type="ARRAY32"/>
+                <Field Description="Counters for bin delay" Name="FDV_BIN_8_PKT_CNTR_ACCUM" Permission="READONLY" Size="42" Type="ARRAY32"/>
+                <Field Description="Counters for bin delay" Name="FDV_BIN_9_PKT_CNTR_ACCUM" Permission="READONLY" Size="42" Type="ARRAY32"/>
+                <Field Description="Counter for accumulated delay" Name="ACCUM_DELAY_CNTR_ACCUM" Permission="READONLY" Size="64" Type="ARRAY32"/>
+                <Field Description="max packet delay" Name="MAX_PKT_DELAY_ACCUM" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Description="min packet delay" Name="MIN_PKT_DELAY_ACCUM" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Description="Time of day stamp" Name="TOD_STAMP_ACCUM" Permission="READONLY" Size="64" Type="ARRAY32"/>
+                <Field Description="Counter for sec in avail state" Name="SEC_IN_AVAIL_STATE_CNTR" Permission="READONLY" Size="18" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="RCVD_PKT_CNTR_ACCUM">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_ACCUM_STATS_1m"> 
+                            <HwField Name="RCVD_PKT_CNTR_ACCUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OOO_PKT_CNTR_ACCUM">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_ACCUM_STATS_1m"> 
+                            <HwField Name="OOO_PKT_CNTR_ACCUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ERR_PKT_CNTR_ACCUM">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_ACCUM_STATS_1m"> 
+                            <HwField Name="ERR_PKT_CNTR_ACCUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RCVD_OCTET_CNTR_ACCUM">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_ACCUM_STATS_1m"> 
+                            <HwField Name="RCVD_OCTET_CNTR_ACCUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OOO_OCTET_CNTR_ACCUM">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_ACCUM_STATS_1m"> 
+                            <HwField Name="OOO_OCTET_CNTR_ACCUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ERR_OCTET_CNTR_ACCUM">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_ACCUM_STATS_2m"> 
+                            <HwField Name="ERR_OCTET_CNTR_ACCUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAST_PKT_DELAY_ACCUM">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_ACCUM_STATS_2m"> 
+                            <HwField Name="LAST_PKT_DELAY_ACCUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FDV_BIN_0_PKT_CNTR_ACCUM">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_ACCUM_STATS_2m"> 
+                            <HwField Name="FDV_BIN_0_PKT_CNTR_ACCUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FDV_BIN_1_PKT_CNTR_ACCUM">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_ACCUM_STATS_2m"> 
+                            <HwField Name="FDV_BIN_1_PKT_CNTR_ACCUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FDV_BIN_2_PKT_CNTR_ACCUM">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_ACCUM_STATS_2m"> 
+                            <HwField Name="FDV_BIN_2_PKT_CNTR_ACCUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FDV_BIN_3_PKT_CNTR_ACCUM">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_ACCUM_STATS_2m"> 
+                            <HwField Name="FDV_BIN_3_PKT_CNTR_ACCUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FDV_BIN_4_PKT_CNTR_ACCUM">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_ACCUM_STATS_3m"> 
+                            <HwField Name="FDV_BIN_4_PKT_CNTR_ACCUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FDV_BIN_5_PKT_CNTR_ACCUM">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_ACCUM_STATS_3m"> 
+                            <HwField Name="FDV_BIN_5_PKT_CNTR_ACCUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FDV_BIN_6_PKT_CNTR_ACCUM">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_ACCUM_STATS_3m"> 
+                            <HwField Name="FDV_BIN_6_PKT_CNTR_ACCUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FDV_BIN_7_PKT_CNTR_ACCUM">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_ACCUM_STATS_3m"> 
+                            <HwField Name="FDV_BIN_7_PKT_CNTR_ACCUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FDV_BIN_8_PKT_CNTR_ACCUM">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_ACCUM_STATS_3m"> 
+                            <HwField Name="FDV_BIN_8_PKT_CNTR_ACCUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FDV_BIN_9_PKT_CNTR_ACCUM">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_ACCUM_STATS_3m"> 
+                            <HwField Name="FDV_BIN_9_PKT_CNTR_ACCUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ACCUM_DELAY_CNTR_ACCUM">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_ACCUM_STATS_4m"> 
+                            <HwField Name="ACCUM_DELAY_CNTR_ACCUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAX_PKT_DELAY_ACCUM">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_ACCUM_STATS_4m"> 
+                            <HwField Name="MAX_PKT_DELAY_ACCUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MIN_PKT_DELAY_ACCUM">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_ACCUM_STATS_4m"> 
+                            <HwField Name="MIN_PKT_DELAY_ACCUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TOD_STAMP_ACCUM">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_ACCUM_STATS_4m"> 
+                            <HwField Name="TOD_STAMP_ACCUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SEC_IN_AVAIL_STATE_CNTR">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_ACCUM_STATS_4m"> 
+                            <HwField Name="SEC_IN_AVAIL_STATE_CNTRf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_RX_EXP_SEQ_NUMBER_GET" Valid="DNX_DATA.sat.rx_flow_param.natural_id">
+        <OneLineDescription>SAT RX statistic get</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="RX_FLOW_ID" Size="7" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Expected sequence number always increase 1 based on received packet. " Name="EXP_SEQ_NUMBER" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0" Name="EXP_SEQ_NUMBER">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMSm"> 
+                            <HwField Name="EXP_SEQ_NUMBERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0" Name="EXP_SEQ_NUMBER">
+                    <Access>
+                        <KeyCondition Field="RX_FLOW_ID" Type="IS_EVEN"/>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_EVENm"> 
+                            <HwField Name="EXP_SEQ_NUMBERf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                    <KeyCondition Field="RX_FLOW_ID" Type="IS_ODD"/>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_ODDm"> 
+                            <HwField Name="EXP_SEQ_NUMBERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_RX_EXP_SEQ_NUMBER_ODD_GET" Valid="DNX_DATA.sat.rx_flow_param.odd_even_id">
+        <OneLineDescription>SAT RX statistic get</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ODD_FLOW_ID" Size="6" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Expected sequence number always increase 1 based on received packet. " Name="EXP_SEQ_NUMBER" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="EXP_SEQ_NUMBER">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_ODDm"> 
+                            <HwField Name="EXP_SEQ_NUMBERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_RX_EXP_SEQ_NUMBER_EVEN_GET" Valid="DNX_DATA.sat.rx_flow_param.odd_even_id">
+        <OneLineDescription>SAT RX statistic get</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="EVEN_FLOW_ID" Size="6" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Expected sequence number always increase 1 based on received packet. " Name="EXP_SEQ_NUMBER" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="EXP_SEQ_NUMBER">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_EVENm"> 
+                            <HwField Name="EXP_SEQ_NUMBERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_DYNAMIC_MEMORY_ACCESS_SET">
+        <OneLineDescription>SAT dynamic memory configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>    
+            <Result>
+                <Field Description="If set it enables writing to Dynamic memories. " Name="DYNAMIC_MEMORY_ACCESS_ENABLE" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DYNAMIC_MEMORY_ACCESS_ENABLE">
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr"> 
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_REPORT_CONFIG" Valid="DNX_DATA.sat.rx_flow_param.natural_id">
+        <OneLineDescription>SAT report configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="RX_FLOW_ID" Size="7" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="For which random value of 8-bit counter a report should be issued." Name="REPORT_THREHOLD" Size="8" Type="UINT"/>
+                <Field Description="Put sequence number into report" Name="REPORT_PKT_SEQ_NUM" Size="1" Type="BOOL"/>
+                <Field Description="Put packet delay into report" Name="REPORT_PKT_DELAY" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0"> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="REPORT_THREHOLD">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMSm"> 
+                            <HwField Name="RPRT_LFSR_THREHOLDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REPORT_PKT_SEQ_NUM">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMSm"> 
+                            <HwField Name="RPRT_PKT_SEQ_NUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REPORT_PKT_DELAY">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMSm"> 
+                            <HwField Name="RPRT_PKT_DELAYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0 Q2A_A0 Q2A_B0"> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="REPORT_THREHOLD">
+                    <Access>
+                        <KeyCondition Field="RX_FLOW_ID" Type="IS_EVEN"/>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_EVENm"> 
+                            <HwField Name="RPRT_LFSR_THREHOLDf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="RX_FLOW_ID" Type="IS_ODD"/>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_ODDm"> 
+                            <HwField Name="RPRT_LFSR_THREHOLDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REPORT_PKT_SEQ_NUM">
+                    <Access>
+                        <KeyCondition Field="RX_FLOW_ID" Type="IS_EVEN"/>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_EVENm"> 
+                            <HwField Name="RPRT_PKT_SEQ_NUMf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="RX_FLOW_ID" Type="IS_ODD"/>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_ODDm"> 
+                            <HwField Name="RPRT_PKT_SEQ_NUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REPORT_PKT_DELAY">
+                    <Access>
+                        <KeyCondition Field="RX_FLOW_ID" Type="IS_EVEN"/>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_EVENm"> 
+                            <HwField Name="RPRT_PKT_DELAYf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="RX_FLOW_ID" Type="IS_ODD"/>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_ODDm"> 
+                            <HwField Name="RPRT_PKT_SEQ_NUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_REPORT_ODD_CONFIG" Valid="DNX_DATA.sat.rx_flow_param.odd_even_id">
+        <OneLineDescription>SAT report configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ODD_FLOW_ID" Size="6" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="For which random value of 8-bit counter a report should be issued." Name="REPORT_THREHOLD" Size="8" Type="UINT"/>
+                <Field Description="Put sequence number into report" Name="REPORT_PKT_SEQ_NUM" Size="1" Type="BOOL"/>
+                <Field Description="Put packet delay into report" Name="REPORT_PKT_DELAY" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="REPORT_THREHOLD">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_ODDm"> 
+                            <HwField Name="RPRT_LFSR_THREHOLDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REPORT_PKT_SEQ_NUM">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_ODDm"> 
+                            <HwField Name="RPRT_PKT_SEQ_NUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REPORT_PKT_DELAY">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_ODDm"> 
+                            <HwField Name="RPRT_PKT_DELAYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_REPORT_EVEN_CONFIG" Valid="DNX_DATA.sat.rx_flow_param.odd_even_id">
+        <OneLineDescription>SAT report configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="EVEN_FLOW_ID" Size="6" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="For which random value of 8-bit counter a report should be issued." Name="REPORT_THREHOLD" Size="8" Type="UINT"/>
+                <Field Description="Put sequence number into report" Name="REPORT_PKT_SEQ_NUM" Size="1" Type="BOOL"/>
+                <Field Description="Put packet delay into report" Name="REPORT_PKT_DELAY" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="REPORT_THREHOLD">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_EVENm"> 
+                            <HwField Name="RPRT_LFSR_THREHOLDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REPORT_PKT_SEQ_NUM">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_EVENm"> 
+                            <HwField Name="RPRT_PKT_SEQ_NUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REPORT_PKT_DELAY">
+                    <Access>
+                        <Memory Name="OAMP_SAT_RX_FLOW_PARAMS_EVENm"> 
+                            <HwField Name="RPRT_PKT_DELAYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_TRAP_SESSION_MAP">
+        <OneLineDescription>SAT trap session mapping configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="TCAM_DIRECT">
+            <Key>
+                <Field Description="Session map Key" Name="SESSION_MAP_KEY" Size="16" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Session ID " Name="SESSION_MAP_ID" Size="6" Type="UINT"/>
+                <Field Description="Session is valid" Name="VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMappingTcam>
+                <Type Name="KEY">
+                    <Access>
+                        <Memory Name="OAMP_RX_OAM_ID_TCAMm"> 
+                            <HwField Name="KEYf"/>
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="KEY_MASK">
+                    <Access>
+                        <Memory Name="OAMP_RX_OAM_ID_TCAMm"> 
+                            <HwField Name="MASKf"/>
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="RESULT">
+                    <Access>
+                        <Memory Name="OAMP_RX_OAM_ID_TCAMm"> 
+                            <HwField Name="DATf"/>
+                        </Memory>
+                    </Access>
+                </Type>
+             </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+</AppDbCatalog>

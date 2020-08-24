@@ -1,0 +1,149 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0" module="fabric">
+    <includes>
+        <include>include/bcm_int/dnx/fabric/fabric.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_iqs.h</include>
+    </includes>
+
+    <sub_module name="general">
+        <features>
+            <feature name="is_supported" value="0"></feature>
+        </features>
+
+        <numerics>
+            <numeric name="connect_mode" value="DNX_FABRIC_CONNECT_MODE_SINGLE_FAP">
+                <property name="fabric_connect_mode" method="direct_map">
+                    <map name="SINGLE_FAP" value="DNX_FABRIC_CONNECT_MODE_SINGLE_FAP"></map>
+                    <doc>
+                        Set the connect mode of the Fabric:
+                            SINGLE_FAP - stand-alone device.
+                        Default: SINGLE_FAP
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+
+        <tables>
+            <table name="pm_properties">
+                <key name="pm_index" size="DATA(fabric, blocks, nof_pms)"></key>
+                <value name="special_pll_check" default="0"></value>
+                <entries>
+                </entries>
+            </table>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="links">
+
+        <defines>
+            <define name="nof_links" value="0"></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="blocks">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="nof_pms" value="0"></define>
+        </defines>
+
+     </sub_module>
+
+    <sub_module name="tdm">
+        <numerics>
+            <numeric name="priority" value="3">
+                <property name="fabric_tdm_priority_min" method="direct_map">
+                    <map name="3" value="3"></map>
+                    <map name="NONE" value="-1"></map>
+                    <doc>
+                        Mark a CGM fabric priority as TDM (should be globally configured over the system).
+                        'NONE' represents a system that does not support TDM and all the priorities can be used as regular priorities.
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+    </sub_module>
+
+    <sub_module name="dbal">
+        <defines>
+            <define name="fabric_transmit_wfq_index_bits_nof" value="1"></define>
+            <define name="fabric_transmit_wfq_index_max_value" value="0"></define>
+            <define name="fabric_transmit_dtq_fc_thresholds_bits_nof" value="9"></define>
+            <define name="fabric_transmit_pdq_size_bits_nof" value="13"></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="transmit">
+    
+        <features>
+            <feature name="eir_fc_leaky_backet"></feature>
+        </features>
+
+        <tables>
+            <table name="pdq_to_dqcq_fc_th_select">
+                <key name="pdq_priority" size="2"></key>
+                <key name="dqcq_priority" size="DATA(iqs, dqcq, nof_priorities)"></key>
+                <value name="sram" default="0"></value>
+                <value name="mixs" default="0"></value>
+                <value name="mixd" default="0"></value>
+                <value name="mix_mixs" default="0"></value>
+                <value name="mix_mixd" default="0"></value>
+                <value name="s2d" default="0"></value>
+                <entries>
+                    <entry pdq_priority="0" dqcq_priority="0" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="0" dqcq_priority="1" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="0" dqcq_priority="2" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="0" dqcq_priority="3" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="0" dqcq_priority="4" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="0" dqcq_priority="5" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="0" dqcq_priority="6" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="0" dqcq_priority="7" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="1" dqcq_priority="0" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="1" dqcq_priority="1" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="1" dqcq_priority="2" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="1" dqcq_priority="3" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="1" dqcq_priority="4" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="1" dqcq_priority="5" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="1" dqcq_priority="6" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="1" dqcq_priority="7" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                </entries>
+            </table>
+
+            <table name="eir_fc_leaky_bucket">
+                <value name="almost_full_th" default="3000"></value>
+                <value name="almost_empty_th" default="10"></value>
+                <value name="bucket_size" default="200"></value>
+                <value name="bucket_fc_threshold" default="5"></value>
+                <value name="period" default="99"></value>
+                <value name="tokens_delta0" default="0xa"></value>
+                <value name="tokens_delta1" default="0x1"></value>
+                <value name="tokens_delta2" default="0x3fff"></value>
+                <value name="tokens_delta3" default="0x3ff6"></value>
+            </table>
+
+            <table name="eir_fc_leaky_bucket_delta_select">
+                <value name="fifo_in_between" default="2"></value>
+                <value name="fifo_partially_almost_full" default="1"></value>
+                <value name="fifo_almost_full" default="0"></value>
+                <value name="fifo_partially_almost_empty" default="2"></value>
+                <value name="fifo_not_stable" default="2"></value>
+                <value name="fifo_almost_empty" default="3"></value>
+            </table>
+
+            <table name="dtq_fc_local_thresholds">
+                <key name="dtq_fc" size="4"></key>
+                <value name="threshold" default="0"></value>
+                <entries>
+                    <entry dtq_fc="0" threshold="0" ></entry>
+                    <entry dtq_fc="1" threshold="0" ></entry>
+                    <entry dtq_fc="2" threshold="0" ></entry>
+                    <entry dtq_fc="3" threshold="0" ></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+
+</device_data>

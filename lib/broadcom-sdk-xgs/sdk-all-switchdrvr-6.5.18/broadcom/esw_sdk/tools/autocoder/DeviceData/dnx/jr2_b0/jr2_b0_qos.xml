@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_b0"  module="qos">
+
+    <sub_module name="hw_bug" doc="qos related HW bugs">
+        <features>
+        <feature name="egress_remark_or_keep_enabler" value="1"></feature>
+        </features>
+        <features>
+        <feature name="fwd_eve_pcp_diff_encap" value="0"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+</device_data>

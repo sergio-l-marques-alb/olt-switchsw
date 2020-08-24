@@ -1,0 +1,134 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2c_a0"  module="oam">
+
+    <sub_module name="general">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="oam_force_interface_for_meps_without_counter" value="0"></define>
+        </defines>        
+        <defines>
+            <define name="oam_my_cfm_mac_by_range" value="1"></define>
+        </defines>        
+        <defines>
+            <define name="oam_lm_read_index_field_exists" value="0"></define>
+        </defines>
+        <defines>
+            <define name="oam_lm_read_per_sub_enable_field_exists" value="1"></define>
+        </defines>
+        <defines>
+            <define name="oam_lm_read_per_sub_disable_field_exists" value="0"></define>
+        </defines>
+        <defines>
+            <define name="oam_identification_appdb_1_field_exists" value="1"></define>
+        </defines>
+        <defines>
+            <define name="oam_ntp_freq_control_word" value="0x225C1"></define>
+        </defines>
+        <defines>
+            <define name="oam_ntp_time_freq_control" value="0x225C17D0"></define>
+        </defines>
+        <defines>
+            <define name="oam_IEEE_1588_time_freq_control" value="0x8000000"></define>
+        </defines>
+        <defines>
+            <define name="oam_nse_nco_freq_control" value="0x8000000"></define>
+        </defines>
+        <defines>
+            <define name="oam_tod_config_in_eci" value="1"></define>
+        </defines>
+        <numerics>
+        </numerics>
+        <tables>                       
+        </tables>
+         
+    </sub_module>
+
+    <sub_module name="oamp">
+        
+        <features>
+        </features>
+        <defines>
+            <define name="mep_db_da_is_mc_for_short_entries_support" value="1"></define>
+        </defines>
+         <defines>
+            <define name="scan_rate_bank_exist" value="1"></define>
+        </defines>
+        <defines>
+            <define name="mep_db_version_limitation" value="0"></define>
+        </defines>
+        <defines>
+            <define name="oamp_mep_db_threshold_version_limitation" value="0"></define>
+        </defines>
+        <defines>
+            <define name="rmep_db_non_zero_lifetime_units_limitation" value="0"></define>
+        </defines>
+        <defines>
+            <define name="crc_calculation_supported" value="1"></define>
+        </defines>
+        <defines>
+            <define name="lmm_dmm_supported" value="1"></define>
+        </defines>
+        <defines>
+            <define name="modified_mep_db_structure" value="1"></define>
+        </defines>        
+        <defines>
+            <define name="local_port_2_system_port_bits" value="10"></define>
+        </defines>
+        <defines>
+            <define name="rmep_db_entries_nof_bits" value="17"></define>
+        </defines>
+        <defines>
+            <define name="punt_packet_itmh_destination_full_encoding_supported" value="1"></define>
+        </defines>
+        <defines>
+            <define name="punt_packet_destination_size" value="21"></define>
+        </defines>
+        <defines>
+            <define name="core_nof_bits" value="0"></define>
+        </defines>
+        <defines>
+            <define name="punt_packet_pph_ttl_supported" value="1"></define>
+        </defines>
+        <defines>
+            <define name="intr_oamp_pending_event"  value="882"></define>
+        </defines>
+        <defines>
+            <define name="intr_oamp_stat_pending_event"  value="883"></define>
+        </defines>
+        <defines>
+            <define name="slm_supported" value="1"></define>
+        </defines>
+        <defines>
+            <define name="mdb_tx_rate_lsb_field_present" value="1"></define>
+        </defines>
+   </sub_module>
+
+    <sub_module name="hw_bug" doc="OAM related Hw bugs">
+
+        <features>
+            <feature name="oam_offset_supported" value="1"></feature>
+            <feature name="oam_statistics_supported" value="1"></feature>
+            <feature name="lm_read_index_limitation" value="0"></feature>
+            <feature name="oamp_scanner_limitation" value="0"></feature>
+            <feature name="oamp_tx_rate_limitation" value="0"></feature>
+            <feature name="oamp_protection_rmep_id_limitation" value="0"></feature>
+            <feature name="oamp_generic_response_supported" value="0"></feature>
+            <feature name="oamp_txm_bank_limitation" value="0"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>
+
+
+

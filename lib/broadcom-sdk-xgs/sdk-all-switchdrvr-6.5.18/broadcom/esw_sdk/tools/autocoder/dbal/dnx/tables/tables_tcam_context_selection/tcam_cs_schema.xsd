@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+           elementFormDefault="qualified">
+    <xs:include schemaLocation="../table_schema.xsd" />
+    <xs:include schemaLocation="../../dbal_types_definition.xsd" />
+
+
+    <xs:element name="AppDbCatalog">
+    <xs:complexType>
+    <xs:sequence>
+        <xs:element name="GeneralInfo" type="GeneralInfoType" minOccurs="0" maxOccurs="1"/>    
+        <xs:element name="AppDB" maxOccurs="unbounded">
+        <xs:complexType>
+        <xs:complexContent>
+        <xs:extension base="AppDBCommon">
+        <xs:sequence>
+            <!-- Physical Mapping -->
+            <xs:element name="AppToPhyDbMapping" type="tcamCsAppToPhyDbMapping" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>        
+        </xs:extension>
+        </xs:complexContent>
+        </xs:complexType>
+        </xs:element>
+
+    </xs:sequence>
+    </xs:complexType>
+
+    </xs:element>
+
+
+    <xs:complexType name="tcamCsAppToPhyDbMapping">
+    <xs:complexContent>
+    <xs:extension base="AppToPhyDBMappingCommon">    
+    <xs:sequence>
+        <xs:element name="TcamCsDb" type="TcamDbStageType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="FieldMappingTcam" minOccurs="0" maxOccurs="1"><!-- TCAM -->
+            <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Type" type="fieldMappingTcamCsType" minOccurs="0" maxOccurs="3"/> <!-- Occurs : Key, KeyMask, Result -->
+            </xs:sequence>
+            </xs:complexType>
+            </xs:element>
+    </xs:sequence>
+    </xs:extension>
+    </xs:complexContent>
+    </xs:complexType>
+</xs:schema>

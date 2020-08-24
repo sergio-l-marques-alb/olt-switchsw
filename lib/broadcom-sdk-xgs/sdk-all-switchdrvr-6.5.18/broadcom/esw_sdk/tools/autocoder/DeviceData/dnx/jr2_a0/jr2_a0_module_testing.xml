@@ -1,0 +1,269 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="module_testing">
+    <includes>
+        <include>bcm/fabric.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_device.h</include>
+    </includes>
+        
+    <sub_module name="unsupported">
+        <features>
+            <feature name="supported_feature"></feature>
+        </features>
+        <defines>
+            <define name="supported_def" value="0x12345678"></define>
+        </defines>
+        <tables>
+            <table name="supported_table">
+                <value name="num" default="0x87654321"></value>
+            </table>
+        </tables>
+    </sub_module>
+        
+    <sub_module name="types">
+        <defines>
+            <define name="def_signed" value="-1"></define>
+            <define name="def_unsigned" value="0xffffffff"></define>
+        </defines>
+        <numerics>
+            <numeric name="num_signed" value="-1">
+                <property name="dnx_data_num_signed" official="false" method="range" range_min="-4" range_max="3" extern="false">
+                    <doc> testing </doc>
+                </property>
+            </numeric>
+            <numeric name="num_unsigned" value="0xffffffff">
+                <property name="dnx_data_num_unsigned" official="false" method="range" range_min="-4" range_max="3"  extern="false">
+                    <doc> testing </doc>
+                </property>
+            </numeric>
+        </numerics>
+        
+        <tables>
+            <table name="all">
+                <value name="intval" default="-1"></value>
+                <value name="uint8val" default="0x12"></value>
+                <value name="charval" default="'1'"></value>
+                <value name="uint16val" default="0x1234"></value>
+                <value name="enumval" default="bcmFabricDeviceTypeFE2"></value>
+                <value name="arrval" default="1, 2, 3, 4, 5, 6, 7, 8, 9, 10"></value>
+                <value name="pbmpval" default="0x1, 0x2, 0x3, 0x4"></value>
+                <value name="strval" default="dnx data"></value>
+                <value name="bufferval" default="'a', 'b', 'c'"></value>
+            </table>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="property_methods">
+        <features>
+            <feature name="feature_enable">
+                <property name="dnx_data_feature_enable" official="false" method="enable" extern="false">
+                    <doc>
+                        feature enable description
+                    </doc>
+                </property>
+            </feature>
+            <feature name="feature_disable" value="0">
+                <property name="dnx_data_feature_disable" official="false" method="enable" extern="false">
+                    <doc>
+                        feature enable description
+                        Default: disabled
+                    </doc>
+                </property>
+            </feature>
+        </features>
+
+        <numerics>
+            <numeric name="numeric_range" value="-1">
+                <property name="dnx_data_numeric_range" official="false" method="range" range_min="0" range_max="5" extern="false">
+                    <doc>
+                        numeric range description
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+
+        <tables>
+            <table name="enable">
+                <value name="val" default="-1"></value>
+                <property name="dnx_data_enable" official="false" method="enable" extern="false">
+                    <doc>SoC property to test dnx data enable method</doc>
+                </property>
+            </table>
+            <table name="port_enable">
+                <key name="port" size="10"></key>
+                <value name="val" default="-1">
+                    <property name="dnx_data_port_enable" official="false" method="port_enable" extern="false">
+                        <doc>SoC property to test dnx data port enable method</doc>
+                    </property>
+                </value>
+            </table>
+            <table name="suffix_enable">
+                <key name="link" size="10"></key>
+                <value name="val" default="-1">
+                    <property name="dnx_data_suffix_enable" official="false" method="suffix_enable" suffix="link" extern="false">
+                        <doc>SoC property to test dnx data suffix enable method</doc>
+                    </property>
+                </value>
+            </table>
+            <table name="range">
+                <value name="val" default="-1">
+                    <property name="dnx_data_range" official="false" method="range" range_min="3" range_max="5" extern="false">
+                        <doc>SoC property to test dnx data range method</doc>
+                    </property>
+                </value>
+            </table>
+            <table name="port_range">
+                <key name="port" size="10"></key>
+                <value name="val" default="-1">
+                    <property name="dnx_data_port_range" official="false" method="port_range" range_min="3" range_max="5" extern="false">
+                        <doc>SoC property to test dnx data port range method</doc>
+                    </property>
+                </value>
+            </table>
+            <table name="suffix_range">
+                <key name="link" size="10"></key>
+                <value name="val" default="-1">
+                    <property name="dnx_data_suffix_range" official="false" method="suffix_range" range_min="3" range_max="5" suffix="link" extern="false">
+                        <doc>SoC property to test dnx data suffix range method</doc>
+                    </property>
+                </value>
+            </table>
+            <table name="direct_map">
+                <value name="val" default="-1"></value>
+                <property name="dnx_data_direct_map" official="false" method="direct_map" extern="false">
+                    <map name="NORMAL" value="0"></map>
+                    <map name="HIGH" value="1"></map>
+                    <map name="LOW" value="2"></map>
+                    <doc>SoC property to test dnx data direct map method</doc>
+                </property>
+            </table>
+            <table name="port_direct_map">
+                <key name="port" size="10"></key>
+                <value name="val" default="-1"></value>
+                <property name="dnx_data_port_direct_map" official="false" method="port_direct_map" extern="false">
+                    <map name="NORMAL" value="0"></map>
+                    <map name="HIGH" value="1"></map>
+                    <map name="LOW" value="2"></map>
+                    <doc>SoC property to test dnx data port direct map method</doc>
+                </property>
+            </table>
+            <table name="suffix_direct_map">
+                <key name="link" size="10"></key>
+                <value name="val" default="-1"></value>
+                <property name="dnx_data_suffix_direct_map" official="false" method="suffix_direct_map" suffix="link" extern="false">
+                    <map name="NORMAL" value="0"></map>
+                    <map name="HIGH" value="1"></map>
+                    <map name="LOW" value="2"></map>
+                    <doc>SoC property to test dnx data suffix direct map method</doc>
+                </property>
+            </table>
+            <table name="custom">
+                <key name="link" size="5"></key>
+                <key name="pipe" size="2"></key>
+                <value name="val" default="-1"></value>
+                <property name="dnx_data_custom" official="false" method="custom" extern="false">
+                    <doc>SoC property to test dnx data custom method</doc>
+                </property>
+            </table>
+            <table name="pbmp">
+                <value name="val" default="0x1, 0xf, 0x2">
+                    <property name="dnx_data_pbmp" official="false" method="pbmp" extern="false">
+                        <doc>SoC property to test dnx data pbmp method</doc>
+                    </property>
+                </value>
+            </table>
+            <table name="port_pbmp">
+                <key name="port" size="10"></key>
+                <value name="val" default="0x0, 0x1, 0x2">
+                    <property name="dnx_data_port_pbmp" official="false" method="port_pbmp" extern="false">
+                        <doc>SoC property to test dnx data port pbmp method</doc>
+                    </property>
+                </value>
+            </table>
+            <table name="suffix_pbmp">
+                <key name="index" size="10"></key>
+                <value name="val" default="0x0, 0x1, 0x2">
+                    <property name="dnx_data_suffix_pbmp" official="false" method="suffix_pbmp" suffix="index" extern="false">
+                        <doc>SoC property to test dnx data suffix pbmp method</doc>
+                    </property>
+                </value>
+            </table>
+            <table name="str">
+                <value name="val" default="NULL">
+                    <property name="dnx_data_str" official="false" method="str" extern="false">
+                        <doc>SoC property to test dnx data str method</doc>
+                    </property>
+                </value>
+            </table>
+            <table name="port_str">
+                <key name="port" size="10"></key>
+                <value name="val" default="dnx data">
+                    <property name="dnx_data_port_str" official="false" method="port_str" extern="false">
+                        <doc>SoC property to test dnx data port str method</doc>
+                    </property>
+                </value>
+            </table>
+            <table name="suffix_str">
+                <key name="index" size="10"></key>
+                <value name="val" default="NULL">
+                    <property name="dnx_data_suffix_str" official="false" method="suffix_str" suffix="index" extern="false">
+                        <doc>SoC property to test dnx data suffix str method</doc>
+                    </property>
+                </value>
+            </table>
+
+        </tables>
+    </sub_module>
+    
+    <sub_module name="data_pointers">
+        
+        <defines>
+            <define name="cores" value="DATA(device, general, nof_cores)"></define>
+            <define name="add_cores" value="DATA(device, general, nof_cores) + 1"></define>
+            <define name="mul_cores" value="DATA(device, general, nof_cores) * 3"></define>
+            <define name="div_cores" value="DATA(device, general, nof_cores) / 2"></define>
+            <define name="op_cores" value="DATA(device, general, nof_cores) * 3 + 2 / 2"></define>
+        </defines>
+        
+        <numerics>
+            <numeric name="num_cores" value="DATA(module_testing, data_pointers, num_last_cores)"></numeric>
+            <numeric name="num_add_cores" value="DATA(device, general, nof_cores) + 1"></numeric>
+            <numeric name="num_mul_cores" value="DATA(device, general, nof_cores) * 3"></numeric>
+            <numeric name="num_div_cores" value="DATA(device, general, nof_cores) / 2"></numeric>
+            <numeric name="num_op_cores" value="DATA(device, general, nof_cores) * 3 + 2 / 2"></numeric>
+            <numeric name="num_last_cores" value="DATA(device, general, nof_cores)"></numeric>
+            <numeric name="num_table_cores" value="DATA(module_testing, data_pointers, table_pointers, num_cores, 0)"></numeric>
+        </numerics>
+   
+        <tables>
+            <table name="table_pointers">
+                <key name="index" size="DATA(module_testing, data_pointers, num_cores)"></key>
+                <value name="num_cores" default="DATA(module_testing, data_pointers, num_last_cores)"></value>
+                <entries>
+                    <entry index="0" num_cores="DATA(module_testing, data_pointers, num_op_cores)"></entry>
+                </entries>
+            </table>
+        </tables>
+        
+    </sub_module>
+    
+    <sub_module name="dbal" doc="test dbal db init procedure">
+        <defines>
+            <define name="vrf_field_size" value="17"></define>
+            <define name="field_define_example" value="2"></define>
+            <define name="res_max_val" value="5"></define>
+            <define name="res_field_size" value="4"></define>
+        </defines>
+        <tables>
+            <table name="all" doc="test all supported types">
+                <value name="vlan_id_in_ingress" default="12"></value>
+                <value name="fid_in_mact" default="0"></value>
+                <value name="key_max_val" default="45"></value>
+                <value name="key_field_size" default="6"></value>
+            </table>
+        </tables>    
+    </sub_module>
+
+</device_data>
+
+
+

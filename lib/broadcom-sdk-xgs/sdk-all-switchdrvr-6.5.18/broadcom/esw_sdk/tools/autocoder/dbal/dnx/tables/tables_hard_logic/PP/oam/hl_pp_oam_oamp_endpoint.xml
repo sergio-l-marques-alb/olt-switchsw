@@ -1,0 +1,559 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+    <AppDB Name="OAMP_ICC_MAP">
+        <OneLineDescription>Mapping of ICC index for Y1731 OAM with ICC based MAID, for packet generation and verification</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="14" Name="ICC_MAP_INDEX"/>
+            </Key>
+            <Result>
+                <Field Name="ICC_DATA"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ICC_DATA">
+                    <Access>
+                        <KeyCondition Field="ICC_MAP_INDEX" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="OAMP_ICC_MAP_REG_1r">
+                            <HwField Name="ICC_MAP_IDX_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="ICC_MAP_INDEX" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="OAMP_ICC_MAP_REG_1r">
+                            <HwField Name="ICC_MAP_IDX_1f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="ICC_MAP_INDEX" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="OAMP_ICC_MAP_REG_1r">
+                            <HwField Name="ICC_MAP_IDX_2f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="ICC_MAP_INDEX" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="OAMP_ICC_MAP_REG_1r">
+                            <HwField Name="ICC_MAP_IDX_3f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="ICC_MAP_INDEX" Type="EQUAL_TO" Value="4"/>
+                        <Register Name="OAMP_ICC_MAP_REG_1r">
+                            <HwField Name="ICC_MAP_IDX_4f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="ICC_MAP_INDEX" Type="EQUAL_TO" Value="5"/>
+                        <Register Name="OAMP_ICC_MAP_REG_1r">
+                            <HwField Name="ICC_MAP_IDX_5f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="ICC_MAP_INDEX" Type="EQUAL_TO" Value="6"/>
+                        <Register Name="OAMP_ICC_MAP_REG_1r">
+                            <HwField Name="ICC_MAP_IDX_6f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="ICC_MAP_INDEX" Type="EQUAL_TO" Value="7"/>
+                        <Register Name="OAMP_ICC_MAP_REG_1r">
+                            <HwField Name="ICC_MAP_IDX_7f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="ICC_MAP_INDEX" Type="EQUAL_TO" Value="8"/>
+                        <Register Name="OAMP_ICC_MAP_REG_1r">
+                            <HwField Name="ICC_MAP_IDX_8f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="ICC_MAP_INDEX" Type="EQUAL_TO" Value="9"/>
+                        <Register Name="OAMP_ICC_MAP_REG_1r">
+                            <HwField Name="ICC_MAP_IDX_9f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="ICC_MAP_INDEX" Type="EQUAL_TO" Value="10"/>
+                        <Register Name="OAMP_ICC_MAP_REG_2r">
+                            <HwField Name="ICC_MAP_IDX_10f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="ICC_MAP_INDEX" Type="EQUAL_TO" Value="11"/>
+                        <Register Name="OAMP_ICC_MAP_REG_2r">
+                            <HwField Name="ICC_MAP_IDX_11f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="ICC_MAP_INDEX" Type="EQUAL_TO" Value="12"/>
+                        <Register Name="OAMP_ICC_MAP_REG_2r">
+                            <HwField Name="ICC_MAP_IDX_12f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="ICC_MAP_INDEX" Type="EQUAL_TO" Value="13"/>
+                        <Register Name="OAMP_ICC_MAP_REG_2r">
+                            <HwField Name="ICC_MAP_IDX_13f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="ICC_MAP_INDEX" Type="EQUAL_TO" Value="14"/>
+                        <Register Name="OAMP_ICC_MAP_REG_2r">
+                            <HwField Name="ICC_MAP_IDX_14f"/>
+                        </Register>
+                    </Access>
+                 </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAMP_UMC_TABLE">
+        <OneLineDescription>UMC table for Y1731 OAM with ICC based MAID, for packet generation and verification</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="MEP_INDEX" Size="13" Type="OAMP_MEP_DB_INDEX"/>
+            </Key>
+            <Result>
+                <Field Description="UMC data to put in MEG ID field of Y1731 CCM PDU" Name="UMC" Size="40"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="UMC">
+                    <Access>
+                        <Memory Name="OAMP_UMC_TABLEm">
+                            <HwField Name="UMCf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAMP_MEP_PROFILE">
+        <OneLineDescription>MEP profile table for Y1731 OAM for packet generation and verification</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="MEP_PROFILE_ID" Type="MEP_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Description="DMM transmission rate" Name="DMM_RATE" Type="CCM_INTERVAL"/>
+                <Field Description="LMM transmission rate" Name="LMM_RATE" Type="CCM_INTERVAL"/>
+                <Field Description="Profile that selects SLR measurement period" Name="MEASUREMENT_PERIOD_PROFILE" Size="3" Type="UINT"/>
+                <Field Description="FALSE: single ended LM; TRUE: Dual ended LM." Name="IS_DUAL_ENDED_LM" Type="BOOL"/>
+                <Field Description="FALSE: LM through LMM/LMR; TRUE: LM through SLM/SLR." Name="IS_SLM" Type="BOOL"/>
+                <Field Description="FALSE: LM through statistics; TRUE: LM through Reports." Name="IS_REPORT_MODE_LM" Type="BOOL"/>
+                <Field Description="FALSE: DM through statistics; TRUE: DM through Reports." Name="IS_REPORT_MODE_DM" Type="BOOL"/>
+                <Field Name="RDI_GEN_METHOD"/>
+                <Field Description="Offset to time stamp into DMM OAM-TS header" Name="DMM_OFFSET" Size="8" Type="UINT"/>
+                <Field Description="Offset to time stamp into DMR OAM-TS header" Name="DMR_OFFSET" Size="8" Type="UINT"/>
+                <Field Description="Offset to counter stamp into LMM OAM-TS header" Name="LMM_OFFSET" Size="8" Type="UINT"/>
+                <Field Description="Offset to counter stamp into LMR OAM-TS header" Name="LMR_OFFSET" Size="8" Type="UINT"/>
+                <Field Description="List of OAM opcode PDUs, in a bit map, to send from OAMP" Name="OPCODE_BIT_MAP" Size="8" Type="UINT"/>
+                <Field Description="Transmission rate of opcode number X" Name="OPCODE_X_RATE" NofInstances="8" Type="OPCODE_RATE"/>
+                <Field Description="DM measurement type and 1DM time stamp encodings if type is 1DM" Name="DM_MEASUREMENT_TYPE" Type="DM_ONE_WAY_TIMESTAMP_ENCODING"/>
+                <Field Description="FALSE: MAID check is enabled in RX; TRUE: MAID check is disabled in RX." Name="DISABLE_MAID_CHECK" Type="BOOL"/>
+                <Field Description="FALSE: Source IP check is enabled in RX; TRUE: Source IP check is disabled in RX." Name="DISABLE_SRC_IP_CHECK" Type="BOOL"/>
+                <Field Description="FALSE: MDL check is enabled in RX; TRUE: MAID check is disabled in RX." Name="DISABLE_MDL_CHECK" Type="BOOL"/>
+                <Field Description="FALSE: your-discriminator check is enabled in RX; TRUE: disabled." Name="DISABLE_YOUR_DISCR_CHECK" Type="BOOL"/>
+                <Field Description="Scan count to transmit CCM" Name="CCM_COUNT" Size="19" Type="UINT"/>
+                <Field Description="Scan count to transmit DMM" Name="DMM_COUNT" Size="19" Type="UINT"/>
+                <Field Description="Scan count to transmit LMM" Name="LMM_COUNT" Size="19" Type="UINT"/>
+                <Field Description="Scan count to transmit opcode X" Name="OPCODE_X_COUNT" NofInstances="8" Size="19" Type="UINT"/>
+                <Field Description="3-bit profile index that selects the 3 most significant bytes of the MAC DA in LMM injection" Name="LMM_DA_MSB_PROFILE"/>
+                <Field Description="FALSE: Disable Tx Counting; TRUE: Enable Tx Counting" Name="TX_COUNTER_ENABLE" Type="BOOL"/>
+                <Field Description="FALSE: Disable Rx Counting; TRUE: Enable Rx Counting" Name="RX_COUNTER_ENABLE" Type="BOOL"/>
+                <Field Description="FALSE: Opcode Mask is 000; TRUE: Opcode Mask is 111" Name="OPCODE_MSK" Type="BOOL"/>
+                <Field Description="MEP ID Shift" Name="MEP_ID_SHIFT" Size="2" Type="UINT"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DMM_RATE">
+                    <Access>
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="DMM_RATEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LMM_RATE">
+                    <Access>
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="LMM_RATEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MEASUREMENT_PERIOD_PROFILE">
+                    <Access>
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="MEASUREMENT_PERIOD_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_DUAL_ENDED_LM">
+                    <Access>
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="PIGGYBACK_LMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_SLM">
+                    <Access>
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="SLM_LMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_REPORT_MODE_LM">
+                    <Access>
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="REPORT_MODE_LMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_REPORT_MODE_DM">
+                    <Access>
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="REPORT_MODE_DMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RDI_GEN_METHOD">
+                    <Access>
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="RDI_GEN_METHODf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DMM_OFFSET">
+                    <Access>
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="DMM_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DMR_OFFSET">
+                    <Access>
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="DMR_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LMM_OFFSET">
+                    <Access>
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="LMM_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LMR_OFFSET">
+                    <Access>
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="LMR_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OPCODE_BIT_MAP">
+                    <Access>
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="OPCODE_BMAPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OPCODE_X_RATE">
+                    <Access instanceIndex="0">
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="OPCODE_0_RATEf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="OPCODE_1_RATEf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="OPCODE_2_RATEf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="OPCODE_3_RATEf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="OPCODE_4_RATEf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="OPCODE_5_RATEf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="OPCODE_6_RATEf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="7">
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="OPCODE_7_RATEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DM_MEASUREMENT_TYPE">
+                    <Access>
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="DMM_MEASURE_ONE_WAYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DISABLE_MAID_CHECK">
+                    <Access>
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="MAID_CHECK_DISf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DISABLE_SRC_IP_CHECK">
+                    <Access>
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="SRC_IP_CHECK_DISf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DISABLE_MDL_CHECK">
+                    <Access>
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="MDL_CHECK_DISf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DISABLE_YOUR_DISCR_CHECK">
+                    <Access>
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="YOUR_DISC_CHECK_DISf"/>
+                        </Memory>
+                    </Access>
+                </Field>                
+                <Field Name="CCM_COUNT">
+                    <Access>
+                        <Memory Name="OAMP_MEP_SCAN_PROFILEm">
+                            <HwField Name="CCM_CNTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DMM_COUNT">
+                    <Access>
+                        <Memory Name="OAMP_MEP_SCAN_PROFILEm">
+                            <HwField Name="DMM_CNTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LMM_COUNT">
+                    <Access>
+                        <Memory Name="OAMP_MEP_SCAN_PROFILEm">
+                            <HwField Name="LMM_CNTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OPCODE_X_COUNT">
+                    <Access instanceIndex="0">
+                        <Memory Name="OAMP_MEP_SCAN_PROFILEm">
+                            <HwField Name="OP_0_CNTf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Memory Name="OAMP_MEP_SCAN_PROFILEm">
+                            <HwField Name="OP_1_CNTf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Memory Name="OAMP_MEP_SCAN_PROFILEm">
+                            <HwField Name="OP_2_CNTf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Memory Name="OAMP_MEP_SCAN_PROFILEm">
+                            <HwField Name="OP_3_CNTf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Memory Name="OAMP_MEP_SCAN_PROFILEm">
+                            <HwField Name="OP_4_CNTf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Memory Name="OAMP_MEP_SCAN_PROFILEm">
+                            <HwField Name="OP_5_CNTf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Memory Name="OAMP_MEP_SCAN_PROFILEm">
+                            <HwField Name="OP_6_CNTf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="7">
+                        <Memory Name="OAMP_MEP_SCAN_PROFILEm">
+                            <HwField Name="OP_7_CNTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LMM_DA_MSB_PROFILE">
+                    <Access>
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="LMM_DA_OUI_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TX_COUNTER_ENABLE">
+                    <Access>
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="TX_COUNTER_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RX_COUNTER_ENABLE">
+                    <Access>
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="RX_COUNTER_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OPCODE_MSK">
+                    <Access>
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="OPCODE_MSKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MEP_ID_SHIFT">
+                    <Access>
+                        <Memory Name="OAMP_MEP_PROFILEm">
+                            <HwField Name="MEP_ID_SHIFTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OAMP_MEP_DA_MSB">
+        <OneLineDescription>Use 3 bit index from OAMP MEP PROFILE to get one of 8 MAC DA's MSB 24 bits</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="LMM_DA_MSB_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="DA_MSB" Offset="24" Size="24" Type="L2_MAC"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DA_MSB">
+                    <Access>
+                        <KeyCondition Field="LMM_DA_MSB_PROFILE" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="OAMP_LMM_DA_OUIr"> 
+                            <HwField Name="LMM_DA_OUI_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="LMM_DA_MSB_PROFILE" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="OAMP_LMM_DA_OUIr"> 
+                            <HwField Name="LMM_DA_OUI_1f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="LMM_DA_MSB_PROFILE" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="OAMP_LMM_DA_OUIr"> 
+                            <HwField Name="LMM_DA_OUI_2f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="LMM_DA_MSB_PROFILE" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="OAMP_LMM_DA_OUIr"> 
+                            <HwField Name="LMM_DA_OUI_3f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="LMM_DA_MSB_PROFILE" Type="EQUAL_TO" Value="4"/>
+                        <Register Name="OAMP_LMM_DA_OUIr"> 
+                            <HwField Name="LMM_DA_OUI_4f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="LMM_DA_MSB_PROFILE" Type="EQUAL_TO" Value="5"/>
+                        <Register Name="OAMP_LMM_DA_OUIr"> 
+                            <HwField Name="LMM_DA_OUI_5f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="LMM_DA_MSB_PROFILE" Type="EQUAL_TO" Value="6"/>
+                        <Register Name="OAMP_LMM_DA_OUIr"> 
+                            <HwField Name="LMM_DA_OUI_6f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="LMM_DA_MSB_PROFILE" Type="EQUAL_TO" Value="7"/>
+                        <Register Name="OAMP_LMM_DA_OUIr"> 
+                            <HwField Name="LMM_DA_OUI_7f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OAMP_MEP_DA_LSB_TABLE">
+        <OneLineDescription>Use 7 bit index from OAMP MEP DB to get one of 128 MAC DA's LSB 24 bits</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="LMM_DA_LSB_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="DA_LSB" Size="24" Type="L2_MAC"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DA_LSB">
+                    <Access>
+                        <Memory Name="OAMP_LMM_DA_NIC_TABLEm"> 
+                            <HwField Name="LMM_DA_NICf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

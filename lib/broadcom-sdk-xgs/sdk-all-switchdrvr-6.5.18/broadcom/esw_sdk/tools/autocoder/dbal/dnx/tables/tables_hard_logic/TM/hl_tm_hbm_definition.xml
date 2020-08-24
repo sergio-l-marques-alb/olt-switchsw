@@ -1,0 +1,3156 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="HBMC_PLL_CONTROL" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>HBM PLL configurations</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+            </Key>
+            <Result>
+                <Field Name="HBM_PLL_RESETB" Size="1" Type="UINT"/>
+                <Field Name="HBM_PLL_POST_RESETB" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="HBM_PLL_RESETB">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_RESETBf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_POST_RESETB">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_POST_RESETBf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="HBMC_PLL_CONFIG" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>HBM PLL configurations</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+            </Key>
+            <Result>
+                <Field Name="HBM_PLL_PDIV" Size="4" Type="UINT"/>
+                <Field Name="HBM_PLL_NDIV_INT" Size="10" Type="UINT"/>
+                <Field Name="HBM_PLL_SSC_MODE" Size="1" Type="UINT"/>
+                <Field Name="HBM_PLL_SSC_LIMIT" Size="26" Type="UINT"/>
+                <Field Name="HBM_PLL_SSC_STEP" Size="16" Type="UINT"/>
+                <Field Name="HBM_PLL_NDIV_P" Size="10" Type="UINT"/>
+                <Field Name="HBM_PLL_NDIV_Q" Size="10" Type="UINT"/>
+                <Field Name="HBM_PLL_NDIV_FRAC_MODE_SEL" Size="1" Type="UINT"/>
+                <Field Name="HBM_PLL_VCO_FB_DIV_2" Size="1" Type="UINT"/>
+                <Field Name="HBM_PLL_AUX_POST_MDIV" Size="2" Type="UINT"/>
+                <Field Name="HBM_PLL_CH_0_MDIV" Size="9" Type="UINT"/>
+                <Field Name="HBM_PLL_CH_1_MDIV" Size="9" Type="UINT"/>
+                <Field Name="HBM_PLL_CH_2_MDIV" Size="9" Type="UINT"/>
+                <Field Name="HBM_PLL_CH_3_MDIV" Size="9" Type="UINT"/>
+                <Field Name="HBM_PLL_CH_4_MDIV" Size="9" Type="UINT"/>
+                <Field Name="HBM_PLL_CH_5_MDIV" Size="9" Type="UINT"/>
+                <Field Name="HBM_PLL_FREFEFF_INFO" Size="6" Type="UINT"/>
+                <Field Name="HBM_PLL_AUX_POST_ENABLEB" Size="1" Type="UINT"/>
+                <Field Name="HBM_PLL_CH_ENABLEB" Size="6" Type="UINT"/>
+                <Field Name="HBM_PLL_AUX_POST_DIFFCMOS_EN" Size="1" Type="UINT"/>
+                <Field Name="HBM_PLL_FAST_LOCK" Size="1" Type="UINT"/>
+                <Field Name="HBM_PLL_NDIV_RELOCK" Size="1" Type="UINT"/>
+                <Field Name="HBM_PLL_PWRON_PLL_AON" Size="1" Type="UINT"/>
+                <Field Name="HBM_PLL_PWRON_LDO_POSTDIV_AON" Size="1" Type="UINT"/>
+                <Field Name="HBM_PLL_PWRON_LDO_ANALOG_AON" Size="1" Type="UINT"/>
+                <Field Name="HBM_PLL_PWRON_LDO_DCORE_AON" Size="1" Type="UINT"/>
+                <Field Name="HBM_PLL_RESERVED" Size="16" Type="UINT"/>
+                <Field Name="HBM_PLL_POST_RST_HOLD_SEL" Size="2" Type="UINT"/>
+                <Field Name="HBM_PLL_POR_ENABLE" Size="1" Type="UINT"/>
+                <Field Name="HBM_PLL_DISABLE_WDT_RESET" Size="1" Type="UINT"/>
+                <Field Name="HBM_PLL_CH_BYP_EN" Size="6" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="HBM_PLL_PDIV">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_PDIVf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_NDIV_INT">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_NDIV_INTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_SSC_MODE">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_SSC_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_SSC_LIMIT">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_SSC_LIMITf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_SSC_STEP">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_SSC_STEPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_VCO_FB_DIV_2">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_VCO_FB_DIV_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_FAST_LOCK">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_FAST_LOCKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_NDIV_RELOCK">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_NDIV_RELOCKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_RESERVED">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_RESERVEDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_FREFEFF_INFO">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_FREFEFF_INFOf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_PWRON_PLL_AON">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_PWRON_PLL_AONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_NDIV_P">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_NDIV_Pf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_NDIV_Q">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_NDIV_Qf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_NDIV_FRAC_MODE_SEL">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_NDIV_FRAC_MODE_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_POR_ENABLE">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_POR_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_CH_0_MDIV">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_CH_0_MDIVf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_CH_1_MDIV">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_CH_1_MDIVf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_CH_2_MDIV">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_CH_2_MDIVf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_CH_3_MDIV">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_CH_3_MDIVf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_CH_4_MDIV">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_CH_4_MDIVf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_CH_5_MDIV">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_CH_5_MDIVf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_CH_ENABLEB">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_CH_ENABLEBf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_CH_BYP_EN">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_CH_BYP_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_AUX_POST_MDIV">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_AUX_POST_MDIVf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_POST_RST_HOLD_SEL">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_POST_RST_HOLD_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_AUX_POST_ENABLEB">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_AUX_POST_ENABLEBf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_AUX_POST_DIFFCMOS_EN">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_AUX_POST_DIFFCMOS_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_PWRON_LDO_POSTDIV_AON">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_PWRON_LDO_POSTDIV_AONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_DISABLE_WDT_RESET">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_DISABLE_WDT_RESETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_PWRON_LDO_ANALOG_AON">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_PWRON_LDO_ANALOG_AONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PLL_PWRON_LDO_DCORE_AON">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_CONFIGr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_PWRON_LDO_DCORE_AONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="HBMC_PHY_CONTROL" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>HBMC Phy control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+            </Key>
+            <Result>
+                <Field Name="HBM_PHY_IDDQ" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="HBM_PHY_IDDQ">
+                    <Access>
+                        <Register Name="HBMC_HBM_PHY_CONTROLr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PHY_IDDQf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="HBMC_INTERRUPTS" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>HBMC Interrupt_register</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+            </Key>
+            <Result>
+                <Field Name="ERROR_ECC" Permission="READONLY" Size="1" Type="UINT"/>
+                <Field Name="HBM_CATTRIP" Permission="TRIGGER" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ERROR_ECC">
+                    <Access>
+                        <Register Name="HBMC_INTERRUPT_REGISTERr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="ERROR_ECCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_CATTRIP">
+                    <Access>
+                        <Register Name="HBMC_INTERRUPT_REGISTERr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_CATTRIPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="HBMC_PHY_CHANNEL_CONTROL" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>HBMC Phy channel control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+                <Field MaxValue="DNX_DATA.dram.general_info.nof_channels" Name="CHANNEL_INDEX" Size="#log2_round_up(DNX_DATA.dram.general_info.nof_channels+1)" Type="UINT"/> <!-- 0-7 and 8 is midstack -->
+            </Key>
+            <Result>
+                <Field Name="HBM_PHY_CH_RESET" Size="1" Type="UINT"/>
+                <Field Name="HBM_PHY_CH_WRITE_FIFO_ENABLE" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="HBM_PHY_CH_RESET">
+                    <Access>
+                        <Register Name="HBMC_HBM_PHY_CHANNEL_CONTROLr">
+                            <ArrayOffset Formula="#KEY_VALUE(CHANNEL_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PHY_CH_RESET_N_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PHY_CH_WRITE_FIFO_ENABLE">
+                    <Access>
+                        <Register Name="HBMC_HBM_PHY_CHANNEL_CONTROLr">
+                            <ArrayOffset Formula="#KEY_VALUE(CHANNEL_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PHY_CH_WRITE_FIFO_ENABLE_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="HBMC_PLL_STATUS" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>HBMC PLL status</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+            </Key>
+            <Result>
+                <Field Name="HBM_PLL_LOCK" Permission="READONLY" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="HBM_PLL_LOCK">
+                    <Access>
+                        <Register Name="HBMC_HBM_PLL_STATUSr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PLL_LOCKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="HBMC_ENABLE_DYNAMIC_MEMORY_ACCESS" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>enable dynamic memory access to HBMC</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+            </Key>
+            <Result>
+                <Field Name="ENABLE_DYNAMIC_MEMORY_ACCESS" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE_DYNAMIC_MEMORY_ACCESS">
+                    <Access>
+                        <Register Name="HBMC_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="HCC_ENABLE_DYNAMIC_MEMORY_ACCESS" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>enable dynamic memory acces to HCC</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+                <Field Name="CHANNEL" Size="#log2_round_up(DNX_DATA.dram.general_info.nof_channels)" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="ENABLE_DYNAMIC_MEMORY_ACCESS" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE_DYNAMIC_MEMORY_ACCESS">
+                    <Access>
+                        <Register Name="HBC_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="HBMC_RESET_CONTROL" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>HBMC reset control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+            </Key>
+            <Result>
+                <Field Name="HBM_RESET_N_UI_0" Size="1" Type="UINT"/>
+                <Field Name="HBM_RESET_N_UI_1" Size="1" Type="UINT"/>
+                <Field Name="MASK_PMX_CATTRIP_INDICATION" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="HBM_RESET_N_UI_0">
+                    <Access>
+                        <Register Name="HBMC_HBM_RESET_CONTROLr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_RESET_N_UI_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_RESET_N_UI_1">
+                    <Access>
+                        <Register Name="HBMC_HBM_RESET_CONTROLr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_RESET_N_UI_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MASK_PMX_CATTRIP_INDICATION">
+                    <Access>
+                        <Register Name="HBMC_HBM_RESET_CONTROLr">
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="MASK_PMX_CATTRIP_INDICATIONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="HCC_HBM_CONFIG" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>HCC configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+                <Field Name="CHANNEL" Size="#log2_round_up(DNX_DATA.dram.general_info.nof_channels)" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="NUM_OF_BANKS" Size="3" Type="UINT"/>
+                <Field Name="NUM_OF_BANK_GROUPS" Size="2" Type="UINT"/>
+                <Field Name="NUM_OF_BANKS_PER_GROUP" Size="2" Type="UINT"/>
+                <Field Name="HBM_OPERATION_MODE" Size="1" Type="UINT"/>
+                <Field Name="HBM_BANK_GROUPS_EN" Size="1" Type="UINT"/>
+                <Field Name="HBM_COMMAND_ADDRESS_PARITY" Size="1" Type="UINT"/>
+                <Field Name="HBM_DQ_WRITE_PARITY" Size="1" Type="UINT"/>
+                <Field Name="HBM_DQ_READ_PARITY" Size="1" Type="UINT"/>
+                <Field Name="HBM_PARITY_LATENCY" Size="2" Type="UINT"/>
+                <Field Name="HBM_DBIAC_WRITE" Size="1" Type="UINT"/>
+                <Field Name="HBM_DBIAC_READ" Size="1" Type="UINT"/>
+                <Field Name="HBM_WRITE_LATENCY" Size="4" Type="UINT"/>
+                <Field Name="HBM_ECC" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="NUM_OF_BANKS">
+                    <Access>
+                        <Register Name="HBC_HBM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="NUM_OF_BANKSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="NUM_OF_BANK_GROUPS">
+                    <Access>
+                        <Register Name="HBC_HBM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="NUM_OF_BANK_GROUPSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="NUM_OF_BANKS_PER_GROUP">
+                    <Access>
+                        <Register Name="HBC_HBM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="NUM_OF_BANKS_PER_GROUPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_OPERATION_MODE">
+                    <Access>
+                        <Register Name="HBC_HBM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_OPERATION_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_BANK_GROUPS_EN">
+                    <Access>
+                        <Register Name="HBC_HBM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_BANK_GROUPS_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_COMMAND_ADDRESS_PARITY">
+                    <Access>
+                        <Register Name="HBC_HBM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_COMMAND_ADDRESS_PARITYf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_DQ_WRITE_PARITY">
+                    <Access>
+                        <Register Name="HBC_HBM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_DQ_WRITE_PARITYf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_DQ_READ_PARITY">
+                    <Access>
+                        <Register Name="HBC_HBM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_DQ_READ_PARITYf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_PARITY_LATENCY">
+                    <Access>
+                        <Register Name="HBC_HBM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_PARITY_LATENCYf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_DBIAC_WRITE">
+                    <Access>
+                        <Register Name="HBC_HBM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_DBIAC_WRITEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_DBIAC_READ">
+                    <Access>
+                        <Register Name="HBC_HBM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_DBIAC_READf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_WRITE_LATENCY">
+                    <Access>
+                        <Register Name="HBC_HBM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_WRITE_LATENCYf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_ECC">
+                    <Access>
+                        <Register Name="HBC_HBM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_ECCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="HCC_HBM_ROW_ACCESS_TIMINGS" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+                <Field Name="CHANNEL" Size="#log2_round_up(DNX_DATA.dram.general_info.nof_channels)" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="HBM_TRC" Size="6" Type="UINT"/>
+                <Field Name="HBM_TRAS" Size="6" Type="UINT"/>
+                <Field Name="HBM_TRCDRD" Size="6" Type="UINT"/>
+                <Field Name="HBM_TRCDWR" Size="6" Type="UINT"/>
+                <Field Name="HBM_TRRDL" Size="6" Type="UINT"/>
+                <Field Name="HBM_TRRDS" Size="6" Type="UINT"/>
+                <Field Name="HBM_TFAW" Size="6" Type="UINT"/>
+                <Field Name="HBM_TRTPL" Size="6" Type="UINT"/>
+                <Field Name="HBM_TRTPS" Size="6" Type="UINT"/>
+                <Field Name="HBM_TRP" Size="6" Type="UINT"/>
+                <Field Name="HBM_TWR" Size="6" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="HBM_TRC">
+                    <Access>
+                        <Register Name="HBC_HBM_ROW_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TRCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_TRAS">
+                    <Access>
+                        <Register Name="HBC_HBM_ROW_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TRASf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_TRCDRD">
+                    <Access>
+                        <Register Name="HBC_HBM_ROW_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TRCDRDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_TRCDWR">
+                    <Access>
+                        <Register Name="HBC_HBM_ROW_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TRCDWRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_TRRDL">
+                    <Access>
+                        <Register Name="HBC_HBM_ROW_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TRRDLf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_TRRDS">
+                    <Access>
+                        <Register Name="HBC_HBM_ROW_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TRRDSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_TFAW">
+                    <Access>
+                        <Register Name="HBC_HBM_ROW_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TFAWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_TRTPL">
+                    <Access>
+                        <Register Name="HBC_HBM_ROW_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TRTPLf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_TRTPS">
+                    <Access>
+                        <Register Name="HBC_HBM_ROW_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TRTPSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_TRP">
+                    <Access>
+                        <Register Name="HBC_HBM_ROW_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TRPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_TWR">
+                    <Access>
+                        <Register Name="HBC_HBM_ROW_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TWRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="HCC_HBM_COLUMN_ACCESS_TIMINGS" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+                <Field Name="CHANNEL" Size="#log2_round_up(DNX_DATA.dram.general_info.nof_channels)" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="HBM_TCCDL" Size="6" Type="UINT"/>
+                <Field Name="HBM_TCCDS" Size="6" Type="UINT"/>
+                <Field Name="HBM_TCCDR" Size="6" Type="UINT"/>
+                <Field Name="HBM_TWTRL" Size="6" Type="UINT"/>
+                <Field Name="HBM_TWTRS" Size="6" Type="UINT"/>
+                <Field Name="HBM_TRTW" Size="6" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="HBM_TCCDL">
+                    <Access>
+                        <Register Name="HBC_HBM_COLUMN_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TCCDLf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_TCCDS">
+                    <Access>
+                        <Register Name="HBC_HBM_COLUMN_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TCCDSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_TCCDR">
+                    <Access>
+                        <Register Name="HBC_HBM_COLUMN_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TCCDRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_TWTRL">
+                    <Access>
+                        <Register Name="HBC_HBM_COLUMN_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TWTRLf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_TWTRS">
+                    <Access>
+                        <Register Name="HBC_HBM_COLUMN_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TWTRSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_TRTW">
+                    <Access>
+                        <Register Name="HBC_HBM_COLUMN_ACCESS_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TRTWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="HCC_HBM_REFRESH_TIMINGS" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>HCC refresh timings</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+                <Field Name="CHANNEL" Size="#log2_round_up(DNX_DATA.dram.general_info.nof_channels)" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="HBM_TRFC" Size="10" Type="UINT"/>
+                <Field Name="HBM_TRFCSB" Size="10" Type="UINT"/>
+                <Field Name="HBM_TRREFD" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="HBM_TRFC">
+                    <Access>
+                        <Register Name="HBC_HBM_REFRESH_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TRFCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_TRFCSB">
+                    <Access>
+                        <Register Name="HBC_HBM_REFRESH_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TRFCSBf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_TRREFD">
+                    <Access>
+                        <Register Name="HBC_HBM_REFRESH_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TRREFDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="HCC_HBM_GENERAL_TIMINGS" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>HCC General timings</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+                <Field Name="CHANNEL" Size="#log2_round_up(DNX_DATA.dram.general_info.nof_channels)" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="HBM_TMRD" Size="6" Type="UINT"/>
+                <Field Name="HBM_TMOD" Size="6" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="HBM_TMRD">
+                    <Access>
+                        <Register Name="HBC_HBM_GENERAL_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TMRDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_TMOD">
+                    <Access>
+                        <Register Name="HBC_HBM_GENERAL_TIMINGSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TMODf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="HCC_PIPELINES_CONFIG" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+                <Field Name="CHANNEL" Size="#log2_round_up(DNX_DATA.dram.general_info.nof_channels)" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="PIPELINES_MUX_FORCE_SELECTOR" Size="1" Type="UINT"/>
+                <Field Name="PIPELINES_MUX_FORCE_SELECTOR_VALUE" Size="1" Type="UINT"/>
+                <Field Name="WDQS_DELAY" Size="4" Type="UINT"/>
+                <Field Name="WDQS_LENGTH" Size="3" Type="UINT"/>
+                <Field Name="WDQS_PULSE_ON_UI" Size="1" Type="UINT"/>
+                <Field Name="OUTPUT_ENABLE_DELAY" Size="4" Type="UINT"/>
+                <Field Name="OUTPUT_ENABLE_LENGTH" Size="3" Type="UINT"/>
+                <Field Name="COMMAND_PIPE_EXTRA_DELAY" Size="3" Type="UINT"/>
+                <Field Name="PHY_LOOPBACK_MODE" Size="1" Type="UINT"/>
+                <Field Name="FORCE_STACK_ID" Size="1" Type="UINT"/>
+                <Field Name="FORCE_STACK_ID_VALUE" Size="1" Type="UINT"/>
+                <Field Name="FLIP_PSEUDO_CHANNEL" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PIPELINES_MUX_FORCE_SELECTOR">
+                    <Access>
+                        <Register Name="HBC_PIPELINES_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="PIPELINES_MUX_FORCE_SELECTORf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PIPELINES_MUX_FORCE_SELECTOR_VALUE">
+                    <Access>
+                        <Register Name="HBC_PIPELINES_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="PIPELINES_MUX_FORCE_SELECTOR_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="WDQS_DELAY">
+                    <Access>
+                        <Register Name="HBC_PIPELINES_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="WDQS_DELAYf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="WDQS_LENGTH">
+                    <Access>
+                        <Register Name="HBC_PIPELINES_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="WDQS_LENGTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="WDQS_PULSE_ON_UI">
+                    <Access>
+                        <Register Name="HBC_PIPELINES_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="WDQS_PULSE_ON_UIf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OUTPUT_ENABLE_DELAY">
+                    <Access>
+                        <Register Name="HBC_PIPELINES_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="OUTPUT_ENABLE_DELAYf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OUTPUT_ENABLE_LENGTH">
+                    <Access>
+                        <Register Name="HBC_PIPELINES_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="OUTPUT_ENABLE_LENGTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COMMAND_PIPE_EXTRA_DELAY">
+                    <Access>
+                        <Register Name="HBC_PIPELINES_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="COMMAND_PIPE_EXTRA_DELAYf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PHY_LOOPBACK_MODE">
+                    <Access>
+                        <Register Name="HBC_PIPELINES_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="PHY_LOOPBACK_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FORCE_STACK_ID">
+                    <Access>
+                        <Register Name="HBC_PIPELINES_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="FORCE_STACK_IDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FORCE_STACK_ID_VALUE">
+                    <Access>
+                        <Register Name="HBC_PIPELINES_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="FORCE_STACK_ID_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FLIP_PSEUDO_CHANNEL">
+                    <Access>
+                        <Register Name="HBC_PIPELINES_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="FLIP_PSEUDO_CHANNELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="HCC_HBM_REFRESH_INTERVALS" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>HCC refresh intervals</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+                <Field Name="CHANNEL" Size="#log2_round_up(DNX_DATA.dram.general_info.nof_channels)" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="HBM_TREFI_N" NofInstances="8" Size="14" Type="UINT"/>
+                <Field Name="HBM_TREFISB_N" NofInstances="8" Size="12" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="HBM_TREFI_N">
+                    <Access instanceIndex="ALL">
+                        <Register Name="HBC_HBM_REFRESH_INTERVALSr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()"/>
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TREFI_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HBM_TREFISB_N">
+                    <Access instanceIndex="ALL">
+                        <Register Name="HBC_HBM_REFRESH_INTERVALSr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()"/>
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_TREFISB_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="HCC_HBM_MODE_REGISTER_MANAGER_CONFIG" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+                <Field Name="CHANNEL" Size="#log2_round_up(DNX_DATA.dram.general_info.nof_channels)" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="UPDATE_HBM_ON_MODE_REGISTER_CHANGE" Size="1" Type="UINT"/>
+                <Field Name="FORCE_UPDATE_PER_MODE_REGISTER_BITMAP" Size="16" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="UPDATE_HBM_ON_MODE_REGISTER_CHANGE">
+                    <Access>
+                        <Register Name="HBC_HBM_MODE_REGISTER_MANAGER_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="UPDATE_HBM_ON_MODE_REGISTER_CHANGEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FORCE_UPDATE_PER_MODE_REGISTER_BITMAP">
+                    <Access>
+                        <Register Name="HBC_HBM_MODE_REGISTER_MANAGER_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="FORCE_UPDATE_PER_MODE_REGISTER_BITMAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="HCC_TSM_CONFIG" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+                <Field Name="CHANNEL" Size="#log2_round_up(DNX_DATA.dram.general_info.nof_channels)" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="TSM_BANK_DISABLE" Size="32" Type="UINT"/>
+                <Field Name="TSM_REFRESH_ENABLE" Size="1" Type="UINT"/>
+                <Field Name="TSM_HIGH_PRIORITY_REFRESH_ENABLE" Size="1" Type="UINT"/>
+                <Field Name="TSM_HIGH_PRIORITY_REFRESH_NUMBER_OF_BANKS" Size="6" Type="UINT"/>
+                <Field Name="TSM_EMERGENCY_REFRESH_ENABLE" Size="1" Type="UINT"/>
+                <Field Name="TSM_EMERGENCY_REFRESH_START_THRESHOLD" Size="10" Type="UINT"/>
+                <Field Name="TSM_EMERGENCY_REFRESH_STOP_THRESHOLD" Size="10" Type="UINT"/>
+                <Field Name="TSM_ALLOW_SEAMLESS_COMMANDS_TO_SAME_BANK" Size="1" Type="UINT" Valid="DNX_DATA.dram.hbm.seamless_commands_to_same_bank_control"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TSM_BANK_DISABLE">
+                    <Access>
+                        <Register Name="HBC_TSM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="TSM_BANK_DISABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TSM_REFRESH_ENABLE">
+                    <Access>
+                        <Register Name="HBC_TSM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="TSM_REFRESH_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TSM_HIGH_PRIORITY_REFRESH_ENABLE">
+                    <Access>
+                        <Register Name="HBC_TSM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="TSM_HIGH_PRIORITY_REFRESH_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TSM_HIGH_PRIORITY_REFRESH_NUMBER_OF_BANKS">
+                    <Access>
+                        <Register Name="HBC_TSM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="TSM_HIGH_PRIORITY_REFRESH_NUMBER_OF_BANKSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TSM_EMERGENCY_REFRESH_ENABLE">
+                    <Access>
+                        <Register Name="HBC_TSM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="TSM_EMERGENCY_REFRESH_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TSM_EMERGENCY_REFRESH_START_THRESHOLD">
+                    <Access>
+                        <Register Name="HBC_TSM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="TSM_EMERGENCY_REFRESH_START_THRESHOLDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TSM_EMERGENCY_REFRESH_STOP_THRESHOLD">
+                    <Access>
+                        <Register Name="HBC_TSM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="TSM_EMERGENCY_REFRESH_STOP_THRESHOLDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TSM_ALLOW_SEAMLESS_COMMANDS_TO_SAME_BANK">
+                    <Access>
+                        <Register Name="HBC_TSM_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="TSM_ALLOW_SEAMLESS_COMMANDS_TO_SAME_BANKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="HCC_DATA_SOURCE_CONFIG" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+                <Field Name="CHANNEL" Size="#log2_round_up(DNX_DATA.dram.general_info.nof_channels)" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="MAX_READ_INFLIGHTS_DS_N" NofInstances="DNX_DATA.device.general.nof_cores" Size="9" Type="UINT"/>
+                <Field Name="MAX_WRITE_INFLIGHTS_DS_N" NofInstances="DNX_DATA.device.general.nof_cores" Size="9" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MAX_READ_INFLIGHTS_DS_N">
+                    <Access instanceIndex="ALL">
+                        <Register Name="HBC_DATA_SOURCE_CONFIGr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()"/>
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MAX_READ_INFLIGHTS_DS_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MAX_WRITE_INFLIGHTS_DS_N">
+                    <Access instanceIndex="ALL">
+                        <Register Name="HBC_DATA_SOURCE_CONFIGr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()"/>
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MAX_WRITE_INFLIGHTS_DS_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="HCC_HBM_CPU_CONTROL" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+                <Field Name="CHANNEL" Size="#log2_round_up(DNX_DATA.dram.general_info.nof_channels)" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="CK_UI_0" Size="1" Type="UINT"/>
+                <Field Name="CK_UI_1" Size="1" Type="UINT"/>
+                <Field Name="CK_OEN_UI_0" Size="1" Type="UINT"/>
+                <Field Name="CK_OEN_UI_1" Size="1" Type="UINT"/>
+                <Field Name="CKE_UI_0" Size="1" Type="UINT"/>
+                <Field Name="CKE_UI_1" Size="1" Type="UINT"/>
+                <Field Name="C_UI_0" Size="8" Type="UINT"/>
+                <Field Name="C_UI_1" Size="8" Type="UINT"/>
+                <Field Name="R_UI_0" Size="6" Type="UINT"/>
+                <Field Name="R_UI_1" Size="6" Type="UINT"/>
+                <Field Name="ARFU_UI_0" Size="4" Type="UINT"/>
+                <Field Name="ARFU_UI_1" Size="4" Type="UINT"/>
+                <Field Name="C_R_CKE_ARFU_OEN_UI_0" Size="1" Type="UINT"/>
+                <Field Name="C_R_CKE_ARFU_OEN_UI_1" Size="1" Type="UINT"/>
+                <Field Name="WDQS_UI_0" Size="4" Type="UINT"/>
+                <Field Name="WDQS_UI_1" Size="4" Type="UINT"/>
+                <Field Name="WDQS_OEN_UI_0" Size="4" Type="UINT"/>
+                <Field Name="WDQS_OEN_UI_1" Size="4" Type="UINT"/>
+                <Field Name="TRIGGER_CPU_COMMAND" Size="1" Type="UINT"/>
+                <Field Name="FORCE_CONSTANT_CPU_VALUES" Size="1" Type="UINT"/>
+                <Field Name="FORCE_CONSTANT_WDQS_VALUES" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CK_UI_0">
+                    <Access>
+                        <Register Name="HBC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CK_UI_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CK_UI_1">
+                    <Access>
+                        <Register Name="HBC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CK_UI_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CK_OEN_UI_0">
+                    <Access>
+                        <Register Name="HBC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CK_OEN_UI_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CK_OEN_UI_1">
+                    <Access>
+                        <Register Name="HBC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CK_OEN_UI_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CKE_UI_0">
+                    <Access>
+                        <Register Name="HBC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CKE_UI_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CKE_UI_1">
+                    <Access>
+                        <Register Name="HBC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CKE_UI_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="C_UI_0">
+                    <Access>
+                        <Register Name="HBC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="C_UI_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="C_UI_1">
+                    <Access>
+                        <Register Name="HBC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="C_UI_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="R_UI_0">
+                    <Access>
+                        <Register Name="HBC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="R_UI_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="R_UI_1">
+                    <Access>
+                        <Register Name="HBC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="R_UI_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ARFU_UI_0">
+                    <Access>
+                        <Register Name="HBC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="ARFU_UI_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ARFU_UI_1">
+                    <Access>
+                        <Register Name="HBC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="ARFU_UI_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="C_R_CKE_ARFU_OEN_UI_0">
+                    <Access>
+                        <Register Name="HBC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="C_R_CKE_ARFU_OEN_UI_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="C_R_CKE_ARFU_OEN_UI_1">
+                    <Access>
+                        <Register Name="HBC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="C_R_CKE_ARFU_OEN_UI_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="WDQS_UI_0">
+                    <Access>
+                        <Register Name="HBC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="WDQS_UI_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="WDQS_UI_1">
+                    <Access>
+                        <Register Name="HBC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="WDQS_UI_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="WDQS_OEN_UI_0">
+                    <Access>
+                        <Register Name="HBC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="WDQS_OEN_UI_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="WDQS_OEN_UI_1">
+                    <Access>
+                        <Register Name="HBC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="WDQS_OEN_UI_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TRIGGER_CPU_COMMAND">
+                    <Access>
+                        <Register Name="HBC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="TRIGGER_CPU_COMMANDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FORCE_CONSTANT_CPU_VALUES">
+                    <Access>
+                        <Register Name="HBC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="FORCE_CONSTANT_CPU_VALUESf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FORCE_CONSTANT_WDQS_VALUES">
+                    <Access>
+                        <Register Name="HBC_HBM_CPU_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="FORCE_CONSTANT_WDQS_VALUESf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="HCC_HBM_MODE_REGISTERS" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>Channel mode registers</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-150988" Level="PARTIALLY_FUNCTIONAL"/> <!-- This table is partially functional because one of the MRs cause CATTRIP assertion which is triggered by the DBAL test and cause the schan of the device to crush -->
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+                <Field Name="CHANNEL" Size="#log2_round_up(DNX_DATA.dram.general_info.nof_channels)" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="MR_0" Type="HBM_MR_0"/>
+                <Field Name="MR_1" Type="HBM_MR_1"/>
+                <Field Name="MR_2" Type="HBM_MR_2"/>
+                <Field Name="MR_3" Type="HBM_MR_3"/>
+                <Field Name="MR_4" Type="HBM_MR_4"/>
+                <Field Name="MR_5" Type="HBM_MR_5"/>
+                <Field Name="MR_6" Type="HBM_MR_6"/>
+                <Field Name="MR_7" Type="HBM_MR_7"/>
+                <Field Name="MR_8" Type="HBM_MR_8"/>
+                <Field Name="MR_9" Type="HBM_MR_RESERVED"/>
+                <Field Name="MR_10" Type="HBM_MR_RESERVED"/>
+                <Field Name="MR_11" Type="HBM_MR_RESERVED"/>
+                <Field Name="MR_12" Type="HBM_MR_RESERVED"/>
+                <Field Name="MR_13" Type="HBM_MR_RESERVED"/>
+                <Field Name="MR_14" Type="HBM_MR_RESERVED"/>
+                <Field Name="MR_15" Type="HBM_MR_15"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MR_0">
+                    <Access>
+                        <Register Name="HBC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MR_1">
+                    <Access>
+                        <Register Name="HBC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MR_2">
+                    <Access>
+                        <Register Name="HBC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MR_3">
+                    <Access>
+                        <Register Name="HBC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_3f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MR_4">
+                    <Access>
+                        <Register Name="HBC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_4f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MR_5">
+                    <Access>
+                        <Register Name="HBC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_5f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MR_6">
+                    <Access>
+                        <Register Name="HBC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_6f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MR_7">
+                    <Access>
+                        <Register Name="HBC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_7f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MR_8">
+                    <Access>
+                        <Register Name="HBC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_8f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MR_9">
+                    <Access>
+                        <Register Name="HBC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_9f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MR_10">
+                    <Access>
+                        <Register Name="HBC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_10f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MR_11">
+                    <Access>
+                        <Register Name="HBC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_11f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MR_12">
+                    <Access>
+                        <Register Name="HBC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_12f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MR_13">
+                    <Access>
+                        <Register Name="HBC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_13f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MR_14">
+                    <Access>
+                        <Register Name="HBC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_14f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MR_15">
+                    <Access>
+                        <Register Name="HBC_HBM_MODE_REGISTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MODE_REGISTER_15f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="TDU_COUNTERS" Valid="DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>Counters of write/read requests to/from DDP</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+           </Key>
+            <Result>
+                <!-- Number of 32byte chunks written to DDP  -->
+                <Field Name="WRITE_REQUEST_32_BYTE_COUNT" Permission="READONLY" Size="64" Type="ARRAY32"/>
+                <!-- Number of 32byte chunks read from DDP   -->
+                <Field Name="READ_REQUEST_32_BYTE_COUNT" Permission="READONLY" Size="64" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="WRITE_REQUEST_32_BYTE_COUNT">
+                    <Access>
+                        <Register Name="TDU_WRITE_REQUEST_PATH_COUNTERSr">
+                             <HwField Name="WRITE_REQUEST_32_BYTE_COUNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="READ_REQUEST_32_BYTE_COUNT">
+                    <Access>
+                        <Register Name="TDU_READ_REQUEST_PATH_COUNTERSr">
+                             <HwField Name="READ_REQUEST_32_BYTE_COUNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="TDU_CONFIG">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Name="DATA_SOURCE_ID" NofInstances="DNX_DATA.device.general.nof_cores" Size="1" Type="UINT"/>
+                <Field Name="READ_DATA_PATH_ENABLE" Size="1" Type="UINT"/>
+                <Field Name="READ_DATA_RING_0_EXTRA_DELAY" Size="5" Type="UINT"/>
+                <Field Name="READ_DATA_RING_1_EXTRA_DELAY" Size="5" Type="UINT"/>
+                <Field Name="WRITE_REQUEST_PATH_ENABLE" Size="1" Type="UINT"/>
+                <Field Name="READ_REQUEST_PATH_ENABLE" Size="1" Type="UINT"/>
+                <Field Description="Window size to calculate DRAM Block indication (common to all leaky buckets)" Name="LEAKY_BUCKET_WINDOW_SIZE" Size="20" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DATA_SOURCE_ID">
+                    <Access instanceIndex="ALL">
+                        <Register Name="TDU_ADDRESS_TRANSLATION_CONFIGr">
+                            <BlockIndex Formula="#INSTANCE_IDX()"/>
+                            <HwField Name="DATA_SOURCE_IDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="READ_DATA_PATH_ENABLE">
+                    <Access>
+                        <Register Name="TDU_READ_DATA_PATH_CONFIGr">
+                            <HwField Name="READ_DATA_PATH_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="READ_DATA_RING_0_EXTRA_DELAY">
+                    <Access>
+                        <Register Name="TDU_READ_DATA_PATH_CONFIGr">
+                            <HwField Name="READ_DATA_RING_0_EXTRA_DELAYf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="READ_DATA_RING_1_EXTRA_DELAY">
+                    <Access>
+                        <Register Name="TDU_READ_DATA_PATH_CONFIGr">
+                            <HwField Name="READ_DATA_RING_1_EXTRA_DELAYf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="WRITE_REQUEST_PATH_ENABLE">
+                    <Access>
+                        <Register Name="TDU_WRITE_REQUEST_PATH_CONFIGr">
+                            <HwField Name="WRITE_REQUEST_PATH_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="READ_REQUEST_PATH_ENABLE">
+                    <Access>
+                        <Register Name="TDU_READ_REQUEST_PATH_CONFIGr">
+                            <HwField Name="READ_REQUEST_PATH_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_WINDOW_SIZE">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_LEAKY_BUCKET_WINDOW_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="TDU_DRAM_BLOCK_WRITE_MINUS_READ_LEAKY_BUCKET_CONFIG">
+        <OneLineDescription>Configures the write-minus-read leaky bucket for DRAM block </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Name="LEAKY_BUCKET_INCREMENT_THRESHOLD_0" Size="20" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_INCREMENT_THRESHOLD_1" Size="20" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_INCREMENT_THRESHOLD_2" Size="20" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_INCREMENT_SIZE_0" Size="8" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_INCREMENT_SIZE_1" Size="8" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_INCREMENT_SIZE_2" Size="8" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_DECREMENT_THRESHOLD_0" Size="20" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_DECREMENT_THRESHOLD_1" Size="20" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_DECREMENT_THRESHOLD_2" Size="20" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_DECREMENT_SIZE_0" Size="8" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_DECREMENT_SIZE_1" Size="8" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_DECREMENT_SIZE_2" Size="8" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_ASSERT_THRESHOLD" Size="16" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_DEASSERT_THRESHOLD" Size="16" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_RESET_ON_DEASSERT" Size="1" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_FULL_SIZE" Size="16" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_EN" Type="BOOL_INV" Valid="DNX_DATA.dram.dram_block.write_minus_read_leaky_bucket_disable"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LEAKY_BUCKET_INCREMENT_THRESHOLD_0">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_WRITE_MINUS_READ_LEAKY_BUCKET_INCREMENT_THRESHOLD_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_INCREMENT_THRESHOLD_1">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_WRITE_MINUS_READ_LEAKY_BUCKET_INCREMENT_THRESHOLD_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_INCREMENT_THRESHOLD_2">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_WRITE_MINUS_READ_LEAKY_BUCKET_INCREMENT_THRESHOLD_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_INCREMENT_SIZE_0">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_WRITE_MINUS_READ_LEAKY_BUCKET_INCREMENT_SIZE_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_INCREMENT_SIZE_1">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_WRITE_MINUS_READ_LEAKY_BUCKET_INCREMENT_SIZE_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_INCREMENT_SIZE_2">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_WRITE_MINUS_READ_LEAKY_BUCKET_INCREMENT_SIZE_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_DECREMENT_THRESHOLD_0">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_WRITE_MINUS_READ_LEAKY_BUCKET_DECREMENT_THRESHOLD_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_DECREMENT_THRESHOLD_1">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_WRITE_MINUS_READ_LEAKY_BUCKET_DECREMENT_THRESHOLD_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_DECREMENT_THRESHOLD_2">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_WRITE_MINUS_READ_LEAKY_BUCKET_DECREMENT_THRESHOLD_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_DECREMENT_SIZE_0">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_WRITE_MINUS_READ_LEAKY_BUCKET_DECREMENT_SIZE_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_DECREMENT_SIZE_1">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_WRITE_MINUS_READ_LEAKY_BUCKET_DECREMENT_SIZE_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_DECREMENT_SIZE_2">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_WRITE_MINUS_READ_LEAKY_BUCKET_DECREMENT_SIZE_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_FULL_SIZE">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_WRITE_MINUS_READ_LEAKY_BUCKET_FULL_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_ASSERT_THRESHOLD">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_WRITE_MINUS_READ_LEAKY_BUCKET_ASSERT_THRESHOLDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_DEASSERT_THRESHOLD">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_WRITE_MINUS_READ_LEAKY_BUCKET_DEASSERT_THRESHOLDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_RESET_ON_DEASSERT">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_WRITE_MINUS_READ_LEAKY_BUCKET_RESET_ON_DEASSERTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_B0" Name="LEAKY_BUCKET_EN">
+                    <Access EncodeType="BITWISE_NOT">
+                        <Register Name="TDU_RESERVED_SPARE_0r">
+                            <HwField Name="RESERVED_SPARE_0f"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0" Name="LEAKY_BUCKET_EN"> 
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_DISABLE_WRITE_MINUS_READf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="TDU_DRAM_BLOCK_WRITE_PLUS_READ_LEAKY_BUCKET_CONFIG">
+        <OneLineDescription>Configures the write-plus-read leaky bucket for DRAM block </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Name="LEAKY_BUCKET_ASSERT_THRESHOLD" Size="16" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_DEASSERT_THRESHOLD" Size="16" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_FULL_SIZE" Size="16" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_RESET_ON_DEASSERT" Size="1" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_INCREMENT_SIZE_0" Size="8" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_INCREMENT_SIZE_1" Size="8" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_INCREMENT_SIZE_2" Size="8" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_INCREMENT_THRESHOLD_0" Size="20" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_INCREMENT_THRESHOLD_1" Size="20" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_INCREMENT_THRESHOLD_2" Size="20" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_DECREMENT_SIZE" Size="8" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_EN" Type="BOOL_INV" Valid="DNX_DATA.dram.dram_block.write_plus_read_leaky_bucket_disable"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LEAKY_BUCKET_INCREMENT_THRESHOLD_0">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_WRITE_PLUS_READ_LEAKY_BUCKET_INCREMENT_THRESHOLD_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_INCREMENT_THRESHOLD_1">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_WRITE_PLUS_READ_LEAKY_BUCKET_INCREMENT_THRESHOLD_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_INCREMENT_THRESHOLD_2">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_WRITE_PLUS_READ_LEAKY_BUCKET_INCREMENT_THRESHOLD_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_INCREMENT_SIZE_0">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_WRITE_PLUS_READ_LEAKY_BUCKET_INCREMENT_SIZE_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_INCREMENT_SIZE_1">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_WRITE_PLUS_READ_LEAKY_BUCKET_INCREMENT_SIZE_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_INCREMENT_SIZE_2">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_WRITE_PLUS_READ_LEAKY_BUCKET_INCREMENT_SIZE_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_DECREMENT_SIZE">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_WRITE_PLUS_READ_LEAKY_BUCKET_DECREMENT_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_FULL_SIZE">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_WRITE_PLUS_READ_LEAKY_BUCKET_FULL_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_ASSERT_THRESHOLD">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_WRITE_PLUS_READ_LEAKY_BUCKET_ASSERT_THRESHOLDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_DEASSERT_THRESHOLD">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_WRITE_PLUS_READ_LEAKY_BUCKET_DEASSERT_THRESHOLDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_RESET_ON_DEASSERT">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_WRITE_PLUS_READ_LEAKY_BUCKET_RESET_ON_DEASSERTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_EN">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_DISABLE_WRITE_PLUS_READf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="TDU_DRAM_BLOCK_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_CONFIG" Valid="DNX_DATA.dram.dram_block.average_read_inflights_leaky_bucket">
+        <OneLineDescription>Configures the average-read-inflights leaky bucket for DRAM block </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Name="LEAKY_BUCKET_INCREMENT_THRESHOLD_0" Size="20" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_INCREMENT_THRESHOLD_1" Size="20" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_INCREMENT_THRESHOLD_2" Size="20" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_INCREMENT_SIZE_0" Size="8" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_INCREMENT_SIZE_1" Size="8" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_INCREMENT_SIZE_2" Size="8" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_DECREMENT_THRESHOLD_0" Size="20" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_DECREMENT_THRESHOLD_1" Size="20" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_DECREMENT_THRESHOLD_2" Size="20" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_DECREMENT_SIZE_0" Size="8" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_DECREMENT_SIZE_1" Size="8" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_DECREMENT_SIZE_2" Size="8" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_FULL_SIZE" Size="16" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_ASSERT_THRESHOLD" Size="16" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_DEASSERT_THRESHOLD" Size="16" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_RESET_ON_DEASSERT" Size="1" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_WINDOW_SIZE_LOG_2" Size="20" Type="UINT"/>
+                <Field Name="LEAKY_BUCKET_EN" Type="BOOL_INV"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LEAKY_BUCKET_INCREMENT_THRESHOLD_0">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_INCREMENT_THRESHOLD_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_INCREMENT_THRESHOLD_1">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_INCREMENT_THRESHOLD_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_INCREMENT_THRESHOLD_2">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_INCREMENT_THRESHOLD_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_INCREMENT_SIZE_0">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_INCREMENT_SIZE_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_INCREMENT_SIZE_1">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_INCREMENT_SIZE_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_INCREMENT_SIZE_2">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_INCREMENT_SIZE_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_DECREMENT_THRESHOLD_0">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_DECREMENT_THRESHOLD_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_DECREMENT_THRESHOLD_1">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_DECREMENT_THRESHOLD_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_DECREMENT_THRESHOLD_2">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_DECREMENT_THRESHOLD_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_DECREMENT_SIZE_0">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_DECREMENT_SIZE_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_DECREMENT_SIZE_1">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_DECREMENT_SIZE_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_DECREMENT_SIZE_2">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_DECREMENT_SIZE_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_FULL_SIZE">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_FULL_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_ASSERT_THRESHOLD">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_ASSERT_THRESHOLDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_DEASSERT_THRESHOLD">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_DEASSERT_THRESHOLDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_RESET_ON_DEASSERT">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_RESET_ON_DEASSERTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_WINDOW_SIZE_LOG_2">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_WINDOW_SIZE_LOG_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LEAKY_BUCKET_EN">
+                    <Access>
+                        <Register Name="TDU_DRAM_BLOCKED_CONFIGr">
+                            <HwField Name="DRAM_BLOCKED_DISABLE_AVERAGE_READ_INFLIGHTSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="TDU_ADDRESS_TRANSLATION_MATRIX">
+        <OneLineDescription>Address translation matrix</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Name="ADDRESS_TRANSLATION_MATRIX" NofInstances="30" Size="25" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ADDRESS_TRANSLATION_MATRIX">
+                    <Access instanceIndex="ALL">
+                        <Register Name="TDU_ADDRESS_TRANSLATION_MATRIXr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()"/>
+                            <HwField Name="ADDRESS_TRANSLATION_MATRIXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="HCC_BIST_RUN" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>Start running BIST</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+                <Field Name="CHANNEL" Size="#log2_round_up(DNX_DATA.dram.general_info.nof_channels)" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="BIST_GO" Permission="TRIGGER" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="BIST_GO">
+                    <Access>
+                        <Register Name="HBC_BIST_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_GOf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="HCC_BIST_CONFIG" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+                <Field Name="CHANNEL" Size="#log2_round_up(DNX_DATA.dram.general_info.nof_channels)" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="REFRESH_ENABLE" Size="1" Type="UINT"/>
+                <Field Name="IGNORE_ADDRESS" Size="1" Type="UINT"/>
+                <Field Name="NUM_OF_COMMANDS" Size="40" Type="ARRAY32"/>
+                <Field Name="CONSECUTIVE_WRITE_COMMANDS" Size="16" Type="UINT"/>
+                <Field Name="CONSECUTIVE_READ_COMMANDS" Size="16" Type="UINT"/>
+                <Field Name="SAME_ROW_COMMANDS" Size="7" Type="UINT"/>
+                <Field Name="BANK_START" Size="5" Type="UINT"/>
+                <Field Name="BANK_END" Size="5" Type="UINT"/>
+                <Field Name="COLUMN_START" Size="6" Type="UINT"/>
+                <Field Name="COLUMN_END" Size="6" Type="UINT"/>
+                <Field Name="ROW_START" Size="15" Type="UINT"/>
+                <Field Name="ROW_END" Size="15" Type="UINT"/>
+                <Field Name="DATA_MODE" Size="1" Type="UINT"/>
+                <Field Name="MISR_MODE" Size="2" Type="UINT"/>
+                <Field Name="DATA_PATTERN" NofInstances="8" Size="256" Type="ARRAY32"/>
+                <Field Name="BIST_DM_PATTERN_N" NofInstances="8" Size="32" Type="UINT"/>
+                <Field Name="DATA_SEED" NofInstances="16" Size="20" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="REFRESH_ENABLE">
+                    <Access>
+                        <Register Name="HBC_BIST_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_REFRESH_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IGNORE_ADDRESS">
+                    <Access>
+                        <Register Name="HBC_BIST_CONTROLr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_IGNORE_ADDRESSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="NUM_OF_COMMANDS">
+                    <Access>
+                        <Register Name="HBC_BIST_COMMAND_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="NUM_OF_COMMANDSf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CONSECUTIVE_WRITE_COMMANDS">
+                    <Access>
+                        <Register Name="HBC_BIST_COMMAND_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CONSECUTIVE_WRITE_COMMANDSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CONSECUTIVE_READ_COMMANDS">
+                    <Access>
+                        <Register Name="HBC_BIST_COMMAND_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="CONSECUTIVE_READ_COMMANDSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SAME_ROW_COMMANDS">
+                    <Access>
+                        <Register Name="HBC_BIST_COMMAND_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="SAME_ROW_COMMANDSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BANK_START">
+                    <Access>
+                        <Register Name="HBC_BIST_ADDR_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BANK_STARTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BANK_END">
+                    <Access>
+                        <Register Name="HBC_BIST_ADDR_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BANK_ENDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COLUMN_START">
+                    <Access>
+                        <Register Name="HBC_BIST_ADDR_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="COLUMN_STARTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COLUMN_END">
+                    <Access>
+                        <Register Name="HBC_BIST_ADDR_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="COLUMN_ENDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ROW_START">
+                    <Access>
+                        <Register Name="HBC_BIST_ADDR_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="ROW_STARTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ROW_END">
+                    <Access>
+                        <Register Name="HBC_BIST_ADDR_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="ROW_ENDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DATA_MODE">
+                    <Access>
+                        <Register Name="HBC_BIST_DATA_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="DATA_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MISR_MODE">
+                    <Access>
+                        <Register Name="HBC_BIST_DATA_CONFIGr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="MISR_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DATA_PATTERN">
+                    <Access instanceIndex="ALL">
+                        <Register Name="HBC_BIST_PATTERNr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()"/>
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_DQ_PATTERN_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BIST_DM_PATTERN_N">
+                    <Access instanceIndex="ALL">
+                        <Register Name="HBC_BIST_PATTERNr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()"/>
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_DM_PATTERN_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DATA_SEED">
+                    <Access instanceIndex="ALL">
+                        <Register Name="HBC_BIST_DATA_PRESETr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()"/>
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_DATA_PRESET_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="HCC_BIST_STATUS" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>Status of last BIST run</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+                <Field Name="CHANNEL" Size="#log2_round_up(DNX_DATA.dram.general_info.nof_channels)" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="WRITE_COMMAND_CNT" Permission="READONLY" Size="40" Type="ARRAY32"/>
+                <Field Name="READ_COMMAND_CNT" Permission="READONLY" Size="40" Type="ARRAY32"/>
+                <Field Name="READ_DATA_CNT" Permission="READONLY" Size="40" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="WRITE_COMMAND_CNT">
+                    <Access>
+                        <Register Name="HBC_BIST_STATUSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="WRITE_COMMAND_CNTf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="READ_COMMAND_CNT">
+                    <Access>
+                        <Register Name="HBC_BIST_STATUSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="READ_COMMAND_CNTf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="READ_DATA_CNT">
+                    <Access>
+                        <Register Name="HBC_BIST_STATUSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="READ_DATA_CNTf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="HCC_BIST_ERR_COUNTERS" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+                <Field Name="CHANNEL" Size="#log2_round_up(DNX_DATA.dram.general_info.nof_channels)" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="BIST_DATA_ERR_BITMAP" Permission="READONLY" Size="128" Type="ARRAY32"/>
+                <Field Name="BIST_DM_ERR_BITMAP" Permission="READONLY" Size="16" Type="ARRAY32"/>
+                <Field Name="BIST_DBI_ERR_BITMAP" Permission="READONLY" Size="16" Type="ARRAY32"/>
+                <Field Name="BIST_DATA_ERR_CNT" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Name="BIST_DM_ERR_CNT" Permission="READONLY" Size="32" Type="UINT"/>
+                <Field Name="BIST_DBI_ERR_CNT" Permission="READONLY" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="BIST_DATA_ERR_BITMAP">
+                    <Access>
+                        <Register Name="HBC_BIST_ERR_COUNTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_DATA_ERR_BITMAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BIST_DM_ERR_BITMAP">
+                    <Access>
+                        <Register Name="HBC_BIST_ERR_COUNTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_DM_ERR_BITMAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BIST_DBI_ERR_BITMAP">
+                    <Access>
+                        <Register Name="HBC_BIST_ERR_COUNTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_DBI_ERR_BITMAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BIST_DATA_ERR_CNT">
+                    <Access>
+                        <Register Name="HBC_BIST_ERR_COUNTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_DATA_ERR_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BIST_DM_ERR_CNT">
+                    <Access>
+                        <Register Name="HBC_BIST_ERR_COUNTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_DM_ERR_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BIST_DBI_ERR_CNT">
+                    <Access>
+                        <Register Name="HBC_BIST_ERR_COUNTERSr">
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="BIST_DBI_ERR_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="HCC_HBM_LAST_RETURNED_DATA" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+                <Field Name="CHANNEL" Size="#log2_round_up(DNX_DATA.dram.general_info.nof_channels)" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="LAST_RETURNED_DATA" NofInstances="4" Permission="READONLY" Size="128" Type="ARRAY32"/>
+                <Field Name="LAST_RETURNED_DBI" NofInstances="4" Permission="READONLY" Size="16" Type="UINT"/>
+                <Field Name="LAST_RETURNED_DM" NofInstances="4" Permission="READONLY" Size="16" Type="UINT"/>
+                <Field Name="LAST_RETURNED_PARITY" NofInstances="4" Permission="READONLY" Size="4" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LAST_RETURNED_DATA">
+                    <Access instanceIndex="ALL">
+                        <Register Name="HBC_LAST_RETURNED_DATAr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()"/>
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)*8+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="LAST_RETURNED_DQ_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LAST_RETURNED_DBI">
+                    <Access instanceIndex="ALL">
+                        <Register Name="HBC_LAST_RETURNED_DATAr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()"/>
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)*8+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="LAST_RETURNED_DBI_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LAST_RETURNED_DM">
+                    <Access instanceIndex="ALL">
+                        <Register Name="HBC_LAST_RETURNED_DATAr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()"/>
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)*8+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="LAST_RETURNED_DM_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LAST_RETURNED_PARITY">
+                    <Access instanceIndex="ALL">
+                        <Register Name="HBC_LAST_RETURNED_DATAr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()"/>
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)*8+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="LAST_RETURNED_PAR_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="HCC_HBM_DRAM_CPU_ACCESS" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-111111" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+                <Field Name="CHANNEL" Size="#log2_round_up(DNX_DATA.dram.general_info.nof_channels)" Type="UINT"/>
+                <Field Name="COLUMN_PADDING" Size="1" Type="ZERO_PADDING"/>
+                <Field Name="COLUMN" Size="5" Type="UINT"/>
+                <Field Name="ROW" Size="14" Type="UINT"/>
+                <Field Name="ROW_PADDING" Size="1" Type="ZERO_PADDING"/>
+                <Field Name="BANK" Size="5" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="HBM_DRAM_CPU_ACCESS" Size="256" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="HBM_DRAM_CPU_ACCESS">
+                    <Access>
+                        <Memory Name="HBC_HBM_DRAM_CPU_ACCESSm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/16"/>
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)*8+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_DRAM_CPU_ACCESSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="HCC_HBM_CHANNEL_SOFT_INIT" Valid="DNX_DATA.dram.hbm.is_supported">
+        <OneLineDescription>Doesn't reset configuration registers</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.dram.general_info.max_nof_drams-1" Name="HBMC" Size="#log2_round_up(DNX_DATA.dram.general_info.max_nof_drams)+1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="#log2_round_up(DNX_DATA.dram.general_info.nof_channels)" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="IN_SOFT_INIT" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IN_SOFT_INIT">
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_HBC_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_HBC_1f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_HBC_2f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_HBC_3f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="4"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_HBC_4f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="5"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_HBC_5f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="6"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_HBC_6f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="7"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_HBC_7f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_HBC_8f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_HBC_9f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_HBC_10f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_HBC_11f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="4"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_HBC_12f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="5"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_HBC_13f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="6"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_HBC_14f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="7"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_HBC_15f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IN_SOFT_INIT">
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_HBC_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_HBC_1f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_HBC_2f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_HBC_3f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="4"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_HBC_4f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="5"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_HBC_5f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="6"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_HBC_6f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="7"/>
+                        <Register Name="ECI_BLOCKS_SOFT_INITr">
+                            <HwField Name="BLOCKS_SOFT_INIT_HBC_7f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="HCC_HBM_CHANNEL_SOFT_RESET" Valid="DNX_DATA.dram.hbm.is_supported">
+        <OneLineDescription>Reset entire block, including configuration registers</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.dram.general_info.max_nof_drams-1" Name="HBMC" Size="#log2_round_up(DNX_DATA.dram.general_info.max_nof_drams)+1" Type="UINT"/>
+                <Field Name="CHANNEL" Size="#log2_round_up(DNX_DATA.dram.general_info.nof_channels)" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="IN_SOFT_RESET" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IN_SOFT_RESET">
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_HBC_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_HBC_1f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_HBC_2f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_HBC_3f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="4"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_HBC_4f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="5"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_HBC_5f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="6"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_HBC_6f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="7"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_HBC_7f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_HBC_8f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_HBC_9f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_HBC_10f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_HBC_11f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="4"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_HBC_12f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="5"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_HBC_13f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="6"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_HBC_14f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="7"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_HBC_15f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IN_SOFT_RESET">
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_HBC_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_HBC_1f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_HBC_2f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_HBC_3f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="4"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_HBC_4f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="5"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_HBC_5f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="6"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_HBC_6f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="HBMC" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="CHANNEL" Type="EQUAL_TO" Value="7"/>
+                        <Register Name="ECI_BLOCKS_SOFT_RESETr">
+                            <HwField Name="BLOCKS_SOFT_RESET_HBC_7f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="HCC_HBM_PHY_CH_REGISTER_ACCESS" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-111111" Level="PARTIALLY_FUNCTIONAL"/> <!-- this table is partially functional because the mapping is not consecutive and some of the addresses are not valid -->
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+                <Field Name="CHANNEL" Size="#log2_round_up(DNX_DATA.dram.general_info.nof_channels)" Type="UINT"/>
+                <Field Name="PHY_REG_ADDRESS" Size="12" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="HBM_PHY_CH_REGISTER_ACCESS" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="HBM_PHY_CH_REGISTER_ACCESS">
+                    <Access>
+                        <Memory Name="HBC_HBM_PHY_CH_REGISTER_ACCESSm">
+                            <EntryOffset Formula="#KEY_VALUE(PHY_REG_ADDRESS)"/>
+                            <BlockIndex Formula="dnx_data_dram.general_info.nof_channels_get(unit)*#KEY_VALUE(HBMC_INDEX)+#KEY_VALUE(CHANNEL)"/>
+                            <HwField Name="HBM_PHY_CH_REGISTER_ACCESSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="HBMC_PHY_MIDSTACK_REGISTER_ACCESS" Valid="DNX_DATA.dram.hbm.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription/>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-111111" Level="PARTIALLY_FUNCTIONAL"/> <!-- this table is partially functional because the mapping is not consecutive and some of the addresses are not valid -->
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="HBMC_INDEX"/>
+                <Field Name="PHY_REG_ADDRESS" Size="12" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="HBM_PHY_CHM_REGISTER_ACCESS" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV DRAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="HBM_PHY_CHM_REGISTER_ACCESS">
+                    <Access>
+                        <Memory Name="HBMC_HBM_PHY_CHM_REGISTER_ACCESSm">
+                            <EntryOffset Formula="#KEY_VALUE(PHY_REG_ADDRESS)"/>
+                            <BlockIndex Formula="#KEY_VALUE(HBMC_INDEX)"/>
+                            <HwField Name="HBM_PHY_CHM_REGISTER_ACCESSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

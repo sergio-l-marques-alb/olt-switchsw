@@ -1,0 +1,9 @@
+rc/config-dcmn.bcm
+rc/config-jr2.bcm
+rc/config-ramon.bcm
+rc/config-j2c.bcm
+rc/config-jer2pemla.bcm
+rc/bcm88690_board.bcm
+tools/sand/db
+rc/dnx_sku
+rc/dnx_dram

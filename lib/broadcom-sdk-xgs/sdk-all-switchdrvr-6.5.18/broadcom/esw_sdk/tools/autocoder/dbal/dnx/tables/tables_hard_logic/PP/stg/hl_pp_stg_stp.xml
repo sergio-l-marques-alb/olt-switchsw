@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="INGRESS_PORT_STP">
+        <OneLineDescription>Ingress STP state table, indexed by in_pp_port and TOPOLOGY_ID</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PP_PORT"/>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field Name="STP_TOPOLOGY_ID" Size="8"/>
+            </Key>
+            <Result>
+                <Field Description="STP state per {in_pp_port, topology_id}." Name="STP_STATE" Size="2"/>
+            </Result>
+            <TableLabels>STG</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="STP_STATE">
+                    <Access>
+                        <Memory Name="IPPF_STP_TABLEm"> 
+                            <EntryOffset Formula="#KEY_VALUE(PP_PORT)"/>
+                            <HwField Name="PER_PORT_STP_STATEf"/>
+                            <DataOffset Formula="#KEY_VALUE(STP_TOPOLOGY_ID)*#FULL_RESULT_SIZE()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="EGRESS_PORT_STP">
+        <OneLineDescription>Egress STP state table, indexed by out_pp_port and TOPOLOGY_ID</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PP_PORT"/>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field Name="STP_TOPOLOGY_ID" Size="8"/>
+            </Key>
+            <Result>
+                <Field Description="STP state per {in_pp_port, topology_id}. 0: forward; 1:block." Name="STP_STATE" Size="1"/>
+            </Result>
+            <TableLabels>STG</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0"> 
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="STP_STATE">
+                    <Access>
+                        <Memory Name="ETPPB_STP_STATEm"> 
+                            <EntryOffset Formula="#KEY_VALUE(STP_TOPOLOGY_ID)"/>
+                            <HwField Name="STP_STATE_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(PP_PORT)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0"> 
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="STP_STATE">
+                    <Access>
+                        <Memory Name="ETPPB_STP_STATEm"> 
+                            <EntryOffset Formula="#KEY_VALUE(PP_PORT)"/>
+                            <HwField Name="STP_STATE_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(STP_TOPOLOGY_ID)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2c_a1" module="device">
+    <sub_module name="general">
+
+        <features>
+        </features>
+        
+        <defines>
+        </defines>
+
+        <numerics>
+            <numeric name="device_id" value="0x8800"></numeric>
+            <numeric name="core_clock_khz" value="1000000">
+                <property name="core_clock_speed" method="suffix_range" suffix="khz" range_min="300000" range_max="3000000">
+                    <doc>
+                        Device core clock frequency in KHZ
+                        Synopsis: core_clock_speed_khz=#freq#
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+</device_data>

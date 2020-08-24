@@ -1,0 +1,117 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2p_a0"  module="nif">
+    <sub_module name="hw_workarounds">
+      <features>
+        <feature name="pm_mode_0122_invalid" value="0"></feature>
+      </features>
+    </sub_module>
+    
+    <sub_module name="phys">
+      <defines>
+          <define name="pm8x50_gen" value="2"></define>
+      </defines>
+
+      <tables>
+         <table name="general">
+             <value name="supported_phys" default="0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x0000FFFF"></value>
+         </table>
+      </tables>
+    </sub_module>
+    
+    <sub_module name="eth">
+      <defines>
+        <define name="cdu_nof" value="18"></define>
+        <define name="cdum_nof" value="2"></define>   
+      </defines>
+ 
+      <tables>
+          <table name="ethu_properties">
+              <key name="ethu_index" size="DATA(nif,eth,ethu_nof)"></key> 
+              <value name="pms" default="-1"></value>
+              <value name="type" default="imbDispatchTypeNone"></value>
+              <value name="type_index" default="-1"></value>
+              <entries>
+                <entry ethu_index="0"  pms="0"  type="imbDispatchTypeImb_cdu" type_index="0"></entry>
+                <entry ethu_index="1"  pms="1"  type="imbDispatchTypeImb_cdu" type_index="1"></entry>
+                <entry ethu_index="2"  pms="2"  type="imbDispatchTypeImb_cdu" type_index="2"></entry>
+                <entry ethu_index="3"  pms="3"  type="imbDispatchTypeImb_cdu" type_index="3"></entry>
+                <entry ethu_index="4"  pms="4"  type="imbDispatchTypeImb_cdu" type_index="4"></entry>
+                <entry ethu_index="5"  pms="5"  type="imbDispatchTypeImb_cdu" type_index="5"></entry>
+                <entry ethu_index="6"  pms="6"  type="imbDispatchTypeImb_cdu" type_index="6"></entry>
+                <entry ethu_index="7"  pms="7"  type="imbDispatchTypeImb_cdu" type_index="7"></entry>
+                <entry ethu_index="8"  pms="8"  type="imbDispatchTypeImb_cdu" type_index="8"></entry>
+                <entry ethu_index="9"  pms="9"  type="imbDispatchTypeImb_cdu" type_index="9"></entry>
+                <entry ethu_index="10" pms="10" type="imbDispatchTypeImb_cdu" type_index="10"></entry>
+                <entry ethu_index="11" pms="11" type="imbDispatchTypeImb_cdu" type_index="11"></entry>
+                <entry ethu_index="12" pms="12" type="imbDispatchTypeImb_cdu" type_index="12"></entry>
+                <entry ethu_index="13" pms="13" type="imbDispatchTypeImb_cdu" type_index="13"></entry>
+                <entry ethu_index="14" pms="14" type="imbDispatchTypeImb_cdu" type_index="14"></entry>
+                <entry ethu_index="15" pms="15" type="imbDispatchTypeImb_cdu" type_index="15"></entry>
+                <entry ethu_index="16" pms="16" type="imbDispatchTypeImb_cdu" type_index="16"></entry>
+                <entry ethu_index="17" pms="17" type="imbDispatchTypeImb_cdu" type_index="17"></entry>   
+              </entries>
+          </table>        
+      
+          <table name="pm_properties">
+              <key name="pm_index" size="DATA(nif,eth,total_nof_ethu_pms_in_device)"></key>
+              <value name="phys" default="0x0,0x0,0x0,0x0,0x0"></value>
+              <value name="tvco_pll_index" default="0x1"></value>
+              <value name="phy_addr" default="0"></value>
+              <value name="is_master" default="0"></value>
+              <value name="dispatch_type" default="portmodDispatchTypeCount"></value>
+              <value name="special_pll_check" default="0"></value>
+              <entries>
+                    <entry pm_index="0" phys="0x000000FF,0x00000000,0x00000000"                         dispatch_type="portmodDispatchTypePm8x50" tvco_pll_index="1" phy_addr="0"></entry>
+                    <entry pm_index="1" phys="0x0000FF00,0x00000000,0x00000000"                         dispatch_type="portmodDispatchTypePm8x50" tvco_pll_index="1" phy_addr="8"></entry>
+                    <entry pm_index="2" phys="0x00FF0000,0x00000000,0x00000000"                         dispatch_type="portmodDispatchTypePm8x50" tvco_pll_index="1" phy_addr="16"></entry>
+                    <entry pm_index="3" phys="0xFF000000,0x00000000,0x00000000"                         dispatch_type="portmodDispatchTypePm8x50" tvco_pll_index="1" phy_addr="24"></entry>
+                    <entry pm_index="4" phys="0x00000000,0x000000FF,0x00000000"                         dispatch_type="portmodDispatchTypePm8x50" tvco_pll_index="1" phy_addr="32"></entry>
+                    <entry pm_index="5" phys="0x00000000,0x0000FF00,0x00000000"                         dispatch_type="portmodDispatchTypePm8x50" tvco_pll_index="1" phy_addr="40"></entry>
+                    <entry pm_index="6" phys="0x00000000,0x00FF0000,0x00000000"                         dispatch_type="portmodDispatchTypePm8x50" tvco_pll_index="1" phy_addr="48"></entry>
+                    <entry pm_index="7" phys="0x00000000,0xFF000000,0x00000000"                         dispatch_type="portmodDispatchTypePm8x50" tvco_pll_index="1" phy_addr="56"></entry>
+                    <entry pm_index="8" phys="0x00000000,0x00000000,0x000000FF"                         dispatch_type="portmodDispatchTypePm8x50" tvco_pll_index="1" phy_addr="64"></entry>
+                    <entry pm_index="9" phys="0x00000000,0x00000000,0x0000FF00"                         dispatch_type="portmodDispatchTypePm8x50" tvco_pll_index="1" phy_addr="72"></entry>
+                    <entry pm_index="10" phys="0x00000000,0x00000000,0x00FF0000"                        dispatch_type="portmodDispatchTypePm8x50" tvco_pll_index="1" phy_addr="80"></entry>
+                    <entry pm_index="11" phys="0x00000000,0x00000000,0xFF000000"                        dispatch_type="portmodDispatchTypePm8x50" tvco_pll_index="1" phy_addr="88"></entry>      
+                    <entry pm_index="12" phys="0x00000000,0x00000000,0x00000000,0x000000FF"             dispatch_type="portmodDispatchTypePm8x50" tvco_pll_index="1" phy_addr="96"></entry>
+                    <entry pm_index="13" phys="0x00000000,0x00000000,0x00000000,0x0000FF00"             dispatch_type="portmodDispatchTypePm8x50" tvco_pll_index="1" phy_addr="104"></entry>
+                    <entry pm_index="14" phys="0x00000000,0x00000000,0x00000000,0x00FF0000"             dispatch_type="portmodDispatchTypePm8x50" tvco_pll_index="1" phy_addr="112"></entry>
+                    <entry pm_index="15" phys="0x00000000,0x00000000,0x00000000,0xFF000000"             dispatch_type="portmodDispatchTypePm8x50" tvco_pll_index="1" phy_addr="120"></entry>
+                    <entry pm_index="16" phys="0x00000000,0x00000000,0x00000000,0x00000000,0x000000FF"  dispatch_type="portmodDispatchTypePm8x50" tvco_pll_index="1" phy_addr="128"></entry>
+                    <entry pm_index="17" phys="0x00000000,0x00000000,0x00000000,0x00000000,0x0000FF00"  dispatch_type="portmodDispatchTypePm8x50" tvco_pll_index="1" phy_addr="136"></entry>
+              </entries>
+          </table>
+          
+          <table name="phy_map">
+              <key name="idx" size="DATA(nif,phys,nof_phys)/DATA(nif,eth,phy_map_granularity)"></key>
+              <value name="phy_index"  default="-1"></value>
+              <value name="ethu_index" default="-1"></value>
+              <value name="pm_index"   default="-1"></value>
+              <entries>
+                 <entry idx="0"  phy_index="0"    ethu_index="0"   pm_index="0"></entry> 
+                 <entry idx="1"  phy_index="8"    ethu_index="1"   pm_index="1"></entry> 
+                 <entry idx="2"  phy_index="16"   ethu_index="2"   pm_index="2"></entry> 
+                 <entry idx="3"  phy_index="24"   ethu_index="3"   pm_index="3"></entry> 
+                 <entry idx="4"  phy_index="32"   ethu_index="4"   pm_index="4"></entry> 
+                 <entry idx="5"  phy_index="40"   ethu_index="5"   pm_index="5"></entry> 
+                 <entry idx="6"  phy_index="48"   ethu_index="6"   pm_index="6"></entry> 
+                 <entry idx="7"  phy_index="56"   ethu_index="7"   pm_index="7"></entry> 
+                 <entry idx="8"  phy_index="64"   ethu_index="8"   pm_index="8"></entry> 
+                 <entry idx="9"  phy_index="72"   ethu_index="9"   pm_index="9"></entry> 
+                 <entry idx="10" phy_index="80"   ethu_index="10"  pm_index="10"></entry> 
+                 <entry idx="11" phy_index="88"   ethu_index="11"  pm_index="11"></entry>
+                 <entry idx="12" phy_index="96"   ethu_index="12"  pm_index="12"></entry> 
+                 <entry idx="13" phy_index="104"  ethu_index="13"  pm_index="13"></entry> 
+                 <entry idx="14" phy_index="112"  ethu_index="14"  pm_index="14"></entry> 
+                 <entry idx="15" phy_index="120"  ethu_index="15"  pm_index="15"></entry> 
+                 <entry idx="16" phy_index="128"  ethu_index="16"  pm_index="16"></entry> 
+                 <entry idx="17" phy_index="136"  ethu_index="17"  pm_index="17"></entry>                                         
+              </entries> 
+          </table>            
+      </tables>
+
+    </sub_module>
+</device_data>
+
+
+

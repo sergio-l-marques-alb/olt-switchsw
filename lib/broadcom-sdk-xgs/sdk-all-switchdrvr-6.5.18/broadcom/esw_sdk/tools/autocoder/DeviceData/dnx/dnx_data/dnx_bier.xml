@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+
+<device_data lib="dnx_data" module="bier" bsl_flag="BSL_LS_BCMDNX_BIERDNX">
+    <includes>
+    </includes>
+    <sub_module name="params" doc="bier parameters">
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Is bier supported"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="bitstring_size" doc="bier bitstring size"></define>
+            <define labels="j2p_notrev" name="bfr_entry_size" doc="the size of bfr entry in mcdb"></define>
+            <define labels="j2p_notrev" name="bank_entries" doc="the number of bfr entries at a bank"></define>
+            <define labels="j2p_notrev" name="bundle_nof_banks" doc="the number of banks in a bundle"></define>
+            <define labels="j2p_notrev" name="bundle_nof_banks_net" doc="the number of banks in a bundle which reffered with BFR-id"></define>
+            <define labels="j2p_notrev" name="egress_only" doc="no ingress replication in the system"></define>
+            <define labels="j2p_notrev" name="nof_egr_table_copies" doc="the number of egress table copies"></define>
+            <define labels="j2p_notrev" name="ingress_bfr_pos_msb_start" doc="ingress bfr table start from msb"></define>
+        </defines>  
+        <numerics>
+            <numeric labels="j2p_notrev" name="nof_bfr_entries" doc="bier supported bfr size"></numeric>
+        </numerics>  
+    </sub_module>
+</device_data>
+
+
+
+
+

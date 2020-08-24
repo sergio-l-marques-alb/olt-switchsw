@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="system_red" bsl_flag="BSL_LS_BCMDNX_COSQ">
+    <includes>
+    </includes>
+    
+    <sub_module name="config" doc="system red configuration">
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="enable" doc="system RED enable configuration"></numeric> 
+        </numerics>
+
+    </sub_module>
+    
+    <sub_module name="info" doc="system red related info">
+    
+        <features>
+            <feature labels="j2p_notrev" name="is_share_res_with_latency_based_admission" doc="indication whether latency based admission and system RED share the same HW resources (hence mutually exclusive)"></feature>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="nof_red_q_size" doc="number of system red RED-Q-Size values."></define>
+            <define labels="j2p_notrev" name="max_red_q_size" doc="max value for system red RED-Q-Size. this is the value used to determoine system level congestion level"></define>
+            <define labels="j2p_notrev" name="max_ing_aging_period" doc="max supported aging period on ingress side in msec"></define>
+            <define labels="j2p_notrev" name="max_sch_aging_period" doc="max supported aging period on scheduler side in msec"></define>
+            <define labels="j2p_notrev" name="sch_aging_period_factor" doc="factor (in clocks) for sch aging period calculation: aging_period = nof_ports * factor * hw_value"></define>
+            <define labels="j2p_notrev" name="max_free_res_thr_range" doc="max range id for system RED free resources thresholds."></define>
+        </defines>
+        
+        <tables>
+            <table labels="j2p_notrev" name="resource" doc="system red tracked resources">
+                <key name="type" doc="resource type"></key>
+                <value name="max" type="uint32" doc="Maximal resource size"></value>
+                <value name="hw_resolution_max" type="uint32" doc="Maximal resource size in HW granularity"></value>
+                <value name="hw_resolution_nof_bits" type="uint32" doc="Maximal nof bits to describe resource size in HW granularity"></value>
+            </table>
+        </tables>
+
+        <tables>
+            <table labels="j2p_notrev" name="dbal" doc="system red tracked resources">
+                <key name="type" doc="resource type"></key>
+                <value name="offset" type="uint32" doc="Offset of the first field for the type"></value>
+            </table>
+        </tables>
+    </sub_module>
+</device_data>

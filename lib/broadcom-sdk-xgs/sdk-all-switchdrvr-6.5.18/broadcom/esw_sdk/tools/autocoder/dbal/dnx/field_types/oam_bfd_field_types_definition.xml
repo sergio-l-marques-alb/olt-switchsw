@@ -1,0 +1,1954 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Fields Types DB:
+    This xml contains the fields types DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+    According to:d88547d
+    DB Rules:
+    *********
+-->
+
+<FieldTypesDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="field_types_schema.xsd">
+
+<!-- OAM/BFD Types, unique with printing types -->
+    <FieldType Name="BFD_DIP_PROFILE" Size="DNX_DATA.bfd.general.nof_bits_dips_for_bfd_multihop" Print="UINT32">
+        <OneLineDescription>Index of Destination IP entry for BFD endpoints</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="BFD_SERVER_TRAP_CODE_INDEX" Size="DNX_DATA.bfd.general.nof_bits_bfd_server_trap_codes" Print="UINT32">
+        <OneLineDescription>Index of Destination IP entry for BFD endpoints</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="BFD_MEP_PROFILE" Size="DNX_DATA.oam.general.oam_nof_bits_acc_action_profiles" Print="UINT32">
+        <OneLineDescription>Part of key for OAMA or OAMB table for BFD endpoints</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAMP_ENTRY_ID" Size="17" Print="UINT32" ResourceName="OAMP_MEP_DB_ENTRY">
+        <OneLineDescription>Index of quarter entry on OAMP MEP DB table.  The first 8 banks are accessed with OAM-ID.</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAMP_MEP_TYPE" Size="4" Print="ENUM">
+        <OneLineDescription>The supported types of BFD/OAM in OAMP</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="ETH_OAM" Description="Ethernet OAM."/>
+                <EnumVal Name="Y1731_MPLSTP" Description="Y1731 OAM over MPLS-TP."/>
+                <EnumVal Name="Y1731_PWE" Description="Y1731 OAM over PWE."/>
+                <EnumVal Name="BFD_IPV4_1HOP" Description="BFD over IPv4 single-hop."/>
+                <EnumVal Name="BFD_IPV4_MHOP" Description="BFD over IPv4 multi-hop."/>
+                <EnumVal Name="BFD_MPLS" Description="BFD over MPLS."/>
+                <EnumVal Name="BFD_PWE" Description="BFD over PWE."/>
+                <EnumVal Name="LM_DB" Description="Loss measurement database entry (last occurence - required for LM.)"/>
+                <EnumVal Name="LM_STAT" Description="Loss measurement statistics entry (counters - optional for LM.)"/>
+                <EnumVal Name="DM_STAT" Description="Delay measurement statistics entry."/>
+                <EnumVal Name="EXT_DATA_HDR" Description="Extra data header entry."/>
+                <EnumVal Name="EXT_DATA_PLD" Description="Extra data payload (more bits for 80 byte extra data) entry."/>
+                <EnumVal Name="DM_STAT_ONE_WAY" Description="One-way-day measurment statistics entry."/>
+                <EnumVal Name="OFFLOADED_SECOND_ENTRY" Description="Optional second entry for offloaded endpoints."/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="ETH_OAM" Value="0"/>
+                <EnumVal Name="Y1731_MPLSTP" Value="1"/>
+                <EnumVal Name="Y1731_PWE" Value="2"/>
+                <EnumVal Name="BFD_IPV4_1HOP" Value="3"/>
+                <EnumVal Name="BFD_IPV4_MHOP" Value="4"/>
+                <EnumVal Name="BFD_MPLS" Value="5"/>
+                <EnumVal Name="BFD_PWE" Value="6"/>
+                <EnumVal Name="LM_DB" Value="8"/>
+                <EnumVal Name="LM_STAT" Value="9"/>
+                <EnumVal Name="DM_STAT" Value="10"/>
+                <EnumVal Name="EXT_DATA_HDR" Value="11"/>
+                <EnumVal Name="EXT_DATA_PLD" Value="12"/>
+                <EnumVal Name="DM_STAT_ONE_WAY" Value="13"/>
+                <EnumVal Name="OFFLOADED_SECOND_ENTRY" Value="15"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="BFD_TX_RATE_PROFILE" Size="3" Print="UINT32">
+        <OneLineDescription>Rate of BFD packet transmission</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="ITMH_TC_DP_PROFILE" Size="3" Print="UINT32">
+        <OneLineDescription>Packet priority - mapped ITMH TC/DP</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="YOUR_DISC" Size="32" Print="UINT32">
+        <OneLineDescription>The discriminator value to put on transmitted packets</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="MY_DISC" Size="32" Print="UINT32">
+        <OneLineDescription>The your discriminator value(BFD)</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    
+    <FieldType Name="BFD_SRC_IP_PROFILE" Size="8" Print="UINT32">
+        <OneLineDescription>Pointer to a source IP address</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IP_TTL_TOS_PROFILE" Size="4" Print="UINT32">
+        <OneLineDescription>IPv4 Type of Service bits</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="BFD_FLAGS_PROFILE" Size="4" Print="UINT32">
+        <OneLineDescription>Index of entry in BFD flags profile table</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="BFD_STATE" Size="2" Print="UINT32">
+        <OneLineDescription>BFD session state</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="DETECT_MULT" Size="8" Print="UINT32">
+        <OneLineDescription>Detect multiplier.  Fail time=DM*Expected Tx Rate</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="MIN_INTERVAL_PROFILE" Size="3" Print="UINT32">
+        <OneLineDescription>Index of entry in BFD interval table</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="FEC_ID_OR_GLOB_OUT_LIF" Size="23" Print="UINT32">
+        <OneLineDescription>Field can be used as a destination FEC or Global OutLIF (pointer to EEDB table)</OneLineDescription>
+        <FieldDbInterface>
+            <ChildFields>
+                <ChildField Name="FEC"/>
+                <ChildField Name="GLOB_OUT_LIF"/>
+            </ChildFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ChildFieldsEncoding>
+                <ChildField Name="FEC" EncodeType="PREFIX" Value="4"/>
+                <ChildField Name="GLOB_OUT_LIF" EncodeType="PREFIX" Value="0"/>
+            </ChildFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="BFD_DIAG_PROFILE" Size="4" Print="UINT32">
+        <OneLineDescription>Index of entry in BFD diag profile table.</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="MEP_PROFILE" Size="7" Print="UINT32">
+        <OneLineDescription>MEP profile, points to entry that contains more endpoint properties (most LM/DM).</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="MEP_PE_PROFILE" Size="DNX_DATA.oam.oamp.mep_pe_profile_nof_bits" Print="UINT32">
+        <OneLineDescription>MEP PE profile, may be used by OAMP-PE for program selection and other variables.</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="MEP_DB_BANK" Size="4" Print="UINT32">
+        <OneLineDescription>Num of banks in MEP-DB.</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ValueRestricts>
+                <MinValue Value="0" />
+                <MaxValue Value="11" />
+            </ValueRestricts>                
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="SLM_MEASUREMENT_PERIOD_TIMER_PROFILE_INDEX" Size="3" Print="UINT32">
+        <OneLineDescription>Profile index for measurement timer initial value.</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ValueRestricts>
+                <MinValue Value="0" />
+                <MaxValue Value="7" />
+            </ValueRestricts>                
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IP_SUBNET_LEN" Size="5" Print="UINT32">
+        <OneLineDescription>For BFD one-hop, number of MSB's to check in received packets</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="CCM_INTERVAL" Size="3" Print="ENUM">
+        <OneLineDescription>Index to look up Tx rate in appropriate register.  Configured statistically via profile.</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NO_TX" Description="No CCM packet transmission."/>
+                <EnumVal Name="3MS" Description="3 millisecond interval."/>
+                <EnumVal Name="10MS" Description="10 millisecond interval."/>
+                <EnumVal Name="100MS" Description="100 millisecond interval."/>
+                <EnumVal Name="1S" Description="1 second interval."/>
+                <EnumVal Name="10S" Description="10 second interval."/>
+                <EnumVal Name="1M" Description="1 minute interval."/>
+                <EnumVal Name="10M" Description="10 minute interval."/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="NO_TX" Value="0"/>
+                <EnumVal Name="3MS" Value="1"/>
+                <EnumVal Name="10MS" Value="2"/>
+                <EnumVal Name="100MS" Value="3"/>
+                <EnumVal Name="1S" Value="4"/>
+                <EnumVal Name="10S" Value="5"/>
+                <EnumVal Name="1M" Value="6"/>
+                <EnumVal Name="10M" Value="7"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="MAID" Size="16" Print="UINT32">
+        <OneLineDescription>MAID for OAM packet (minimal) </OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_ENDPOINT_ID" Size="32" Print="UINT32">
+        <OneLineDescription>Endpoint ID equivalent to bcm_oam_endpoint_t</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="BFD_ENDPOINT_ID" Size="25" Print="UINT32">
+        <OneLineDescription>Endpoint ID equivalent to bcm_bfd_endpoint_t</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="SHORT_ICC_INDEX" Size="4" Print="UINT32">
+        <OneLineDescription>Index of ICC based MAID</OneLineDescription>
+        <FieldDbInterface>
+            <FieldDefines>
+                <Define Name="SHORT_FORMAT" Value="15" Description="Value used to indicate 2 character short MA format"/>
+            </FieldDefines>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="NOF_VLAN_TAGS" Size="2" Print="UINT32">
+        <OneLineDescription>Encapsulation profile.  0 - no VLAN tags</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="UP_PTCH_OPAQUE_PT_ATTR_PROFILE" Size="1" Print="UINT32">
+        <OneLineDescription>Profile to use in the PTCH-2 Opaque-PT-Attr field in case of up mep injection</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="PORT_STATUS_TLV_EN" Size="1" Print="BOOL">
+        <OneLineDescription>Enable port status TLV injection</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="PORT_STATUS_TLV_VAL" Size="1" Print="UINT32">
+        <OneLineDescription>Value of port status TLV</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="INTERFACE_STATUS_TLV_CODE" Size="3" Print="UINT32">
+        <OneLineDescription>0 - no interface status TLV</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="LMM_DA_LSB_PROFILE" Size="7" Print="UINT32">
+        <OneLineDescription>Index of entry in OAMP_LMM_DA_NIC_TABLE</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="LMM_DA_MSB_PROFILE" Size="3" Print="UINT32">
+        <OneLineDescription>Index to choose one of the 8 profiles in OAMP_LMM_DA_OUI register</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="SA_GEN_PROFILE" Size="1" Print="UINT32">
+        <OneLineDescription>CCM Source MAC MSB bits Profile </OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="DA_UC_MC_TYPE" Size="1" Print="ENUM">
+        <OneLineDescription>Destination address: 1-multicase 0-unicast</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="UC" Description="Unicast"/>
+                <EnumVal Name="MC" Description="Multicast"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="UC" Value="0"/>
+                <EnumVal Name="MC" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="DELAY_DM" Size="35" Print="ARRAY8">
+        <OneLineDescription>Delay values for DMM/DMR packets</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="LAST_ENTRY" Size="1" Print="BOOL">
+        <OneLineDescription>Used for OAMP flexible LM/DM packets</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="EXT_DATA_LENGTH" Size="3" Print="UINT32">
+        <OneLineDescription>Number of entries of extra data, including this one</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OPCODES_TO_PREPEND" Size="14" Print="UINT32">
+        <OneLineDescription>Bitmap defining which opcodes are prepended with the data entry</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="CRC16" Size="16" Print="UINT32">
+        <OneLineDescription>16-bit CRC value to compare to automatic OAMP calculation for received packets</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="EXTRA_DATA_SEGMENT" Size="160" Print="ARRAY8">
+        <OneLineDescription>One fourth of the extra data bits</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="LM_MY_TX" Size="32" Print="UINT32">
+        <OneLineDescription>Local LM count for transmitted packets</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="LM_MY_RX" Size="32" Print="UINT32">
+        <OneLineDescription>Local LM count for recevied packets</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="LM_PEER_TX" Size="32" Print="UINT32">
+        <OneLineDescription>Remote LM count for transmitted packets</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="LM_PEER_RX" Size="32" Print="UINT32">
+        <OneLineDescription>Remote LM count for recevied packets</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="LM_CNTRS_VALID" Size="1" Print="BOOL">
+        <OneLineDescription>Should be initialized to 0, and then read only.  Will be set to 1 when first LMR packet recieved</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="LAST_LM_FAR" Size="16" Print="UINT32">
+        <OneLineDescription>Last loss measurement value from far endpoint</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="LAST_LM_NEAR" Size="16" Print="UINT32">
+        <OneLineDescription>Last loss measurement value from near endpoint</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="ACC_LM_FAR" Size="32" Print="UINT32">
+        <OneLineDescription>Accumulated far endpoint packet losses</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="ACC_LM_NEAR" Size="32" Print="UINT32">
+        <OneLineDescription>Accumulated near endpoint packet losses</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="MAX_LM_FAR" Size="16" Print="UINT32">
+        <OneLineDescription>Highest number packet losses from a single far endpoint</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="MAX_LM_NEAR" Size="16" Print="UINT32">
+        <OneLineDescription>Highest number packet losses from a single near endpoint</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="ACH_SEL" Size="2" Print="UINT32">
+        <OneLineDescription>Select one of 4 ACH</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="MEASURE_NEXT_RECEIVED_SLR" Size="1" Print="BOOL">
+        <OneLineDescription>0 - Do not measure the next received SLR</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="TIMESTAMP_FORMAT" Size="1" Print="ENUM">
+        <OneLineDescription>Format of timestamp to use in Tx packet</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="TS_NTP" Description="Use NTP timestamp format."/>
+                <EnumVal Name="TS_1588" Description="Use 1588 timestamp format."/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="TS_NTP" Value="0"/>
+                <EnumVal Name="TS_1588" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAMP_ERROR_TYPE" Size="5" Print="ENUM">
+        <OneLineDescription>Format of timestamp to use in Tx packet</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="ERR_PACKET" Description="Egress error"/>
+                <EnumVal Name="CHAN_TYPE_MISS" Description="Illegal GACH channel type"/>
+                <EnumVal Name="TYPE_MISS" Description="legal trap does not match entry type"/>
+                <EnumVal Name="EMC_MISS" Description="Exact Match Core(For CCM miss in rsp_tcam and (miss in RMEP tcam or lookup error))"/>
+                <EnumVal Name="MAID_MISS" Description="MAID miss"/>
+                <EnumVal Name="FLEX_CRC_MISS" Description="Flexible CRC check miss"/>
+                <EnumVal Name="MDL_MISS" Description="MDL miss"/>
+                <EnumVal Name="CCM_INTRVL_MISS" Description="CCM interval miss"/>
+                <EnumVal Name="ERR_MY_DISC_MISS" Description="My Discriminator miss (BFD)"/>
+                <EnumVal Name="ERR_SRC_IP_MISS" Description="Source IP address miss (BFD)"/>
+                <EnumVal Name="ERR_YOUR_DISC_MISS" Description="Your Discriminator miss (BFD)"/>
+                <EnumVal Name="SRC_PORT_MISS" Description="UDP source port miss (BFD)"/>
+                <EnumVal Name="RMEP_STATE_CHANGE" Description="Current state change in the RMEP DB"/>
+                <EnumVal Name="PARITY_ERROR" Description="Parity error occurred whether in the MEP DB or the RMEP DB read"/>
+                <EnumVal Name="DEBUG" Description="No error,but bit all packets send to CPU(debug )"/>
+                <EnumVal Name="TIMESTAMP_MISS" Description="tod32msb does not match the OAM-TS (the time difference is above 1 sec)"/>
+                <EnumVal Name="TRAP_CODE_MISS" Description="Trap code is different from expected"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="ERR_PACKET" Value="0"/>
+                <EnumVal Name="CHAN_TYPE_MISS" Value="1"/>
+                <EnumVal Name="TYPE_MISS" Value="2"/>
+                <EnumVal Name="EMC_MISS" Value="3"/>
+                <EnumVal Name="MAID_MISS" Value="4"/>
+                <EnumVal Name="FLEX_CRC_MISS" Value="5"/>
+                <EnumVal Name="MDL_MISS" Value="6"/>
+                <EnumVal Name="CCM_INTRVL_MISS" Value="7"/>
+                <EnumVal Name="ERR_MY_DISC_MISS" Value="8"/>
+                <EnumVal Name="ERR_SRC_IP_MISS" Value="9"/>
+                <EnumVal Name="ERR_YOUR_DISC_MISS" Value="10"/>
+                <EnumVal Name="SRC_PORT_MISS" Value="11"/>
+                <EnumVal Name="RMEP_STATE_CHANGE" Value="12"/>
+                <EnumVal Name="PARITY_ERROR" Value="13"/>
+                <EnumVal Name="DEBUG" Value="14"/>
+                <EnumVal Name="TIMESTAMP_MISS" Value="15"/>
+                <EnumVal Name="TRAP_CODE_MISS" Value="17"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="SESSION_IDENTIFIER" Size="26" Print="UINT32">
+        <OneLineDescription>Uniquely identifies a mesurment operation sequence of messages</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="LM_T_FLAG" Size="1" Print="BOOL">
+        <OneLineDescription>The value of Flags.T to put into LM request packet</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="LM_DS_FIELD" Size="6" Print="UINT32">
+        <OneLineDescription>The value to put in DS field of LM request</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="DM_T_FLAG" Size="1" Print="BOOL">
+        <OneLineDescription>The value of Flags.T to put into DM request packet</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="DM_DS_FIELD" Size="6" Print="UINT32">
+        <OneLineDescription>The value to put in DS field of DM request</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="LM_CW_CHOOSE" Size="1" Print="UINT32">
+        <OneLineDescription>Which of the two CWs should be used for LM packet</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="FULL_DELAY" Size="42" Print="ARRAY8">
+        <OneLineDescription>Fields used for DM statistics</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="PORT_CORE" Size="1" Print="UINT32">
+        <OneLineDescription>Number of core to which the local port belongs</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="REPORT_MODE" Size="2" Print="ENUM">
+        <OneLineDescription>Report Mode</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NORMAL" Description="Normal Report Mode."/>
+                <EnumVal Name="COMPACT" Description="Compact Report Mode"/>
+                <EnumVal Name="RAW" Description="Raw Report Mode"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="NORMAL" Value="0"/>
+                <EnumVal Name="COMPACT" Value="1"/>
+                <EnumVal Name="RAW" Value="2"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OPCODE_TYPE" Size="3" Print="ENUM">
+        <OneLineDescription>Types of configurable Opcodes</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="AIS_1_FRAME_PER_SEC" Description="AIS Opcode configuration for transmit 1 packet per second "/>
+                <EnumVal Name="AIS_1_FRAME_PER_MIN" Description="AIS Opcode configuration for transmit 1 packet per minute "/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="AIS_1_FRAME_PER_SEC" Value="0"/>
+                <EnumVal Name="AIS_1_FRAME_PER_MIN" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_MAC_DA_TYPE" Size="2" Print="ENUM">
+        <OneLineDescription>Type of OAM Destination MAC</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="DMM_LMM_TYPE" Description="MAC DA DMM/LMM type"/>
+                <EnumVal Name="CCM_TYPE" Description="MAC DA CCM type"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="DMM_LMM_TYPE" Value="0"/>
+                <EnumVal Name="CCM_TYPE" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="BFD_ENDPOINT_SW_STATE_FLAGS" Size="32" Print="UINT32">
+        <OneLineDescription>BFD endpoint sw state flags</OneLineDescription>
+        <FieldDbInterface>
+            <FieldDefines>
+            <Define Name="IS_ACCELERATED" Value="1" Description="The BFD endpoint is accelerated" />
+            <Define Name="USE_OAMB_PROFILE" Value="2" Description="The used profile is in OAMB" />
+            <Define Name="BFD_IS_IPV6" Value="4" Description="The BFD endpoint is IPv6" />
+            <Define Name="MULTI_HOP_BFD" Value="8" Description="The BFD endpoint is for multihop" />
+            <Define Name="EXPLICIT_DETECTION_TIME" Value="16" Description="Period is not remote_detect_mult * local_min_rx" />
+            <Define Name="BFD_ECHO" Value="32" Description="The BFD endpoint is BFD ECHO" />
+            <Define Name="USE_MY_BFD_DIP_DESTINATION" Value="64" Description="My-BFD-DIP-destination used, DIP profile irrelevant" />
+            <Define Name="LOCAL_DISCR_IS_NULL" Value="128" Description="Endpoint local discriminator is zero" />
+            <Define Name="FROM_OAMP" Value="256" Description="Endpoint is accelerated and tx_gport != BCM_GPORT_INVALID" />
+            <Define Name="TX_STATISTICS" Value="512" Description="Enable TX statistics counting for this MEP" />
+            <Define Name="RX_STATISTICS" Value="1024" Description="Enable RX statistics counting for this MEP" />
+            <Define Name="PER_OPCODE_STATISTICS" Value="2048" Description="Enable per opcode counting for this MEP" />
+            <Define Name="LOCAL_DISCR_MSB" Value="4096" Description="Value of MSB of local_discr field" />
+            <Define Name="BFD_SERVER" Value="8192" Description="Endpoint is BFD Server Endpoint" />
+            <Define Name="BFD_SERVER_CLIENT" Value="16384" Description="Endpoint is Client on BFD Server Unit" />
+            <Define Name="TX_GPORT_IS_TRUNK" Value="32768" Description="Endpoint has a trunk for tx_gport instead of system port" />
+            <Define Name="TX_GPORT_IS_INVALID" Value="65536" Description="Endpoint was created with invalid tx_gport field" />
+            <Define Name="EGRESS_IF_IS_NULL" Value="131072" Description="Endpoint was created with null egress_if field" />          
+          </FieldDefines>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="COUNTER_BASE" Size="DNX_DATA.oam.general.oam_nof_bits_counter_base" Print="UINT32">
+        <OneLineDescription>OAM LM counter base</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="COUNTER_IF" Size="2" Print="UINT32">
+        <OneLineDescription>OAM LM counter base</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="RMEP_INDEX" Size="DNX_DATA.oam.oamp.rmep_db_rmep_index_nof_bits" Print="UINT32" ResourceName="OAM_RMEP_ID_BELOW_THRESHOLD">
+        <OneLineDescription>Number of bit of remote endpoints</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="LIFETIME" Size="10" Print="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="LIFETIME_UNITS" Size="2" Print="ENUM">
+        <OneLineDescription>Lifetime Resolution</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="SCAN_PERIOD_1" Description="1 complete scan of RMEP DB"/>
+                <EnumVal Name="SCAN_PERIOD_100" Description="100 complete scan of RMEP DB"/>
+                <EnumVal Name="SCAN_PERIOD_10000" Description="10000 complete scan of RMEP DB"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="SCAN_PERIOD_1" Value="0"/>
+                <EnumVal Name="SCAN_PERIOD_100" Value="1"/>
+                <EnumVal Name="SCAN_PERIOD_10000" Value="2"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    
+    <FieldType Name="LOC" Size="1" Print="BOOL">
+        <OneLineDescription>Loss of Continuty indication</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="LOC_CLEAR_LIMIT" Size="2" Print="UINT32">
+        <OneLineDescription>Number of packets should arrive within Lifetime for LoC clear event</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="LOC_CLEAR_ENABLE" Size="1" Print="BOOL">
+        <OneLineDescription>Loss of Continuty Clear mechanism enable</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="PUNT_PROFILE" Size="4" Print="UINT32">
+        <OneLineDescription>Index of Punt Profile</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="PUNT_GOOD_PROFILE" Size="3" Print="UINT32">
+        <OneLineDescription>Index of Punt Profile of Good packets</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="PUNT_NEXT_GOOD_PACKET" Size="1" Print="BOOL">
+        <OneLineDescription>If set, punt next received valid packet to CPU</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="RDI_RECEIVED" Size="1" Print="BOOL">
+        <OneLineDescription>Remote Defect Indication received</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="ETH_PORT_STATE" Size="2" Print="UINT32">
+        <OneLineDescription>Port Type-Legth-Value(TLV) status</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="ETH_INTERFACE_STATE" Size="3" Print="UINT32">
+        <OneLineDescription>Interface Type-Legth-Value(TLV) status</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    
+    <FieldType Name="PACKET_IS_OAM" Size="1" Print="BOOL">
+        <OneLineDescription>Is packet identified as an OAM packet</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="COUNTER_PTR_VALID" Size="1" Print="BOOL">
+        <OneLineDescription>OAM extension processing enabled (at the egress)</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="MP_PROFILE" Size="4" Print="UINT32">
+        <OneLineDescription>Output of OAM-LIF-DB, per LIF-DB-ACCESS</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_LM_COUNTER_READ_IDX_SEL" Size="2" Print="ENUM">
+        <OneLineDescription>Interface Index for counter read</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="COUNTER_IF_0" Description="Select counter if of the first lif-db access"/>
+                <EnumVal Name="COUNTER_IF_1" Description="Select counter if of the second lif-db access"/>
+                <EnumVal Name="COUNTER_IF_2" Description="Select counter if of the third lif-db access"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="COUNTER_IF_0" Value="0"/>
+                <EnumVal Name="COUNTER_IF_1" Value="1"/>
+                <EnumVal Name="COUNTER_IF_2" Value="2"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_COUNTER_STAMP_OFFSET" Size="8" Print="UINT32">
+        <OneLineDescription>Counter Offset in OAM packets according start of OAM header</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="OAM_ID" Size="16" Print="UINT32">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_STAMP_OFFSET" Size="8" Print="UINT32">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_OFFSET" Size="8" Print="UINT32">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_YOUR_DISCR" Size="1" Print="BOOL">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_UP_MEP" Size="1" Print="BOOL">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_METER_DISABLE" Size="1" Print="BOOL">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="MEP_ID" Size="13" Print="UINT32">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_KEY_BASE" Size="22" Print="UINT32">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_LIF_SET" Size="1" Print="BOOL">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_LIF_PREFIX" Size="3" Print="UINT32">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_LIF" Size="22" Print="UINT32">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_ENDPOINT_SW_STATE_FLAGS" Size="32" Print="UINT32">
+        <OneLineDescription>Convergence of all flags of endpoint(FLAGS,FLAGS2,OPCODE_FLAGS,LM_FLAGS)</OneLineDescription>
+        <FieldDbInterface>
+            <FieldDefines>
+            <Define Name="UP_FACING"    Value="1" Description="The MEP is defined as UP-MEP" />
+            <Define Name="INTERMEDIATE" Value="2" Description="The MEP is MIP" />
+            <Define Name="REMOTE" Value="4" Description="The MEP is REMOTE MEP" />
+            <Define Name="ACCELERATED" Value="8" Description="The MEP is ACCELERATED" />
+            <Define Name="PCP_BASED" Value="16" Description="The MEP is defined as PCP based LM counting" />
+            <Define Name="TX_STATISTICS" Value="32" Description="Enable TX statistics counting for this MEP" />
+            <Define Name="RX_STATISTICS" Value="64" Description="Enable RX statistics counting for this MEP" />
+            <Define Name="PER_OPCODE_STATISTICS" Value="128" Description="Enable per opcode counting for this MEP" />
+            <Define Name="DOWN_EGRESS_INJECTION" Value="256" Description="The MEP is defined as Down Mep Egress Injection" />
+            <Define Name="TX_GPORT_IS_TRUNK" Value="512" Description="Endpoint has a trunk for tx_gport instead of system port" />
+            <Define Name="SIGNAL_DETECT" Value="1024" Description="Endpoint support signal degradation indication" />
+            <Define Name="JUMBO_DM_TLV" Value="2048" Description="Endpoint has create Jumbo frame DM" />
+          </FieldDefines>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_COUNTER_DISABLE" Size="1" Print="BOOL">
+        <OneLineDescription>Counter disable indication for OAM resolved counters</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="RMEP_STATIC_DATA" Size="38" Print="ARRAY32">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="ACCESS_INDEX" Size="3" Print="UINT32">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_OPCODE" Size="8" Print="UINT32">
+        <OneLineDescription>OAM Y1731-Header opcode</OneLineDescription>
+        <FieldDbInterface>
+            <FieldDefines>
+                <Define Name="BFD_OR_OAM_DATA" Value="0" Description="Biderectional Fault Detection(BFD) or OAM Data Packets"/>
+                <Define Name="CCM" Value="1" Description="Ethernet Continuity Check Message"/>
+                <Define Name="LBR" Value="2" Description="Ethernet Loopback Responce"/>
+                <Define Name="LBM" Value="3" Description="Ethernet Loopback Message"/>
+                <Define Name="LTR" Value="4" Description="Ethernet Link Trace Responce"/>
+                <Define Name="LTM" Value="5" Description="Ethernet Link Trace Message"/>
+                <Define Name="AIS" Value="33" Description="Ethernet Alarm Indication Signal"/>
+                <Define Name="LCK" Value="35" Description="Ethernet Locked Signal"/>
+                <Define Name="LINEAR_APS" Value="39" Description="Ethernet Linear Automatic Protection Switching"/>
+                <Define Name="LMR" Value="42" Description="Ethernet Loss Measurment Responce"/>
+                <Define Name="LMM" Value="43" Description="Ethernet Loss Measurment Message"/>
+                <Define Name="1DM" Value="45" Description="Ethernet One Delay Measurment Message"/>
+                <Define Name="DMR" Value="46" Description="Ethernet Delay Measurment Responce"/>
+                <Define Name="DMM" Value="47" Description="Ethernet Delay Measurment Message "/>
+                <Define Name="EXR" Value="48" Description="Ethernet Experimental OAM reply PDU"/>
+                <Define Name="EXM" Value="49" Description="Ethernet Experimental OAM request PDU"/>
+                <Define Name="SLR" Value="54" Description="Ethernet Syntetic Loss Measurment Responce"/>
+                <Define Name="SLM" Value="55" Description="Ethernet Syntetic Loss Measurment Message"/>
+            </FieldDefines>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="OPCODE_FOR_COUNT_INDEX" Size="3" Print="ENUM">
+        <OneLineDescription>OAM Opcode for count index</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="CCM_OPCODE_INDEX" Description="Opcode count idex for CCM/BFD"/>
+                <EnumVal Name="LMM_OPCODE_INDEX" Description="Opcode count idex for LMM/SLM/1SL/RFC6374-LM-Query"/>
+                <EnumVal Name="LMR_OPCODE_INDEX" Description="Opcode count idex for LMR/SLR/RFC6374-LM-Response"/>
+                <EnumVal Name="DMM_OPCODE_INDEX" Description="Opcode count idex for DMM/1DM/RFC6374-DM-Query"/>
+                <EnumVal Name="DMR_OPCODE_INDEX" Description="Opcode count idex for DMR/RFC6374-DM-Response"/>
+                <EnumVal Name="OTHER_OPCODE_INDEX" Description="Opcode count idex for other opcodes"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="CCM_OPCODE_INDEX" Value="0"/>
+                <EnumVal Name="LMM_OPCODE_INDEX" Value="1"/>
+                <EnumVal Name="LMR_OPCODE_INDEX" Value="2"/>
+                <EnumVal Name="DMM_OPCODE_INDEX" Value="3"/>
+                <EnumVal Name="DMR_OPCODE_INDEX" Value="4"/>
+                <EnumVal Name="OTHER_OPCODE_INDEX" Value="5"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="MIP_ABOVE_MDL" Size="1" Print="BOOL">
+        <OneLineDescription>MIP with a higher MDL than in OAM packet exists in LIF</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="PACKET_IS_BFD" Size="1" Print="BOOL">
+        <OneLineDescription>Incoming packet has BFD structure</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="MDL_MP_TYPE" Size="2" Print="ENUM">
+        <OneLineDescription>Search result for OAM endpoints with a specific MDL in a LIF</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NO_MEP" Description="No MEPs in this LIF for MDL"/>
+                <EnumVal Name="MIP" Description="MIP in this LIF for MDL"/>
+                <EnumVal Name="ACTIVE_MEP" Description="Active MEP in this LIF for MDL"/>
+                <EnumVal Name="PASSIVE_MEP" Description="Passive MEP in this LIF for MDL"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="NO_MEP" Value="0"/>
+                <EnumVal Name="MIP" Value="1"/>
+                <EnumVal Name="ACTIVE_MEP" Value="2"/>
+                <EnumVal Name="PASSIVE_MEP" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="INGRESS_OAM_DATA_TYPE" Size="2" Print="ENUM">
+        <OneLineDescription>Data type(Ingress) to be stamped on OAM Application Extension(oam_ts_data)</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="COUNTER_VALUE" Description="Counter value"/>
+                <EnumVal Name="TOD_1588" Description="1588 Time of Day"/>
+                <EnumVal Name="TOD_NTP" Description="NTP Time of Day"/>
+                <EnumVal Name="NONE" Description="None"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="COUNTER_VALUE" Value="0"/>
+                <EnumVal Name="TOD_1588" Value="1"/>
+                <EnumVal Name="TOD_NTP" Value="2"/>
+                <EnumVal Name="NONE" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="EGRESS_OAM_DATA_TYPE" Size="2" Print="ENUM">
+        <OneLineDescription>Data type(Ingress) to be stamped on OAM Application Extension(oam_ts_data)</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="TOD_NTP" Description="NTP Time of Day"/>
+                <EnumVal Name="TOD_1588" Description="1588 Time of Day"/>
+                <EnumVal Name="COUNTER_VALUE" Description="Counter value"/>
+                <EnumVal Name="NONE" Description="None"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="TOD_NTP" Value="0"/>
+                <EnumVal Name="TOD_1588" Value="1"/>
+                <EnumVal Name="COUNTER_VALUE" Value="2"/>
+                <EnumVal Name="NONE" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="NOF_MEP_BELOW_MDL" Size="3" Print="UINT32">
+        <OneLineDescription>Number of MEPs with lower MDL than packet in LIF</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_LIF_DB_ACCESS" Size="2" Print="UINT32">
+        <OneLineDescription>Access number to OAM-LIF-DB. Possible values: 0, 1, or 2</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="NOF_MEP_ABOVE_MDL" Size="3" Print="UINT32">
+        <OneLineDescription>Number of MEPs with higher MDL than packet in LIF</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_INJECT" Size="1" Print="BOOL">
+        <OneLineDescription>Signals that processed packet is injected packet</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_MY_CFM_MAC" Size="1" Print="BOOL">
+        <OneLineDescription>Signals that MAC equals MEP's MAC</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_DA_IS_MC" Size="1" Print="BOOL">
+        <OneLineDescription>Signals MultiCast packet</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_INGRESS_UP_MEP" Size="1" Print="BOOL">
+        <OneLineDescription>Signals that an UP-MEP was hit</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_INGRESS_METER_DISABLE" Size="1" Print="BOOL">
+        <OneLineDescription>Disable Metering</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_DIRECTION" Size="1" Print="ENUM">
+        <OneLineDescription>OAM sub-type</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="DOWN_MEP" Description="MEP that injects to egress and receives in ingress"/>
+                <EnumVal Name="UP_MEP" Description="MEP that injects to ingress and receives in egress"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="DOWN_MEP" Value="0"/>
+                <EnumVal Name="UP_MEP" Value="1"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_PROCESS_ACTION" Size="4" Print="ENUM">
+        <OneLineDescription>OAM process action</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NONE" Description="No action to take"/>
+                <EnumVal Name="INGRESS_STAMP_1588" Description="Add 1588 time of day stamp in ingress"/>
+                <EnumVal Name="EGRESS_STAMP_1588" Description="Add 1588 time of day stamp in egress"/>
+                <EnumVal Name="INGRESS_STAMP_NTP" Description="Add NTP time of day stamp in ingress"/>
+                <EnumVal Name="EGRESS_STAMP_NTP" Description="Add NTP time of day stamp in egress"/>
+                <EnumVal Name="STAMP_COUNTER" Description="Add counter stamp"/>
+                <EnumVal Name="READ_COUNTER_AND_STAMP" Description="Add read counter and stamp"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="NONE" Value="0"/>
+                <EnumVal Name="INGRESS_STAMP_1588" Value="1"/>
+                <EnumVal Name="EGRESS_STAMP_1588" Value="2"/>
+                <EnumVal Name="INGRESS_STAMP_NTP" Value="3"/>
+                <EnumVal Name="EGRESS_STAMP_NTP" Value="4"/>
+                <EnumVal Name="STAMP_COUNTER" Value="5"/>
+                <EnumVal Name="READ_COUNTER_AND_STAMP" Value="6"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="MP_TYPE" Size="4" Print="ENUM">
+        <OneLineDescription>Type of the packet in relation to existing MEPs on most inner LIF</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="BELOW_LOWER_MEP" Description="MDL of the packet is below the lowest MEP level on lif"/>
+                <EnumVal Name="ACTIVE_MATCH_LOW" Description="MDL of the packet matches the 3rd MEP level on lif"/>
+                <EnumVal Name="PASSIVE_MATCH_LOW" Description="MDL of the packet matches the 3rd MEP level on lif on the opposite direction"/>
+                <EnumVal Name="BETWEEN_MIDDLE_AND_LOW" Description="MDL of the packet is between the 2nd and 3rd MEP level on lif"/>
+                <EnumVal Name="ACTIVE_MATCH_MIDDLE" Description="MDL of the packet matches the 2nd MEP level on lif"/>
+                <EnumVal Name="PASSIVE_MATCH_MIDDLE" Description="MDL of the packet matches the 2nd MEP level on lif on the opposite direction"/>
+                <EnumVal Name="BETWEEN_HIGH_AND_MIDDLE" Description="MDL of the packet is between the Highest and the 2nd MEP level on lif"/>
+                <EnumVal Name="ACTIVE_MATCH_HIGH" Description="MDL of the packet matches the highest MEP level on lif"/>
+                <EnumVal Name="PASSIVE_MATCH_HIGH" Description="MDL of the packet matches the highest MEP level on lif on the opposite direction"/>
+                <EnumVal Name="ABOVE_UPPER_MEP" Description="MDL of the packet is higher than the highest MEP level on lif"/>
+                <EnumVal Name="MIP_MATCH" Description="MDL of the packet matches than the highest MIP level on lif"/>
+                <EnumVal Name="BFD" Description="The packet matches the BFD endpoint on lif"/>
+                <EnumVal Name="BETWEEN_MIP_AND_MEP" Description="MDL of the packet is higher than the highest MEP level in lif, but lower than a MIP"/>
+                <EnumVal Name="ACTIVE_MATCH_NO_COUNTER" Description="MDL of the packet matches a MEP on lif without counter assigned"/>
+                <EnumVal Name="PASSIVE_MATCH_NO_COUNTER" Description="MDL of the packet matches a MEP on lif without counter assigned, on the opposite direction"/>
+                <EnumVal Name="RESERVED" Description="Reserved"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="BELOW_LOWER_MEP" Value="0"/>
+                <EnumVal Name="ACTIVE_MATCH_LOW" Value="1"/>
+                <EnumVal Name="PASSIVE_MATCH_LOW" Value="2"/>
+                <EnumVal Name="BETWEEN_MIDDLE_AND_LOW" Value="3"/>
+                <EnumVal Name="ACTIVE_MATCH_MIDDLE" Value="4"/>
+                <EnumVal Name="PASSIVE_MATCH_MIDDLE" Value="5"/>
+                <EnumVal Name="BETWEEN_HIGH_AND_MIDDLE" Value="6"/>
+                <EnumVal Name="ACTIVE_MATCH_HIGH" Value="7"/>
+                <EnumVal Name="PASSIVE_MATCH_HIGH" Value="8"/>
+                <EnumVal Name="ABOVE_UPPER_MEP" Value="9"/>
+                <EnumVal Name="MIP_MATCH" Value="10"/>
+                <EnumVal Name="BFD" Value="11"/>
+                <EnumVal Name="BETWEEN_MIP_AND_MEP" Value="12"/>
+                <EnumVal Name="ACTIVE_MATCH_NO_COUNTER" Value="13"/>
+                <EnumVal Name="PASSIVE_MATCH_NO_COUNTER" Value="14"/>
+                <EnumVal Name="RESERVED" Value="15"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_INTERNAL_OPCODE" Size="4" Print="ENUM">
+        <OneLineDescription>OAM Internal Opcodes</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="ETH_BFD" Description="Mapped to BFD"/>
+                <EnumVal Name="ETH_CCM" Description="Mapped to Ethernet Continuity Check Message"/>
+                <EnumVal Name="ETH_LBR" Description="Mapped to Ethernet Loopback Responce"/>
+                <EnumVal Name="ETH_LBM" Description="Mapped to Ethernet Loopback Message"/>
+                <EnumVal Name="ETH_LTR" Description="Mapped to Ethernet Link Trace Response"/>
+                <EnumVal Name="ETH_LTM" Description="Mapped to Ethernet Link Trace Message"/>
+                <EnumVal Name="ETH_LMR" Description="Mapped to Ethernet Loss Measurement Response"/>
+                <EnumVal Name="ETH_LMM" Description="Mapped to Ethernet Loss Measurement Message"/>
+                <EnumVal Name="ETH_DMR" Description="Mapped to Ethernet Delay Measurement Response"/>
+                <EnumVal Name="ETH_DMM" Description="Mapped to Ethernet Delay Measurement Message"/>
+                <EnumVal Name="ETH_1DM" Description="Mapped to Ethernet One Delay Measurement Message"/>
+                <EnumVal Name="ETH_SLM" Description="Mapped to Ethernet Syntetic Loss Measurement Message"/>
+                <EnumVal Name="ETH_SLR" Description="Mapped to Ethernet Syntetic Loss Measurement Response"/>
+                <EnumVal Name="ETH_AIS" Description="Mapped to Ethernet Alarm Indication Signal"/>
+                <EnumVal Name="ETH_LINEAR_APS" Description="Mapped to Ethernet Linear Automatic Protection Switching"/>
+                <EnumVal Name="ETH_OTHER" Description="Mapped to Other types"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="ETH_BFD" Value="0"/>
+                <EnumVal Name="ETH_CCM" Value="1"/>
+                <EnumVal Name="ETH_LBR" Value="2"/>
+                <EnumVal Name="ETH_LBM" Value="3"/>
+                <EnumVal Name="ETH_LTR" Value="4"/>
+                <EnumVal Name="ETH_LTM" Value="5"/>
+                <EnumVal Name="ETH_LMR" Value="6"/>
+                <EnumVal Name="ETH_LMM" Value="7"/>
+                <EnumVal Name="ETH_DMR" Value="8"/>
+                <EnumVal Name="ETH_DMM" Value="9"/>
+                <EnumVal Name="ETH_1DM" Value="10"/>
+                <EnumVal Name="ETH_SLM" Value="11"/>
+                <EnumVal Name="ETH_SLR" Value="12"/>
+                <EnumVal Name="ETH_AIS" Value="13"/>
+                <EnumVal Name="ETH_LINEAR_APS" Value="14"/>
+                <EnumVal Name="ETH_OTHER" Value="15"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_ING_KEY_BASE_SELECT" Size="3" Print="ENUM">
+        <OneLineDescription>OAM key base for OAM-LIF-DB accesses</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NULL"      Description="Lookup not needed"/>
+                <EnumVal Name="OAM_LIF"   Description="Most inner LIF recognized on packet"/>
+                <EnumVal Name="OAM_LIF_3" Description="The third LIF (starting from most inner) recognized with OAM-LIF bit set"/>
+                <EnumVal Name="OAM_LIF_2" Description="The second LIF (starting from most inner) recognized with OAM-LIF bit set"/>
+                <EnumVal Name="OAM_LIF_1" Description="The first LIF (most inner) recognized with OAM-LIF bit set"/>
+                <EnumVal Name="RESERVED1" Description="Reserved"/>
+                <EnumVal Name="RESERVED2" Description="Reserved"/>
+                <EnumVal Name="RESERVED3" Description="Reserved"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="NULL"      Value="0"/>
+                <EnumVal Name="OAM_LIF"   Value="1"/>
+                <EnumVal Name="OAM_LIF_3" Value="2"/>
+                <EnumVal Name="OAM_LIF_2" Value="3"/>
+                <EnumVal Name="OAM_LIF_1" Value="4"/>
+                <EnumVal Name="RESERVED1" Value="5"/>
+                <EnumVal Name="RESERVED2" Value="6"/>
+                <EnumVal Name="RESERVED3" Value="7"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_EG_KEY_BASE_SELECT" Size="3" Print="ENUM">
+        <OneLineDescription>OAM key base for OAM-LIF-DB accesses</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NULL"      Description="Lookup not needed"/>
+                <EnumVal Name="OAM_LIF_1" Description="Most inner LIF recognized on packet"/>
+                <EnumVal Name="OAM_LIF_2" Description="The third LIF (starting from most inner) recognized with OAM-LIF bit set"/>
+                <EnumVal Name="OAM_LIF_3" Description="The second LIF (starting from most inner) recognized with OAM-LIF bit set"/>
+                <EnumVal Name="OAM_LIF"   Description="The first LIF (most inner) recognized with OAM-LIF bit set"/>
+                <EnumVal Name="RESERVED1" Description="Reserved"/>
+                <EnumVal Name="RESERVED2" Description="Reserved"/>
+                <EnumVal Name="RESERVED3" Description="Reserved"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="NULL"      Value="0"/>
+                <EnumVal Name="OAM_LIF_1" Value="1"/>
+                <EnumVal Name="OAM_LIF_2" Value="2"/>
+                <EnumVal Name="OAM_LIF_3" Value="3"/>
+                <EnumVal Name="OAM_LIF"   Value="4"/>
+                <EnumVal Name="RESERVED1" Value="5"/>
+                <EnumVal Name="RESERVED2" Value="6"/>
+                <EnumVal Name="RESERVED3" Value="7"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_KEY_PREFIX" Size="3" Print="ENUM">
+        <OneLineDescription>OAM key prefix for OAM-LIF-DB accesses</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="HIGH"      Description="Prefix for Sole/highest entry"/>
+                <EnumVal Name="MID"       Description="Prefix for middle entry, two or more counters on LIF"/>
+                <EnumVal Name="LOW"       Description="Prefix for lowest entry, three counters on LIF"/>
+                <EnumVal Name="RESERVED1" Description="Reserved"/>
+                <EnumVal Name="RESERVED2" Description="Reserved"/>
+                <EnumVal Name="RESERVED3" Description="Reserved"/>
+                <EnumVal Name="RESERVED4" Description="Reserved"/>
+                <EnumVal Name="BFD"       Description="Prefix for BFD when classifying based on Your-Discriminator"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="HIGH"      Value="0"/>
+                <EnumVal Name="MID"       Value="1"/>
+                <EnumVal Name="LOW"       Value="2"/>
+                <EnumVal Name="RESERVED1" Value="3"/>
+                <EnumVal Name="RESERVED2" Value="4"/>
+                <EnumVal Name="RESERVED3" Value="5"/>
+                <EnumVal Name="RESERVED4" Value="6"/>
+                <EnumVal Name="BFD"       Value="7"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="MP_PROFILE_SEL" Size="1" Print="BOOL">
+        <OneLineDescription>If true, MP-Profile from OAM-LIF-DB result will be used for LIF-ACTION table. Otherwise, default MP-Profile will be used</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_LIF_VALID_0" Size="1" Print="BOOL">
+        <OneLineDescription>First OAM LIF is valid for LM</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_LIF_VALID_1" Size="1" Print="BOOL">
+        <OneLineDescription>Second OAM LIF is valid for LM</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_LIF_VALID_2" Size="1" Print="BOOL">
+        <OneLineDescription>Third OAM LIF is valid for LM</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IS_OAM_LIF_0" Size="1" Print="BOOL">
+        <OneLineDescription>First LIF is OAM LIF</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IS_OAM_LIF_1" Size="1" Print="BOOL">
+        <OneLineDescription>Second LIF is OAM LIF</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IS_OAM_LIF_2" Size="1" Print="BOOL">
+        <OneLineDescription>Third LIF is OAM LIF</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_FORMAT_TYPE" Size="3" Print="ENUM">
+        <OneLineDescription>OAM format type used in OAM channel type table</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="Y1731" Description="Y1731 format type"/>
+                <EnumVal Name="BFD_RAW" Description="BFD format type"/>
+                <EnumVal Name="BFD_IPV4" Description="BFD IPV4 format type - currently not supported"/>
+                <EnumVal Name="BFD_IPV6" Description="BFD IPV6 format type - currently not supported"/>
+                <EnumVal Name="RFC_6374" Description="RFC 6374 format type - currently not supported"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="Y1731" Value="0"/>
+                <EnumVal Name="BFD_RAW" Value="1"/>
+                <EnumVal Name="BFD_IPV4" Value="2"/>
+                <EnumVal Name="BFD_IPV6" Value="3"/>
+                <EnumVal Name="RFC_6374" Value="4"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_MAID" Size="384" Print="ARRAY32">
+        <OneLineDescription>OAM Maintenance Association Identifier</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="GROUP_ID" Size="18" Print="UINT32">
+        <OneLineDescription>determines if mcdb entry used for ingress</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IN_LIF_VALID_FOR_LM" Size="1" Print="BOOL">
+        <OneLineDescription>Most inner LIF has MEP with LM set</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="NOF_VALID_LM_LIFS" Size="2" Print="UINT32">
+        <OneLineDescription>Number of LIFs with LM-MEP is set</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="YOUR_DISC_VALID" Size="1" Print="BOOL">
+        <OneLineDescription>Is BFD classification based on Your-Discriminator value</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="OAM_GROUP_ID" Size="32" Print="UINT32">
+        <OneLineDescription>OAM group id</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="BFD_YOUR_DISCR_RANGE_MIN" Size="14" Print="UINT32">
+        <OneLineDescription>The lower limit for your-discriminator field in incoming BFD packets</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="BFD_YOUR_DISCR_RANGE_MAX" Size="14" Print="UINT32">
+        <OneLineDescription>The upper limit for your-discriminator field in incoming BFD packets</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="BCM_BFD_TUNNEL_TYPE" Size="5" Print="ENUM">
+        <OneLineDescription>Types of BFD MEP tunneling</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="UDP" Description="BFD over IPv4/v6."/>
+                <EnumVal Name="IPV4IN4" Description="BFD over IPv4-in-IPv4 tunnel."/>
+                <EnumVal Name="IPV6IN4" Description="BFD over IPv6-in-IPv4 tunnel."/>
+                <EnumVal Name="IPV4IN6" Description="BFD over IPv4-in-IPv6 tunnel."/>
+                <EnumVal Name="IPV6IN6" Description="BFD over IPv6-in-IPv6 tunnel."/>
+                <EnumVal Name="GRE4IN4" Description="BFD over GRE IPv4-in-IPv4 tunnel."/>
+                <EnumVal Name="MPLS" Description="BFD over MPLS LSP."/>
+                <EnumVal Name="PWE_CONTROL_WORD" Description="BFD over PW with CW."/>
+                <EnumVal Name="PWE_ROUTER_ALERT" Description="BFD over PW with Router Alert."/>
+                <EnumVal Name="PWE_TTL" Description="BFD over PW with TTL=1."/>
+                <EnumVal Name="MPLS_TP_CC" Description="BFD for MPLS-TP proactive CC."/>
+                <EnumVal Name="MPLS_TP_CC_CV" Description="BFD for MPLS-TP proactive CC and CV."/>
+                <EnumVal Name="GRE6IN4" Description="BFD over GRE IPv6-in-IPv4 tunnel."/>
+                <EnumVal Name="GRE4IN6" Description="BFD over GRE IPv4-in-IPv6 tunnel."/>
+                <EnumVal Name="GRE6IN6" Description="BFD over GRE IPv6-in-IPv6 tunnel."/>
+                <EnumVal Name="PWE_GAL" Description="BFD over PW with GAL, GACH."/>
+                <EnumVal Name="MPLS_PHP" Description="BFD over MPLS LSP and PHP."/>
+                <EnumVal Name="COUNT" Description="BFD total number of tunnel types."/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="UDP" Value="0"/>
+                <EnumVal Name="IPV4IN4" Value="1"/>
+                <EnumVal Name="IPV6IN4" Value="2"/>
+                <EnumVal Name="IPV4IN6" Value="3"/>
+                <EnumVal Name="IPV6IN6" Value="4"/>
+                <EnumVal Name="GRE4IN4" Value="5"/>
+                <EnumVal Name="MPLS" Value="6"/>
+                <EnumVal Name="PWE_CONTROL_WORD" Value="7"/>
+                <EnumVal Name="PWE_ROUTER_ALERT" Value="8"/>
+                <EnumVal Name="PWE_TTL" Value="9"/>
+                <EnumVal Name="MPLS_TP_CC" Value="10"/>
+                <EnumVal Name="MPLS_TP_CC_CV" Value="11"/>
+                <EnumVal Name="GRE6IN4" Value="12"/>
+                <EnumVal Name="GRE4IN6" Value="13"/>
+                <EnumVal Name="GRE6IN6" Value="14"/>
+                <EnumVal Name="PWE_GAL" Value="15"/>
+                <EnumVal Name="MPLS_PHP" Value="16"/>
+                <EnumVal Name="COUNT" Value="17"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="COUNTER_INTERFACE" Size="2" Print="UINT32">
+        <OneLineDescription>The HW device that is supposed to access the counter</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="ICC_MAP_INDEX" Size="4" Print="UINT32">
+        <OneLineDescription>Index of ICC based MAID map data</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ValueRestricts>
+               <MinValue Value="0"/>
+               <MaxValue Value="15" />
+            </ValueRestricts>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="ICC_DATA" Size="48" Print="ARRAY8">
+        <OneLineDescription>ICC data of Y1731 OAM ICC based MAID - bytes 0:5 of MA name.</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="OAMP_MEP_DB_INDEX" Size="15" Print="UINT32">
+        <OneLineDescription>Index of OAMP MEP DB entry.Same is used to access UMC table as well</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+     <FieldType Name="UMC" Size="40" Print="ARRAY8">
+        <OneLineDescription>UMC table for Y1731 OAM with ICC based MAID- bytes 6:10 of MA name.</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="PROFILE_RX_STATE_UPDATE_EN" Size="2" Print="ENUM">
+        <OneLineDescription>Different modes of RX state updates</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="DONT_UPDATE_STATE_RDI_GEN_PACKET" Description="Do not update state and RDI according to received packet; generate event."/>
+                <EnumVal Name="UPD_STATE_RDI_DONT_GEN_PACKET" Description="Update state and RDI according to received packet; don't generate event."/>
+                <EnumVal Name="UPD_STATE_RDI_IF_FIFO_NOT_FULL_GEN_PKT" Description="Update state and RDI only if event FIFO is not full; generate event."/>
+                <EnumVal Name="UPD_STATE_RDI_GEN_PACKET" Description="Update state and RDI  regardless of event FIFO; generate event."/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="DONT_UPDATE_STATE_RDI_GEN_PACKET" Value="0" />
+                <EnumVal Name="UPD_STATE_RDI_DONT_GEN_PACKET" Value="1" />
+                <EnumVal Name="UPD_STATE_RDI_IF_FIFO_NOT_FULL_GEN_PKT" Value="2" />
+                <EnumVal Name="UPD_STATE_RDI_GEN_PACKET" Value="3" />
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="PROFILE_SCAN_STATE_UPDATE_EN" Size="2" Print="ENUM">
+        <OneLineDescription>Different modes of Scan state updates</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="DONT_UPDATE_RMEP_DB_STATE_GEN_PACKET" Description="Do not update rmep_db state on scan; generate event."/>
+                <EnumVal Name="UPD_RMEP_DB_STATE_DONT_GEN_PACKET" Description="Update rmep_db state on scan; don't generate event."/>
+                <EnumVal Name="UPD_RMEP_DB_STATE_IF_FIFO_NOT_FULL_GEN_PKT" Description="Update rmep_db state only if event FIFO is not full; generate event."/>
+                <EnumVal Name="UPD_RMEP_DB_STATE_GEN_PACKET" Description="Update rmep_db state regardless of event FIFO; generate event."/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="DONT_UPDATE_RMEP_DB_STATE_GEN_PACKET" Value="0" />
+                <EnumVal Name="UPD_RMEP_DB_STATE_DONT_GEN_PACKET" Value="1" />
+                <EnumVal Name="UPD_RMEP_DB_STATE_IF_FIFO_NOT_FULL_GEN_PKT" Value="2" />
+                <EnumVal Name="UPD_RMEP_DB_STATE_GEN_PACKET" Value="3" />
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    
+    <FieldType Name="LM_MODE" Size="3" Print="ENUM">
+        <OneLineDescription>Different modes of Scan state updates</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="LM_MODE_INVALID" Description="MP_Profile is not configured"/>
+                <EnumVal Name="LM_MODE_IS_LM" Description="MP_Profile is LM"/>
+                <EnumVal Name="LM_MODE_IS_DUAL_ENDED" Description="MP_Profile is DualEnded"/>
+                <EnumVal Name="LM_MODE_IS_NONE" Description="MP_Profile is LM None"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="LM_MODE_INVALID" Value="0" />
+                <EnumVal Name="LM_MODE_IS_LM" Value="1" />
+                <EnumVal Name="LM_MODE_IS_DUAL_ENDED" Value="2" />
+                <EnumVal Name="LM_MODE_IS_NONE" Value="3" />
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="DM_MODE" Size="2" Print="ENUM">
+        <OneLineDescription>Different DM time formats</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="DM_MODE_INVALID" Description="MP_Profile is not configured"/>
+                <EnumVal Name="DM_MODE_IS_1588" Description="MP_Profile time format is 1588"/>
+                <EnumVal Name="DM_MODE_IS_NTP" Description="MP_Profile time format is NTP"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="DM_MODE_INVALID" Value="0" />
+                <EnumVal Name="DM_MODE_IS_1588" Value="1" />
+                <EnumVal Name="DM_MODE_IS_NTP" Value="2" />
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IS_OAM_SECTION" Size="1" Print="ENUM">
+        <OneLineDescription>Different DM time formats</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="OAM_NORMAL" Description="MP_Profile is NOT for OAM-Section"/>
+                <EnumVal Name="OAM_SECTION" Description="MP_Profile is for OAM-Section"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="OAM_NORMAL" Value="0" />
+                <EnumVal Name="OAM_SECTION" Value="1" />
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="TOS" Size="8" Print="UINT32">
+        <OneLineDescription>Type of service for OAM/BFD</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="LOC_EVENT" Size="2" Print="ENUM">
+        <OneLineDescription>Different states of LOC event</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NO_LOC_EVENT" Description="Indicates there was no LOC event"/>
+                <EnumVal Name="LOC_EVENT" Description="Indicates there was a LOC event"/>
+                <EnumVal Name="ALMOST_LOC_EVENT" Description="Indicates there was an almost LOC event"/>
+                <EnumVal Name="LOC_CLEAR_EVENT" Description="Indicates the previous LOC event was cleared"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="NO_LOC_EVENT" Value="0"/>
+                <EnumVal Name="LOC_EVENT" Value="1"/>
+                <EnumVal Name="ALMOST_LOC_EVENT" Value="2"/>
+                <EnumVal Name="LOC_CLEAR_EVENT" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="JR2_OAMP_EVENT_FORMAT" Size="48" Print="STRUCTURE">
+        <OneLineDescription>JR2 OAMP event format.</OneLineDescription>
+        <FieldDbInterface>
+            <StructFields>
+                <StructField Name="RMEP_INDEX" Description="Pointer to the OAMP_RMEP_DB for the RMEP for which event was raised"/>
+                <StructField Name="LOC_EVENT" Description="00 - No LOC event 01 - LOC event 10 - Almost LOC event 11 - LOC Clear event"/>
+                <StructField Name="RDI_SET" Type="BOOL" Size="1" Description="Indicates RDI set event"/>
+                <StructField Name="RDI_CLEAR" Type="BOOL" Size="1" Description="Indicates RDI clear event"/>
+                <StructField Name="RMEP_STATE_CHANGE" Type="BOOL" Size="1" Description="Indicates there is a change in RMEP state"/>
+                <StructField Name="RESERVED_1" Type="UINT" Size="2" Description="Set to 0 if VALID entry. Else set to 3."/>
+                <StructField Name="RMEP_STATE" Type="UINT" Size="18" Description="If RMEP_STATE_CHANGE is true, this gives the changed RMEP STATE"/>
+                <StructField Name="RESERVED_2" Type="UINT" Size="7" Description="Set to 0."/>
+            </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <StructFieldsEncoding>
+                <StructField Name="RMEP_DB_PTR"/>
+                <StructField Name="LOC_EVENT" />
+                <StructField Name="RDI_SET" />
+                <StructField Name="RDI_CLEAR" />
+                <StructField Name="RMEP_STATE_CHANGE"/>
+                <StructField Name="RESERVED_1" />
+                <StructField Name="RMEP_STATE" />
+                <StructField Name="RESERVED_2" />
+            </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    
+     <FieldType Name="LOCAL_PORT_2_SYSTEM_PORT_PROFILE" Size="DNX_DATA.oam.oamp.local_port_2_system_port_bits" Print="UINT32">
+        <OneLineDescription>Profile index of a system port for an OAM/BFD endpoint</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    
+    <FieldType Name="OFFLOADED_MEP_TYPE_SUFFIX" Size="2" Print="ENUM">
+        <OneLineDescription>Different types of LM/DM offloaded OAM MEPs</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="CCM_ETHERNET" Description="Offloaded CCM ethernet MEP"/>
+                <EnumVal Name="MPLSTP" Description="Offloaded OAM on MPLSTP MEP"/>
+                <EnumVal Name="PWE" Description="Offloaded OAM on PWE MEP"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="CCM_ETHERNET" Value="0"/>
+                <EnumVal Name="MPLSTP" Value="1"/>
+                <EnumVal Name="PWE" Value="2"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="SHORT_OAM_ENTRY_MEP_TYPE_SUFFIX" Size="2" Print="ENUM">
+        <OneLineDescription>Different types of short entry OAM MEPs</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="CCM_ETHERNET" Description="Short entry CCM ethernet MEP"/>
+                <EnumVal Name="MPLSTP" Description="Short entry OAM on MPLSTP MEP"/>
+                <EnumVal Name="PWE" Description="Short entry OAM on PWE MEP"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="CCM_ETHERNET" Value="0"/>
+                <EnumVal Name="MPLSTP" Value="1"/>
+                <EnumVal Name="PWE" Value="2"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    
+    <FieldType Name="SHORT_BFD_ENTRY_MEP_TYPE_SUFFIX" Size="3" Print="ENUM">
+        <OneLineDescription>Different types of short entry OAM MEPs</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="INVALID" Description="Placeholder for 0.  Not allowed in table"/>
+                <EnumVal Name="1_HOP" Description="Short entry single hop BFD on IPv4 MEP"/>
+                <EnumVal Name="M_HOP" Description="Short entry multi hop BFD on IPv4 MEP"/>
+                <EnumVal Name="MPLS" Description="Short entry BFD on MPLS MEP"/>
+                <EnumVal Name="PWE" Description="Short entry BFD on PWE MEP"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="INVALID" Value="0"/>
+                <EnumVal Name="1_HOP" Value="3"/>
+                <EnumVal Name="M_HOP" Value="4"/>
+                <EnumVal Name="MPLS" Value="5"/>
+                <EnumVal Name="PWE" Value="6"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="RDI_GEN_METHOD" Size="2" Print="ENUM">
+        <OneLineDescription>RDI generation Method</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="RDI_DEFAULT" Description="Always send CCM with RDI=0"/>
+                <EnumVal Name="RDI_FROM_SCANNER" Description="Take RDI from Scanner:RDI will be set only if RMEP is in LOC"/>
+                <EnumVal Name="RDI_FROM_RX" Description="Take RDI from RX processing of CCM:RDI will be set only if received CCM has RDI bit set"/>
+                <EnumVal Name="RDI_FROM_BOTH" Description="Consider RDI from both Scanner and RX processing of CCM:(Scanner RDI | RX Processing RDI)"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="RDI_DEFAULT" Value="0"/>
+                <EnumVal Name="RDI_FROM_SCANNER" Value="1"/>
+                <EnumVal Name="RDI_FROM_RX" Value="2"/>
+                <EnumVal Name="RDI_FROM_BOTH" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="OPCODE_RATE" Size="3" Print="UINT32">
+        <OneLineDescription>Y1731 opcode transmission rate.</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="OPCODE_MDL" Size="3" Print="UINT32">
+        <OneLineDescription>Y1731 opcode MDL to be added to OAMP_MEP_DB.mdl</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="DM_ONE_WAY_TIMESTAMP_ENCODING" Size="3" Print="ENUM">
+        <OneLineDescription>One way time stamp representation in OAMP</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="ENCODING_2_WAY" Description="This profile is used for two way delay"/>
+                <EnumVal Name="ENCODING_1_WAY_FORMAT1" Description="1WAY format1:9b for seconds, 20b for sub-seconds"/>
+                <EnumVal Name="ENCODING_1_WAY_FORMAT2" Description="1WAY format1:7b for seconds, 22b for sub-seconds"/>
+                <EnumVal Name="ENCODING_1_WAY_FORMAT3" Description="1WAY format1:5b for seconds, 24b for sub-seconds"/>
+                <EnumVal Name="ENCODING_1_WAY_FORMAT4" Description="1WAY format1:3b for seconds, 26b for sub-seconds"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="ENCODING_2_WAY" Value="0"/>
+                <EnumVal Name="ENCODING_1_WAY_FORMAT1" Value="1"/>
+                <EnumVal Name="ENCODING_1_WAY_FORMAT2" Value="2"/>
+                <EnumVal Name="ENCODING_1_WAY_FORMAT3" Value="3"/>
+                <EnumVal Name="ENCODING_1_WAY_FORMAT4" Value="4"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    <FieldType Name="OAM_PRIORITY_MAP_PROFILE" Size="2" Print="UINT32">
+        <OneLineDescription>Priority Map for Egress TC to OAM_PCP conversion</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+</FieldTypesDbCatalog>

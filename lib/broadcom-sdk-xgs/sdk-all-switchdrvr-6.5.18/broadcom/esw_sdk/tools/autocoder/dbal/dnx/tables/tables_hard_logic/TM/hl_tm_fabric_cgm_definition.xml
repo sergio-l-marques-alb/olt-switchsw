@@ -1,0 +1,1074 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <!-- RCI { -->
+
+    <AppDB Name="FABRIC_CGM_RCI_ENABLE" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Enable/Disable Fabric RCI</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Pipe id" MaxValue="2" Name="PIPE" Size="2" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Enable RCI" Name="ENABLE" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="FDR_FDR_ENABLERS_REGISTER_2r">
+                            <HwField Name="RCI_PIPE_ENf"/>
+                            <DataOffset Formula="#KEY_VALUE(PIPE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CGM_RCI_THRESHOLDS" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>RCI Thresholds</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Pipe id" MaxValue="2" Name="PIPE" Size="6" Type="UINT"/>
+                <Field Description="RCI Level id" MaxValue="2" Name="LEVEL" Size="6" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="RCI threshold of link fifo" Name="LINK_RCI_THRESHOLD" Size="DNX_DATA.fabric.dbal.link_rci_threshold_bits_nof" Type="UINT"/>
+                <Field Description="RCI threshold of egress core fifo" Name="EGRESS_RCI_THRESHOLD" Size="12" Type="UINT" Valid="DNX_DATA.device.general.multi_core"/>
+                <Field Description="RCI threshold of total egress fifos (both cores)" Name="TOTAL_EGRESS_RCI_THRESHOLD" Size="14" Type="UINT" Valid="DNX_DATA.device.general.multi_core"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LINK_RCI_THRESHOLD">
+                    <Access>
+                        <Register Name="FDR_RCI_FDR_IN_TH_TYPEr">
+                            <DataOffset Formula="#KEY_VALUE(PIPE)*#RESULT_SIZE(LINK_RCI_THRESHOLD)*dnx_data_fabric.pipes.max_nof_pipes_get(unit)+#KEY_VALUE(LEVEL)*#RESULT_SIZE(LINK_RCI_THRESHOLD)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EGRESS_RCI_THRESHOLD">
+                    <Access>
+                        <Register Name="FDR_RCI_FDR_OUT_THr">
+                            <DataOffset Formula="#KEY_VALUE(PIPE)*#RESULT_SIZE(EGRESS_RCI_THRESHOLD)*dnx_data_fabric.pipes.max_nof_pipes_get(unit)+#KEY_VALUE(LEVEL)*#RESULT_SIZE(EGRESS_RCI_THRESHOLD)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TOTAL_EGRESS_RCI_THRESHOLD">
+                    <Access>
+                        <Register Name="FDR_RCI_FDR_OUT_TOTAL_THr">
+                            <DataOffset Formula="#KEY_VALUE(PIPE)*#RESULT_SIZE(TOTAL_EGRESS_RCI_THRESHOLD)*dnx_data_fabric.pipes.max_nof_pipes_get(unit)+#KEY_VALUE(LEVEL)*#RESULT_SIZE(TOTAL_EGRESS_RCI_THRESHOLD)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CGM_RCI_LOCAL_THRESHOLDS" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Local FIFOs RCI Thresholds</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="RCI Level id" MaxValue="2" Name="LEVEL" Size="2" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="local fifo RCI threshold" Name="LOCAL_RCI_THRESHOLD" Size="8" Type="UINT"/>
+                <Field Description="total local fifo RCI threshold" Name="TOTAL_LOCAL_RCI_THRESHOLD" Size="9" Type="UINT" Valid="DNX_DATA.device.general.multi_core"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LOCAL_RCI_THRESHOLD">
+                    <Access>
+                        <Register Name="FDA_FDA_IPT_RCIr">
+                            <DataOffset Formula="#KEY_VALUE(LEVEL)*#RESULT_SIZE(LOCAL_RCI_THRESHOLD)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TOTAL_LOCAL_RCI_THRESHOLD">
+                    <Access>
+                        <Register Name="FDA_FDA_IPT_TOTAL_RCIr">
+                            <DataOffset Formula="#KEY_VALUE(LEVEL)*#RESULT_SIZE(TOTAL_LOCAL_RCI_THRESHOLD)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CGM_RCI_SCORE_MAPPING" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Factors for RCI score computing</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="RCI Level id" MaxValue="2" Name="LEVEL" Size="2" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Factor to use for link RCI" Name="LINK_RCI_FACTOR" Size="3" Type="UINT"/>
+                <Field Description="RCI score for egress FIFO" Name="EGRESS_RCI_SCORE" Size="14" Type="UINT" Valid="DNX_DATA.device.general.multi_core"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LINK_RCI_FACTOR">
+                    <Access>
+                        <Register Name="FDA_RCI_CONFIGSr">
+                            <DataOffset Formula="#KEY_VALUE(LEVEL)*#RESULT_SIZE(LINK_RCI_FACTOR)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EGRESS_RCI_SCORE">
+                    <Access>
+                        <Register Name="FDA_RCI_CONFIGSr">
+                            <DataOffset Formula="30+#KEY_VALUE(LEVEL)*#RESULT_SIZE(EGRESS_RCI_SCORE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CGM_RCI_HIGH_SEVERITY" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Configurations for High Severity RCI</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Minimum number of links with highest RCI level which leads to High Severity indication" Name="MIN_NOF_LINKS" Size="7" Type="UINT"/>
+                <Field Description="RCI score when High Severity indicated" Name="SCORE" Size="14" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MIN_NOF_LINKS">
+                    <Access>
+                        <Register Name="FDA_RCI_CONFIGSr">
+                            <HwField Name="RCI_HIGH_SEV_MIN_NOF_LINKSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SCORE">
+                    <Access>
+                        <Register Name="FDA_RCI_CONFIGSr">
+                            <HwField Name="RCI_HIGH_SEV_SCOREf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CGM_RCI_SCORE_TO_LEVEL_THRESHOLDS" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Thresholds to convert scores to final RCI levels</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Final RCI Level id" MaxValue="6" Name="LEVEL" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Threshold to convert core score to final RCI level" Name="CORE_THRESHOLD" Size="14" Type="UINT" Valid="DNX_DATA.device.general.multi_core"/>
+                <Field Description="Threshold to convert device score to final RCI level" Name="DEVICE_THRESHOLD" Size="14" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CORE_THRESHOLD">
+                    <Access>
+                        <Register Name="FDA_RCI_CORE_MAPPINGr">
+                            <DataOffset Formula="#KEY_VALUE(LEVEL)*#RESULT_SIZE(CORE_THRESHOLD)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DEVICE_THRESHOLD">
+                    <Access>
+                        <Register Name="FDA_RCI_DEVICE_MAPPINGr">
+                            <DataOffset Formula="#KEY_VALUE(LEVEL)*#RESULT_SIZE(DEVICE_THRESHOLD)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <!-- } RCI -->
+
+    <!-- GCI { -->
+
+    <AppDB Name="FABRIC_CGM_GCI_LEAKY_BUCKET_CONFIG" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Leaky Bucket Configurations</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Leaky Bucket id" MaxValue="3" Name="LEAKY_BUCKET_ID" Size="2" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="The maximum value the leaky bucket may reach" Name="MAX_VALUE" Size="8" Type="UINT"/>
+                <Field Description="The threshold above which the leaky bucket is considered congested" Name="THRESHOLD" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MAX_VALUE">
+                    <Access>
+                        <Register Name="IPT_GCI_LEAKY_BUCKET_CONFIGURATION_REGISTER_0r">
+                            <DataOffset Formula="#KEY_VALUE(LEAKY_BUCKET_ID)*#RESULT_SIZE(MAX_VALUE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="THRESHOLD">
+                    <Access>
+                        <Register Name="IPT_GCI_LEAKY_BUCKET_CONFIGURATION_REGISTER_2r">
+                            <DataOffset Formula="#KEY_VALUE(LEAKY_BUCKET_ID)*#RESULT_SIZE(THRESHOLD)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CGM_GCI_LEAKY_BUCKET_FC_ENABLE" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Enable/Disable GCI Leaky Buckets flow controls</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Enable Leaky Bucket GCI FC" MaxValue="1" Name="LEAKY_BUCKET_ENABLE" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LEAKY_BUCKET_ENABLE">
+                    <Access EncodeType="MULTIPLY" EncodeValue="7" Size="4">
+                        <Register Name="IPT_INTRNL_FMC_FC_MAPr">
+                            <HwField Name="GCI_LB_2_IPT_DTQ_MC_FC_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access EncodeType="MULTIPLY" EncodeValue="8" Size="4">
+                        <Register Name="IPT_INTRNL_FMC_FC_MAPr">
+                            <HwField Name="GCI_LB_2_IPT_GFMC_FC_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access EncodeType="MULTIPLY" EncodeValue="15" Size="4">
+                        <Register Name="IPT_INTRNL_FMC_FC_MAPr">
+                            <HwField Name="GCI_LB_2_IPT_BFMC_FC_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access EncodeType="MULTIPLY" EncodeValue="8" Size="4">
+                        <Register Name="IPT_FMC_IPS_FC_MAPr">
+                            <HwField Name="GCI_LB_2_IPS_GFMC_FC_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access EncodeType="MULTIPLY" EncodeValue="12" Size="4">
+                        <Register Name="IPT_FMC_IPS_FC_MAPr">
+                            <HwField Name="GCI_LB_2_IPS_BFMC_2_FC_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access EncodeType="MULTIPLY" EncodeValue="14" Size="4">
+                        <Register Name="IPT_FMC_IPS_FC_MAPr">
+                            <HwField Name="GCI_LB_2_IPS_BFMC_1_FC_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access EncodeType="MULTIPLY" EncodeValue="15" Size="4">
+                        <Register Name="IPT_FMC_IPS_FC_MAPr">
+                            <HwField Name="GCI_LB_2_IPS_BFMC_0_FC_MAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CGM_GCI_BACKOFF_CONGESTION_SEVERITY_THRESHOLDS" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Configure Backoff congestion severity level by setting thresholds on the congestion severity (which is a running average of the incoming GCI indications)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="GCI Backoff congestion severity level threshold id" MaxValue="2" Name="LEVEL_SEPARATE" Size="2" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Backoff congestion severity thresh" Name="THRESHOLD" Size="10" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="THRESHOLD">
+                    <Access>
+                        <Register Name="IPT_GCI_BACKOFF_RANGE_THRESHOLDSr">
+                            <DataOffset Formula="#KEY_VALUE(LEVEL_SEPARATE)*#RESULT_SIZE(THRESHOLD)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CGM_GCI_BACKOFF_CONGESTION_SEVERITY_WEIGHTS" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Configure GCI Backoff congestion severity weights</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Backoff congestion severity worse weight" Name="CONGESTION_SEVERITY_WORSE_WEIGHT" Size="4" Type="UINT"/>
+                <Field Description="Backoff congestion severity better weight" Name="CONGESTION_SEVERITY_BETTER_WEIGHT" Size="4" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CONGESTION_SEVERITY_WORSE_WEIGHT">
+                    <Access>
+                        <Register Name="IPT_GCI_BACKOFF_CS_WEIGHTSr">
+                            <HwField Name="CNGST_LVL_WORSE_WEIGHTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CONGESTION_SEVERITY_BETTER_WEIGHT">
+                    <Access>
+                        <Register Name="IPT_GCI_BACKOFF_CS_WEIGHTSr">
+                            <HwField Name="CNGST_LVL_BETTER_WEIGHTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CGM_GCI_BACKOFF_TIMER_MAX" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Configure maximum value for random Backoff timer</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Backoff Timer id" MaxValue="2" Name="BACKOFF_TIMER_ID" Size="2" Type="UINT"/>
+                <Field Description="GCI congestion level" MaxValue="3" Name="LEVEL" Size="2" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Backoff timer maximum value" Name="MAX_VALUE" Size="12" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MAX_VALUE">
+                    <Access>
+                        <KeyCondition Field="BACKOFF_TIMER_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="IPT_GCI_BACKOFF_MASK_LUT_1r">
+                            <DataOffset Formula="#KEY_VALUE(LEVEL)*#RESULT_SIZE(MAX_VALUE)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BACKOFF_TIMER_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="IPT_GCI_BACKOFF_MASK_LUT_2r">
+                            <DataOffset Formula="#KEY_VALUE(LEVEL)*#RESULT_SIZE(MAX_VALUE)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BACKOFF_TIMER_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="IPT_GCI_BACKOFF_MASK_LUT_3r">
+                            <DataOffset Formula="#KEY_VALUE(LEVEL)*#RESULT_SIZE(MAX_VALUE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CGM_GCI_BACKOFF_FC_ENABLE" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Enable GCI Backoff flow controls</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Enable GCI Backoff FC" MaxValue="1" Name="BACKOFF_ENABLE" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="BACKOFF_ENABLE">
+                    <Access EncodeType="MULTIPLY" EncodeValue="7" Size="3">
+                        <Register Name="IPT_INTRNL_FMC_FC_MAPr">
+                            <HwField Name="GCI_BCKOF_2_IPT_DTQ_MC_FC_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access EncodeType="MULTIPLY" EncodeValue="4" Size="3">
+                        <Register Name="IPT_INTRNL_FMC_FC_MAPr">
+                            <HwField Name="GCI_BCKOF_2_IPT_GFMC_FC_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access EncodeType="MULTIPLY" EncodeValue="7" Size="3">
+                        <Register Name="IPT_INTRNL_FMC_FC_MAPr">
+                            <HwField Name="GCI_BCKOF_2_IPT_BFMC_FC_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access EncodeType="MULTIPLY" EncodeValue="4" Size="3">
+                        <Register Name="IPT_FMC_IPS_FC_MAPr">
+                            <HwField Name="GCI_BCKOF_2_IPS_GFMC_FC_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access EncodeType="MULTIPLY" EncodeValue="6" Size="3">
+                        <Register Name="IPT_FMC_IPS_FC_MAPr">
+                            <HwField Name="GCI_BCKOF_2_IPS_BFMC_2_FC_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access EncodeType="MULTIPLY" EncodeValue="7" Size="3">
+                        <Register Name="IPT_FMC_IPS_FC_MAPr">
+                            <HwField Name="GCI_BCKOF_2_IPS_BFMC_1_FC_MAPf"/>
+                        </Register>
+                    </Access>
+                    <Access EncodeType="MULTIPLY" EncodeValue="7" Size="3">
+                        <Register Name="IPT_FMC_IPS_FC_MAPr">
+                            <HwField Name="GCI_BCKOF_2_IPS_BFMC_0_FC_MAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <!-- } GCI -->
+
+    <!-- Slow Start { -->
+
+    <AppDB Name="FABRIC_CGM_SLOW_START_ENABLE" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Enable/Disable Slow Start</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="FMC shaper (FMC-HP/FMC_LP/TOTAL_FMC)" MaxValue="2" Name="FMC_SHAPER_ID" Size="2" Type="FMC_SHAPER"/>
+            </Key>
+            <Result>
+                <Field Description="Enable/Disable slow start" Name="ENABLE" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Memory Name="IPT_SHAPER_FMC_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(FMC_SHAPER_ID)"/>
+                            <HwField Name="SLOW_START_ENf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CGM_SLOW_START_CONFIG" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Slow Start configurations</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="FMC shaper (FMC-HP/FMC_LP/TOTAL_FMC)" MaxValue="2" Name="FMC_SHAPER_ID" Type="FMC_SHAPER"/>
+                <Field Description="Rate level phase (slow-start requires 2 intermediate rate-levels)" MaxValue="1" Name="PHASE" Size="6" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Exponent for the max random time this rate will last" MaxValue="17" Name="TIMER_PERIOD" Size="5" Type="UINT"/>
+                <Field Description="Delay part of shaper's rate configuration" Name="DELAY" Size="16" Type="UINT"/>
+                <Field Description="Calendar part of shaper's rate configuration" Name="CALENDAR" Size="16" Type="UINT"/>
+                <Field Description="Percent from full shaper rate" MaxValue="100" MinValue="0" Name="RATE_PERCENT" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TIMER_PERIOD">
+                    <Access>
+                        <Memory Name="IPT_SHAPER_FMC_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(FMC_SHAPER_ID)"/>
+                            <DataOffset Formula="1+#KEY_VALUE(PHASE)*#RESULT_SIZE(TIMER_PERIOD)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DELAY">
+                    <Access>
+                        <Memory Name="IPT_SHAPER_FMC_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(FMC_SHAPER_ID)"/>
+                            <DataOffset Formula="11+#KEY_VALUE(PHASE)*#RESULT_SIZE(DELAY)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CALENDAR">
+                    <Access>
+                        <Memory Name="IPT_SHAPER_FMC_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(FMC_SHAPER_ID)"/>
+                            <DataOffset Formula="43+#KEY_VALUE(PHASE)*#RESULT_SIZE(CALENDAR)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RATE_PERCENT">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="FABRIC_CGM_ING_TRANSMIT_PER_CORE_SHAPERS_CONFIG">
+        <OneLineDescription>Ingress Transmit Shapers configurations. Enable FMC shapers in order to user them for Slow Start</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Ingress Transmit Shaper" Name="ING_TRANSMIT_SHAPER"/>
+            </Key>
+            <Result>
+                <Field Description="Shaper's delay (the shaper rate is determined by calendar and delay) [2Clocks]" Name="DELAY" Size="16" Type="UINT"/>
+                <Field Description="Shaper's calendar (the shaper rate is determined by calendar and delay) [Bytes]" Name="CALENDAR" Size="16" Type="UINT"/>
+                <Field Description="Max burst size the shaper may accumulate [Bytes]" Name="MAX_BURST" Size="19" Type="UINT"/>
+                <Field Description="Shaper's decrease factor (in response to flow control from the DTQs)" Name="DCR_FACTOR" Size="2" Type="UINT"/>
+                <Field Description="Enables the shaper" Name="ENABLE" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DELAY">
+                    <Access>
+                        <Memory Name="IPT_PER_SHAPER_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(ING_TRANSMIT_SHAPER)"/>
+                            <HwField Name="SHAPER_DELAYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CALENDAR">
+                    <Access>
+                        <Memory Name="IPT_PER_SHAPER_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(ING_TRANSMIT_SHAPER)"/>
+                            <HwField Name="SHAPER_CALf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAX_BURST">
+                    <Access>
+                        <Memory Name="IPT_PER_SHAPER_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(ING_TRANSMIT_SHAPER)"/>
+                            <HwField Name="SHAPER_MAX_CREDITf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DCR_FACTOR">
+                    <Access>
+                        <Memory Name="IPT_PER_SHAPER_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(ING_TRANSMIT_SHAPER)"/>
+                            <HwField Name="DCR_FACTORf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Memory Name="IPT_PER_SHAPER_CFGm">
+                            <EntryOffset Formula="#KEY_VALUE(ING_TRANSMIT_SHAPER)"/>
+                            <HwField Name="SHAPER_ENf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <!-- } Slow Start -->
+
+    <!-- LLFC { -->
+
+    <AppDB Name="FABRIC_CGM_LLFC_ING_TRANSMIT_CONTEXT_MAP" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Enable/Disable LLFC</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="IPT context" Name="FABRIC_SUBCONTEXT_ID"/>
+                <Field Description="Pipe id" Name="FABRIC_PIPE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Enable LLFC" MaxValue="1" Name="ENABLE" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="FDT_FDT_LLFC_MAPPING_COREr">
+                            <DataOffset Formula="dnx_data_fabric.pipes.max_nof_pipes_get(unit)*#KEY_VALUE(FABRIC_SUBCONTEXT_ID)+#KEY_VALUE(FABRIC_PIPE_ID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CGM_LLFC_ENABLE" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Enable/Disable LLFC in FMAC per link</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Link id" MaxValue="DNX_DATA.fabric.links.max_link_id" Name="LINK" Size="7" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Enable LLFC" Name="ENABLE" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="FMAC_LINK_LEVEL_FLOW_CONTROL_ENABLE_REGISTERr">
+                            <BlockIndex Formula="#KEY_VALUE(LINK)/dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <HwField Name="LNK_LVL_FC_TX_ENf"/>
+                            <DataOffset Formula="#KEY_VALUE(LINK)%dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="FMAC_LINK_LEVEL_FLOW_CONTROL_ENABLE_REGISTERr">
+                            <BlockIndex Formula="#KEY_VALUE(LINK)/dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <HwField Name="LNK_LVL_FC_RX_ENf"/>
+                            <DataOffset Formula="#KEY_VALUE(LINK)%dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CGM_LLFC_THRESHOLDS" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Link Level Flow Control Thresholds</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Pipe id" MaxValue="2" Name="PIPE" Size="2" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="The threshold at which to activate LLFC" MaxValue="DNX_DATA.fabric.dbal.cgm_llfc_threshold_max_value" Name="THRESHOLD" Size="DNX_DATA.fabric.dbal.cgm_llfc_threshold_bits_nof" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="THRESHOLD">
+                    <Access>
+                        <Register Name="FDR_LINK_FIFO_CONFIGr">
+                            <DataOffset Formula="#RESULT_SIZE(THRESHOLD)*#KEY_VALUE(PIPE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <!-- } LLFC -->
+
+    <!-- Drop { -->
+
+    <AppDB Name="FABRIC_CGM_EGRESS_FIFO_DROP_THRESHOLDS" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Egress FIFOs drop thresholds</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Cast of the cells" Name="CAST" Type="TRAFFIC_CAST"/>
+                <Field Description="Priority" Name="FABRIC_PRIORITY"/>
+            </Key>
+            <Result>
+                <Field Description="Threshold to drop cells" MaxValue="DNX_DATA.fabric.dbal.egress_fifo_drop_threshold_max_value" Name="THRESHOLD" Size="DNX_DATA.fabric.dbal.egress_fifo_drop_threshold_bits_nof" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="THRESHOLD">
+                    <Access>
+                        <Register Name="FDR_OFM_CLASS_DROP_THr">
+                            <DataOffset Formula="#KEY_VALUE(CAST)*#RESULT_SIZE(THRESHOLD)*dnx_data_fabric.cell.nof_priorities_get(unit)+#KEY_VALUE(FABRIC_PRIORITY)*#RESULT_SIZE(THRESHOLD)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CGM_MESH_MC_FIFO_DROP_THRESHOLDS" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Mesh-MC FIFOs drop thresholds</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Priority" Name="FABRIC_PRIORITY"/>
+            </Key>
+            <Result>
+                <Field Description="Threshold to drop cells with priority" Name="THRESHOLD" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="THRESHOLD">
+                    <Access>
+                        <Register Name="FDA_FDA_EGQ_MESHMC_0_PRIO_DROP_THRr">
+                            <DataOffset Formula="#RESULT_SIZE(THRESHOLD)*#KEY_VALUE(FABRIC_PRIORITY)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="THRESHOLD">
+                    <Access>
+                        <Register Name="FDA_FDA_EGQ_MESHMC_1_PRIO_DROP_THRr">
+                            <DataOffset Formula="#RESULT_SIZE(THRESHOLD)*#KEY_VALUE(FABRIC_PRIORITY)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="FABRIC_CGM_LINK_FIFO_BASE_ADDRESS" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Link FIFOs base address</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Pipe id" MaxValue="2" MinValue="1" Name="PIPE" Size="2" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Base address for pipe's FIFO" MaxValue="DNX_DATA.fabric.dbal.cgm_link_fifo_base_address_max_value" Name="BASE_ADDRESS" Size="DNX_DATA.fabric.dbal.cgm_link_fifo_base_address_bits_nof" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="BASE_ADDRESS">
+                    <Access>
+                        <Register Name="FDR_LINK_FIFO_PIPE_PARTITIONr">
+                            <DataOffset Formula="#RESULT_SIZE(BASE_ADDRESS)*#KEY_VALUE(PIPE)-#RESULT_SIZE(BASE_ADDRESS)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CGM_EGRESS_FIFO_BASE_ADDRESS" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Egress FIFOs base address</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Pipe id" MaxValue="2" MinValue="1" Name="PIPE" Size="2" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Base address for pipe's FIFO" MaxValue="DNX_DATA.fabric.dbal.cgm_egress_fifo_base_address_max_value" Name="BASE_ADDRESS" Size="DNX_DATA.fabric.dbal.cgm_egress_fifo_base_address_bits_nof" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="BASE_ADDRESS">
+                    <Access>
+                        <Register Name="FDR_OFM_FIFO_PIPE_PARTITIONr">
+                            <DataOffset Formula="#RESULT_SIZE(BASE_ADDRESS)*#KEY_VALUE(PIPE)-#RESULT_SIZE(BASE_ADDRESS)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CGM_EGRESS_FIFO_FC_THRESHOLDS" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Egress FIFOs flow control toward link FIFOs thresholds</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Pipe id" MaxValue="2" Name="PIPE" Size="2" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Flow Control Threshold for pipe's FIFO" MaxValue="DNX_DATA.fabric.dbal.cgm_egress_fifo_base_address_max_value" Name="THRESHOLD" Size="DNX_DATA.fabric.dbal.cgm_egress_fifo_base_address_bits_nof" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="THRESHOLD">
+                    <Access>
+                        <Register Name="FDR_OFM_CORE_FIFO_CONFIGr">
+                            <DataOffset Formula="#RESULT_SIZE(THRESHOLD)*#KEY_VALUE(PIPE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CGM_EGRESS_FIFO_FC_AGING_PERIOD" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Egress FIFOs flow control toward link FIFOs aging period</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Flow Control aging period threshold" Name="AGING_PERIOD" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="AGING_PERIOD">
+                    <Access>
+                        <Register Name="FDR_FDR_IN_FC_AGING_PERIODr">
+                            <HwField Name="FDR_IN_FC_AGING_PERIODf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CGM_FC_INGRESS_THRESHOLDS" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Ingress flow control thresholds</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Output stage FIFO size per link" MaxValue="DNX_DATA.fabric.dbal.cgm_ingress_fc_threshold_max_value" Name="LINK_FIFO_SIZE_THRESHOLD" Size="5" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LINK_FIFO_SIZE_THRESHOLD">
+                    <Access>
+                        <Register Name="FDT_LINK_READY_THRr">
+                            <HwField Name="LINK_READY_THR_IPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CGM_EGRESS_DYNAMIC_WFQ" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Egress dynamic WFQ configurations</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Threshold for the egress dynamic WFQ. The threshold cause the dynamic WFQ to use the 'congested' configurations." Name="THRESHOLD" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="THRESHOLD">
+                    <Access>
+                        <Register Name="FDA_FDA_EGQ_IPT_ALM_FULL_THr">
+                            <HwField Name="EGQ_N_IPT_0_ALM_FULL_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="THRESHOLD">
+                    <Access>
+                        <Register Name="FDA_FDA_EGQ_IPT_ALM_FULL_THr">
+                            <HwField Name="EGQ_N_IPT_1_ALM_FULL_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CGM_EGRESS_DROP_TDM_LATENCY" Valid="DNX_DATA.fabric.general.is_supported*DNX_DATA.fabric.cgm.is_egress_drop_tdm_latency_supported">
+        <OneLineDescription>Drop TDM cells if latency is too high</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Enable TDM latency drop" Name="ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="Maximum TDM latency [16 clocks units]" Name="THRESHOLD" Size="19" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="FDR_AUTO_DOC_NAME_16r">
+                            <ArrayOffset Formula="dnx_data_fabric.pipes.map_get(unit)-&gt;tdm_pipe+1"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="THRESHOLD">
+                    <Access>
+                        <Register Name="FDR_AUTO_DOC_NAME_16r">
+                            <ArrayOffset Formula="dnx_data_fabric.pipes.map_get(unit)-&gt;tdm_pipe+1"/>
+                            <HwField Name="FIELD_1_19f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CGM_EGRESS_DROP_LOW_PRIO_MC" Valid="DNX_DATA.fabric.general.is_supported*DNX_DATA.fabric.cgm.egress_drop_low_prio_mc">
+        <OneLineDescription>Drop low priority multicast cells at egress</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Enable low priority multicast drop" Name="ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="Threshold for dropping low priority multicast" Name="THRESHOLD" Size="11" Type="UINT"/>
+                <Field Description="Is multicast priority considered as low priority" Name="IS_LOW_PRIORITY" NofInstances="DNX_DATA.fabric.cell.nof_priorities" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="FDR_DROP_LOW_PR_MC_CTRLr">
+                            <HwField Name="DROP_LOW_PRIO_MC_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="THRESHOLD">
+                    <Access>
+                        <Register Name="FDR_DROP_LOW_PR_MC_CTRLr">
+                            <HwField Name="DROP_LOW_PRIO_MC_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IS_LOW_PRIORITY">
+                    <Access instanceIndex="ALL">
+                        <Register Name="FDR_DROP_LOW_PR_MC_CTRLr">
+                            <HwField Name="DROP_LOW_PRIO_MC_SELf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_CGM_STATIC_SHAPER" Valid="DNX_DATA.fabric.general.is_supported*DNX_DATA.fabric.cgm.is_static_shaper_supported">
+        <OneLineDescription>Fabric static shaper configurations</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Enable static shaper" Name="ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="Shaper's calendar (the shaper rate is determined by calendar and delay) [32Bytes]" Name="CALENDAR" Size="6" Type="UINT"/>
+                <Field Description="Shaper's delay (the shaper rate is determined by calendar and delay) [Clocks]" Name="DELAY" Size="5" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="FDT_LCIr">
+                            <HwField Name="LCI_FIELD_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CALENDAR">
+                    <Access>
+                        <Register Name="FDT_LCIr">
+                            <HwField Name="LCI_FIELD_3f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DELAY">
+                    <Access>
+                        <Register Name="FDT_LCIr">
+                            <HwField Name="LCI_FIELD_4f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

@@ -1,0 +1,645 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Fields Types DB:
+    This xml contains the fields types DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+    According to:d88547d
+    DB Rules:
+    *********
+-->
+
+<FieldTypesDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="field_types_schema.xsd">
+
+     <FieldType Name="COS_CL" Size="8" Print="ENUM">
+        <OneLineDescription>CL Priority list definition</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="INVALID" Description="Invalid priority"/>
+                <EnumVal Name="SP1" Description="1st CL prioriry list"/>
+                <EnumVal Name="SP2" Description="2nd CL prioriry list"/>
+                <EnumVal Name="SP3" Description="3rd CL prioriry list"/>
+                <EnumVal Name="SP4" Description="4th CL prioriry list"/>
+                <EnumVal Name="SP_ENHANCED" Description="Extra enhanced CL prioriry list"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="INVALID" Value="0"/> 
+                <EnumVal Name="SP1" Value="252"/> <!-- 0xfc -->
+                <EnumVal Name="SP2" Value="253"/> <!-- 0xfd -->
+                <EnumVal Name="SP3" Value="254"/> <!-- 0xfe -->
+                <EnumVal Name="SP4" Value="255"/> <!-- 0xff --> 
+                <EnumVal Name="SP_ENHANCED" Value="251"/> <!-- 0xfb --> 
+             </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+     <FieldType Name="COS_HR" Size="8" Print="ENUM">
+        <OneLineDescription>HR Priority list definition</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="INVALID" Description="Invalid priority"/>
+                <EnumVal Name="EF1" Description="1st HR prioriry list"/>
+                <EnumVal Name="EF2" Description="2nd HR prioriry list"/>
+                <EnumVal Name="EF3" Description="3rd HR prioriry list"/>
+                <EnumVal Name="BE" Description="Best effort prioriry list"/>
+                <EnumVal Name="EF4" Description="4th HR prioriry list - enhanced"/>
+                <EnumVal Name="EF5" Description="5th HR prioriry list - enhanced"/>
+                <EnumVal Name="EF6" Description="6th HR prioriry list - enhanced"/>
+                <EnumVal Name="EF7" Description="7th HR prioriry list - enhanced"/>
+                <EnumVal Name="EF8" Description="8th HR prioriry list - enhanced"/>
+                <EnumVal Name="EF9" Description="9th HR prioriry list - enhanced"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="INVALID" Value="0"/> 
+                <EnumVal Name="EF1" Value="252"/> <!-- 0xfc -->
+                <EnumVal Name="EF2" Value="253"/> <!-- 0xfd -->
+                <EnumVal Name="EF3" Value="254"/> <!-- 0xfe -->
+                <EnumVal Name="BE"  Value="255"/> <!-- 0xff --> 
+                <EnumVal Name="EF4" Value="48"/>  <!-- 0x30 -->
+                <EnumVal Name="EF5" Value="112"/> <!-- 0x70 -->
+                <EnumVal Name="EF6" Value="176"/> <!-- 0xb0 -->
+                <EnumVal Name="EF7" Value="240"/> <!-- 0xf0 -->
+                <EnumVal Name="EF8" Value="228"/> <!-- 0xe4 -->
+                <EnumVal Name="EF9" Value="225"/> <!-- 0xe1 -->
+             </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+     <FieldType Name="CL_MODE" Size="4" Print="ENUM">
+        <OneLineDescription>CL modes</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NONE" Description="Invalid mode"/>
+                <EnumVal Name="1" Description="SP1,SP2,SP3,SP4"/>
+                <EnumVal Name="2" Description="SP1,SP2,SP3-WFQ(2)"/>
+                <EnumVal Name="3" Description="SP1-WFQ(1:63),SP2 or SP1-WFQ(3),SP2"/>
+                <EnumVal Name="4" Description="SP1,SP2-WFQ(1:63) or SP1,SP2-WFQ(3)"/>
+                <EnumVal Name="5" Description="WFQ(1:250) or SP-WFQ(4)"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="NONE" Value="7"/> <!-- invalid value  - never written to HW -->
+                <EnumVal Name="1" Value="15"/>   <!-- binary 1111 -->
+                <EnumVal Name="2" Value="3"/>    <!-- binary 0011 -->
+                <EnumVal Name="3" Value="8"/>    <!-- binary 1000 -->
+                <EnumVal Name="4" Value="1"/>    <!-- binary 0001 -->
+                <EnumVal Name="5" Value="0"/>    <!-- binary 0000 -->
+             </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+     <FieldType Name="WFQ_WEIGHT_MODE" Size="2" Print="ENUM">
+        <OneLineDescription>CL modes</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="DISCRETE_PER_FLOW" Description="
+Discrete weight per flow.
+Each flow installed on the CL-Scheduler WFQ is assigned
+one of 2, 3, or 4 weights. The number of available
+weights depends on the number of strict-priority levels
+(i.e.1 level => 4 weights, 2 levels =>3 weights, 3
+levels =>2 weights). All flows installed on the WFQ
+compete according to that weight."/>
+                <EnumVal Name="INDEPENDENT_PER_FLOW" Description="
+Independent weight per flow.
+Each flow installed on the CL-Scheduler WFQ has its own independent weight
+"/>
+                <EnumVal Name="DISCRETE_PER_CLASS" Description="
+Discrete weight per class.
+Each flow installed on the CL-Scheduler WFQ is assigned
+to a class. Each class is assigned a weight. Bandwidth
+is distributed among the classes according to the weight
+of the class. All flows belonging to the class share the
+class bandwidth equally.
+"/>
+                <EnumVal Name="INVALID" Description="No weight"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="DISCRETE_PER_FLOW" Value="0"/>
+                <EnumVal Name="INDEPENDENT_PER_FLOW" Value="1"/>
+                <EnumVal Name="DISCRETE_PER_CLASS" Value="2"/>
+                <EnumVal Name="INVALID" Value="3"/>
+             </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+     <FieldType Name="CL_ENHANCED_MODE" Size="2" Print="ENUM">
+        <OneLineDescription>CL modes</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="DISABLED"   Description="Regular mode"/>
+                <EnumVal Name="ENABLED_HP" Description="Enhanced mode enabled at high priority (SP1)"/>
+                <EnumVal Name="ENABLED_LP" Description="Enhanced mode enabled at low priority (SP5)"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="DISABLED"   Value="0"/>  <!-- binary 00 -->
+                <EnumVal Name="ENABLED_LP" Value="1"/>  <!-- binary 01 -->
+                <EnumVal Name="ENABLED_HP" Value="3"/>  <!-- binary 11 -->
+             </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+     <FieldType Name="HR_MODE" Size="2" Print="ENUM">
+        <OneLineDescription>HR mode definition</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="SINGLE" Description="Single mode"/>
+                <EnumVal Name="DUAL_WFQ" Description="Dual WFQ mode"/>
+                <EnumVal Name="ENHANCED" Description="Enhanced strict mode"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="SINGLE" Value="0"/> 
+                <EnumVal Name="DUAL_WFQ" Value="1"/> 
+                <EnumVal Name="ENHANCED" Value="3"/> 
+             </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="VOQ" Size="DNX_DATA.ipq.queues.queue_id_bits" Print="UINT32">
+        <OneLineDescription>VOQ id</OneLineDescription>
+        <FieldDbInterface></FieldDbInterface>
+        <FieldToPhyDbMapping></FieldToPhyDbMapping>
+    </FieldType>
+    
+    <FieldType Name="VOQ_OFFSET" Size="DNX_DATA.ipq.queues.voq_offset_bits" Print="UINT32">
+        <OneLineDescription>VOQ offset</OneLineDescription>
+        <FieldDbInterface></FieldDbInterface>
+        <FieldToPhyDbMapping></FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="HR_ID" Size="DNX_DATA.sch.dbal.hr_bits" Print="UINT32">
+        <OneLineDescription>HR id</OneLineDescription>
+        <FieldDbInterface></FieldDbInterface>
+        <FieldToPhyDbMapping></FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="SCH_FLOW_ID" Size="DNX_DATA.sch.dbal.flow_bits" Print="UINT32">
+        <OneLineDescription>Flow id</OneLineDescription>
+        <FieldDbInterface></FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ValueRestricts>
+                <MaxValue Value="DNX_DATA.sch.flow.max_flow" />
+            </ValueRestricts>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="SCH_INTERFACE_ID" Size="DNX_DATA.sch.dbal.interface_bits" Print="UINT32">
+        <OneLineDescription>interface id</OneLineDescription>
+        <FieldDbInterface></FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ValueRestricts>
+                <MaxValue Value="DNX_DATA.sch.interface.reserved" />
+            </ValueRestricts>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="SCH_CAL_ID" Size="DNX_DATA.sch.dbal.calendar_bits" Print="UINT32">
+        <OneLineDescription>calendar id</OneLineDescription>
+        <FieldDbInterface></FieldDbInterface>
+        <FieldToPhyDbMapping></FieldToPhyDbMapping>
+    </FieldType>
+
+     <FieldType Name="NOF_PS_PRIORITIES" Size="3" Print="ENUM">
+        <OneLineDescription>Port scheduler priorities</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="ONE_PRIORITY"   Description="1 priority port scheduler"/>
+                <EnumVal Name="TWO_PRIORITIES" Description="2 priorities port scheduler"/>
+                <EnumVal Name="FOUR_PRIORITIES" Description="4 priorities port scheduler"/>
+                <EnumVal Name="EIGHT_PRIORITIES" Description="8 priorities port scheduler"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="ONE_PRIORITY"     Value="1"/>  <!-- binary 001 -->
+                <EnumVal Name="TWO_PRIORITIES"   Value="2"/>  <!-- binary 010 -->
+                <EnumVal Name="FOUR_PRIORITIES"  Value="4"/>  <!-- binary 100 -->
+                <EnumVal Name="EIGHT_PRIORITIES" Value="0"/>  <!-- binary 000 -->
+             </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+     <FieldType Name="FLOW_SLOW_STATUS" Size="2" Print="ENUM">
+        <OneLineDescription>Slow status of a scheduler or flow</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="OFF"   Description="OFF"/>
+                <EnumVal Name="SLOW" Description="ON-SLOW"/>
+                <EnumVal Name="NORMAL" Description="ON-NORMAL"/>
+        </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="OFF"     Value="0"/>
+                <EnumVal Name="SLOW"   Value="1"/> 
+                <EnumVal Name="NORMAL"  Value="2"/>
+             </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+     <FieldType Name="RCI_BIASING_MODE" Size="9" Print="ENUM">
+        <OneLineDescription>RCI biasing mode definition</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="INVALID" Description="Invalid mode"/>
+                <EnumVal Name="GLOBAL" Description="Global (default) biasing mode"/>
+                <EnumVal Name="DEVICE_BIASING" Description="Device biasing mode"/>
+                <EnumVal Name="FLOW_BIASING" Description="Flow biasing mode"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <!-- The mapping to HW is done as the following
+                  bit 0: SCH_RCI_PARAMS.RCI_ENA
+                  bit 1: SCH_RCI_PARAMS.DEVICE_RCI_ENA
+                      2: SCH_RCI_PARAMS.SHARED_FABRIC_LINKS_MODE
+                      3: SCH_RCI_PARAMS.FABRIC_RCI_DISCARD_MODE
+                      4: SCH_RCI_PARAMS.USE_ONLY_LOCAL_RCI_FOR_CORE_RCI
+                      5: SCH_RCI_PARAMS.RCI_UNLINK_ENA
+                      6: SCH_RCI_PARAMS.RCI_UNLINK_AGGREGATE_ENA
+                      7: SCH_RCI_BFC_PARAMS.RCI_TRIGGERS_FLOW_CONTROL_ENA
+                      8: SCH_RCI_CREDIT_JITTER.CRDT_JTR_EN
+                -->
+                <EnumVal Name="INVALID" Value="0"/> 
+                <EnumVal Name="GLOBAL" Value="23"/> <!-- 0x17 - 
+                                                    RCI_ENA, DEVICE_RCI_ENA, SHARED_FABRIC_LINKS_MODE, (0x7) 
+                                                    USE_ONLY_LOCAL_RCI_FOR_CORE_RCI (0x10) -->
+                <EnumVal Name="DEVICE_BIASING" Value="287"/> <!-- 0x11f 
+                                               RCI_ENA, DEVICE_RCI_ENA, SHARED_FABRIC_LINKS_MODE, FABRIC_RCI_DISCARD_MODE, (0xf)
+                                               USE_ONLY_LOCAL_RCI_FOR_CORE_RCI, (0x10)
+                                               CRDT_JTR_EN (0x100)
+                                                             -->
+                <EnumVal Name="FLOW_BIASING" Value="191"/> <!-- 0xbf -
+                                                           RCI_ENA, DEVICE_RCI_ENA, SHARED_FABRIC_LINKS_MODE, FABRIC_RCI_DISCARD_MODE, (0xf)
+                                                           USE_ONLY_LOCAL_RCI_FOR_CORE_RCI, RCI_UNLINK_ENA, RCI_TRIGGERS_FLOW_CONTROL_ENA (0xb0)
+                                                            -->
+             </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+     <FieldType Name="ODD_EVEN_MODE" Size="1" Print="ENUM">
+        <OneLineDescription>Odd or Even composite</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="EVEN" Description="composite flow is composited from even only or odd only subflows (flow[i] and flow[i+2])"/>
+                <EnumVal Name="ODD" Description="composite flow is composited from two adjacent flows (flow[i] and flow[i+1])"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="EVEN" Value="0"/>
+                <EnumVal Name="ODD" Value="1"/>
+             </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+     <FieldType Name="SHARED_SHAPER_PROP_ORDER" Size="1" Print="ENUM">
+        <OneLineDescription>Credit propagation order in shared shaper</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="HIGH_TO_LOW" Description="higher flow_id gives credits to lower flow_id"/>
+                <EnumVal Name="LOW_TO_HIGH" Description="lower  flow_id gives credits to higher flow_id"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="HIGH_TO_LOW" Value="0"/>
+                <EnumVal Name="LOW_TO_HIGH" Value="1"/>
+             </EnumValueMapping>
+        </FieldToPhyDbMapping>
+     </FieldType>
+
+     <FieldType Name="SHARED_SHAPER_MODE" Size="2" Print="ENUM">
+        <OneLineDescription>Shared shaper mode</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NONE" Description="Each shaper is stand alone"/>
+                <EnumVal Name="DUAL" Description="Shared shaper consists of 2 shapers"/>
+                <EnumVal Name="QUAD" Description="Shared shaper consists of 4 shapers"/>
+                <EnumVal Name="OCTA" Description="Shared shaper consists of 8 shapers"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="NONE" Value="0"/>
+                <EnumVal Name="DUAL" Value="1"/>
+                <EnumVal Name="QUAD" Value="2"/>
+                <EnumVal Name="OCTA" Value="3"/>
+             </EnumValueMapping>
+        </FieldToPhyDbMapping>
+     </FieldType>
+     
+     <FieldType Name="LOW_RATE_FACTOR" Size="1" Print="ENUM">
+        <OneLineDescription>Low rate factor</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="LOW_RATE_FACTOR_64" Description="64"/>
+                <EnumVal Name="LOW_RATE_FACTOR_32" Description="32"/>
+        </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="LOW_RATE_FACTOR_64"   Value="0"/>
+                <EnumVal Name="LOW_RATE_FACTOR_32"   Value="1"/> 
+             </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+     <FieldType Name="VOQ_RATE_CLASS" Size="DNX_DATA.ingr_congestion.voq.rate_class_nof_bits" Print="UINT32">
+        <OneLineDescription>VOQ Rate Class Profile id</OneLineDescription>
+        <FieldDbInterface></FieldDbInterface>
+        <FieldToPhyDbMapping></FieldToPhyDbMapping>
+    </FieldType>
+    
+    <FieldType Name="DRAM_USE_MODE" Size="3" Print="ENUM">
+        <OneLineDescription>VOQ Rate Class DRAM usage mode</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                    <EnumVal Name="NORMAL" Description="SRAM + DRAM"/>
+                    <EnumVal Name="SRAM_ONLY" Description="do not use DRAM at all"/>
+                    <EnumVal Name="DRAM_ONLY" Description="use only DRAM, dont use SRAM"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                    <EnumVal Name="NORMAL" Value="0"/>
+                    <EnumVal Name="SRAM_ONLY" Value="1"/>
+                    <EnumVal Name="DRAM_ONLY" Value="2"/>
+             </EnumValueMapping>
+         </FieldToPhyDbMapping>
+    </FieldType>
+    
+    <FieldType Name="MULTICAST_PRIORITY" Size="1" Print="ENUM">
+        <OneLineDescription>Multicast priority</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                    <EnumVal Name="LOW_PRIORITY" Description="Multicast low priority"/>
+                    <EnumVal Name="HIGH_PRIORITY" Description="Multicast high priority"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                    <EnumVal Name="LOW_PRIORITY" Value="0"/>
+                    <EnumVal Name="HIGH_PRIORITY" Value="1"/>
+             </EnumValueMapping>
+         </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="PG_MAP_TC_SELECT" Size="2" Print="ENUM">
+        <OneLineDescription>Select where to take the TC for PG mapping</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                    <EnumVal Name="IN_TC" Description="TC reported from PP (TC on the packet)"/>
+                    <EnumVal Name="TM_TC" Description="TC used for VOQ resolution"/>
+                    <EnumVal Name="VOQ_TC" Description="TC from VOQ"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                    <EnumVal Name="IN_TC" Value="0"/>
+                    <EnumVal Name="TM_TC" Value="1"/>
+                    <EnumVal Name="VOQ_TC" Value="2"/>
+             </EnumValueMapping>
+         </FieldToPhyDbMapping>
+    </FieldType>
+    
+    <FieldType Name="DRAM_BOUND_STATE" Size="2" Print="ENUM">
+        <OneLineDescription>Returns if VOQ is in DRAM. All values but S2F means that VOQ is in DRAM </OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                    <EnumVal Name="S2F" Description="VOQ is in SRAM"/>
+                    <EnumVal Name="CONGESTED" Description="VOQ congested (VOQ is in DRAM)"/>
+                    <EnumVal Name="RECOVERY" Description="VOQ in recovery state (VOQ is in DRAM)"/>
+                    <EnumVal Name="NA" Description="Unknown state"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                    <EnumVal Name="S2F" Value="0"/>
+                    <EnumVal Name="CONGESTED" Value="1"/>
+                    <EnumVal Name="RECOVERY" Value="2"/>
+                    <EnumVal Name="NA" Value="3"/>
+             </EnumValueMapping>
+         </FieldToPhyDbMapping>
+    </FieldType>
+    
+    <FieldType Name="SCH_CREDIT_COUNTER_TYPE" Size="2" Print="ENUM">
+        <OneLineDescription>credit counter configuration - set which credits to count. </OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                    <EnumVal Name="ALL_CREDITS" Description="count all credits"/>
+                    <EnumVal Name="ONLY_RETRY" Description="count only retry credits"/>
+                    <EnumVal Name="ONLY_FLOW" Description="count only flow credits"/>
+                    <EnumVal Name="ONLY_REBOUND" Description="count only rebound credits"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                    <EnumVal Name="ALL_CREDITS" Value="0"/>
+                    <EnumVal Name="ONLY_RETRY" Value="1"/>
+                    <EnumVal Name="ONLY_FLOW" Value="2"/>
+                    <EnumVal Name="ONLY_REBOUND" Value="3"/>
+             </EnumValueMapping>
+         </FieldToPhyDbMapping>
+    </FieldType>
+    
+   <FieldType Name="VSQ_GUARANTEED_STATUS" Size="2" Print="ENUM">
+        <OneLineDescription>Status of guaranteed blocked. </OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                    <EnumVal Name="NONE" Description="not blocked"/>
+                    <EnumVal Name="PRE_BLOCKED" Description="about to be blocked"/>
+                    <EnumVal Name="BLOCKED" Description="blocked"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                    <EnumVal Name="NONE" Value="0"/>
+                    <EnumVal Name="PRE_BLOCKED" Value="1"/>
+                    <EnumVal Name="BLOCKED" Value="2"/>
+             </EnumValueMapping>
+         </FieldToPhyDbMapping>
+    </FieldType>
+    
+    <FieldType Name="SYSTEM_RED_AGING_MODE" Size="1" Print="ENUM">
+        <OneLineDescription>Defines what action to do when aging period expires. </OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                    <EnumVal Name="DECREMENT" Description="Decrement RED-Q-Size by one"/>
+                    <EnumVal Name="RESET" Description="Reset RED-Q-Size"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                    <EnumVal Name="DECREMENT" Value="0"/>
+                    <EnumVal Name="RESET" Value="1"/>
+             </EnumValueMapping>
+         </FieldToPhyDbMapping>
+    </FieldType>
+    
+    <FieldType Name="SYSTEM_RED_RESOURCE_TYPE" Size="2" Print="ENUM">
+        <OneLineDescription>Defines types of resources counted in system RED. </OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                    <EnumVal Name="SRAM_PDBS" Description="SRAM Packet Descriptor Buffers"/>
+                    <EnumVal Name="SRAM_BUFFERS" Description="SRAM Buffers"/>
+                    <EnumVal Name="DRAM_BDBS" Description="DRAM Buffer Descriptor Buffers"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                    <EnumVal Name="SRAM_PDBS" Value="0"/>
+                    <EnumVal Name="SRAM_BUFFERS" Value="1"/>
+                    <EnumVal Name="DRAM_BDBS" Value="2"/>
+             </EnumValueMapping>
+         </FieldToPhyDbMapping>
+    </FieldType>
+    
+    <FieldType Name="CONGESTION_NOTIFICATION_RESOURCE_TYPE" Size="2" Print="ENUM">
+        <OneLineDescription>Defines types of resources counted in system RED. </OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                    <EnumVal Name="TOTAL_WORDS" Description="Total (SRAM+DRAM) words"/>
+                    <EnumVal Name="SRAM_BUFFERS" Description="SRAM Buffers"/>
+                    <EnumVal Name="SRAM_PDS" Description="SRAM Packet Descriptors"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                    <EnumVal Name="TOTAL_WORDS" Value="0"/>
+                    <EnumVal Name="SRAM_BUFFERS" Value="1"/>
+                    <EnumVal Name="SRAM_PDS" Value="2"/>
+             </EnumValueMapping>
+         </FieldToPhyDbMapping>
+    </FieldType>
+    
+    <FieldType Name="SYSTEM_RED_Q_SIZE" Size="4" Print="UINT32">
+        <OneLineDescription>System RED Q-Size index</OneLineDescription>
+        <FieldDbInterface></FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ValueRestricts>
+            </ValueRestricts>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    
+    <FieldType Name="MIRROR_ON_DROP_GROUP_TYPE" Size="2" Print="ENUM">
+        <OneLineDescription>Defines types of mirror on drop group.</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                    <EnumVal Name="GLOBAL" Description="Global group"/>
+                    <EnumVal Name="VOQ" Description="VOQ group"/>
+                    <EnumVal Name="PORT" Description="Source port (VSQE) group"/>
+                    <EnumVal Name="PG" Description="PG (VSQF) group."/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                    <EnumVal Name="GLOBAL" Value="0"/>
+                    <EnumVal Name="VOQ" Value="1"/>
+                    <EnumVal Name="PORT" Value="2"/>
+                    <EnumVal Name="PG" Value="3"/>
+             </EnumValueMapping>
+         </FieldToPhyDbMapping>
+    </FieldType>  
+  
+    <FieldType Name="VSQ_A_ID" Size="#log2_round_up(DNX_DATA.ingr_congestion.vsq.vsq_a_nof)" Print="UINT32">
+        <OneLineDescription>VSQ A ID number</OneLineDescription>
+        <FieldDbInterface></FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ValueRestricts>
+                <MaxValue Value="DNX_DATA.ingr_congestion.vsq.vsq_a_nof-1" />
+            </ValueRestricts>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    
+    <FieldType Name="VSQ_B_ID" Size="#log2_round_up(DNX_DATA.ingr_congestion.vsq.vsq_b_nof)" Print="UINT32">
+        <OneLineDescription>VSQ B ID number</OneLineDescription>
+        <FieldDbInterface></FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ValueRestricts>
+                <MaxValue Value="DNX_DATA.ingr_congestion.vsq.vsq_b_nof-1" />
+            </ValueRestricts>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    
+    <FieldType Name="VSQ_C_ID" Size="#log2_round_up(DNX_DATA.ingr_congestion.vsq.vsq_c_nof)" Print="UINT32">
+        <OneLineDescription>VSQ C ID number</OneLineDescription>
+        <FieldDbInterface></FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ValueRestricts>
+                <MaxValue Value="DNX_DATA.ingr_congestion.vsq.vsq_c_nof-1" />
+            </ValueRestricts>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    
+    <FieldType Name="VSQ_D_ID" Size="#log2_round_up(DNX_DATA.ingr_congestion.vsq.vsq_d_nof)" Print="UINT32">
+        <OneLineDescription>VSQ D ID number</OneLineDescription>
+        <FieldDbInterface></FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ValueRestricts>
+                <MaxValue Value="DNX_DATA.ingr_congestion.vsq.vsq_d_nof-1" />
+            </ValueRestricts>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    
+    <FieldType Name="VSQ_E_ID" Size="#log2_round_up(DNX_DATA.ingr_congestion.vsq.vsq_e_hw_nof)" Print="UINT32">
+        <OneLineDescription>VSQ E ID number</OneLineDescription>
+        <FieldDbInterface></FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ValueRestricts>
+                <MaxValue Value="DNX_DATA.ingr_congestion.vsq.vsq_e_hw_nof-1" />
+            </ValueRestricts>
+        </FieldToPhyDbMapping>
+    </FieldType>
+    
+    <FieldType Name="VSQ_F_ID" Size="#log2_round_up(DNX_DATA.ingr_congestion.vsq.vsq_f_hw_nof)" Print="UINT32">
+        <OneLineDescription>VSQ F ID number</OneLineDescription>
+        <FieldDbInterface></FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ValueRestricts>
+                <MaxValue Value="DNX_DATA.ingr_congestion.vsq.vsq_f_hw_nof-1" />
+            </ValueRestricts>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="FMQ_SHAPER_TYPE" Size="2" Print="ENUM">
+        <OneLineDescription>Defines types of FMQ shapers.</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                    <EnumVal Name="ROOT_SHAPER" Description="Controls the overall rate generated by the FMC (Fabric MultiCast) credit generators in each core."/>
+                    <EnumVal Name="GUARANTEED_SHAPER" Description="Controls the credit shaper for GFMC (Guaranteed FMC)."/>
+                    <EnumVal Name="BE_SHAPER" Description="Controls the credit shaper for BFMC (Best-effort FMC)."/>
+                    <EnumVal Name="TOP_SHAPER" Description="Controls rate generated by the FMC credit generators for both IPS cores."/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping Device="JR2_A0 JR2_B0 J2P_A0">
+            <EnumValueMapping>
+                    <EnumVal Name="ROOT_SHAPER" Value="0"/>
+                    <EnumVal Name="GUARANTEED_SHAPER" Value="1"/>
+                    <EnumVal Name="BE_SHAPER" Value="2"/>
+                    <EnumVal Name="TOP_SHAPER" Value="3"/>
+             </EnumValueMapping>
+         </FieldToPhyDbMapping>
+         <FieldToPhyDbMapping Device="J2C_A0">
+            <EnumValueMapping>
+                    <EnumVal Name="ROOT_SHAPER" Value="0"/>
+                    <EnumVal Name="GUARANTEED_SHAPER" Value="1"/>
+                    <EnumVal Name="BE_SHAPER" Value="2"/>
+                    <EnumVal Name="TOP_SHAPER" Value="INVALID"/>
+             </EnumValueMapping>
+         </FieldToPhyDbMapping>
+    </FieldType>
+</FieldTypesDbCatalog>

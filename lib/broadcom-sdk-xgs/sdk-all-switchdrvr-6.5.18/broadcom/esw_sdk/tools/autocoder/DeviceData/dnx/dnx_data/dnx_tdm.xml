@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+
+<device_data lib="dnx_data" module="tdm" bsl_flag="BSL_LS_BCMDNX_EGRESSDNX">
+    <includes>
+    </includes>
+    <sub_module name="params" doc="default values for tdm module">
+        <defines>
+            <define labels="j2p_notrev" name="context_map_base_size"
+              doc="Number of bits in binary representation of base context which is added to SID to
+                   get the 'global SID'. Log2 of 'context_map_base_nof'"/>
+            <define labels="j2p_notrev" name="context_map_base_nof"  doc="Maximal Number of 'base context's"/>
+            <define labels="j2p_notrev" name="sid_min_size" doc="Minimal number of bits in binary representation of Stream ID."/>
+            <define labels="j2p_notrev" name="sid_size" doc="Number of bits in binary representation of Stream ID. Log2 of 'nof_stream_ids'"/>
+            <define labels="j2p_notrev" name="nof_stream_ids"  doc="Maximal Number of Stream IDs. Note that we include here the stream IDs which are below the 'min'"/>
+            <define labels="j2p_notrev" name="global_sid_offset_size" doc="Number of bits in binary representation of GLOBAL SID offset. Log2 of 'global_sid_offset_nof'"/>
+            <define labels="j2p_notrev" name="global_sid_offset_nof" doc="Number of GLOBAL SID offsets. Maximal value of GLOBAL SID offset plus 1"/>
+            <define labels="j2p_notrev" name="sid_offset_size" doc="Number of bits in binary representation of SID offset, in bytes. Log2 of 'sid_offset_nof'"/>
+            <define labels="j2p_notrev" name="sid_offset_nof" doc="Number of SID offsets when counted in bytes. Maximal value of SID offset plus 1"/>
+            <define labels="j2p_notrev" name="sid_offset_nof_in_bits" doc="Number of SID offsets when counted in bits. Maximal value of SID offset in bits plus 1"/>
+            <define labels="j2p_notrev" name="context_size" doc="Context ID size, in bits. Log2 of 'nof_contexts'"/>
+            <define labels="j2p_notrev" name="nof_contexts"  doc="Maximal Number of Context IDs"/>
+            <define labels="j2p_notrev" name="pkt_size_size"  doc="Size of pkt_size field"/>
+            <define labels="j2p_notrev" name="pkt_size_lower_limit" doc="Minimum packet size for Bypass Mode"/>
+            <define labels="j2p_notrev" name="pkt_size_upper_limit" doc="Maximum packet size for Bypass Mode"/>
+            <define labels="j2p_notrev" name="link_mask_size" doc="Size direct link mask for bypass traffic"/>
+            <define labels="j2p_notrev" name="link_mask_nof" doc="Number of direct link masks for bypass traffic"/>
+        </defines>
+        <numerics>
+            <numeric labels="j2p_notrev" name="tdm_tc" doc="TDM traffic class"/>
+            <numeric labels="j2p_notrev" name="tdm_dp" doc="TDM drop precedence"/>
+            <numeric labels="j2p_notrev" name="mode" doc="TDM mode - defines header type. If NONE - tdm disabled"/>
+        </numerics>
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="Marks presence of TDM functionality"/>
+        </features>
+    </sub_module>
+</device_data>

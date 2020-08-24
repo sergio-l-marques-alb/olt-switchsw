@@ -1,0 +1,159 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0"  module="port">
+    <includes>
+        <include>soc/dnx/dbal/auto_generated/dbal_defines_fields.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_fabric.h</include>
+    </includes>
+
+    <sub_module name="general">
+        <features>
+            <feature name="unrestricted_portmod_pll"> </feature>
+        </features>
+
+        <defines>
+            <define name="reserved_tm_port" value="-1"></define>
+            <define name="ingress_vlan_domain_size" value="11"></define>
+            <define name="vlan_domain_size" value="11"></define>
+            <define name="ffc_instruction_size" value="21"></define>
+            <define name="prt_ffc_width_start_offset" value="6"></define>
+            <define name="prt_ffc_start_input_offset" value="12"></define>
+            <define name="fabric_phys_offset" support="0"></define>
+        </defines>
+
+        <numerics>
+            <numeric name="nof_port_bits_in_pp_bus" value="10"></numeric>
+            <numeric name="pp_port_bits_size" value="8"></numeric>
+            <numeric name="fabric_port_base" value="SOC_MAX_NUM_PORTS-DATA(fabric,links,nof_links)">
+                <property name="fabric_logical_port_base" method="custom">
+                    <doc>
+                        Even so that Q2A doesn't have fabric
+                        data is left because it is used for other logical port calculations
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+
+        <tables>
+            <table name="prt_configuration" mode="sequential">
+                <key name="index"></key>
+                <value name="prt_recycle_profile" default="0"></value>
+                <value name="port_termination_ptc_profile" default="0"></value>
+                <value name="prt_qual_mode" default="0"></value>
+                <value name="layer_offset" default="0"></value>
+                <value name="context_select" default="0"></value>
+                <value name="kbr_valid_bitmap_4" default="0"></value>
+                <value name="kbr_valid_bitmap_3" default="0"></value>
+                <value name="kbr_valid_bitmap_2" default="0"></value>
+                <value name="kbr_valid_bitmap_1" default="0"></value>
+                <value name="ffc_5_offset" default="0"></value>
+                <value name="ffc_5_width" default="0"></value>
+                <value name="ffc_5_input_offset" default="0"></value>
+                <value name="ffc_4_offset" default="0"></value>
+                <value name="ffc_4_width" default="0"></value>
+                <value name="ffc_4_input_offset" default="0"></value>
+                <value name="ffc_3_offset" default="0"></value>
+                <value name="ffc_3_width" default="0"></value>
+                <value name="ffc_3_input_offset" default="0"></value>
+                <value name="ffc_2_offset" default="0"></value>
+                <value name="ffc_2_width" default="0"></value>
+                <value name="ffc_2_input_offset" default="0"></value>
+                <value name="ffc_1_offset" default="0"></value>
+                <value name="ffc_1_width" default="0"></value>
+                <value name="ffc_1_input_offset" default="0"></value>
+                <value name="ffc_0_offset" default="0"></value>
+                <value name="ffc_0_width" default="0"></value>
+                <value name="ffc_0_input_offset" default="0"></value>
+                <value name="src_sys_port_prt_mode" default="0"></value>
+                <value name="pp_port_en" default="0"></value>
+                <value name="tcam_mode_full_en" default="0"></value>
+                <entries>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_NONE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_PTCH2" prt_qual_mode="1" layer_offset="2" context_select="1" kbr_valid_bitmap_4="2" kbr_valid_bitmap_3="4" kbr_valid_bitmap_2="0" kbr_valid_bitmap_1="1" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="0" ffc_4_input_offset="0" ffc_3_offset="0" ffc_3_width="0" ffc_3_input_offset="0" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="255" ffc_1_offset="0" ffc_1_width="2" ffc_1_input_offset="252" ffc_0_offset="0" ffc_0_width="9" ffc_0_input_offset="240" src_sys_port_prt_mode="0" pp_port_en="0" tcam_mode_full_en="0"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_NONE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_PTCH1" prt_qual_mode="1" layer_offset="3" context_select="1" kbr_valid_bitmap_4="2" kbr_valid_bitmap_3="4" kbr_valid_bitmap_2="0" kbr_valid_bitmap_1="9" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="0" ffc_4_input_offset="0" ffc_3_offset="16" ffc_3_width="0" ffc_3_input_offset="325" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="255" ffc_1_offset="0" ffc_1_width="2" ffc_1_input_offset="252" ffc_0_offset="0" ffc_0_width="15" ffc_0_input_offset="232" src_sys_port_prt_mode="1" pp_port_en="1" tcam_mode_full_en="0"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_NONE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_ETHERNET" prt_qual_mode="0" layer_offset="0" context_select="0" kbr_valid_bitmap_4="0" kbr_valid_bitmap_3="0" kbr_valid_bitmap_2="16" kbr_valid_bitmap_1="1" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="15" ffc_4_input_offset="294" ffc_3_offset="0" ffc_3_width="0" ffc_3_input_offset="0" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="0" ffc_1_offset="0" ffc_1_width="0" ffc_1_input_offset="0" ffc_0_offset="0" ffc_0_width="9" ffc_0_input_offset="310" src_sys_port_prt_mode="2" pp_port_en="0" tcam_mode_full_en="0"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_PTCH2" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_ETHERNET" prt_qual_mode="1" layer_offset="2" context_select="1" kbr_valid_bitmap_4="2" kbr_valid_bitmap_3="4" kbr_valid_bitmap_2="16" kbr_valid_bitmap_1="1" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="15" ffc_4_input_offset="292" ffc_3_offset="0" ffc_3_width="0" ffc_3_input_offset="0" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="255" ffc_1_offset="0" ffc_1_width="2" ffc_1_input_offset="252" ffc_0_offset="0" ffc_0_width="9" ffc_0_input_offset="240" src_sys_port_prt_mode="2" pp_port_en="0" tcam_mode_full_en="1"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_802_1BR_TYPE1" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_ETHERNET" prt_qual_mode="0" layer_offset="0" context_select="0" kbr_valid_bitmap_4="0" kbr_valid_bitmap_3="8" kbr_valid_bitmap_2="4" kbr_valid_bitmap_1="1" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="0" ffc_4_input_offset="0" ffc_3_offset="0" ffc_3_width="4" ffc_3_input_offset="280" ffc_2_offset="0" ffc_2_width="15" ffc_2_input_offset="128" ffc_1_offset="0" ffc_1_width="0" ffc_1_input_offset="0" ffc_0_offset="0" ffc_0_width="7" ffc_0_input_offset="308" src_sys_port_prt_mode="2" pp_port_en="0" tcam_mode_full_en="0"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_802_1BR_TYPE2" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_ETHERNET" prt_qual_mode="0" layer_offset="8" context_select="0" kbr_valid_bitmap_4="0" kbr_valid_bitmap_3="0" kbr_valid_bitmap_2="0" kbr_valid_bitmap_1="1" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="0" ffc_4_input_offset="0" ffc_3_offset="0" ffc_3_width="0" ffc_3_input_offset="0" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="0" ffc_1_offset="0" ffc_1_width="0" ffc_1_input_offset="0" ffc_0_offset="0" ffc_0_width="9" ffc_0_input_offset="310" src_sys_port_prt_mode="0" pp_port_en="0" tcam_mode_full_en="0"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_NONE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_RCH" prt_qual_mode="0" layer_offset="0" context_select="0" kbr_valid_bitmap_4="0" kbr_valid_bitmap_3="0" kbr_valid_bitmap_2="16" kbr_valid_bitmap_1="1" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="32" ffc_4_width="7" ffc_4_input_offset="265" ffc_3_offset="0" ffc_3_width="0" ffc_3_input_offset="0" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="0" ffc_1_offset="0" ffc_1_width="0" ffc_1_input_offset="0" ffc_0_offset="32" ffc_0_width="4" ffc_0_input_offset="269" src_sys_port_prt_mode="2" pp_port_en="0" tcam_mode_full_en="1"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_COE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_COE" prt_qual_mode="0" layer_offset="4" context_select="0" kbr_valid_bitmap_4="0" kbr_valid_bitmap_3="0" kbr_valid_bitmap_2="0" kbr_valid_bitmap_1="11" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="0" ffc_4_input_offset="0" ffc_3_offset="14" ffc_3_width="2" ffc_3_input_offset="325" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="0" ffc_1_offset="8" ffc_1_width="5" ffc_1_input_offset="310" ffc_0_offset="0" ffc_0_width="7" ffc_0_input_offset="224" src_sys_port_prt_mode="0" pp_port_en="1" tcam_mode_full_en="0"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_PTCH2" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_RCH" prt_qual_mode="1" layer_offset="2" context_select="1" kbr_valid_bitmap_4="2" kbr_valid_bitmap_3="4" kbr_valid_bitmap_2="0" kbr_valid_bitmap_1="1" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="0" ffc_4_input_offset="0" ffc_3_offset="0" ffc_3_width="2" ffc_3_input_offset="262" ffc_2_offset="32" ffc_2_width="7" ffc_2_input_offset="224" ffc_1_offset="32" ffc_1_width="1" ffc_1_input_offset="255" ffc_0_offset="32" ffc_0_width="4" ffc_0_input_offset="252" src_sys_port_prt_mode="0" pp_port_en="0" tcam_mode_full_en="1"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_NONE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_PTCH2_JR1" prt_qual_mode="1" layer_offset="2" context_select="1" kbr_valid_bitmap_4="2" kbr_valid_bitmap_3="12" kbr_valid_bitmap_2="0" kbr_valid_bitmap_1="1" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="0" ffc_4_input_offset="0" ffc_3_offset="1" ffc_3_width="1" ffc_3_input_offset="325" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="255" ffc_1_offset="0" ffc_1_width="3" ffc_1_input_offset="252" ffc_0_offset="0" ffc_0_width="9" ffc_0_input_offset="240" src_sys_port_prt_mode="0" pp_port_en="0" tcam_mode_full_en="1"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_NONE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_ITMH" prt_qual_mode="0" layer_offset="0" context_select="0" kbr_valid_bitmap_4="0" kbr_valid_bitmap_3="0" kbr_valid_bitmap_2="0" kbr_valid_bitmap_1="1" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="0" ffc_4_input_offset="0" ffc_3_offset="0" ffc_3_width="0" ffc_3_input_offset="0" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="0" ffc_1_offset="0" ffc_1_width="0" ffc_1_input_offset="0" ffc_0_offset="0" ffc_0_width="9" ffc_0_input_offset="310" src_sys_port_prt_mode="0" pp_port_en="0" tcam_mode_full_en="1"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_NONE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_PTCH2_UD1" prt_qual_mode="1" layer_offset="2" context_select="1" kbr_valid_bitmap_4="2" kbr_valid_bitmap_3="4" kbr_valid_bitmap_2="0" kbr_valid_bitmap_1="1" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="0" ffc_4_input_offset="0" ffc_3_offset="0" ffc_3_width="0" ffc_3_input_offset="0" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="255" ffc_1_offset="0" ffc_1_width="2" ffc_1_input_offset="252" ffc_0_offset="0" ffc_0_width="9" ffc_0_input_offset="240" src_sys_port_prt_mode="0" pp_port_en="0" tcam_mode_full_en="0"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_NONE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_ETH_UD1" prt_qual_mode="0" layer_offset="0" context_select="0" kbr_valid_bitmap_4="0" kbr_valid_bitmap_3="0" kbr_valid_bitmap_2="0" kbr_valid_bitmap_1="1" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="0" ffc_4_input_offset="0" ffc_3_offset="0" ffc_3_width="0" ffc_3_input_offset="0" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="0" ffc_1_offset="0" ffc_1_width="0" ffc_1_input_offset="0" ffc_0_offset="0" ffc_0_width="9" ffc_0_input_offset="310" src_sys_port_prt_mode="0" pp_port_en="0" tcam_mode_full_en="0"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_NONE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_PTCH2_UD2" prt_qual_mode="1" layer_offset="2" context_select="1" kbr_valid_bitmap_4="2" kbr_valid_bitmap_3="4" kbr_valid_bitmap_2="0" kbr_valid_bitmap_1="1" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="0" ffc_4_input_offset="0" ffc_3_offset="0" ffc_3_width="0" ffc_3_input_offset="0" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="255" ffc_1_offset="0" ffc_1_width="2" ffc_1_input_offset="252" ffc_0_offset="0" ffc_0_width="9" ffc_0_input_offset="240" src_sys_port_prt_mode="0" pp_port_en="0" tcam_mode_full_en="0"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_NONE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_ETH_UD2" prt_qual_mode="0" layer_offset="0" context_select="0" kbr_valid_bitmap_4="0" kbr_valid_bitmap_3="0" kbr_valid_bitmap_2="0" kbr_valid_bitmap_1="1" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="0" ffc_4_input_offset="0" ffc_3_offset="0" ffc_3_width="0" ffc_3_input_offset="0" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="0" ffc_1_offset="0" ffc_1_width="0" ffc_1_input_offset="0" ffc_0_offset="0" ffc_0_width="9" ffc_0_input_offset="310" src_sys_port_prt_mode="0" pp_port_en="0" tcam_mode_full_en="0"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_NONE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_PTCH1_UD1" prt_qual_mode="1" layer_offset="3" context_select="1" kbr_valid_bitmap_4="2" kbr_valid_bitmap_3="4" kbr_valid_bitmap_2="0" kbr_valid_bitmap_1="9" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="0" ffc_4_input_offset="0" ffc_3_offset="16" ffc_3_width="0" ffc_3_input_offset="325" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="255" ffc_1_offset="0" ffc_1_width="2" ffc_1_input_offset="252" ffc_0_offset="0" ffc_0_width="15" ffc_0_input_offset="232" src_sys_port_prt_mode="1" pp_port_en="1" tcam_mode_full_en="0"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_NONE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_PTCH1_UD1_AFTER_INJECTED" prt_qual_mode="1" layer_offset="3" context_select="1" kbr_valid_bitmap_4="2" kbr_valid_bitmap_3="4" kbr_valid_bitmap_2="0" kbr_valid_bitmap_1="9" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="0" ffc_4_input_offset="0" ffc_3_offset="16" ffc_3_width="0" ffc_3_input_offset="325" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="255" ffc_1_offset="0" ffc_1_width="2" ffc_1_input_offset="252" ffc_0_offset="0" ffc_0_width="15" ffc_0_input_offset="232" src_sys_port_prt_mode="1" pp_port_en="1" tcam_mode_full_en="0"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_NONE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_RAW" prt_qual_mode="0" layer_offset="0" context_select="0" kbr_valid_bitmap_4="0" kbr_valid_bitmap_3="0" kbr_valid_bitmap_2="0" kbr_valid_bitmap_1="1" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="0" ffc_4_input_offset="0" ffc_3_offset="0" ffc_3_width="0" ffc_3_input_offset="0" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="0" ffc_1_offset="0" ffc_1_width="0" ffc_1_input_offset="0" ffc_0_offset="0" ffc_0_width="9" ffc_0_input_offset="310" src_sys_port_prt_mode="0" pp_port_en="0" tcam_mode_full_en="0"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_COE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_PON" prt_qual_mode="0" layer_offset="4" context_select="0" kbr_valid_bitmap_4="0" kbr_valid_bitmap_3="0" kbr_valid_bitmap_2="0" kbr_valid_bitmap_1="7" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="0" ffc_4_input_offset="0" ffc_3_offset="0" ffc_3_width="0" ffc_3_input_offset="0" ffc_2_offset="13" ffc_2_width="3" ffc_2_input_offset="294" ffc_1_offset="3" ffc_1_width="9" ffc_1_input_offset="310" ffc_0_offset="0" ffc_0_width="2" ffc_0_input_offset="236" src_sys_port_prt_mode="0" pp_port_en="1" tcam_mode_full_en="0"></entry>                    
+               </entries>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="static_add">
+        <defines>
+        </defines>
+        <tables>
+            <table name="header_type">
+                <key name="port"  size="DATA(port,general,fabric_port_base)"></key>
+                <value name="header_type_in" default="BCM_SWITCH_PORT_HEADER_TYPE_ETH">
+                <property name="tm_port_header_type" method="port_suffix_direct_map" suffix="in">
+                        <map name="ETH" value="BCM_SWITCH_PORT_HEADER_TYPE_ETH"></map>
+                        <map name="RAW" value="BCM_SWITCH_PORT_HEADER_TYPE_RAW"></map>
+                        <map name="INJECTED" value="BCM_SWITCH_PORT_HEADER_TYPE_INJECTED"></map>
+                        <map name="INJECTED_2_PP" value="BCM_SWITCH_PORT_HEADER_TYPE_INJECTED_2_PP"></map>
+                        <map name="INJECTED_2" value="BCM_SWITCH_PORT_HEADER_TYPE_INJECTED_2"></map>
+                        <map name="TM" value="BCM_SWITCH_PORT_HEADER_TYPE_TM"></map>
+                        <map name="MPLS_RAW" value="BCM_SWITCH_PORT_HEADER_TYPE_MPLS_RAW"></map>
+                    <doc>
+                        Header type per incoming port.
+                    </doc>
+                </property>
+                </value>
+                <value name="header_type_out" default="BCM_SWITCH_PORT_HEADER_TYPE_ETH">
+                <property name="tm_port_header_type" method="port_suffix_direct_map" suffix="out">
+                        <map name="ETH" value="BCM_SWITCH_PORT_HEADER_TYPE_ETH"></map>
+                        <map name="RAW" value="BCM_SWITCH_PORT_HEADER_TYPE_RAW"></map>
+                        <map name="CPU" value="BCM_SWITCH_PORT_HEADER_TYPE_CPU"></map>
+                        <map name="ENCAP_EXTERNAL_CPU" value="BCM_SWITCH_PORT_HEADER_TYPE_ENCAP_EXTERNAL_CPU"></map>
+                    <doc>
+                        Header type per outgoing port.
+                    </doc>
+                </property>
+                </value>
+                <value name="header_type" default="BCM_SWITCH_PORT_HEADER_TYPE_ETH">
+                <property name="tm_port_header_type" method="port_direct_map">
+                        <map name="ETH" value="BCM_SWITCH_PORT_HEADER_TYPE_ETH"></map>
+                        <map name="RAW" value="BCM_SWITCH_PORT_HEADER_TYPE_RAW"></map>
+                        <map name="MPLS_RAW" value="BCM_SWITCH_PORT_HEADER_TYPE_MPLS_RAW"></map>
+                    <doc>
+                        Header type per port.
+                    </doc>
+                </property>
+                </value>
+            </table>
+
+            <table name="fabric_quad_info" init_only="1" supported="0">
+                <key name="quad" size="DATA(fabric,links,nof_links)/4"></key>
+                <value name="quad_enable" default="0">
+                    <property name="serdes_qrtt_active" method="port_direct_map">
+                        <map name="0" value="0"></map>
+                        <doc>
+                            For Backward compatability with other devices
+                            leave value of 0(disable) to be supported.
+                        </doc>
+                    </property>
+                </value>
+            </table>
+        </tables>
+
+        <numerics>
+        </numerics>
+
+    </sub_module>
+        
+</device_data>
+
+
+

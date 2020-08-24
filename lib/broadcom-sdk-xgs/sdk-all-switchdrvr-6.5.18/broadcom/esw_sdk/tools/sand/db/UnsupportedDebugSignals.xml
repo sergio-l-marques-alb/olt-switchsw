@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+<signals>
+    <signal block="ITPP">
+        <device chip="BCM88690_A0"/>
+    </signal>
+    <signal block="IRPP" from="LLR" name="Packet_Header">
+        <device chip="BCM88690_A0"/>
+        <device chip="BCM88690_B0"/>
+        <device chip="BCM88480_A0"/>
+        <device chip="BCM88480_B0"/>
+    </signal>
+    <signal block="IRPP" from="NIF" name="Header">
+        <device chip="BCM88480_A0"/>
+        <device chip="BCM88480_B0"/>
+        <device chip="BCM88800_A0"/>
+    </signal>
+    <signal block="IRPP" from="IPMF3" name="parsing_start_offset">
+        <device chip="BCM88690_A0"/>
+        <device chip="BCM88690_B0"/>
+        <device chip="BCM88800_A0"/>
+        <device chip="BCM88480_A0"/>
+        <device chip="BCM88480_B0"/>
+    </signal>
+    <signal block="IRPP" from="IPMF3" name="parsing_start_offset_valid">
+        <device chip="BCM88690_A0"/>
+        <device chip="BCM88690_B0"/>
+        <device chip="BCM88800_A0"/>
+        <device chip="BCM88480_A0"/>
+        <device chip="BCM88480_B0"/>
+    </signal>
+    <signal block="IRPP" from="IPMF3" name="parsing_start_type">
+        <device chip="BCM88690_A0"/>
+        <device chip="BCM88690_B0"/>
+        <device chip="BCM88800_A0"/>
+        <device chip="BCM88480_A0"/>
+        <device chip="BCM88480_B0"/>
+    </signal>
+    <signal block="IRPP" from="IPMF3" name="parsing_start_type_valid">
+        <device chip="BCM88690_A0"/>
+        <device chip="BCM88690_B0"/>
+        <device chip="BCM88800_A0"/>
+        <device chip="BCM88480_A0"/>
+        <device chip="BCM88480_B0"/>
+    </signal>
+    <signal block="IRPP" from="IPMF3" name="visibility">
+        <device chip="BCM88690_A0"/>
+        <device chip="BCM88690_B0"/>
+        <device chip="BCM88800_A0"/>
+        <device chip="BCM88480_A0"/>
+        <device chip="BCM88480_B0"/>
+    </signal>
+    <signal block="ETPP" from="FWD" name="vsds">
+        <device chip="BCM88690_A0"/>
+        <device chip="BCM88690_B0"/>
+        <device chip="BCM88480_A0"/>
+        <device chip="BCM88480_B0"/>
+        <device chip="BCM88800_A0"/>
+    </signal>
+    <signal block="ETPP" from="ENC1" name="vsds">
+        <device chip="BCM88690_A0"/>
+        <device chip="BCM88690_B0"/>
+        <device chip="BCM88480_A0"/>
+        <device chip="BCM88480_B0"/>
+        <device chip="BCM88800_A0"/>
+    </signal>
+    <signal block="ETPP" from="Term" name="forward_code">
+        <device chip="BCM88690_A0"/>
+        <device chip="BCM88690_B0"/>
+        <device chip="BCM88480_A0"/>
+        <device chip="BCM88480_B0"/>
+        <device chip="BCM88800_A0"/>
+    </signal>
+    <signal block="ETPP" name="pp_dsp">
+        <device chip="BCM88690_A0"/>
+        <device chip="BCM88690_B0"/>
+        <device chip="BCM88480_A0"/>
+        <device chip="BCM88480_B0"/>
+        <device chip="BCM88800_A0"/>
+    </signal>
+    <signal block="ETPP" from="FWD" name="cud_outlif_or_mcdb_ptr">
+        <device chip="BCM88690_A0"/>
+        <device chip="BCM88690_B0"/>
+        <device chip="BCM88480_A0"/>
+        <device chip="BCM88480_B0"/>
+        <device chip="BCM88800_A0"/>
+    </signal>
+    <signal block="ETPP" from="FWD" name="out_pp_port">
+        <device chip="BCM88690_A0"/>
+        <device chip="BCM88690_B0"/>
+        <device chip="BCM88480_A0"/>
+        <device chip="BCM88480_B0"/>
+        <device chip="BCM88800_A0"/>
+    </signal>
+</signals>

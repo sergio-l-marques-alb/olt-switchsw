@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="vlan">
+
+    <sub_module name="vlan_translate">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name= "nof_vlan_tag_formats"            value="32"></define>
+            <define name= "nof_vlan_edit_action_ids"        value="128"></define>
+            <define name= "nof_ingress_vlan_edit_profiles"  value="64"></define>
+            <define name= "nof_egress_vlan_edit_profiles"   value="64"></define>
+            <define name= "nof_vlan_range_entries"          value="32"></define>
+            <define name= "nof_vlan_ranges_per_entry"       value="32"></define>
+            <define name = "egress_tpid_outer_packet_index" value="14"></define>
+            <define name = "egress_tpid_inner_packet_index" value="15"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        
+        
+        <tables>                       
+        </tables>
+         
+    </sub_module>
+    <sub_module name="llvp">
+        
+        <features>
+        </features>
+        
+        <defines>
+        </defines>
+
+        <numerics>
+            <numeric name="ext_vcp_en" value="0">
+                <property name="l2_port_tpid_class_mode" method="enable">
+                    <doc>
+                        Extended Vlan Classification enable
+                        Default: 0
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>        
+        
+        <tables>                       
+        </tables>
+         
+    </sub_module>
+
+</device_data>
+
+
+

@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="lane_map" bsl_flag="BSL_LS_BCMDNX_PORT">
+    <includes>
+        <include>bcm/port.h</include>
+    </includes>
+   
+    <sub_module name="nif" doc="lane mapping attributes for NIF">
+
+        <features>
+        </features>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+            <table labels="j2p_notrev" name="mapping" doc="lane to serdes mapping info for NIF ports">
+                <key name="lane_id" doc="logical lane id"></key>
+                <value name="serdes_rx_id" type="int" doc="Rx Serdes lane id"></value>
+                <value name="serdes_tx_id" type="int" doc="Tx Serdes lane id"></value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="fabric" doc="lane mapping attributes for Farbic">
+
+        <features>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="resolution" doc="Nof links which fabric lane mapping is allowed."></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+        <tables>
+            <table labels="j2p_notrev" name="mapping" doc="lane to serdes mapping info for Fabric links">
+                <key name="lane_id" doc="logical lane id"></key>
+                <value name="serdes_rx_id" type="int" doc="Rx Serdes lane id"></value>
+                <value name="serdes_tx_id" type="int" doc="Tx Serdes lane id"></value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="ilkn" doc="logical lane re-mapping attributes for ILKN">
+
+        <features>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+        <tables>
+            <table labels="j2p_notrev" name="remapping" doc="Ilkn remapping info">
+                <key name="lane_id" doc="logical lane id"></key>
+                <key name="ilkn_id" doc="ILKN port ID"></key>
+                <value name="ilkn_lane_id" type="int" doc="Ilkn lane ID after remapping."></value>
+            </table>
+        </tables>
+    </sub_module>
+</device_data>

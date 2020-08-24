@@ -1,0 +1,118 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0" module="device">
+    <includes>
+        <include>shared/utilex/utilex_integer_arithmetic.h</include>
+    </includes>
+
+    <sub_module name="general">
+        <features>
+            <feature name="rqp_ecc_err_exist" value="0"></feature>
+            <feature name="hard_reset_disable" value="0">
+                <property name="custom_feature" method="suffix_enable" suffix="init_without_device_hard_reset">
+                    <doc>
+                        Init the device without hard reset.
+                        Can be 0 and 1
+                        Default: 0
+                    </doc>
+                </property>
+            </feature>
+
+            <feature name="multi_core" value="1"></feature>
+            <feature name="new_crc32_calc" value="0"></feature>
+        </features>
+
+        <defines>
+            <define name="max_nof_system_ports" value="32*1024"></define>
+            <define name="invalid_system_port" value="DATA(device,general,max_nof_system_ports) - 1"></define>
+            <define name="fmq_system_port" value="DATA(device,general,max_nof_system_ports) - 2"></define>
+            <define name="invalid_fap_id" value="2*1024 - 1"></define>
+            <define name="fap_ids_per_core_bits" value="1"></define>
+            <define name="nof_cores" value="2"></define>
+        </defines>
+
+        <numerics>
+            <!-- Working in a single core mode is not supported -->
+            <numeric name="core_max_nof_bits" value="1"></numeric>
+            <numeric name="max_nof_fap_ids_per_core" value="1"></numeric>
+            <numeric name="max_nof_fap_ids_per_device" value="DATA(device,general,nof_cores) * DATA(device,general,max_nof_fap_ids_per_core)"></numeric>
+            <numeric name="core_clock_khz" value="1000000">
+                <property name="core_clock_speed" method="suffix_range" suffix="khz" range_min="300000" range_max="3000000">
+                    <doc>
+                        Device core clock frequency in KHZ
+                        Synopsis: core_clock_speed_khz=#freq#
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="system_ref_core_clock_khz" value="1200000">
+                <property name="system_ref_core_clock"  method="suffix_range" suffix="khz" range_min="300000" range_max="3000000">
+                    <doc>
+                       Specifies system reference clock speed in kHz.
+                       For a system containing a legacy device,the system reference clock needs to be set according to the legacy device.
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="ref_core_clock_mhz" value="25"></numeric>
+            <numeric name="bus_size_in_bits" value="4096"></numeric>
+            <numeric name="maximal_core_bandwidth_kbps" value="DATA(device,general,bus_size_in_bits)*DATA(device,general,core_clock_khz)"></numeric>
+            <numeric name="packet_per_clock" value="1"></numeric>
+            <numeric name="nof_faps" value="2*1024">
+                <property name="fabric_connect_mode" method="direct_map">
+                    <map name="FE" value="2*1024"></map>
+                    <map name="SINGLE_FAP" value="16"></map>
+                    <map name="MESH" value="16"></map>
+                    <doc>NULL</doc> <!--  not required - soc property already defined by a different data -->
+                </property>
+            </numeric>
+            <numeric name="device_id" value="0x8690"></numeric>
+            <numeric name="nof_sku_bits" value="4"></numeric>
+            <numeric name="emulation_system" value="0">
+                <property name="diag_emulator_partial_init" method="range" range_min="0" range_max="3">
+                    <doc>
+                        Checking if the device is ran on emulation.
+                        Can be 1,2 ,3
+                        Default: 0
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="bist_enable" value="0">
+                <property name="bist_enable" method="range" range_min="0" range_max="2" >
+                    <doc>
+                       Determines if to run Memory Built-In Self-Test (MBIST) of internal memories (tables) during startup.
+                       0 - do not run
+                       1 - run
+                       2 - run without stopping on errors,with extra logs
+                    </doc>
+                </property>
+          </numeric>
+          <numeric name="nof_bits_for_nof_cores" value="utilex_log2_round_up(DATA(device,general,nof_cores))"></numeric>
+        </numerics>
+        <tables>
+            <table name="ecc_err_masking" mode="map">
+                <key name="block_type"></key>
+                <value name="ecc_1bit_err_mask_reg" default="-1"></value>
+                <value name="ecc_1bit_err_field" default="-1"></value>
+                <value name="ecc_2bit_err_mask_reg" default="-1"></value>
+                <value name="ecc_2bit_err_field" default="-1"></value>
+                <entries>
+                    <entry block_type="SOC_BLK_ECGM" ecc_1bit_err_mask_reg="ECGM_ECC_ERR_1B_MONITOR_MEM_MASKr" ecc_2bit_err_mask_reg="ECGM_ECC_ERR_2B_MONITOR_MEM_MASKr" 
+                     ecc_1bit_err_field="QDCM_ECC_1B_ERR_MASKf,QQSM_ECC_1B_ERR_MASKf,PDCM_ECC_1B_ERR_MASKf,PQSM_ECC_1B_ERR_MASKf,FDCM_ECC_1B_ERR_MASKf,FQSM_ECC_1B_ERR_MASKf,-1,-1,-1,-1,-1,-1" 
+                     ecc_2bit_err_field="QDCM_ECC_2B_ERR_MASKf,QQSM_ECC_2B_ERR_MASKf,PDCM_ECC_2B_ERR_MASKf,PQSM_ECC_2B_ERR_MASKf,FDCM_ECC_2B_ERR_MASKf,FQSM_ECC_2B_ERR_MASKf,-1,-1,-1,-1,-1,-1"></entry>
+                    <entry block_type="SOC_BLK_CGM" ecc_1bit_err_mask_reg="CGM_ECC_ERR_1B_MONITOR_MEM_MASKr" ecc_2bit_err_mask_reg="CGM_ECC_ERR_2B_MONITOR_MEM_MASKr" 
+                     ecc_1bit_err_field="VSQE_WORDS_STATE_ECC_1B_ERR_MASKf,VSQE_SRAM_PDS_STATE_ECC_1B_ERR_MASKf,VSQE_SRAM_BUFFERS_STATE_ECC_1B_ERR_MASKf,VSQC_WORDS_STATE_ECC_1B_ERR_MASKf,VSQD_SRAM_PDS_STATE_ECC_1B_ERR_MASKf,VSQD_SRAM_BUFFERS_STATE_ECC_1B_ERR_MASKf,VSQD_WORDS_STATE_ECC_1B_ERR_MASKf,VSQF_SRAM_BUFFERS_STATE_ECC_1B_ERR_MASKf,VSQF_WORDS_STATE_ECC_1B_ERR_MASKf,VSQF_SRAM_PDS_STATE_ECC_1B_ERR_MASKf,-1,-1" 
+                     ecc_2bit_err_field="VSQE_WORDS_STATE_ECC_2B_ERR_MASKf,VSQE_SRAM_PDS_STATE_ECC_2B_ERR_MASKf,VSQE_SRAM_BUFFERS_STATE_ECC_2B_ERR_MASKf,VSQC_WORDS_STATE_ECC_2B_ERR_MASKf,VSQD_SRAM_PDS_STATE_ECC_2B_ERR_MASKf,VSQD_SRAM_BUFFERS_STATE_ECC_2B_ERR_MASKf,VSQD_WORDS_STATE_ECC_2B_ERR_MASKf,VSQF_SRAM_BUFFERS_STATE_ECC_2B_ERR_MASKf,VSQF_WORDS_STATE_ECC_2B_ERR_MASKf,VSQF_SRAM_PDS_STATE_ECC_2B_ERR_MASKf,-1,-1"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+    <sub_module name="regression">
+        <tables>
+            <table name="regression_parms">
+                <value name="system_mode_name" default="\0">
+                    <property name="dvapi_system_indicator" official="false" method="str">
+                        <doc>SoC property to set the system mode.</doc>
+                    </property>
+                </value>
+            </table>
+        </tables>
+    </sub_module>
+</device_data>

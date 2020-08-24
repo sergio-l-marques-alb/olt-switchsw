@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_b0"  module="system_red">
+
+    <includes>
+     </includes>
+
+    <sub_module name="info" doc="system red related info">
+    
+        <features>
+            <feature name="is_share_res_with_latency_based_admission" value="1"></feature>
+        </features>
+        
+    </sub_module>
+    
+</device_data>

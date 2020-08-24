@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0" module="bier">
+    <includes>
+    </includes>
+    
+    <sub_module name="params" doc="bier parameters">
+        <features>
+            <feature name="is_supported" value="0"></feature>
+        </features>
+        <numerics>
+            <numeric name="nof_bfr_entries" value="0">
+            </numeric>
+        </numerics>
+    </sub_module>   
+</device_data>
+

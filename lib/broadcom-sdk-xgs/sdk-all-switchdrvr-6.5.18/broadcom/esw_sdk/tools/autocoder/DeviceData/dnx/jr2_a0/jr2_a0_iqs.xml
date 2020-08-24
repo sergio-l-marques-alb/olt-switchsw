@@ -1,0 +1,281 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0" module="iqs">   
+    <includes>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_device.h</include>
+    </includes>
+    
+    <sub_module name="credit">
+
+        <features>
+            <feature name="watchdog_fixed_period" value="1" extern="0">
+                <property name="custom_feature" method="suffix_enable" suffix="watchdog_fixed_period">
+                    <doc>
+                        custom_feature_watchdog_fixed_period='0' or '1'
+                        if 1 watchdog has a fixed value, otherwise can be controlled by the user
+                        Default - '1'
+                    </doc>
+                </property>
+            </feature>
+            <feature name="fmq_shp_zero_rate_allowed" value="1"></feature>
+        </features>
+
+
+        <defines>
+            <define name="nof_profiles" value="32"></define>
+            <define name="max_worth" value="8191"></define>
+            <define name="max_credit_balance_threshold" value="0x1ffff"></define>
+            <define name="satisified_back_min" value="0"></define>
+            <define name="satisified_back_max" value="0x3ffff"></define>
+            <define name="satisified_empty_min" value="-1 * 0x1ffff"></define>
+            <define name="satisified_empty_max" value="0x1ffff"></define>
+            <define name="hungry_min" value="-1 * 0x3ffff"></define>
+            <define name="hungry_max" value="0x3ffff"></define>
+            <define name="hungry_mult_min" value="16"></define>
+            <define name="hungry_mult_max" value="4096"></define>
+            <define name="nof_bw_levels" value="4"></define>
+            <define name="fmq_credit_fc_on_th" value="30"></define>
+            <define name="fmq_credit_fc_off_th" value="20"></define>
+            <define name="fmq_byte_fc_on_th" value="1000"></define>
+            <define name="fmq_byte_fc_off_th" value="800"></define>
+            <define name="fmq_eir_credit_fc_th" value="0x1fff"></define>
+            <define name="fmq_eir_byte_fc_th" value="0x1fffff"></define>
+            <define name="fmq_nof_be_classes" value="3"></define>
+            <define name="fmq_max_be_weight" value="31"></define>
+            <define name="fmq_max_burst_max" value="63"></define>
+            <define name="fmq_shp_crdt_rate_mltp" value="8"></define>
+            <define name="fmq_shp_crdt_rate_delta" value="7"></define>
+        </defines>
+
+        <numerics>
+            <numeric name="worth" value="4096">
+                <property name="credit_size" method="range" range_min="1" range_max="DATA(iqs,credit,max_worth)">
+                   <doc>
+                       Set local credit worth. Recommended value is 4096 Bytes. 
+                       Credit worth has significant implications on the scheduled traffic. 
+                       Consult with Broadcom applications engineer before changing the credit size value.
+                       Supported range [1-8191]
+                       Syntax:
+                       credit_size=#credit size in bytes#
+                       Default:
+                       4096
+                   </doc>
+                </property>
+            </numeric>
+            <numeric name="fmq_shp_rate_max" value="DATA(device, general, maximal_core_bandwidth_kbps)"></numeric>
+        </numerics>
+
+
+    </sub_module>
+    
+    <sub_module name="deq_default">
+        <defines>
+            <define name="low_delay_deq_bytes" value="16"></define>
+            <define name="credit_balance_max" value="128 * 1024"></define>
+            <define name="credit_balance_resolution" value="4 * 1024"></define>
+            <define name="s2d_credit_balance_max" value="2 * 1024 * 1024"></define>
+            <define name="s2d_credit_balance_resolution" value="64 * 1024"></define>
+            <define name="sram_to_fabric_credit_lfsr_thr" value="0x70"></define>
+            <define name="sram_to_fabric_credit_lfsr_mask" value="0x3"></define>
+        </defines>
+        <tables>
+             <table name="max_deq_cmd">
+                <key name="bw_level" size="DATA(iqs,credit,nof_bw_levels)"></key>
+                <key name="nof_active_queues" size="DBAL_NOF_ENUM_IQS_ACTIVE_QUEUES_VALUES"></key>
+                <value name="value" default="0"></value>
+                <entries>
+                    <entry bw_level="0" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_UP_TO_ONE" value="8*1024/256"></entry>
+                    <entry bw_level="1" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_UP_TO_ONE" value="30*1024/256"></entry>
+                    <entry bw_level="2" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_UP_TO_ONE" value="50*1024/256"></entry>
+                    <entry bw_level="3" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_UP_TO_ONE" value="127*1024/256"></entry>
+                    <entry bw_level="0" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_UP_TO_THREE" value="8*1024/256"></entry>
+                    <entry bw_level="1" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_UP_TO_THREE" value="30*1024/256"></entry>
+                    <entry bw_level="2" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_UP_TO_THREE" value="50*1024/256"></entry>
+                    <entry bw_level="3" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_UP_TO_THREE" value="127*1024/256"></entry>
+                    <entry bw_level="0" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_UP_TO_SEVEN" value="8*1024/256"></entry>
+                    <entry bw_level="1" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_UP_TO_SEVEN" value="30*1024/256"></entry>
+                    <entry bw_level="2" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_UP_TO_SEVEN" value="50*1024/256"></entry>
+                    <entry bw_level="3" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_UP_TO_SEVEN" value="127*1024/256"></entry>
+                    <entry bw_level="0" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_REST" value="4*1024/256"></entry>
+                    <entry bw_level="1" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_REST" value="15*1024/256"></entry>
+                    <entry bw_level="2" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_REST" value="25*1024/256"></entry>
+                    <entry bw_level="3" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_REST" value="64*1024/256"></entry>
+                </entries>
+            </table>
+            
+            <table name="s2d_max_deq_cmd">
+                <key name="bw_level" size="DATA(iqs,credit,nof_bw_levels)"></key>
+                <key name="nof_active_queues" size="DBAL_NOF_ENUM_IQS_ACTIVE_QUEUES_VALUES"></key>
+                <value name="value" default="0"></value>
+                <entries>
+                    <entry bw_level="0" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_UP_TO_ONE" value="8*1024/256"></entry>
+                    <entry bw_level="1" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_UP_TO_ONE" value="30*1024/256"></entry>
+                    <entry bw_level="2" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_UP_TO_ONE" value="50*1024/256"></entry>
+                    <entry bw_level="3" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_UP_TO_ONE" value="127*1024/256"></entry>
+                    <entry bw_level="0" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_UP_TO_THREE" value="8*1024/256"></entry>
+                    <entry bw_level="1" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_UP_TO_THREE" value="30*1024/256"></entry>
+                    <entry bw_level="2" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_UP_TO_THREE" value="50*1024/256"></entry>
+                    <entry bw_level="3" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_UP_TO_THREE" value="127*1024/256"></entry>
+                    <entry bw_level="0" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_UP_TO_SEVEN" value="8*1024/256"></entry>
+                    <entry bw_level="1" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_UP_TO_SEVEN" value="30*1024/256"></entry>
+                    <entry bw_level="2" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_UP_TO_SEVEN" value="50*1024/256"></entry>
+                    <entry bw_level="3" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_UP_TO_SEVEN" value="127*1024/256"></entry>
+                    <entry bw_level="0" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_REST" value="4*1024/256"></entry>
+                    <entry bw_level="1" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_REST" value="15*1024/256"></entry>
+                    <entry bw_level="2" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_REST" value="25*1024/256"></entry>
+                    <entry bw_level="3" nof_active_queues="DBAL_ENUM_FVAL_IQS_ACTIVE_QUEUES_REST" value="64*1024/256"></entry>
+                </entries>
+            </table>
+            
+            
+            <table name="sqm_read_weight_profiles">
+                <key name="profile_id" size="8"></key>
+                <value name="weight" default="-1"></value>
+                <entries>
+                    <entry profile_id="0" weight="0"></entry>
+                    <entry profile_id="1" weight="0"></entry>
+                    <entry profile_id="2" weight="1"></entry>
+                    <entry profile_id="3" weight="1"></entry>
+                    <entry profile_id="4" weight="3"></entry>
+                    <entry profile_id="5" weight="6"></entry>
+                    <entry profile_id="6" weight="7"></entry>
+                    <entry profile_id="7" weight="10"></entry>
+                </entries>
+            </table>
+            
+            <table name="dqm_read_weight_profiles">
+                <key name="profile_id" size="8"></key>
+                <value name="weight" default="-1"></value>
+                <entries>
+                    <entry profile_id="0" weight="0"></entry>
+                    <entry profile_id="1" weight="0"></entry>
+                    <entry profile_id="2" weight="0"></entry>
+                    <entry profile_id="3" weight="0"></entry>
+                    <entry profile_id="4" weight="1"></entry>
+                    <entry profile_id="5" weight="2"></entry>
+                    <entry profile_id="6" weight="2"></entry>
+                    <entry profile_id="7" weight="3"></entry>
+                </entries>
+            </table>            
+            
+            <table name="params" doc="stores the read weight profiles that should configured to HW for SRAM and S2D">
+                <key name="bw_level" size="DATA(iqs,credit,nof_bw_levels)"></key>
+                <value name="sram_read_weight_profile_val" default="0"></value>
+                <value name="s2d_read_weight_profile_val" default="0"></value>
+                <value name="sram_extra_credits_val" default="0"></value>
+                <value name="s2d_extra_credits_val" default="0"></value>
+                <value name="sram_extra_credits_lfsr_val" default="0"></value>
+                <value name="s2d_extra_credits_lfsr_val" default="0"></value>
+                <entries>
+                    <entry bw_level="0"
+                           sram_read_weight_profile_val="0,        2"                 
+                           s2d_read_weight_profile_val ="0,        2"
+                           sram_extra_credits_val      ="0,        4"
+                           s2d_extra_credits_val       ="0,        4"
+                           sram_extra_credits_lfsr_val ="0,        1"
+                           s2d_extra_credits_lfsr_val  ="0,        1"></entry>
+                           
+                      <entry bw_level="1"
+                           sram_read_weight_profile_val="0,        3"                
+                           s2d_read_weight_profile_val ="0,        3"
+                           sram_extra_credits_val      ="0,        4"
+                           s2d_extra_credits_val       ="0,        4"
+                           sram_extra_credits_lfsr_val ="0,        1"
+                           s2d_extra_credits_lfsr_val  ="0,        1"></entry>
+                           
+                        <entry bw_level="2"
+                           sram_read_weight_profile_val="0,        2,      7"           
+                           s2d_read_weight_profile_val ="0,        2,      7"
+                           sram_extra_credits_val      ="0,        12,     12"
+                           s2d_extra_credits_val       ="0,        12,     12"
+                           sram_extra_credits_lfsr_val ="0,        0,      0"
+                           s2d_extra_credits_lfsr_val  ="0,        0,      0"></entry>
+                           
+                         <entry bw_level="3"
+                           sram_read_weight_profile_val="0,        2,      7"                 
+                           s2d_read_weight_profile_val ="0,        2,      7"
+                           sram_extra_credits_val      ="0,        12,     12"
+                           s2d_extra_credits_val       ="0,        1,      12"
+                           sram_extra_credits_lfsr_val ="0,        1,      1"
+                           s2d_extra_credits_lfsr_val  ="0,        1,      1"></entry>              
+                </entries>
+             </table>
+                          
+             <table name="dram_params" mode="sequential">
+                <key name="index"></key>
+                <value name="read_weight_profile_val" default="0"></value>
+                <value name="read_weight_profile_th" default="0"></value>
+                <entries>
+                    <entry read_weight_profile_val="0"                 
+                           read_weight_profile_th ="8 * 1024"> 
+                    </entry>
+                           
+                    <entry read_weight_profile_val="0"                 
+                           read_weight_profile_th ="16 * 1024"> 
+                    </entry>
+                           
+                    <entry read_weight_profile_val="1"                 
+                           read_weight_profile_th ="24 * 1024"> 
+                    </entry>
+                    
+                    <entry read_weight_profile_val="2"                 
+                           read_weight_profile_th ="32 * 1024"> 
+                    </entry>
+                    
+                    <entry read_weight_profile_val="2"                 
+                           read_weight_profile_th ="50 * 1024"> 
+                    </entry>
+                    
+                    <entry read_weight_profile_val="2"                 
+                           read_weight_profile_th ="75 * 1024"> 
+                    </entry>
+                    
+                    <entry read_weight_profile_val="3"                 
+                           read_weight_profile_th ="100 * 1024"> 
+                    </entry>
+                    
+                    <entry read_weight_profile_val="4"
+                           read_weight_profile_th ="128 * 1024">                                             
+                    </entry>                                                                                                                
+                </entries>            
+             </table>             
+         </tables>
+        
+         
+        <features>
+            <feature name="dqcq_fc_to_dram" value="0"></feature>
+        </features>
+        
+    </sub_module>
+    
+    <sub_module name="dqcq">
+        <features>
+            <feature name="8_priorities" value="0"></feature>
+        </features>
+        
+        <defines>
+            <define name="max_nof_contexts" value="5"></define> <!-- 5 contexts in Mesh: Local0/1, Dev_id0/1/2, 4 contexts in Clos: Local0/1,UC,MC-->
+            <define name="nof_priorities" value="2"></define>
+        </defines>
+        
+        <numerics>
+        </numerics>
+        
+        <tables>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="dbal">
+        <features>
+        </features>
+        
+        <defines>
+            <define name="ipt_counters_nof_bits" value="16"></define>
+        </defines>
+        
+        <numerics>
+        </numerics>
+        
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>

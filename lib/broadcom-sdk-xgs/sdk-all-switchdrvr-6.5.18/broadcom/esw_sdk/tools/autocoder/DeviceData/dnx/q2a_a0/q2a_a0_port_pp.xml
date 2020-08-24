@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0"  module="port_pp">
+
+    <sub_module name="general">    
+        <features>
+        </features>
+        
+        <defines>
+            <define name="sit_inner_eth_additional_tag" value="0"></define>
+        </defines>
+        
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+</device_data>
+
+

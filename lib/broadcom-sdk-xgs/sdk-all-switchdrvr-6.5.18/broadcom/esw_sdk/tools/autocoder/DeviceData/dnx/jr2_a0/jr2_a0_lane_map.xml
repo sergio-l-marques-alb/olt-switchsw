@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="lane_map">
+    <includes>
+        <include>bcm/port.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_nif.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_fabric.h</include>
+    </includes>
+
+    <sub_module name="nif">
+
+        <features>
+        </features>
+
+        <numerics>
+        </numerics>
+        <tables>
+            <table name="mapping" init_only="1">
+                <key name="lane_id" size="DATA(nif,phys,nof_phys)"></key>
+                <value name="serdes_rx_id" default="BCM_PORT_LANE_TO_SERDES_NOT_MAPPED"></value>
+                <value name="serdes_tx_id" default="BCM_PORT_LANE_TO_SERDES_NOT_MAPPED"></value>
+                    <property name="lane_to_serdes_map" method="custom">
+                        <doc>
+                            Define paired serdes rx id and tx id with the same lane number.
+                        </doc>
+                    </property>
+            </table>
+        </tables>
+    </sub_module>
+    <sub_module name="fabric">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="resolution" value="4"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+        <tables>
+            <table name="mapping" init_only="1">
+                <key name="lane_id" size="DATA(fabric,links,nof_links)"></key>
+                <value name="serdes_rx_id" default="BCM_PORT_LANE_TO_SERDES_NOT_MAPPED"></value>
+                <value name="serdes_tx_id" default="BCM_PORT_LANE_TO_SERDES_NOT_MAPPED"></value>
+                    <property name="lane_to_serdes_map" method="custom">
+                        <doc>
+                            Define paired serdes rx id and tx id with the same lane number.
+                        </doc>
+                    </property>
+            </table>
+        </tables>
+    </sub_module>
+    <sub_module name="ilkn">
+
+        <features>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+        <tables>
+            <table name="remapping" init_only="1">
+                <key name="lane_id" size="DATA(nif,phys,nof_phys)"></key>
+                <key name="ilkn_id" size="2"></key>
+                <value name="ilkn_lane_id" default="-1"></value>
+                    <property name="ilkn_lane_map" method="custom">
+                        <doc>
+                            Re-assign the ILKN lane order.
+                        </doc>
+                    </property>
+            </table>
+        </tables>
+    </sub_module>
+</device_data>

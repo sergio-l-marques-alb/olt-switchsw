@@ -1,0 +1,112 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="trap" bsl_flag="BSL_LS_BCMDNX_RX">
+
+    <sub_module name="ingress" doc="trap profiles data">
+
+        <numerics>
+            <numeric name="protocol_traps_init_mode" doc="initialize protocol traps configuration mode"></numeric>
+        </numerics>
+        
+        <features>
+            <feature name="ndp_trap_en" doc="Are NDP/myNDP traps supported"></feature>
+            <feature name="trap_in_lif_profile_mapping" doc="If set, mapping for in_lif_prfile in the case of ingress protocol trap"></feature>
+            <feature name="svtag_trap_en" doc="Does MACSec exist in the device, so it can be initialized"></feature>
+            <feature name="oam_offset_actions" doc="Does the device support OAM Offset adjustment actions"></feature>
+            <feature name="snoop_code_clear_action" doc="Enables the Snoop Code clear action from Q2A onward"></feature>
+            <feature name="mirror_code_clear_action" doc="Enables the Mirror Code clear action from Q2A onward"></feature>
+            <feature name="stat_sampling_code_clear_action" doc="Enables the Statistical Sampling Code clear action from Q2A onward"></feature>
+        </features>
+        
+        <defines>
+            <define name="protocol_traps_lif_profile_starting_offset" doc="The offset at which LIF profile entries start in protocol profiling table"></define>
+            <define name="nof_predefeind_traps" doc="Number of predefined traps"></define>
+            <define name="nof_user_defined_traps" doc="Number of bcmRxTrapUserDefine traps"></define>
+            <define name="nof_1588_traps" doc="Number of bcmRxTrap1588 traps"></define>
+            <define name="nof_entries_action_table" doc="Number of entries in action table of traps"></define>
+            <define name="nof_protocol_trap_profiles" doc="Number of protocol trap profiles"></define>
+            <define name="nof_recycle_cmds" doc="Number of forward recycle commands"></define>
+            <define name="nof_programmable_traps" doc="Number of programmable traps"></define>
+            <define name="nof_lif_traps" doc="Number of LIF traps"></define>
+            <define name="nof_icmp_compressed_types" doc="Number of ICMP compressed types"></define>
+            <define name="nof_stat_objs" doc="Number of ingress statistical objects"></define>
+            <define name="max_nof_stat_objs_to_overwrite" doc="Max number of statistical objects to overwrite"></define>  
+            <define name="nof_error_code_profiles" doc="Number of Error Code profiles for MACSEC traps"></define>  
+            <define name="nof_sci_profiles" doc="Number of SCI profiles for MACSEC traps"></define>
+            <define name="nof_error_codes" doc="Number of Error Codes for MACSEC traps"></define>  
+            <define name="nof_scis" doc="Number of SCIs for MACSEC traps"></define>         
+        </defines>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="erpp" doc="erpp traps">
+
+        <features>
+            <feature name="unknown_da_trap_en" doc="Is UnknownDA trap supported"></feature>
+            <feature name="glem_not_found_trap" doc="Is glem not found trap supported"></feature>    
+            <feature name="ip_4_6_l4_traps_enabled" doc="Are IPv4, IPv6 and L4 ERPP traps enabled."></feature>         
+        </features>
+
+        <defines>
+            <define name="nof_erpp_app_traps" doc="Number of ERPP application traps"></define>
+            <define name="nof_erpp_forward_profiles" doc="Number of ERPP forward profiles"></define>
+            <define name="nof_erpp_user_configurable_profiles" doc="Number of user configurable profiles"></define>
+            <define name="nof_erpp_snif_profiles" doc="Number of ERPP snif profiles"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="etpp" doc="etpp traps">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="nof_etpp_app_traps" doc="Number of ETPP application traps"></define>
+            <define name="nof_etpp_user_configurable_profiles" doc="Number of user configurable profiles"></define>
+            <define name="nof_etpp_trap_profiles" doc="Number of ETPP trap profiles"></define>
+            <define name="nof_etpp_oam_traps" doc="Number of ETPP OAM traps"></define>
+            <define name="nof_etpp_snif_profiles" doc="Number of ETPP snif profiles"></define>
+            <define name="nof_mtu_profiles" doc="Number of MTU profiles"></define>
+            <define name="nof_etpp_lif_traps" doc="Number of ETPP LIF traps"></define>
+            <define name="max_mtu_value" doc="The maximum MTU value allowed."></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="strength" doc="trap profiles data">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="max_strength" doc="Max value of strength (4b)"></define>
+            <define name="max_snp_strength" doc="Max value of snoop strength (3b)"></define>
+            <define name="max_ingress_to_egress_compressed_strength" doc="Max value of ingress compressed strength (3b) mapped to egress strength (4b)"></define>
+        </defines>
+
+        <numerics>
+            <numeric name="default_trap_strength" doc="Default trap strength used when drop / trap packets to CPU"></numeric>
+            <numeric name="default_snoop_strength" doc="Default snoop strength used when drop / trap packets to CPU"></numeric>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+</device_data>
+
+
+
+

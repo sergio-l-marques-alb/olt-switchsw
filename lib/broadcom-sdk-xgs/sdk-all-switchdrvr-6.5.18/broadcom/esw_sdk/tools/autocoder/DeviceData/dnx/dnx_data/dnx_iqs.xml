@@ -1,0 +1,138 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="iqs" bsl_flag="BSL_LS_BCMDNX_COSQ">
+    
+    <includes>
+        <include>bcm_int/dnx/cosq/ingress/iqs.h</include>
+    </includes>
+
+    <sub_module name="credit" doc="Data about credit profiles">
+        <features>
+            <feature labels="j2p_notrev" name="watchdog_fixed_period" doc="Errate workaround increasing credit watchdog to a fixed value"></feature>
+            <feature labels="j2p_notrev" name="fmq_shp_zero_rate_allowed" doc="Is zero rate allowed on fmq shaper"></feature>
+            <feature labels="j2p_notrev" name="dram_delete_fix_hw" doc="dram bug was fixed in j2c devices. watchdog_fixed_period was a wa for this bug in j2."></feature>
+        </features>
+        
+        <defines>
+            <define labels="j2p_notrev" name="nof_profiles" doc="Number of supported profiles"></define>
+            <define labels="j2p_notrev" name="max_credit_balance_threshold" doc="max value for thresholds in credit balance resolution units"></define>
+            <define labels="j2p_notrev" name="max_worth" doc="max credit worth"></define>
+            <define labels="j2p_notrev" name="satisified_back_min" doc="min value for satisified back thresholds" signed="1"></define>
+            <define labels="j2p_notrev" name="satisified_back_max" doc="max value for satisified back thresholds" signed="1"></define>
+            <define labels="j2p_notrev" name="satisified_empty_min" doc="min value for satisified empty thresholds" signed="1"></define>
+            <define labels="j2p_notrev" name="satisified_empty_max" doc="max value for satisified empty thresholds" signed="1"></define>
+            <define labels="j2p_notrev" name="hungry_min" doc="min value for hungry thresholds" signed="1"></define>
+            <define labels="j2p_notrev" name="hungry_max" doc="max value for hungry thresholds" signed="1"></define>
+            <define labels="j2p_notrev" name="hungry_mult_min" doc="min value for hungry multiply thresholds" signed="1"></define>
+            <define labels="j2p_notrev" name="hungry_mult_max" doc="max value for hungry multiply thresholds" signed="1"></define>
+            <define labels="j2p_notrev" name="nof_bw_levels" doc="number of supported bandwidth levels"></define>
+            <define labels="j2p_notrev" name="fmq_credit_fc_on_th" doc="default thershold value for FMQ credit FC on"></define>
+            <define labels="j2p_notrev" name="fmq_credit_fc_off_th" doc="default thershold value for FMQ credit FC off"></define>
+            <define labels="j2p_notrev" name="fmq_byte_fc_on_th" doc="default thershold value for FMQ byte FC on"></define>
+            <define labels="j2p_notrev" name="fmq_byte_fc_off_th" doc="default thershold value for FMQ byte FC off"></define>
+            <define labels="j2p_notrev" name="fmq_eir_credit_fc_th" doc="default thershold value for all credit EIR FMQ FC thresholds"></define>
+            <define labels="j2p_notrev" name="fmq_eir_byte_fc_th" doc="default thershold value for all byte EIR FMQ FC thresholds"></define>
+            <define labels="j2p_notrev" name="fmq_nof_be_classes" doc="nof best-effort FMQ classes"></define>
+            <define labels="j2p_notrev" name="fmq_max_be_weight" doc="max weight for best-effort FMQ classes"></define>
+            <define labels="j2p_notrev" name="fmq_max_burst_max" doc ="FMQ max burst maximum value"></define>
+            <define labels="j2p_notrev" name="fmq_shp_crdt_rate_mltp" doc="multiplier for clock resolution of the FMQ shapers credit rate"></define>
+            <define labels="j2p_notrev" name="fmq_shp_crdt_rate_delta" doc="numeric correction used in FMQ shapers rate calculation"></define>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="worth" doc="credit worth in bytes"></numeric>
+            <numeric labels="j2p_notrev" name="fmq_shp_rate_max" doc="max value for FMQ shaper rate in Kbps"></numeric>
+        </numerics>
+        
+    </sub_module>
+    
+    <sub_module name="deq_default" doc="IQS dequeue default configuration on init">
+        <defines>
+            <define labels="j2p_notrev" name="low_delay_deq_bytes" doc="dequeue low delay thresholds"></define>
+            <define labels="j2p_notrev" name="credit_balance_max" doc="max credit balance"></define>
+            <define labels="j2p_notrev" name="credit_balance_resolution" doc="credit balance resolution for dequeue parameters configuration"></define>
+            <define labels="j2p_notrev" name="s2d_credit_balance_max" doc="max credit balance in sram to dram context"></define>
+            <define labels="j2p_notrev" name="s2d_credit_balance_resolution" doc="credit balance resolution for dequeue parameters configuration in sram to dram context"></define>
+            <define labels="j2p_notrev" name="sram_to_fabric_credit_lfsr_thr" doc="default lfsr threshold on credits for deq from sram to fabric"></define>
+            <define labels="j2p_notrev" name="sram_to_fabric_credit_lfsr_mask" doc="default lfsr mask on credits for deq from sram to fabric"></define>
+        </defines>
+        
+        <tables>
+            <table labels="j2p_notrev" name="sqm_read_weight_profiles" doc="stores the SQM read weight profiles that should configured to HW">
+                <key name="profile_id" doc="read weight profile id"></key>
+                <value name="weight" type="uint32" doc="queue read weight (1K resolution)"></value>
+            </table>
+            
+            <table labels="j2p_notrev" name="dqm_read_weight_profiles" doc="stores the DQM read weight profiles that should configured to HW">
+                <key name="profile_id" doc="read weight profile id"></key>
+                <value name="weight" type="uint32" doc="queue read weight (1K resolution)"></value>
+            </table>            
+            
+            <table labels="j2p_notrev" name="params" doc="stores the read weight profiles that should configured to HW for SRAM and S2D">
+                <key name="bw_level" doc="parameters per bandwidth level."></key>
+                <value name="sram_read_weight_profile_val" type="uint32[DNX_IQS_DEQ_PARAM_TYPE_NOF]" doc="queue read weight profile for sram values"></value>
+                <value name="s2d_read_weight_profile_val" type="uint32[DNX_IQS_DEQ_PARAM_TYPE_NOF]" doc="queue read weight profile for sram to dram values"></value>
+                <value name="sram_extra_credits_val" type="uint32[DNX_IQS_DEQ_PARAM_TYPE_NOF]" doc="sram extra credits values"></value>
+                <value name="s2d_extra_credits_val" type="uint32[DNX_IQS_DEQ_PARAM_TYPE_NOF]" doc="sram to dram extra credits values"></value>
+                <value name="sram_extra_credits_lfsr_val" type="uint32[DNX_IQS_DEQ_PARAM_TYPE_NOF]" doc="sram extra credits lfsr values"></value>
+                <value name="s2d_extra_credits_lfsr_val" type="uint32[DNX_IQS_DEQ_PARAM_TYPE_NOF]" doc="sram to dram extra credits lfsr values"></value>
+            </table>
+            
+            <table labels="j2p_notrev" name="dram_params" doc="stores the read weight profiles that should configured to HW for DRAM">
+                <key name="index" doc="index to the table"></key>
+                <value name="read_weight_profile_val" type="uint32" doc="queue read weight profile for dram values"></value>
+                <value name="read_weight_profile_th" type="uint32" doc="queue read weight threshold for dram values"></value>
+            </table>
+            
+            <table labels="j2p_notrev" name="max_deq_cmd" doc="stores the read weight profiles that should configured to HW (sram/dram to fabric)">
+                <key name="bw_level" doc="parameters per bandwidth level."></key>
+                <key name="nof_active_queues" doc="see dbal_enum_value_field_iqs_active_queues_e"></key>
+                <value name="value" type="uint32" doc="threshold per status of active queues. 64B resolution. A value of 0 means a single packet is to be dequeued at maximum."></value>
+            </table>
+            
+            <table labels="j2p_notrev" name="s2d_max_deq_cmd" doc="stores the read weight profiles that should configured to HW (sram t0 dram)">
+                <key name="bw_level" doc="parameters per bandwidth level."></key>
+                <key name="nof_active_queues" doc="see dbal_enum_value_field_iqs_active_queues_e"></key>
+                <value name="value" type="uint32" doc="threshold per status of active queues. 64B resolution. A value of 0 means a single packet is to be dequeued at maximum."></value>
+            </table>
+        </tables>
+        
+        <features>
+            <feature labels="j2p_notrev" name="dqcq_fc_to_dram" doc="enable/disable dqcq flow control from IPS to DQM"></feature>
+        </features>
+    </sub_module>
+    
+    <sub_module name="dqcq" doc="DQCQ related data">
+        <features>
+            <feature labels="j2p_notrev" name="8_priorities" doc="enable/disable DQCQ 8 priorities feature"></feature>
+        </features>
+        
+        <defines>
+            <define labels="j2p_notrev" name="max_nof_contexts" doc="max number of DQCQ contexts"></define>
+            <define labels="j2p_notrev" name="nof_priorities" doc="number of DQCQ priorities"></define>
+        </defines>
+        
+        <numerics>
+        </numerics>
+        
+        <tables>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="dbal" doc="IQS specific information for DBAL">
+        <features>
+        </features>
+        
+        <defines>
+            <define labels="j2p_notrev" name="ipt_counters_nof_bits" doc="nof bits in IPT counters from IPS/GCM"></define>
+        </defines>
+        
+        <numerics>
+        </numerics>
+        
+        <tables>
+        </tables>
+    </sub_module>
+    
+</device_data>
+
+

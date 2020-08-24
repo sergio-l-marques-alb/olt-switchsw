@@ -1,0 +1,1604 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="TINY_MAC_CTRL" Valid="DNX_DATA.nif.flexe.is_supported">
+        <OneLineDescription>Tiny MAC control register</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Enable MAC transmit datapath and flowcontrol logic" Name="TX_EN" Size="1" Type="BOOL"/>
+                <Field Description="Enable MAC receive datapath and flowcontrol logic." Name="RX_EN" Size="1" Type="BOOL"/>
+                <Field Description="Enables local loopback from TX to RX" Name="LOCAL_LPBK" Size="1" Type="BOOL"/>
+                <Field Description="If set, Tiny MAC will move from lag failover state to normal operation." Name="REMOVE_FAILOVER_LPBK" Size="1" Type="BOOL"/>
+                <Field Description="If set, enable LAG Failover." Name="LAG_FAILOVER_EN" Size="1" Type="BOOL"/>
+                <Field Description="If set, disables the corresponding port logic and status registers only." Name="SOFT_RESET" Size="1" Type="BOOL"/>
+                <Field Description="If set, during the local loopback mode, the transmit packets are also sent to the transmit line interface, apart from the loopback operation" Name="LOCAL_LPBK_LEAK_ENB" Size="1" Type="BOOL"/>
+                <Field Description="Resets the RS layer functionality" Name="RS_SOFT_RESET" Size="1" Type="BOOL"/>
+                <Field Description="Link status indication from Software." Name="SW_LINK_STATUS" Size="1" Type="BOOL"/>
+                <Field Description="This configuration chooses between link status indication from software (SW_LINK_STATUS) or the hardware link status (hw_link_status)indication from the TSC" Name="LINK_STATUS_SELECT" Size="1" Type="BOOL"/>
+                <Field Description="When set, if link-down occurs, the receive MAC will terminate the current packet-in-progress and not relay any subsequent packets to the system and the transmit MAC will read packets from the MAC FIFO and drop them internally." Name="MAC_LINK_DOWN_SEQ_EN" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV NIF TINY_MAC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TX_EN">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="17"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RX_EN">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="17"/>
+                            <DataOffset Formula="1"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LOCAL_LPBK">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="17"/>
+                            <DataOffset Formula="2"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REMOVE_FAILOVER_LPBK">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="17"/>
+                            <DataOffset Formula="4"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAG_FAILOVER_EN">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="17"/>
+                            <DataOffset Formula="5"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SOFT_RESET">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="17"/>
+                            <DataOffset Formula="6"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LOCAL_LPBK_LEAK_ENB">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="17"/>
+                            <DataOffset Formula="8"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RS_SOFT_RESET">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="17"/>
+                            <DataOffset Formula="10"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SW_LINK_STATUS">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="17"/>
+                            <DataOffset Formula="12"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LINK_STATUS_SELECT">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="17"/>
+                            <DataOffset Formula="13"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAC_LINK_DOWN_SEQ_EN">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="17"/>
+                            <DataOffset Formula="14"/>
+                        </Memory>
+                    </Access>
+                </Field>
+         </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="TINY_MAC_TX_CTRL" Valid="DNX_DATA.nif.flexe.is_supported">
+        <OneLineDescription>Tiny MAC TX control register</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="CRC mode for transmit side" Name="CRC_MODE" Size="2" Type="UINT"/>
+                <Field Description="If set, MAC accepts packets from the EP and discards them on the line side." Name="DISCARD_EN" Size="1" Type="BOOL"/>
+                <Field Description="When set, MAC enables the CRC corruption on the transmitted packets" Name="TX_CRC_CORRUPT_EN" Size="1" Type="BOOL"/>
+                <Field Description="If set, enable CDMAC to pad packets smaller than PAD_THRESHOLD on the Tx." Name="PAD_EN" Size="1" Type="BOOL"/>
+                <Field Description="If padding is enabled, packets smaller than PAD_THRESHOLD are padded to this size." Name="PAD_THRESHOLD" Size="7" Type="UINT"/>
+                <Field Description="Average Inter Packet Gap." Name="AVERAGE_IPG" Size="6" Type="UINT"/>
+                <Field Description="If set, the Deficit Idle Count is capped to zero; it is not allowed to increment beyond zero." Name="CAP_DIC_TO_0" Size="1" Type="BOOL"/>
+                <Field Description="Indicates the number of 48-byte cells that are buffered per packet in the Tx CDC FIFO, before starting transmission of the packet on the line side." Name="TX_THRESHOLD" Size="4" Type="UINT"/>
+                <Field Description="When asserted, if the MAC Tx is in the middle of transmitting a packet, it waits for the next packet boundary to stop transmitting any more packets." Name="STALL_TX" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV NIF TINY_MAC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CRC_MODE">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="19"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DISCARD_EN">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="19"/>
+                            <DataOffset Formula="2"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TX_CRC_CORRUPT_EN">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="19"/>
+                            <DataOffset Formula="3"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PAD_EN">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="19"/>
+                            <DataOffset Formula="4"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PAD_THRESHOLD">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="19"/>
+                            <DataOffset Formula="5"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="AVERAGE_IPG">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="19"/>
+                            <DataOffset Formula="12"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CAP_DIC_TO_0">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="19"/>
+                            <DataOffset Formula="18"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TX_THRESHOLD">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="19"/>
+                            <DataOffset Formula="20"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="STALL_TX">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="19"/>
+                            <DataOffset Formula="25"/>
+                        </Memory>
+                    </Access>
+                </Field>
+         </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="TINY_MAC_RX_MAX_SIZE" Valid="DNX_DATA.nif.flexe.is_supported">
+        <OneLineDescription>Tiny MAC Rx Max packet size</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Maximum packet size in receive direction, exclusive of preamble and CRC in strip mode." Name="RX_MAX_SIZE" Size="14" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV NIF TINY_MAC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="RX_MAX_SIZE">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="23"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+         </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="TINY_MAC_RX_LSS_CTRL" Valid="DNX_DATA.nif.flexe.is_supported">
+        <OneLineDescription>Control for LSS</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="This bit determines the transmit response during local fault state." Name="LOCAL_FAULT_DISABLE" Size="1" Type="BOOL"/>
+                <Field Description="This bit determines the transmit response during remote fault state." Name="REMOTE_FAULT_DISABLE" Size="1" Type="BOOL"/>
+                <Field Description="This bit determines the transmit response during link interruption state." Name="LINK_INTERRUPTION_DISABLE" Size="1" Type="BOOL"/>
+                <Field Description="This bit determines the way MAC handles data during local fault state" Name="DROP_TX_DATA_ON_LOCAL_FAULT" Size="1" Type="BOOL"/>
+                <Field Description="This bit determines the way MAC handles data during remote fault state." Name="DROP_TX_DATA_ON_REMOTE_FAULT" Size="1" Type="BOOL"/>
+                <Field Description="This bit determines the way MAC handles data during link interruption state." Name="DROP_TX_DATA_ON_LINK_INTERRUPT" Size="1" Type="BOOL"/>
+                <Field Description="If set, the receive pause and PFC timers are reset whenever the link status is down, or local or remote faults are received." Name="RESET_FLOW_CONTROL_TIMERS_ON_LINK_DOWN" Size="1" Type="BOOL"/>
+                <Field Description="If set, and if the FAULT_SOURCE_FOR_TX = SW_CNFG_REG, LOCAL_FAULT ordered-sets are sent in the Tx direction." Name="FORCE_LOCAL_FAULT_OS" Size="1" Type="BOOL"/>
+                <Field Description="If set, and if the FAULT_SOURCE_FOR_TX = SW_CNFG_REG, REMOTE_FAULT ordered-sets are sent in the Tx direction." Name="FORCE_REMOTE_FAULT_OS" Size="1" Type="BOOL"/>
+                <Field Description="If set, and if the FAULT_SOURCE_FOR_TX = SW_CNFG_REG, LINK_INTERRUPTION ordered-sets are sent in the Tx direction." Name="FORCE_LINK_INTERRUPT_OS" Size="1" Type="BOOL"/>
+                <Field Description="Indicates the source from where the transmit fault responses are determined." Name="FAULT_SOURCE_FOR_TX" Size="2" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV NIF TINY_MAC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LOCAL_FAULT_DISABLE">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="25"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REMOTE_FAULT_DISABLE">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="25"/>
+                            <DataOffset Formula="1"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LINK_INTERRUPTION_DISABLE">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="25"/>
+                            <DataOffset Formula="3"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DROP_TX_DATA_ON_LOCAL_FAULT">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="25"/>
+                            <DataOffset Formula="4"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DROP_TX_DATA_ON_REMOTE_FAULT">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="25"/>
+                            <DataOffset Formula="5"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DROP_TX_DATA_ON_LINK_INTERRUPT">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="25"/>
+                            <DataOffset Formula="6"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RESET_FLOW_CONTROL_TIMERS_ON_LINK_DOWN">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="25"/>
+                            <DataOffset Formula="7"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FORCE_LOCAL_FAULT_OS">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="25"/>
+                            <DataOffset Formula="8"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FORCE_REMOTE_FAULT_OS">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="25"/>
+                            <DataOffset Formula="9"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FORCE_LINK_INTERRUPT_OS">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="25"/>
+                            <DataOffset Formula="10"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FAULT_SOURCE_FOR_TX">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="25"/>
+                            <DataOffset Formula="11"/>
+                        </Memory>
+                    </Access>
+                </Field>
+         </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="TINY_MAC_RSV_MASK" Valid="DNX_DATA.nif.flexe.is_supported">
+        <OneLineDescription>MAC RSV mask register</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Controls which RSV event causes a purge event that triggers RXERR to be set for the packet sent by the MAC to the IP." Name="MASK" Size="19" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV NIF TINY_MAC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MASK">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="34"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+         </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="TINY_MAC_PFC_CTRL" Valid="DNX_DATA.nif.flexe.is_supported">
+        <OneLineDescription>PFC control register</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="When set, forces the MAC to generate an XON indication to the MMU for all classes of service in the receive direction" Name="FORCE_PFC_XON" Size="1" Type="BOOL"/>
+                <Field Description="When set, enables the generation of receive and transmit PFC events into the corresponding statistics vectors (RSV and TSV)" Name="PFC_STATS_EN" Size="1" Type="BOOL"/>
+                <Field Description="When set, enables detection of PFC frames in the receive direction and generation of COSMAPs to MMU based on incoming timer values" Name="RX_PFC_EN" Size="1" Type="BOOL"/>
+                <Field Description="When set, enables the transmission of PFC frames" Name="TX_PFC_EN" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV NIF TINY_MAC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FORCE_PFC_XON">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="28"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PFC_STATS_EN">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="28"/>
+                            <DataOffset Formula="1"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RX_PFC_EN">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="28"/>
+                            <DataOffset Formula="2"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TX_PFC_EN">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="28"/>
+                            <DataOffset Formula="3"/>
+                        </Memory>
+                    </Access>
+                </Field>
+         </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="TINY_MAC_PAUSE_CTRL" Valid="DNX_DATA.nif.flexe.is_supported">
+        <OneLineDescription>Pause control register</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="When set, enables the transmission of pause frames whenever there is a transition on txbkp input to MAC from MMU" Name="TX_PAUSE_EN" Size="1" Type="BOOL"/>
+                <Field Description="When set, enables detection of pause frames in the receive direction and pause/resume the transmit data path" Name="RX_PAUSE_EN" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV NIF TINY_MAC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TX_PAUSE_EN">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="27"/>
+                            <DataOffset Formula="18"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RX_PAUSE_EN">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="27"/>
+                            <DataOffset Formula="19"/>
+                        </Memory>
+                    </Access>
+                </Field>
+         </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="TINY_MAC_TXFIFO_STATUS" Valid="DNX_DATA.nif.flexe.is_supported">
+        <OneLineDescription>TINY mac Tx fifo status</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Number of cell counts in CDMAC TX FIFO" Name="CELL_CNT" Permission="READONLY" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV NIF TINY_MAC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CELL_CNT">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="31"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+         </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="TINY_MAC_MIB_CTRL" Valid="DNX_DATA.nif.flexe.is_supported">
+        <OneLineDescription>MIB configuration register</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Enable MIB statistics counters for the corresponding sub-port." Name="COUNT_ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="Reset for CDMAC MIB statistics counters for the port. A low-to-high transition on this bit will trigger the counter-clear operation. The counters take a maximum of 128 MIB clock cycles to be cleared." Name="COUNT_CLEAR" Size="1" Type="BOOL"/>
+                <Field Description="The maximum packet size that is used in statistics counters updates." Name="COUNT_MAX_SIZE" Size="14" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV MIB</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="COUNT_ENABLE">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="35"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="COUNT_CLEAR">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="35"/>
+                            <DataOffset Formula="1"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="COUNT_MAX_SIZE">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="35"/>
+                            <DataOffset Formula="2"/>
+                        </Memory>
+                    </Access>
+                </Field>
+         </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+        <AppDB Name="TINY_MAC_MIB_COUNTERS_RX" Valid="DNX_DATA.nif.flexe.is_supported">
+        <OneLineDescription>Tiny MAC MIB counters</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-000000" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <!--ROW0 counter R64 R127 R255 R511 R1023 R1518 RMGV R2047-->
+                <Field Description="Receive 64-byte frame counter." Name="R64" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive 65 to 127 byte frame counter." Name="R127" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive 128 to 255 byte frame counter." Name="R255" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive 256 to 511 byte frame counter." Name="R511" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive 512 to 1023 byte frame counter." Name="R1023" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive 1024 to 1518 byte frame counter." Name="R1518" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive 1519 to 1522 byte VLAN-tagged frame counter." Name="RMGV" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive 1519 to 2047 byte frame counter." Name="R2047" Size="40" Type="ARRAY32"/>
+                <!--ROW1 counter R4095 R9216 R16383 RBCA RPROG0 RPROG1 RPROG2 RPROG3-->
+                <Field Description="Receive 2048 to 4095 byte frame counter." Name="R4095" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive 4096 to 9216 byte frame counter." Name="R9216" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive 9217 to 16383 byte frame counter." Name="R16383" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive BC frame counter." Name="RBCA" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive RPROG0 frame counter." Name="RPROG0" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive RPROG1 frame counter." Name="RPROG1" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive RPROG2 frame counter." Name="RPROG2" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive RPROG3 frame counter." Name="RPROG3" Size="40" Type="ARRAY32"/>
+                <!--ROW2 counter RPKT RPOK RUCA RPRM RMCA RXPF RXPP RXCF-->
+                <Field Description="Receive frame counter (all packets)." Name="RPKT" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive good frame." Name="RPOK" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive UC frame counter." Name="RUCA" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive promiscuous packet counter." Name="RPRM" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive UC frame counter." Name="RMCA" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive pause frame counter." Name="RXPF" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC(Per-Priority Pause) frame counter." Name="RXPP" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive control frame counter." Name="RXCF" Size="40" Type="ARRAY32"/>
+                <!--ROW3 counter RFCS RERPKT RFLR RJBR RMTUE ROVR RVLN RDVLN-->
+                <Field Description="Receive FCS Error Frame Counter." Name="RFCS" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive Code Error Frame Counter." Name="RERPKT" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive Length Out of Range Frame Counter." Name="RFLR" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive Jabber Frame Counter." Name="RJBR" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive MTU Check Error Frame Counter." Name="RMTUE" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive Oversized Frame Counter." Name="ROVR" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive single and double VLAN tagged frame counter." Name="RVLN" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive double VLAN tagged frame." Name="RDVLN" Size="40" Type="ARRAY32"/>
+                <!--ROW4 counter RXUO RXUDA RXWSA RBYT RUND RFRG RRPKT RRBYT-->
+                <Field Description="Receive unsupported opcode frame counter." Name="RXUO" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive unsupported DA for pause/PFC frame counter." Name="RXUDA" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive incorrect SA counter." Name="RXWSA" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive Byte Counter." Name="RBYT" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive undersized frame counter." Name="RUND" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive fragment counter." Name="RFRG" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive RUNT Frame Counter." Name="RRPKT" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive Runt Byte Counter." Name="RRBYT" Size="40" Type="ARRAY32"/>
+                <!--ROW5 counter RPFC0 RPFCOFF0 RPFC1 RPFCOFF1 RPFC2 RPFCOFF2 RPFC3 RPFCOFF3 -->
+                <Field Description="Receive PFC frame with enable bit set for Priority0." Name="RPFC0" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC frame transition XON to XOFF for Priority0." Name="RPFCOFF0" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC frame with enable bit set for Priority1." Name="RPFC1" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC frame transition XON to XOFF for Priority1." Name="RPFCOFF1" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC frame with enable bit set for Priority2." Name="RPFC2" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC frame transition XON to XOFF for Priority2." Name="RPFCOFF2" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC frame with enable bit set for Priority3." Name="RPFC3" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC frame transition XON to XOFF for Priority3." Name="RPFCOFF3" Size="40" Type="ARRAY32"/>
+                <!--ROW6 counter RPFC4 RPFCOFF4 RPFC5 RPFCOFF5 RPFC6 RPFCOFF6 RPFC7 RPFCOFF7-->
+                <Field Description="Receive PFC frame with enable bit set for Priority4." Name="RPFC4" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC frame transition XON to XOFF for Priority4." Name="RPFCOFF4" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC frame with enable bit set for Priority5." Name="RPFC5" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC frame transition XON to XOFF for Priority5." Name="RPFCOFF5" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC frame with enable bit set for Priority6." Name="RPFC6" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC frame transition XON to XOFF for Priority6." Name="RPFCOFF6" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC frame with enable bit set for Priority7." Name="RPFC7" Size="40" Type="ARRAY32"/>
+                <Field Description="Receive PFC frame transition XON to XOFF for Priority7." Name="RPFCOFF7" Size="40" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>J2P_NOTREV MIB</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <!--ROW0 counter R64 R127 R255 R511 R1023 R1518 RMGV R2047-->
+                <Field Name="R64">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="0"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="R127">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="0"/>
+                            <DataOffset Formula="64"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="R255">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="0"/>
+                            <DataOffset Formula="128"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="R511">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="0"/>
+                            <DataOffset Formula="192"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="R1023">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="0"/>
+                            <DataOffset Formula="256"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="R1518">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="0"/>
+                            <DataOffset Formula="320"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RMGV">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="0"/>
+                            <DataOffset Formula="384"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="R2047">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="0"/>
+                            <DataOffset Formula="448"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <!--ROW1 counter R4095 R9216 R16383 RBCA RPROG0 RPROG1 RPROG2 RPROG3-->
+                <Field Name="R4095">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="1"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="R9216">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="1"/>
+                            <DataOffset Formula="64"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="R16383">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="1"/>
+                            <DataOffset Formula="128"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RBCA">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="1"/>
+                            <DataOffset Formula="192"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPROG0">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="1"/>
+                            <DataOffset Formula="256"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPROG1">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="1"/>
+                            <DataOffset Formula="320"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPROG2">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="1"/>
+                            <DataOffset Formula="384"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPROG3">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="1"/>
+                            <DataOffset Formula="448"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <!--ROW2 counter RPKT RPOK RUCA RPRM RMCA RXPF RXPP RXCF-->
+                <Field Name="RPKT">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="2"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPOK">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="2"/>
+                            <DataOffset Formula="64"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RUCA">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="2"/>
+                            <DataOffset Formula="128"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPRM">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="2"/>
+                            <DataOffset Formula="192"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RMCA">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="2"/>
+                            <DataOffset Formula="256"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RXPF">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="2"/>
+                            <DataOffset Formula="320"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RXPP">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="2"/>
+                            <DataOffset Formula="384"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="RXCF">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="2"/>
+                            <DataOffset Formula="448"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <!--ROW3 counter RFCS RERPKT RFLR RJBR RMTUE ROVR RVLN RDVLN-->
+                <Field Name="RFCS">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="3"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RERPKT">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="3"/>
+                            <DataOffset Formula="64"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RFLR">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="3"/>
+                            <DataOffset Formula="128"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RJBR">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="3"/>
+                            <DataOffset Formula="192"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RMTUE">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="3"/>
+                            <DataOffset Formula="256"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ROVR">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="3"/>
+                            <DataOffset Formula="320"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RVLN">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="3"/>
+                            <DataOffset Formula="384"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="RDVLN">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="3"/>
+                            <DataOffset Formula="448"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <!--ROW4 counter RXUO RXUDA RXWSA RBYT RUND RFRG RRPKT RRBYT-->
+                <Field Name="RXUO">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="4"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RXUDA">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="4"/>
+                            <DataOffset Formula="64"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RXWSA">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="4"/>
+                            <DataOffset Formula="128"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RBYT">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="4"/>
+                            <DataOffset Formula="192"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RUND">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="4"/>
+                            <DataOffset Formula="256"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RFRG">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="4"/>
+                            <DataOffset Formula="320"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RRPKT">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="4"/>
+                            <DataOffset Formula="384"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="RRBYT">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="4"/>
+                            <DataOffset Formula="448"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <!--ROW5 counter RPFC0 RPFCOFF0 RPFC1 RPFCOFF1 RPFC2 RPFCOFF2 RPFC3 RPFCOFF3 -->
+                <Field Name="RPFC0">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="5"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPFCOFF0">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="5"/>
+                            <DataOffset Formula="64"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPFC1">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="5"/>
+                            <DataOffset Formula="128"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPFCOFF1">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="5"/>
+                            <DataOffset Formula="192"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPFC2">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="5"/>
+                            <DataOffset Formula="256"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPFCOFF2">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="5"/>
+                            <DataOffset Formula="320"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPFC3">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="5"/>
+                            <DataOffset Formula="384"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="RPFCOFF3">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="5"/>
+                            <DataOffset Formula="448"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <!--ROW6 counter RPFC4 RPFCOFF4 RPFC5 RPFCOFF5 RPFC6 RPFCOFF6 RPFC7 RPFCOFF7-->
+                <Field Name="RPFC4">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="6"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPFCOFF4">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="6"/>
+                            <DataOffset Formula="64"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPFC5">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="6"/>
+                            <DataOffset Formula="128"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPFCOFF5">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="6"/>
+                            <DataOffset Formula="192"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPFC6">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="6"/>
+                            <DataOffset Formula="256"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPFCOFF6">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="6"/>
+                            <DataOffset Formula="320"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RPFC7">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="6"/>
+                            <DataOffset Formula="384"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="RPFCOFF7">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="6"/>
+                            <DataOffset Formula="448"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="TINY_MAC_MIB_COUNTERS_TX" Valid="DNX_DATA.nif.flexe.is_supported">
+        <OneLineDescription>Tiny MAC MIB counters</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-000000" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <!--ROW7 counter T64 T127 T255 T511 T1023 T1518 TMGV T2047-->
+                <Field Description="Transmit 64 Byte Frame Counter." Name="T64" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit 65 to 127 byte frame counter." Name="T127" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit 128 to 255 byte frame counter." Name="T255" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit 256 to 511 byte frame counter." Name="T511" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit 512 to 1023 byte frame counter." Name="T1023" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit 1024 to 1518 byte frame counter." Name="T1518" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit 1519 to 1522 byte VLAN-tagged frame counter." Name="TMGV" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit 1519 to 2047 byte frame counter." Name="T2047" Size="40" Type="ARRAY32"/>
+                <!--ROW8 counter T4095 T9216 T16383 TBCA TPFC0 TPFCOFF0 TPFC1 TPFCOFF1-->
+                <Field Description="Transmit 2048 to 4095 byte frame counter." Name="T4095" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit 4096 to 9216 byte frame counter." Name="T9216" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit 9217 to 16383 byte frame counter." Name="T16383" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit Broadcast Frame Counter." Name="TBCA" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit PFC frame with enable bit set for Priority0." Name="TPFC0" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit PFC frame transition XON to XOFF for Priority0." Name="TPFCOFF0" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit PFC frame with enable bit set for Priority1." Name="TPFC1" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit PFC frame transition XON to XOFF for Priority1." Name="TPFCOFF1" Size="40" Type="ARRAY32"/>
+                <!--ROW9 counter TPFC2 TPFCOFF2 TPFC3 TPFCOFF3 TPFC4 TPFCOFF4 TPFC5 TPFCOFF5-->
+                <Field Description="Transmit PFC frame with enable bit set for Priority2." Name="TPFC2" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit PFC frame transition XON to XOFF for Priority2." Name="TPFCOFF2" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit PFC frame with enable bit set for Priority3." Name="TPFC3" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit PFC frame transition XON to XOFF for Priority3." Name="TPFCOFF3" Size="40" Type="ARRAY32"/>  
+                <Field Description="Transmit PFC frame with enable bit set for Priority4." Name="TPFC4" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit PFC frame transition XON to XOFF for Priority4." Name="TPFCOFF4" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit PFC frame with enable bit set for Priority5." Name="TPFC5" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit PFC frame transition XON to XOFF for Priority5." Name="TPFCOFF5" Size="40" Type="ARRAY32"/>
+                <!--ROW10 counter TPFC6 TPFCOFF6 TPFC7 TPFCOFF7 TPKT TPOK TUCA TUFL-->
+                <Field Description="Transmit PFC frame with enable bit set for Priority6." Name="TPFC6" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit PFC frame transition XON to XOFF for Priority6." Name="TPFCOFF6" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit PFC frame with enable bit set for Priority7." Name="TPFC7" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit PFC frame transition XON to XOFF for Priority7." Name="TPFCOFF7" Size="40" Type="ARRAY32"/>  
+                <Field Description="Transmit Packet/Frame Counter." Name="TPKT" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit Good Packet Counter." Name="TPOK" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit Unicast Frame Counter." Name="TUCA" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit FIFO Underrun Counter." Name="TUFL" Size="40" Type="ARRAY32"/>
+                <!--ROW11 counter TMCA TXPF TXPP TXCF TFCS TERR TOVR TJBR-->
+                <Field Description="Transmit Multicast Frame Counter." Name="TMCA" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit Pause Control Frame Counter." Name="TXPF" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit PFC/Per-Priority Pause Control Frame Counter." Name="TXPP" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit control frame counter." Name="TXCF" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit FCS Error Counter." Name="TFCS" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit Error (set by system) Counter." Name="TERR" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit Oversize Packet Counter." Name="TOVR" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit Jabber Counter." Name="TJBR" Size="40" Type="ARRAY32"/>
+                <!--ROW12 counter TRPKT TFRG TVLN TDVLN RBYT RRBYT TBYT -->
+                <Field Description="Transmit RUNT Frame Counter." Name="TRPKT" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit runt packet with invalid FCS counter." Name="TFRG" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit single and double VLAN tagged frame counter." Name="TVLN" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit double VLAN tagged frame counter." Name="TDVLN" Size="40" Type="ARRAY32"/>
+                <Field Description="Transmit Byte Counter." Name="TBYT" Size="48" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>J2P_NOTREV MIB</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <!--ROW7 counter T64 T127 T255 T511 T1023 T1518 TMGV T2047-->
+                <Field Name="T64">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="7"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="T127">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="7"/>
+                            <DataOffset Formula="64"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="T255">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="7"/>
+                            <DataOffset Formula="128"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="T511">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="7"/>
+                            <DataOffset Formula="192"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="T1023">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="7"/>
+                            <DataOffset Formula="256"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="T1518">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="7"/>
+                            <DataOffset Formula="320"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TMGV">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="7"/>
+                            <DataOffset Formula="384"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="T2047">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="7"/>
+                            <DataOffset Formula="448"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <!--ROW8 counter T4095 T9216 T16383 TBCA TPFC0 TPFCOFF0 TPFC1 TPFCOFF1-->
+                <Field Name="T4095">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="8"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="T9216">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="8"/>
+                            <DataOffset Formula="64"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="T16383">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="8"/>
+                            <DataOffset Formula="128"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TBCA">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="8"/>
+                            <DataOffset Formula="192"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TPFC0">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="8"/>
+                            <DataOffset Formula="256"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TPFCOFF0">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="8"/>
+                            <DataOffset Formula="320"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TPFC1">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="8"/>
+                            <DataOffset Formula="384"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="TPFCOFF1">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="8"/>
+                            <DataOffset Formula="448"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <!--ROW9 counter TPFC2 TPFCOFF2 TPFC3 TPFCOFF3 TPFC4 TPFCOFF4 TPFC5 TPFCOFF5-->
+                <Field Name="TPFC2">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="9"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TPFCOFF2">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="9"/>
+                            <DataOffset Formula="64"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TPFC3">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="9"/>
+                            <DataOffset Formula="128"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TPFCOFF3">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="9"/>
+                            <DataOffset Formula="192"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TPFC4">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="9"/>
+                            <DataOffset Formula="256"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TPFCOFF4">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="9"/>
+                            <DataOffset Formula="320"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TPFC5">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="9"/>
+                            <DataOffset Formula="384"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="TPFCOFF5">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="9"/>
+                            <DataOffset Formula="448"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <!--ROW10 counter TPFC6 TPFCOFF6 TPFC7 TPFCOFF7 TPKT TPOK TUCA TUFL-->
+                <Field Name="TPFC6">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="10"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TPFCOFF6">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="10"/>
+                            <DataOffset Formula="64"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TPFC7">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="10"/>
+                            <DataOffset Formula="128"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TPFCOFF7">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="10"/>
+                            <DataOffset Formula="192"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TPKT">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="10"/>
+                            <DataOffset Formula="256"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TPOK">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="10"/>
+                            <DataOffset Formula="320"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TUCA">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="10"/>
+                            <DataOffset Formula="384"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="TUFL">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="10"/>
+                            <DataOffset Formula="448"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <!--ROW11 counter TMCA TXPF TXPP TXCF TFCS TERR TOVR TJBR-->
+                <Field Name="TMCA">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="11"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TXPF">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="11"/>
+                            <DataOffset Formula="64"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TXPP">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="11"/>
+                            <DataOffset Formula="128"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TXCF">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="11"/>
+                            <DataOffset Formula="192"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TFCS">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="11"/>
+                            <DataOffset Formula="256"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TERR">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="11"/>
+                            <DataOffset Formula="320"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TOVR">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="11"/>
+                            <DataOffset Formula="384"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="TJBR">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="11"/>
+                            <DataOffset Formula="448"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <!--ROW12 counter TRPKT TFRG TVLN TDVLN RBYT RRBYT TBYT -->
+                <Field Name="TRPKT">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="12"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TFRG">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="12"/>
+                            <DataOffset Formula="64"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TVLN">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="12"/>
+                            <DataOffset Formula="128"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TDVLN">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="12"/>
+                            <DataOffset Formula="192"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TBYT">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_MEMORIESm">
+                            <EntryOffset Formula="12"/>
+                            <DataOffset Formula="256"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="TINY_MAC_RX_LSS_STATUS" Valid="DNX_DATA.nif.flexe.is_supported">
+        <OneLineDescription>TINY mac Rx LSS status</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Latched Local fault" Name="LOCAL_FAULT_STATUS"  Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="Latched Remote fault" Name="REMOTE_FAULT_STATUS"  Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="Live Local fault" Name="LOCAL_FAULT_LIVE_STATUS"  Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="Live Remote fault" Name="REMOTE_FAULT_LIVE_STATUS"  Permission="READONLY" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV NIF TINY_MAC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LOCAL_FAULT_STATUS">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="26"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REMOTE_FAULT_STATUS">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="26"/>
+                            <DataOffset Formula="1"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LOCAL_FAULT_LIVE_STATUS">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="26"/>
+                            <DataOffset Formula="3"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REMOTE_FAULT_LIVE_STATUS">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="26"/>
+                            <DataOffset Formula="4"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="TINY_MAC_FIFO_STATUS" Valid="DNX_DATA.nif.flexe.is_supported">
+        <OneLineDescription>TINY mac Fifo status</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Link status" Name="LINK_STATUS" Permission="READONLY" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV NIF TINY_MAC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LINK_STATUS">
+                    <Access>
+                        <Memory Name="FLEXEWP_TINY_MAC_REGISTERSm">
+                            <EntryOffset Formula="29"/>
+                            <DataOffset Formula="2"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

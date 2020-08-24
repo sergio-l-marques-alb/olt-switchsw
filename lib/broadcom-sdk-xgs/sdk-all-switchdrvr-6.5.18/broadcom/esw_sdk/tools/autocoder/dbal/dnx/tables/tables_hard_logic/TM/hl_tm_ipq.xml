@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    $Id$
+    $Copyright: (c) 2016 Broadcom Corp.
+    All Rights Reserved.$*
+    
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="IPQ_FMQ_ENHANCED_RANGE" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>This table contains the range of the Fabric Multicast Queues out of the total queues range.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="FIRST_QUEUE_IN_RANGE" Size="DNX_DATA.ipq.queues.queue_id_bits" Type="UINT"/>
+                <Field Name="LAST_QUEUE_IN_RANGE" Size="DNX_DATA.ipq.queues.queue_id_bits" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FIRST_QUEUE_IN_RANGE">
+                    <Access>
+                        <Register Name="IPS_FMC_QNUM_RANGEr">
+                            <HwField Name="FMC_QNUM_LOWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LAST_QUEUE_IN_RANGE">
+                    <Access>
+                        <Register Name="IPS_FMC_QNUM_RANGEr">
+                            <HwField Name="FMC_QNUM_HIGHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="IPQ_VSQ_CATEGORY_RANGES">
+        <OneLineDescription>This table contains the mapping of VOQ range to VSQ category. </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="LAST_QUEUE_VSQ_CATEGORY_0" Size="DNX_DATA.ipq.queues.queue_id_bits" Type="UINT"/>
+                <Field Name="LAST_QUEUE_VSQ_CATEGORY_1" Size="DNX_DATA.ipq.queues.queue_id_bits" Type="UINT"/>
+                <Field Name="LAST_QUEUE_VSQ_CATEGORY_2" Size="DNX_DATA.ipq.queues.queue_id_bits" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LAST_QUEUE_VSQ_CATEGORY_0">
+                    <Access>
+                        <Register Name="CGM_VSQ_CATEGORY_RANGESr">
+                            <HwField Name="VSQ_CATEGORY_RANGE_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LAST_QUEUE_VSQ_CATEGORY_1">
+                    <Access>
+                        <Register Name="CGM_VSQ_CATEGORY_RANGESr">
+                            <HwField Name="VSQ_CATEGORY_RANGE_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LAST_QUEUE_VSQ_CATEGORY_2">
+                    <Access>
+                        <Register Name="CGM_VSQ_CATEGORY_RANGESr">
+                            <HwField Name="VSQ_CATEGORY_RANGE_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="IPQ_REGION_INTERDIGITATED_MODE">
+        <OneLineDescription>This table specify whether to map queue to flow in an interdigitated manner. This mapping is per queue region. </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="REGION_INDEX" Size="5" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="IS_INTERDIGITATED_MODE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IS_INTERDIGITATED_MODE">
+                    <Access>
+                        <Register Name="IPS_QUEUE_INTERDIGITATED_MODEr">
+                            <HwField Name="QUEUE_INTERDIGITATED_MODEf"/>
+                            <!-- Region size is 2K in Jr2 -->
+                            <DataOffset Formula="#KEY_VALUE(REGION_INDEX)"/>
+                        </Register>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="IPQ_QUARTET_TO_SYSTEM_PORT_MAP">
+        <OneLineDescription>This table maps a queue quartet to system port. </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="QUEUE_QUARTET" Size="DNX_DATA.ipq.queues.queue_id_bits-DNX_DATA.ipq.queues.min_bundle_size_bits" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="SYS_PORT" Type="PORT_ID"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SYS_PORT">
+                    <Access>
+                        <Memory Name="IPS_QSPMm">
+                            <EntryOffset Formula="#KEY_VALUE(QUEUE_QUARTET)"/>
+                            <HwField Name="SYSTEM_PORTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="CGM_QSPMm">
+                            <EntryOffset Formula="#KEY_VALUE(QUEUE_QUARTET)"/>
+                            <HwField Name="SYSTEM_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="IPQ_QUARTET_TO_FLOW_ID_MAP">
+        <OneLineDescription>This table maps a queue quartet to flow id. </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="QUEUE_QUARTET" Size="DNX_DATA.ipq.queues.queue_id_bits-DNX_DATA.ipq.queues.min_bundle_size_bits" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="FLOW_QUARTET" Size="DNX_DATA.ipq.queues.flow_quartet_nof_bits" Type="UINT"/>
+                <Field Name="IS_COMPOSITE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="FLOW_QUARTET">
+                    <Access>
+                        <Memory Name="IPS_QFMm">
+                            <EntryOffset Formula="#KEY_VALUE(QUEUE_QUARTET)"/>
+                            <HwField Name="BASE_FLOWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_COMPOSITE">
+                    <Access>
+                        <Memory Name="IPS_QFMm">
+                            <EntryOffset Formula="#KEY_VALUE(QUEUE_QUARTET)"/>
+                            <HwField Name="SUB_FLOW_MODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="IPQ_SYSTEM_PORT_TO_QUEUE_BASE_MAP">
+        <OneLineDescription>This table contains the mapping from system port to VOQ. </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="SYS_PORT" Type="PORT_ID"/>
+            </Key>
+            <Result>
+                <Field Name="VOQ_BASE" Size="DNX_DATA.ipq.queues.queue_id_bits" Type="UINT"/>
+                <Field Name="TC_PROFILE" Size="2" Type="UINT"/>
+                <Field Name="IS_VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="VOQ_BASE">
+                    <Access>
+                        <Memory Name="CGM_DESTINATION_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(SYS_PORT)"/>
+                            <HwField Name="QUEUE_NUMBERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TC_PROFILE">
+                    <Access>
+                        <Memory Name="CGM_DESTINATION_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(SYS_PORT)"/>
+                            <HwField Name="TC_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_VALID">
+                    <Access>
+                        <Memory Name="CGM_DESTINATION_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(SYS_PORT)"/>
+                            <HwField Name="VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="IPQ_TRAFFIC_CLASS_TO_VOQ_OFFSET_MAP">
+        <OneLineDescription>This table contains the mapping from TC (traffic class) in packet header to VOQ offset for system port based forwarding. </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DP" Valid="DNX_DATA.ipq.queues.voq_resolution_per_dp"/>
+                <Field Name="TC"/>
+                <Field Name="TC_PROFILE_FROM_TM_COMMAND" Size="DNX_DATA.ipq.queues.tc_profile_from_tm_command_nof_bits" Type="UINT" Valid="DNX_DATA.ipq.queues.tc_profile_from_tm_command"/>
+                <Field MaxValue="DNX_DATA.ipq.tc_map.voq_resolution_type_max_value" Name="VOQ_RESOLUTION_TYPE"/>
+            </Key>
+            <Result>
+                <Field Name="VOQ_OFFSET"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="VOQ_OFFSET">
+                    <Access>
+                        <Memory Name="CGM_TRAFFIC_CLASS_MAPPINGm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()"/>
+                            <HwField Name="TCf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="VOQ_OFFSET">
+                    <Access>
+                        <Memory Name="CGM_TRAFFIC_CLASS_MAPPINGm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/4"/>
+                            <HwField Name="TRAFFIC_CLASS_MAPPING_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(DP)*dnx_data_ipq.queues.voq_offset_bits_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="IPQ_FLOW_QUARTET_TO_FLOW_PROFILE_MAP">
+        <OneLineDescription>This table contains the mapping from Flow quartet to flow profile. </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VOQ_FLOW_QUARTET" Size="DNX_DATA.ipq.queues.queue_id_bits-DNX_DATA.ipq.queues.min_bundle_size_bits" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="FLOW_PROFILE"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FLOW_PROFILE">
+                    <Access>
+                        <Memory Name="CGM_FLOW_ATTRIBUTESm">
+                            <EntryOffset Formula="#KEY_VALUE(VOQ_FLOW_QUARTET)/4"/>
+                            <DataOffset Formula="#KEY_VALUE(VOQ_FLOW_QUARTET)%4*dnx_data_ipq.tc_map.voq_flow_profiles_bits_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="IPQ_TC_MULTICAST_PRIORITY_MAP">
+        <OneLineDescription>This table contains the mapping from TC to multicast priority. </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TC"/>
+            </Key>
+            <Result>
+                <Field Name="MC_PRIO" Type="MULTICAST_PRIORITY"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MC_PRIO">
+                    <Access>
+                        <Register Name="CGM_MC_TC_PRIORITY_MAPr">
+                            <DataOffset Formula="#KEY_VALUE(TC)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="IPQ_INVALID_QUEUE">
+        <OneLineDescription>This table defines the invalid destination queue. every packet sent to invalid destination will be counted on this queue for statistic purposes </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="INVALID_DEST_QUEUE" Type="VOQ"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="INVALID_DEST_QUEUE">
+                    <Access>
+                        <Register Name="CGM_INVALID_DESTINATION_QUEUEr">
+                            <HwField Name="INVALID_DESTINATION_QUEUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

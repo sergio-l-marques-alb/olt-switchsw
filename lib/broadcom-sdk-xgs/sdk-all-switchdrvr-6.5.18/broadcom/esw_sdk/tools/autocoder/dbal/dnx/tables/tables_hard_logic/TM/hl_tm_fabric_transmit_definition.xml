@@ -1,0 +1,1512 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="FABRIC_TRANSMIT_DTQ_CONFIG" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Configure DTQs</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Sub-DTQ id" MaxValue="DNX_DATA.fabric.dtqs.max_nof_subdtqs-1" Name="SUBDTQ_ID" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Enable DTQ" Name="ENABLE" Type="BOOL"/>
+                <Field Description="DTQ base address" Name="BASE_ADDRESS" Size="11" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="FDT_DTQ_ENr">
+                            <HwField Name="DTQ_ENf"/>
+                            <DataOffset Formula="#KEY_VALUE(SUBDTQ_ID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BASE_ADDRESS">
+                    <Access>
+                        <Register GroupName="FABRIC_DTQ_BASE_ADDRESS">
+                            <GroupOffset Formula="#KEY_VALUE(SUBDTQ_ID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_DTQ_CONFIG_END" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Configure DTQ end address</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="End address of the last DTQ" Name="LAST_DTQ_END_ADDRESS" Size="11" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LAST_DTQ_END_ADDRESS">
+                    <Access>
+                        <Register Name="FDT_DTQ_EADDR_5r">
+                            <HwField Name="DTQ_EADDR_5f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_DTQ_FC_THRESHOLDS">
+        <OneLineDescription>Configure DTQs flow control thresholds</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="is DTQ towards local core or towards fabric" Name="IS_LOCAL" Type="BOOL" MinValue="!DNX_DATA.fabric.general.is_supported"/>
+                <Field Description="Flow Control to configure" Name="FABRIC_DTQ_FC"/>
+            </Key>
+            <Result>
+                <Field Description="Flow control threshold" Name="THRESHOLD" Size="DNX_DATA.fabric.dbal.fabric_transmit_dtq_fc_thresholds_bits_nof" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="THRESHOLD">
+                    <Access>
+                        <KeyCondition Field="IS_LOCAL" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="IPT_DTQ_FAB_FC_THr">
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_DTQ_FC)*#RESULT_SIZE(THRESHOLD)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="IS_LOCAL" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="IPT_DTQ_LOC_FC_THr">
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_DTQ_FC)*#RESULT_SIZE(THRESHOLD)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="Q2A_A0 Q2A_B0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="THRESHOLD">
+                    <Access>
+                        <KeyCondition Field="IS_LOCAL" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="IPT_DTQ_LOC_FC_THr">
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_DTQ_FC)*#RESULT_SIZE(THRESHOLD)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_DTQ_OCB_FC_THRESHOLDS" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Configure DTQs flow control thresholds</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Flow Control to configure" Name="FABRIC_DTQ_OCB_FC"/>
+            </Key>
+            <Result>
+                <Field Description="Flow control threshold" Name="THRESHOLD" Size="12" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="THRESHOLD">
+                    <Access>
+                        <Register Name="IPT_DTQ_OCB_FC_THr">
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_DTQ_OCB_FC)*#RESULT_SIZE(THRESHOLD)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_PDQ_CONFIG">
+        <OneLineDescription>Configure PDQs</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Fabric PDQ context" Name="FABRIC_PDQ_CONTEXT"/>
+            </Key>
+            <Result>
+                <Field Description="SRAM PDQ size" Name="PDQ_SRAM_SIZE" Size="DNX_DATA.fabric.dbal.fabric_transmit_pdq_size_bits_nof" Type="UINT"/>
+                <Field Description="MIX PDQ size" Name="PDQ_MIX_SIZE" Size="DNX_DATA.fabric.dbal.fabric_transmit_pdq_size_bits_nof" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PDQ_SRAM_SIZE">
+                    <Access>
+                        <Register Name="IPT_PDQ_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_CONTEXT)"/>
+                            <HwField Name="PDQ_N_SRAM_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PDQ_MIX_SIZE">
+                    <Access>
+                        <Register Name="IPT_PDQ_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_CONTEXT)"/>
+                            <HwField Name="PDQ_N_MIX_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_PDQ_FC_CONFIG" Valid="!DNX_DATA.iqs.dqcq.8_priorities">
+        <OneLineDescription>Configure PDQs flow control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Fabric PDQ context" Name="FABRIC_PDQ_CONTEXT"/>
+            </Key>
+            <Result>
+                <Field Description="SRAM-Only FC threshold" Name="PDQ_SRAM_FC_TH" Size="15" Type="UINT"/>
+                <Field Description="MIX-S FC threshold" Name="PDQ_MIXS_FC_TH" Size="15" Type="UINT"/>
+                <Field Description="MIX-D FC threshold" Name="PDQ_MIXD_FC_TH" Size="15" Type="UINT"/>
+                <Field Description="MIX(SRAM+DRAM) to MIX-S FC threshold" Name="PDQ_MIX_MIXS_FC_TH" Size="15" Type="UINT"/>
+                <Field Description="MIX(SRAM+DRAM) to MIX-D FC threshold" Name="PDQ_MIX_MIXD_FC_TH" Size="15" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PDQ_SRAM_FC_TH">
+                    <Access>
+                        <Register Name="IPT_PDQ_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_CONTEXT)"/>
+                            <HwField Name="PDQ_N_SRAM_FC_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PDQ_MIXS_FC_TH">
+                    <Access>
+                        <Register Name="IPT_PDQ_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_CONTEXT)"/>
+                            <HwField Name="PDQ_N_MIXS_FC_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PDQ_MIXD_FC_TH">
+                    <Access>
+                        <Register Name="IPT_PDQ_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_CONTEXT)"/>
+                            <HwField Name="PDQ_N_MIXD_FC_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PDQ_MIX_MIXS_FC_TH">
+                    <Access>
+                        <Register Name="IPT_PDQ_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_CONTEXT)"/>
+                            <HwField Name="PDQ_N_MIX_MIXS_FC_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PDQ_MIX_MIXD_FC_TH">
+                    <Access>
+                        <Register Name="IPT_PDQ_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_CONTEXT)"/>
+                            <HwField Name="PDQ_N_MIX_MIXD_FC_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_PDQ_TO_DQCQ_FC_SELECT" Valid="DNX_DATA.iqs.dqcq.8_priorities">
+        <OneLineDescription>Select PDQs to DQCQ flow control thresholds index mapping</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Fabric PDQ context" Name="FABRIC_PDQ_CONTEXT"/>
+                <Field Description="Queue Priority" Name="PRIORITY" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <!-- Select the threshold index in FABRIC_TRANSMIT_PDQ_TO_DQCQ_FC_TH -->
+                <Field Description="Select threshold index for SRAM-Only FC threshold" Name="PDQ_SRAM_FC_TH_SELECT" Size="4" Type="UINT"/>
+                <Field Description="Select threshold index for MIX-S FC threshold" Name="PDQ_MIXS_FC_TH_SELECT" Size="4" Type="UINT"/>
+                <Field Description="Select threshold index for MIX-D FC threshold" Name="PDQ_MIXD_FC_TH_SELECT" Size="4" Type="UINT"/>
+                <Field Description="Select threshold index for MIX(SRAM+DRAM) to MIX-S FC threshold" Name="PDQ_MIX_MIXS_FC_TH_SELECT" Size="4" Type="UINT"/>
+                <Field Description="Select threshold index for MIX(SRAM+DRAM) to MIX-D FC threshold" Name="PDQ_MIX_MIXD_FC_TH_SELECT" Size="4" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PDQ_SRAM_FC_TH_SELECT">
+                    <Access>
+                        <Register Name="IPT_PDQ_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_CONTEXT)"/>
+                            <HwField Name="PDQ_N_SRAM_FC_TH_SELf"/>
+                            <DataOffset Formula="#KEY_VALUE(PRIORITY)*#RESULT_SIZE(PDQ_SRAM_FC_TH_SELECT)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PDQ_MIXS_FC_TH_SELECT">
+                    <Access>
+                        <Register Name="IPT_PDQ_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_CONTEXT)"/>
+                            <HwField Name="PDQ_N_MIXS_FC_TH_SELf"/>
+                            <DataOffset Formula="#KEY_VALUE(PRIORITY)*#RESULT_SIZE(PDQ_MIXS_FC_TH_SELECT)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PDQ_MIXD_FC_TH_SELECT">
+                    <Access>
+                        <Register Name="IPT_PDQ_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_CONTEXT)"/>
+                            <HwField Name="PDQ_N_MIXD_FC_TH_SELf"/>
+                            <DataOffset Formula="#KEY_VALUE(PRIORITY)*#RESULT_SIZE(PDQ_MIXD_FC_TH_SELECT)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PDQ_MIX_MIXS_FC_TH_SELECT">
+                    <Access>
+                        <Register Name="IPT_PDQ_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_CONTEXT)"/>
+                            <HwField Name="PDQ_N_MIX_MIXS_FC_TH_SELf"/>
+                            <DataOffset Formula="#KEY_VALUE(PRIORITY)*#RESULT_SIZE(PDQ_MIX_MIXS_FC_TH_SELECT)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PDQ_MIX_MIXD_FC_TH_SELECT">
+                    <Access>
+                        <Register Name="IPT_PDQ_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_CONTEXT)"/>
+                            <HwField Name="PDQ_N_MIX_MIXD_FC_TH_SELf"/>
+                            <DataOffset Formula="#KEY_VALUE(PRIORITY)*#RESULT_SIZE(PDQ_MIX_MIXD_FC_TH_SELECT)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_PDQ_TO_DQCQ_FC_TH" Valid="DNX_DATA.iqs.dqcq.8_priorities">
+        <OneLineDescription>Configure PDQs to DQCQ flow control thresholds</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Threshold index" Name="INDEX" Size="4" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="FC threshold" Name="THRESHOLD" Size="DNX_DATA.fabric.dbal.fabric_transmit_pdq_size_bits_nof" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="THRESHOLD">
+                    <Access>
+                        <Register Name="IPT_PDQ_DQCQ_FC_TH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(INDEX)"/>
+                            <HwField Name="PDQ_DQCQ_FC_TH_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_PDQ_EIR_FC_CONFIG" Valid="!DNX_DATA.fabric.transmit.eir_fc_leaky_backet">
+        <OneLineDescription>Configure PDQs EIR FC</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Fabric PDQ context" Name="FABRIC_PDQ_CONTEXT"/>
+            </Key>
+            <Result>
+                <Field Description="SRAM-Only to EIR FC threshold" Name="PDQ_SRAM_EIR_FC_TH" Size="15" Type="UINT"/>
+                <Field Description="MIX-S to EIR FC threshold" Name="PDQ_MIXS_EIR_FC_TH" Size="15" Type="UINT"/>
+                <Field Description="MIX-D to EIR FC threshold" Name="PDQ_MIXD_EIR_FC_TH" Size="15" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PDQ_SRAM_EIR_FC_TH">
+                    <Access>
+                        <Register Name="IPT_PDQ_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_CONTEXT)"/>
+                            <HwField Name="PDQ_N_SRAM_EIR_FC_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PDQ_MIXS_EIR_FC_TH">
+                    <Access>
+                        <Register Name="IPT_PDQ_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_CONTEXT)"/>
+                            <HwField Name="PDQ_N_MIXS_EIR_FC_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PDQ_MIXD_EIR_FC_TH">
+                    <Access>
+                        <Register Name="IPT_PDQ_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_CONTEXT)"/>
+                            <HwField Name="PDQ_N_MIXD_EIR_FC_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_PDQ_OCB_CONFIG">
+        <OneLineDescription>Configure OCB PDQs</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Fabric OCB PDQ context" Name="FABRIC_PDQ_OCB_CONTEXT"/>
+            </Key>
+            <Result>
+                <Field Description="OCB PDQ size" Name="PDQ_OCB_SIZE" Size="DNX_DATA.fabric.dbal.fabric_transmit_pdq_size_bits_nof" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PDQ_OCB_SIZE">
+                    <Access>
+                        <Register Name="IPT_PDQ_OCB_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_OCB_CONTEXT)"/>
+                            <HwField Name="PDQ_OCB_N_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_PDQ_OCB_FC_CONFIG">
+        <OneLineDescription>Configure OCB PDQs flow control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Fabric OCB PDQ context" Name="FABRIC_PDQ_OCB_CONTEXT"/>
+            </Key>
+            <Result>
+                <Field Description="OCB FC threshold" Name="PDQ_OCB_FC_TH" Size="DNX_DATA.fabric.dbal.fabric_transmit_pdq_size_bits_nof" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PDQ_OCB_FC_TH">
+                    <Access>
+                        <Register Name="IPT_PDQ_OCB_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_OCB_CONTEXT)"/>
+                            <HwField Name="PDQ_OCB_N_FC_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_PDQ_OCB_EIR_FC_CONFIG" Valid="!DNX_DATA.fabric.transmit.eir_fc_leaky_backet">
+        <OneLineDescription>Configure OCB PDQs EIR FC</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Fabric OCB PDQ context" Name="FABRIC_PDQ_OCB_CONTEXT"/>
+            </Key>
+            <Result>
+                <Field Description="OCB to EIR FC threshold" Name="PDQ_OCB_EIR_FC_TH" Size="15" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PDQ_OCB_EIR_FC_TH">
+                    <Access>
+                        <Register Name="IPT_PDQ_OCB_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_OCB_CONTEXT)"/>
+                            <HwField Name="PDQ_OCB_N_EIR_FC_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_PDQ_DRAM_DELETE_CONFIG">
+        <OneLineDescription>Configure DRAM Delete PDQs</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="DRAM Delete PDQ size" Name="PDQ_DRAM_DELETE_SIZE" Size="DNX_DATA.fabric.dbal.fabric_transmit_pdq_size_bits_nof" Type="UINT"/>
+                <Field Description="DRAM Delete FC threshold" Name="PDQ_DRAM_DELETE_FC_TH" Size="DNX_DATA.fabric.dbal.fabric_transmit_pdq_size_bits_nof" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PDQ_DRAM_DELETE_SIZE">
+                    <Access>
+                        <Register Name="IPT_PDQ_DRAM_DELETE_CFGr">
+                            <HwField Name="PDQ_DRAM_DELETE_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PDQ_DRAM_DELETE_FC_TH">
+                    <Access>
+                        <Register Name="IPT_PDQ_DRAM_DELETE_CFGr">
+                            <HwField Name="PDQ_DRAM_DELETE_FC_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_PDQ_SRAM_DELETE_CONFIG">
+        <OneLineDescription>Configure SRAM Delete PDQs</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="SRAM Delete FC threshold" Name="PDQ_SRAM_DELETE_FC_TH" Size="9" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PDQ_SRAM_DELETE_FC_TH">
+                    <Access>
+                        <Register Name="IPT_PDQ_SRAM_DELETE_CFGr">
+                            <HwField Name="PDQ_SRAM_DELETE_FC_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_PDQ_SRAM_TO_DRAM_CONFIG">
+        <OneLineDescription>Configure SRAM to DRAM PDQs</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="SRAM to DRAM PDQ size" Name="PDQ_SRAM_TO_DRAM_SIZE" Size="11" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PDQ_SRAM_TO_DRAM_SIZE">
+                    <Access>
+                        <Register Name="IPT_PDQ_S_2D_CFGr">
+                            <HwField Name="PDQ_S_2D_N_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_PDQ_SRAM_TO_DRAM_FC_CONFIG" Valid="!DNX_DATA.iqs.dqcq.8_priorities">
+        <OneLineDescription>Configure SRAM to DRAM PDQs flow control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="SRAM to DRAM FC threshold" Name="PDQ_SRAM_TO_DRAM_FC_TH" Size="11" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PDQ_SRAM_TO_DRAM_FC_TH">
+                    <Access>
+                        <Register Name="IPT_PDQ_S_2D_CFGr">
+                            <HwField Name="PDQ_S_2D_N_FC_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_PDQ_TO_DQCQ_SRAM_TO_DRAM_FC_SELECT" Valid="DNX_DATA.iqs.dqcq.8_priorities">
+        <OneLineDescription>Select SRAM to DRAM PDQs to DQCQs flow control thresholds index mapping</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="S2D PDQ priority" Name="FABRIC_PDQ_S2D_CONTEXT"/>
+                <Field Description="Queue priority" Name="PRIORITY" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <!-- Select threshold index in FABRIC_TRANSMIT_PDQ_TO_DQCQ_SRAM_TO_DRAM_FC_TH -->
+                <Field Description="Select threshold index for SRAM to DRAM FC" Name="PDQ_SRAM_TO_DRAM_FC_TH_SELECT" Size="4" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PDQ_SRAM_TO_DRAM_FC_TH_SELECT">
+                    <Access>
+                        <Register Name="IPT_PDQ_S_2D_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_S2D_CONTEXT)"/>
+                            <HwField Name="PDQ_S_2D_N_FC_TH_SELf"/>
+                            <DataOffset Formula="#KEY_VALUE(PRIORITY)*#RESULT_SIZE(PDQ_SRAM_TO_DRAM_FC_TH_SELECT)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_PDQ_TO_DQCQ_SRAM_TO_DRAM_FC_TH" Valid="DNX_DATA.iqs.dqcq.8_priorities">
+        <OneLineDescription>Configure SRAM to DRAM PDQs to DQCQs flow control thresholds</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Threshold index" Name="INDEX" Size="4" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="FC threshold" Name="THRESHOLD" Size="11" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="THRESHOLD">
+                    <Access>
+                        <Register Name="IPT_PDQ_DQCQ_FC_TH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(INDEX)"/>
+                            <HwField Name="PDQ_DQCQ_S_2D_FC_TH_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_PDQ_EIR_FC_LEAKY_BUCKET_CONFIG" Valid="DNX_DATA.fabric.transmit.eir_fc_leaky_backet">
+        <OneLineDescription>Configure PDQs EIR leaky bucket flow control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Almost full threshold of the FIFO" Name="ALMOST_FULL_THRESHOLD" Size="DNX_DATA.fabric.dbal.fabric_transmit_pdq_size_bits_nof" Type="UINT"/>
+                <Field Description="Almost empty threshold of the FIFO" Name="ALMOST_EMPTY_THRESHOLD" Size="DNX_DATA.fabric.dbal.fabric_transmit_pdq_size_bits_nof" Type="UINT"/>
+                <Field Description="Bucket size" Name="BUCKET_SIZE" Size="14" Type="UINT"/>
+                <Field Description="Bucket threshold to generate flow control" Name="BUCKET_FC_THRESHOLD" Size="14" Type="UINT"/>
+                <Field Description="How often the bucket value will be updated (period+1 clocks)" Name="PERIOD" Size="16" Type="UINT"/>
+                <Field Description="Number of tokens to add/subtract to bucket (in 2's complement)" Name="TOKENS_DELTA0" Size="14" Type="UINT"/>
+                <Field Description="Number of tokens to add/subtract to bucket (in 2's complement)" Name="TOKENS_DELTA1" Size="14" Type="UINT"/>
+                <Field Description="Number of tokens to add/subtract to bucket (in 2's complement)" Name="TOKENS_DELTA2" Size="14" Type="UINT"/>
+                <Field Description="Number of tokens to add/subtract to bucket (in 2's complement)" Name="TOKENS_DELTA3" Size="14" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ALMOST_FULL_THRESHOLD">
+                    <Access>
+                        <Register Name="IPT_CONTEXT_EIR_CFGr">
+                            <HwField Name="CONTEXT_N_EIR_FC_HIGH_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ALMOST_EMPTY_THRESHOLD">
+                    <Access>
+                        <Register Name="IPT_CONTEXT_EIR_CFGr">
+                            <HwField Name="CONTEXT_N_EIR_FC_LOW_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BUCKET_SIZE">
+                    <Access>
+                        <Register Name="IPT_CONTEXT_EIR_CFGr">
+                            <HwField Name="CONTEXT_N_EIR_BUCKET_MAX_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BUCKET_FC_THRESHOLD">
+                    <Access>
+                        <Register Name="IPT_CONTEXT_EIR_CFGr">
+                            <HwField Name="CONTEXT_N_EIR_BUCKET_FC_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PERIOD">
+                    <Access>
+                        <Register Name="IPT_CONTEXT_EIR_CFGr">
+                            <HwField Name="CONTEXT_N_EIR_INTERVAL_LENGTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TOKENS_DELTA0">
+                    <Access>
+                        <Register Name="IPT_CONTEXT_EIR_CFGr">
+                            <HwField Name="CONTEXT_N_EIR_DELTA_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TOKENS_DELTA1">
+                    <Access>
+                        <Register Name="IPT_CONTEXT_EIR_CFGr">
+                            <HwField Name="CONTEXT_N_EIR_DELTA_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TOKENS_DELTA2">
+                    <Access>
+                        <Register Name="IPT_CONTEXT_EIR_CFGr">
+                            <HwField Name="CONTEXT_N_EIR_DELTA_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TOKENS_DELTA3">
+                    <Access>
+                        <Register Name="IPT_CONTEXT_EIR_CFGr">
+                            <HwField Name="CONTEXT_N_EIR_DELTA_3f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <!-- The fields in this table should be configured per pdq context,
+         so they are configured in this table, although they should've
+         been configured in FABRIC_TRANSMIT_PDQ_EIR_FC_LEAKY_BUCKET_CONFIG -->
+    <AppDB Name="FABRIC_TRANSMIT_PDQ_EIR_FC_LEAKY_BUCKET_THRESHOLDS" Valid="DNX_DATA.fabric.transmit.eir_fc_leaky_backet">
+        <OneLineDescription>Configure PDQs EIR FC thresholds</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Fabric PDQ context" Name="FABRIC_PDQ_CONTEXT"/>
+            </Key>
+            <Result>
+                <Field Description="Almost full threshold of the FIFO" Name="ALMOST_FULL_THRESHOLD" Size="DNX_DATA.fabric.dbal.fabric_transmit_pdq_size_bits_nof" Type="UINT"/>
+                <Field Description="Almost empty threshold of the FIFO" Name="ALMOST_EMPTY_THRESHOLD" Size="DNX_DATA.fabric.dbal.fabric_transmit_pdq_size_bits_nof" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ALMOST_FULL_THRESHOLD">
+                    <Access>
+                        <Register Name="IPT_PDQ_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_CONTEXT)"/>
+                            <HwField Name="PDQ_N_EIR_FC_HIGH_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ALMOST_EMPTY_THRESHOLD">
+                    <Access>
+                        <Register Name="IPT_PDQ_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_CONTEXT)"/>
+                            <HwField Name="PDQ_N_EIR_FC_LOW_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_PDQ_EIR_FC_LEAKY_BUCKET_DELTA_SELECT" Valid="DNX_DATA.fabric.transmit.eir_fc_leaky_backet">
+        <OneLineDescription>Select deltas in FABRIC_TRANSMIT_PDQ_EIR_FC_LEAKY_BUCKET_CONFIG according to FIFO state</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="FIFO is between almost full and almost empty" Name="FIFO_IN_BETWEEN" Size="2" Type="UINT"/>
+                <Field Description="FIFO is partially almost full" Name="FIFO_PARTIALLY_ALMOST_FULL" Size="2" Type="UINT"/>
+                <Field Description="FIFO is almost full" Name="FIFO_ALMOST_FULL" Size="2" Type="UINT"/>
+                <Field Description="FIFO is partially almost empty" Name="FIFO_PARTIALLY_ALMOST_EMPTY" Size="2" Type="UINT"/>
+                <Field Description="FIFO is not stable - almost full and almost empty" Name="FIFO_NOT_STABLE" Size="2" Type="UINT"/>
+                <Field Description="FIFO is almost empty" Name="FIFO_ALMOST_EMPTY" Size="2" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FIFO_IN_BETWEEN">
+                    <Access>
+                        <Register Name="IPT_CONTEXT_EIR_CFGr">
+                            <HwField Name="CONTEXT_N_EIR_DELTA_SELECTf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIFO_PARTIALLY_ALMOST_FULL">
+                    <Access>
+                        <Register Name="IPT_CONTEXT_EIR_CFGr">
+                            <HwField Name="CONTEXT_N_EIR_DELTA_SELECTf"/>
+                            <DataOffset Formula="4"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIFO_ALMOST_FULL">
+                    <Access>
+                        <Register Name="IPT_CONTEXT_EIR_CFGr">
+                            <HwField Name="CONTEXT_N_EIR_DELTA_SELECTf"/>
+                            <DataOffset Formula="6"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIFO_PARTIALLY_ALMOST_EMPTY">
+                    <Access>
+                        <Register Name="IPT_CONTEXT_EIR_CFGr">
+                            <HwField Name="CONTEXT_N_EIR_DELTA_SELECTf"/>
+                            <DataOffset Formula="16"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIFO_NOT_STABLE">
+                    <Access>
+                        <Register Name="IPT_CONTEXT_EIR_CFGr">
+                            <HwField Name="CONTEXT_N_EIR_DELTA_SELECTf"/>
+                            <DataOffset Formula="20"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIFO_ALMOST_EMPTY">
+                    <Access>
+                        <Register Name="IPT_CONTEXT_EIR_CFGr">
+                            <HwField Name="CONTEXT_N_EIR_DELTA_SELECTf"/>
+                            <DataOffset Formula="24"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_PDQ_DTQ_FC_ENABLE">
+        <OneLineDescription>Select which DTQ-FC will cause stop read from PDQ</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Fabric PDQ context" Name="FABRIC_PDQ_CONTEXT"/>
+                <Field Description="Flow Control to configure" Name="FABRIC_DTQ_FC"/>
+            </Key>
+            <Result>
+                <!-- Each bit corresponds to a different FC -->
+                <Field Description="local 0 dtq flow control enable" Name="LOCAL_0_DTQ_FC_ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="local 1 dtq flow control enable" Name="LOCAL_1_DTQ_FC_ENABLE" Size="1" Type="BOOL" Valid="DNX_DATA.device.general.multi_core"/>
+                <Field Description="fabric 0 dtq flow control enable" Name="FABRIC_0_DTQ_FC_ENABLE" Size="1" Type="BOOL" Valid="DNX_DATA.fabric.general.is_supported"/>
+                <Field Description="fabric 1 dtq flow control enable" Name="FABRIC_1_DTQ_FC_ENABLE" Size="1" Type="BOOL" Valid="DNX_DATA.fabric.general.is_supported"/>
+                <Field Description="fabric 2 dtq flow control enable" Name="FABRIC_2_DTQ_FC_ENABLE" Size="1" Type="BOOL" Valid="DNX_DATA.fabric.general.is_supported"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0" Name="LOCAL_0_DTQ_FC_ENABLE">
+                    <Access>
+                        <Register Name="IPT_PDQ_DTQ_FC_ENABLEr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_CONTEXT)"/>
+                            <HwField Name="PDQ_N_LOC_0_DTQ_FC_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_DTQ_FC)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0" Name="LOCAL_0_DTQ_FC_ENABLE">
+                    <Access>
+                        <Register Name="IPT_PDQ_DTQ_FC_ENABLEr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_CONTEXT)"/>
+                            <HwField Name="PDQ_N_LOC_DTQ_FC_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_DTQ_FC)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="IPT_PDQ_DTQ_FC_ENABLEr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_CONTEXT)"/>
+                            <HwField Name="PDQ_N_LOC_DTQ_SEGMENT_FC_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_DTQ_FC)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="Q2A_A0 Q2A_B0" Name="LOCAL_0_DTQ_FC_ENABLE">
+                    <Access>
+                        <Register Name="IPT_PDQ_DTQ_FC_ENABLEr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_CONTEXT)"/>
+                            <HwField Name="PDQ_N_LOC_DTQ_FC_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_DTQ_FC)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LOCAL_1_DTQ_FC_ENABLE">
+                    <Access>
+                        <Register Name="IPT_PDQ_DTQ_FC_ENABLEr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_CONTEXT)"/>
+                            <HwField Name="PDQ_N_LOC_1_DTQ_FC_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_DTQ_FC)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FABRIC_0_DTQ_FC_ENABLE">
+                    <Access>
+                        <Register Name="IPT_PDQ_DTQ_FC_ENABLEr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_CONTEXT)"/>
+                            <HwField Name="PDQ_N_FAB_0_DTQ_FC_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_DTQ_FC)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FABRIC_1_DTQ_FC_ENABLE">
+                    <Access>
+                        <Register Name="IPT_PDQ_DTQ_FC_ENABLEr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_CONTEXT)"/>
+                            <HwField Name="PDQ_N_FAB_1_DTQ_FC_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_DTQ_FC)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FABRIC_2_DTQ_FC_ENABLE">
+                    <Access>
+                        <Register Name="IPT_PDQ_DTQ_FC_ENABLEr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_PDQ_CONTEXT)"/>
+                            <HwField Name="PDQ_N_FAB_2_DTQ_FC_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_DTQ_FC)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_RDF_DTQ_FC_ENABLE">
+        <OneLineDescription>Select which DTQ-FC will cause stop read from Read FIFO</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Flow Control to configure" Name="FABRIC_DTQ_FC"/>
+            </Key>
+            <Result>
+                <Field Description="local 0 dtq flow control enable" Name="LOCAL_0_DTQ_FC_ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="local 1 dtq flow control enable" Name="LOCAL_1_DTQ_FC_ENABLE" Size="1" Type="BOOL" Valid="DNX_DATA.device.general.multi_core"/>
+                <Field Description="fabric 0 dtq flow control enable" Name="FABRIC_0_DTQ_FC_ENABLE" Size="1" Type="BOOL" Valid="DNX_DATA.fabric.general.is_supported"/>
+                <Field Description="fabric 1 dtq flow control enable" Name="FABRIC_1_DTQ_FC_ENABLE" Size="1" Type="BOOL" Valid="DNX_DATA.fabric.general.is_supported"/>
+                <Field Description="fabric 2 dtq flow control enable" Name="FABRIC_2_DTQ_FC_ENABLE" Size="1" Type="BOOL" Valid="DNX_DATA.fabric.general.is_supported"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0" Name="LOCAL_0_DTQ_FC_ENABLE">
+                    <Access>
+                        <Register Name="IPT_READ_FIFO_MIX_DTQ_FC_ENABLEr">
+                            <HwField Name="READ_FIFO_MIX_LOC_0_DTQ_FC_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_DTQ_FC)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="IPT_READ_FIFO_SRAM_DTQ_FC_ENABLEr">
+                            <HwField Name="READ_FIFO_SRAM_LOC_0_DTQ_FC_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_DTQ_FC)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0" Name="LOCAL_0_DTQ_FC_ENABLE">
+                    <Access>
+                        <Register Name="IPT_READ_FIFO_MIX_DTQ_FC_ENABLEr">
+                            <HwField Name="READ_FIFO_MIX_LOC_DTQ_FC_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_DTQ_FC)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="IPT_READ_FIFO_MIX_DTQ_FC_ENABLEr">
+                            <HwField Name="READ_FIFO_MIX_LOC_DTQ_SEGMENT_FC_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_DTQ_FC)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="IPT_READ_FIFO_SRAM_DTQ_FC_ENABLEr">
+                            <HwField Name="READ_FIFO_SRAM_LOC_DTQ_FC_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_DTQ_FC)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="IPT_READ_FIFO_SRAM_DTQ_FC_ENABLEr">
+                            <HwField Name="READ_FIFO_SRAM_LOC_DTQ_SEGMENT_FC_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_DTQ_FC)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="Q2A_A0 Q2A_B0" Name="LOCAL_0_DTQ_FC_ENABLE">
+                    <Access>
+                        <Register Name="IPT_READ_FIFO_MIX_DTQ_FC_ENABLEr">
+                            <HwField Name="READ_FIFO_MIX_LOC_DTQ_FC_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_DTQ_FC)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LOCAL_1_DTQ_FC_ENABLE">
+                    <Access>
+                        <Register Name="IPT_READ_FIFO_MIX_DTQ_FC_ENABLEr">
+                            <HwField Name="READ_FIFO_MIX_LOC_1_DTQ_FC_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_DTQ_FC)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="IPT_READ_FIFO_SRAM_DTQ_FC_ENABLEr">
+                            <HwField Name="READ_FIFO_SRAM_LOC_1_DTQ_FC_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_DTQ_FC)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FABRIC_0_DTQ_FC_ENABLE">
+                    <Access>
+                        <Register Name="IPT_READ_FIFO_MIX_DTQ_FC_ENABLEr">
+                            <HwField Name="READ_FIFO_MIX_FAB_0_DTQ_FC_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_DTQ_FC)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="IPT_READ_FIFO_SRAM_DTQ_FC_ENABLEr">
+                            <HwField Name="READ_FIFO_SRAM_FAB_0_DTQ_FC_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_DTQ_FC)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FABRIC_1_DTQ_FC_ENABLE">
+                    <Access>
+                        <Register Name="IPT_READ_FIFO_MIX_DTQ_FC_ENABLEr">
+                            <HwField Name="READ_FIFO_MIX_FAB_1_DTQ_FC_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_DTQ_FC)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="IPT_READ_FIFO_SRAM_DTQ_FC_ENABLEr">
+                            <HwField Name="READ_FIFO_SRAM_FAB_1_DTQ_FC_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_DTQ_FC)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FABRIC_2_DTQ_FC_ENABLE">
+                    <Access>
+                        <Register Name="IPT_READ_FIFO_MIX_DTQ_FC_ENABLEr">
+                            <HwField Name="READ_FIFO_MIX_FAB_2_DTQ_FC_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_DTQ_FC)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="IPT_READ_FIFO_SRAM_DTQ_FC_ENABLEr">
+                            <HwField Name="READ_FIFO_SRAM_FAB_2_DTQ_FC_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_DTQ_FC)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_GLOBAL_SHAPER_CONFIG" Valid="DNX_DATA.device.general.multi_core">
+        <OneLineDescription>Configure global shapers</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="DTQ Global shaper id" Name="FABRIC_DTQ_GLOBAL_SHAPER"/>
+            </Key>
+            <Result>
+                <Field Description="Enable the shaper" Name="ENABLE" Type="BOOL"/>
+                <Field Description="Shaper calendar" Name="CALENDAR" Size="16" Type="UINT"/>
+                <Field Description="Shaper delay" Name="DELAY" Size="16" Type="UINT"/>
+                <Field Description="Maximum burst size the shaper can accumulate" Name="MAX_BURST" Size="19" Type="UINT"/>
+                <Field Description="Is shaper will calculate rate in segments of 256B" Name="SHAPER_IS_SEGMENTED" Type="BOOL"/>
+                <Field Description="Enable shaper to bundle packets together" Name="SHAPER_BUNDLE_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Memory Name="IPT_PER_GIPT_SHAPER_CFGm">
+                            <HwField Name="SHAPER_ENf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CALENDAR">
+                    <Access>
+                        <Memory Name="IPT_PER_GIPT_SHAPER_CFGm">
+                            <HwField Name="SHAPER_CALf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DELAY">
+                    <Access>
+                        <Memory Name="IPT_PER_GIPT_SHAPER_CFGm">
+                            <HwField Name="SHAPER_DELAYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAX_BURST">
+                    <Access>
+                        <Memory Name="IPT_PER_GIPT_SHAPER_CFGm">
+                            <HwField Name="SHAPER_MAX_CREDITf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SHAPER_IS_SEGMENTED">
+                    <Access>
+                        <Memory Name="IPT_PER_GIPT_SHAPER_CFGm">
+                            <HwField Name="SHAPER_IS_SEGMENTEDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SHAPER_BUNDLE_ENABLE">
+                    <Access>
+                        <Memory Name="IPT_PER_GIPT_SHAPER_CFGm">
+                            <HwField Name="SHAPER_BUNDLE_ENf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_PDQ_GLOBAL_SHAPER_FC_ENABLE" Valid="DNX_DATA.device.general.multi_core">
+        <OneLineDescription>Enable PDQs global shaper FC</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Fabric PDQ context" Name="FABRIC_PDQ_CONTEXT"/>
+            </Key>
+            <Result>
+                <Field Description="Enable PDQ's global shaper flow control" Name="ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="IPT_PDQ_GLB_SHAPER_FC_CONFIGr">
+                            <HwField Name="PDQ_GLB_SHAPER_FC_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_PDQ_CONTEXT)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_SHAPERS_CONFIG">
+        <OneLineDescription>General configurations for shapers</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="enables minimal shaper rate equivalent to 1 link when reported number of links is 0" Name="ZERO_ACTIVE_LINKS_RATE_ENABLE" Type="BOOL" Valid="DNX_DATA.fabric.general.is_supported"/>
+                <Field Description="is global shapers react to number of links, or rate is fixed" Name="GLOBAL_SHAPERS_NOF_ACTIVE_LINKS_ENABLE" Type="BOOL" Valid="DNX_DATA.device.general.multi_core"/>
+                <Field Description="In mesh mode, core MC shaper react to number of links, else rate is fix" Name="MESH_ACTIVE_LINKS_MC_SHPER_ENABLE" Type="BOOL" Valid="DNX_DATA.fabric.general.is_supported"/>
+                <Field Description="In mesh mode, core MC shaper is according to maximum number of links of DEV1 and DE2, else it is according to the mimimum" Name="MESH_FMC_NUM_LINKS_MAX_ENABLE" Type="BOOL" Valid="DNX_DATA.fabric.general.is_supported"/>
+                <Field Description="header compensation for shaper rate" Name="SHAPER_COMPENSATION" Size="5" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ZERO_ACTIVE_LINKS_RATE_ENABLE">
+                    <Access>
+                        <Register Name="IPT_SHAPER_GENERAL_CONFIGr">
+                            <HwField Name="ZERO_ACT_LINKS_RATE_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GLOBAL_SHAPERS_NOF_ACTIVE_LINKS_ENABLE">
+                    <Access>
+                        <Register Name="IPT_SHAPER_GENERAL_CONFIGr">
+                            <HwField Name="GIPT_ACT_LINKS_SHP_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MESH_ACTIVE_LINKS_MC_SHPER_ENABLE">
+                    <Access>
+                        <Register Name="IPT_SHAPER_GENERAL_CONFIGr">
+                            <HwField Name="ACT_LINKS_MC_SHP_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MESH_FMC_NUM_LINKS_MAX_ENABLE">
+                    <Access>
+                        <Register Name="IPT_SHAPER_GENERAL_CONFIGr">
+                            <HwField Name="MESH_FMC_NUM_LINKS_MAX_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SHAPER_COMPENSATION">
+                    <Access>
+                        <Register Name="IPT_SHAPER_GENERAL_CONFIGr">
+                            <HwField Name="SHAPER_CELL_HDR_DIFFf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_WFQ_WEIGHT">
+        <OneLineDescription>Configure WFQ weights</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Weight for the first context" Name="WEIGHT_FIRST" Size="6" Type="UINT"/>
+                <Field Description="Weight for the second context" Name="WEIGHT_SECOND" Size="6" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="WEIGHT_FIRST">
+                    <Access>
+                        <Register Name="IPT_WFQ_CFGr">
+                            <!-- HW index of the WFQ between OCB-Only and HP queues -->
+                            <ArrayOffset Formula="dnx_data_fabric.dbal.fabric_transmit_wfq_index_max_value_get(unit)"/>
+                            <HwField Name="WFQ_N_WEIGHT_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="WEIGHT_SECOND">
+                    <Access>
+                        <Register Name="IPT_WFQ_CFGr">
+                            <!-- HW index of the WFQ between OCB-Only and HP queues -->
+                            <ArrayOffset Formula="dnx_data_fabric.dbal.fabric_transmit_wfq_index_max_value_get(unit)"/>
+                            <HwField Name="WFQ_N_WEIGHT_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_WFQ_CONFIG">
+        <OneLineDescription>Configure WFQ Mesh</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="WFQ index" MaxValue="DNX_DATA.fabric.dbal.fabric_transmit_wfq_index_max_value" Name="WFQ_INDEX" Size="DNX_DATA.fabric.dbal.fabric_transmit_wfq_index_bits_nof" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="default packet size" Name="DEFAULT_PACKET_SIZE" Size="14" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DEFAULT_PACKET_SIZE">
+                    <Access>
+                        <Register Name="IPT_WFQ_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(WFQ_INDEX)"/>
+                            <HwField Name="WFQ_N_DEFAULT_PKT_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_WFQ_MESH_CONFIG" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Configure WFQ Mesh</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="default packet size" Name="DEFAULT_PACKET_SIZE" Size="14" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DEFAULT_PACKET_SIZE">
+                    <Access>
+                        <Register Name="IPT_WFQ_MESH_CFGr">
+                            <HwField Name="WFQ_N_MESH_DEFAULT_PKT_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_RRF_TO_PDQ_CONFIG">
+        <OneLineDescription>Configure Read Request FIFOs to PDQs FC thresholds</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Flow control hysteresis threshold" Name="SRAM_HP_FC_HIGH_TH" Size="13" Type="UINT"/>
+                <Field Description="Flow control hysteresis threshold" Name="SRAM_HP_FC_LOW_TH" Size="13" Type="UINT"/>
+                <Field Description="Flow control hysteresis threshold" Name="SRAM_LP_FC_HIGH_TH" Size="13" Type="UINT"/>
+                <Field Description="Flow control hysteresis threshold" Name="SRAM_LP_FC_LOW_TH" Size="13" Type="UINT"/>
+                <Field Description="Flow control hysteresis threshold" Name="OCBO_FC_HIGH_TH" Size="13" Type="UINT"/>
+                <Field Description="Flow control hysteresis threshold" Name="OCBO_FC_LOW_TH" Size="13" Type="UINT"/>
+                <Field Description="Flow control hysteresis threshold" Name="MIXS_HP_FC_HIGH_TH" Size="13" Type="UINT"/>
+                <Field Description="Flow control hysteresis threshold" Name="MIXS_HP_FC_LOW_TH" Size="13" Type="UINT"/>
+                <Field Description="Flow control hysteresis threshold" Name="MIXS_LP_FC_HIGH_TH" Size="13" Type="UINT"/>
+                <Field Description="Flow control hysteresis threshold" Name="MIXS_LP_FC_LOW_TH" Size="13" Type="UINT"/>
+                <Field Description="Flow control hysteresis threshold" Name="MIXD_HP_FC_HIGH_TH" Size="13" Type="UINT"/>
+                <Field Description="Flow control hysteresis threshold" Name="MIXD_HP_FC_LOW_TH" Size="13" Type="UINT"/>
+                <Field Description="Flow control hysteresis threshold" Name="MIXD_LP_FC_HIGH_TH" Size="13" Type="UINT"/>
+                <Field Description="Flow control hysteresis threshold" Name="MIXD_LP_FC_LOW_TH" Size="13" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="SRAM_HP_FC_HIGH_TH">
+                    <Access>
+                        <Register Name="IPT_RRF_FC_THr">
+                            <HwField Name="RRF_SRAM_HP_FC_HIGH_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_HP_FC_LOW_TH">
+                    <Access>
+                        <Register Name="IPT_RRF_FC_THr">
+                            <HwField Name="RRF_SRAM_HP_FC_LOW_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_LP_FC_HIGH_TH">
+                    <Access>
+                        <Register Name="IPT_RRF_FC_THr">
+                            <HwField Name="RRF_SRAM_LP_FC_HIGH_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_LP_FC_LOW_TH">
+                    <Access>
+                        <Register Name="IPT_RRF_FC_THr">
+                            <HwField Name="RRF_SRAM_LP_FC_LOW_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OCBO_FC_HIGH_TH">
+                    <Access>
+                        <Register Name="IPT_RRF_FC_THr">
+                            <HwField Name="RRF_OCBO_FC_HIGH_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OCBO_FC_LOW_TH">
+                    <Access>
+                        <Register Name="IPT_RRF_FC_THr">
+                            <HwField Name="RRF_OCBO_FC_LOW_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MIXS_HP_FC_HIGH_TH">
+                    <Access>
+                        <Register Name="IPT_RRF_FC_THr">
+                            <HwField Name="RRF_MIXS_HP_FC_HIGH_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MIXS_HP_FC_LOW_TH">
+                    <Access>
+                        <Register Name="IPT_RRF_FC_THr">
+                            <HwField Name="RRF_MIXS_HP_FC_LOW_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MIXS_LP_FC_HIGH_TH">
+                    <Access>
+                        <Register Name="IPT_RRF_FC_THr">
+                            <HwField Name="RRF_MIXS_LP_FC_HIGH_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MIXS_LP_FC_LOW_TH">
+                    <Access>
+                        <Register Name="IPT_RRF_FC_THr">
+                            <HwField Name="RRF_MIXS_LP_FC_LOW_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MIXD_HP_FC_HIGH_TH">
+                    <Access>
+                        <Register Name="IPT_RRF_FC_THr">
+                            <HwField Name="RRF_MIXD_HP_FC_HIGH_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MIXD_HP_FC_LOW_TH">
+                    <Access>
+                        <Register Name="IPT_RRF_FC_THr">
+                            <HwField Name="RRF_MIXD_HP_FC_LOW_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MIXD_LP_FC_HIGH_TH">
+                    <Access>
+                        <Register Name="IPT_RRF_FC_THr">
+                            <HwField Name="RRF_MIXD_LP_FC_HIGH_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MIXD_LP_FC_LOW_TH">
+                    <Access>
+                        <Register Name="IPT_RRF_FC_THr">
+                            <HwField Name="RRF_MIXD_LP_FC_LOW_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_FLOW_CONTROL_DEBUG">
+        <OneLineDescription>Debug configurations for flow control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Is Flow Control indication sticky" Name="IS_STICKY" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IS_STICKY">
+                    <Access>
+                        <Register Name="IPT_FLOW_CONTROL_DEBUGr">
+                            <HwField Name="STICKY_SELECTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_TRANSMIT_GCI_ENABLE" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Enable GCI</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Enable" Name="ENABLE" Type="BOOL"/>
+                <Field Description="Select which GCI indications to count" Name="COUNT_SELECT" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="IPT_IPT_DEBUG_GCI_CONTROLSr">
+                            <HwField Name="GCI_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COUNT_SELECT">
+                    <Access>
+                        <Register Name="IPT_IPT_DEBUG_GCI_CONTROLSr">
+                            <HwField Name="GCI_CNT_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

@@ -1,0 +1,165 @@
+<?xml version="1.0"?>
+
+<device_data lib="dnx_data" module="egr_queuing" bsl_flag="BSL_LS_BCMDNX_EGRESSDNX">
+    <includes>
+    </includes>
+    <sub_module name="params" doc="default values for egr_queuing module">
+        <tables>
+            <table labels="j2p_notrev" name="if_speed_params" doc="per port speed thresholds">
+                <key name="idx" doc="table index"></key>
+                <key name="clock_rate_idx" doc="index to table based on the clock rate"></key>
+                <value name="speed" type="int" doc="port speed in GHz"></value>
+                <value name="if_id" type="int" doc="port egq interface ID"></value>
+                <value name="crdt_size" type="int" doc="TXI credits"></value>
+                <value name="irdy_thr" type="int" doc="NRDY threshold"></value>
+                <value name="txq_max_bytes" type="int" doc="TXQ max bytes threshold"></value>
+                <value name="min_gap_hp" type="int" doc="minimum gap between consecutive access to same interface if serving HP Q"></value>
+                <value name="fqp_min_gap" type="int" doc="fqp min gap"></value>                
+            </table>
+            <table labels="j2p_notrev" name="emr_fifo" doc="emr fifo parameters">
+                <key name="idx" doc="table index"></key>
+                <key name="tdm" doc="tdm exist in the system"></key>
+                <value name="depth" type="int" doc="depth configuration for each FIFO"></value>
+                <value name="almost_full" type="int" doc="configuration of almost full threshold"></value>
+                <value name="full" type="int" doc="configuration of full threshold"></value>
+            </table>
+            <table labels="j2p_notrev" name="if_speed_params_clk_th" doc="clock rate thresholds in Khz, used as input to if_speed_params">
+                <key name="idx" doc="table index"></key>
+                <value name="max_clock_rate_th" type="int" doc="clock rate thresholds in Khz"></value>
+            </table>                  
+        </tables>
+        <defines>
+            <define labels="j2p_notrev" name="nof_bits_in_tcg_weight" doc="number of bits in 'weight' representation of a TCG. See EPS_DWM_8P"></define>
+            <define labels="j2p_notrev" name="nof_bits_in_nof_q_pairs_in_ps"
+              doc="number of bits in 'nof_q_pairs_in_ps' representation. Essentially, log2(nof_q_pairs_in_ps)"></define>
+            <define labels="j2p_notrev" name="nof_q_pairs_in_ps" doc="Number of qpairs per one port scheduler"></define>
+            <define labels="j2p_notrev" name="nof_bits_in_q_pair"
+              doc="number of bits in 'queue pair' representation. Essentially, log2(nof_q_pairs)"></define>
+            <define labels="j2p_notrev" name="nof_q_pairs" doc="Number of q_pairs per core"></define>
+            <define labels="j2p_notrev" name="nof_bits_in_nof_port_schedulers"
+              doc="number of bits in 'nof_port_schedulers' representation. Essentially, log2(nof_port_schedulers)"></define>
+            <define labels="j2p_notrev" name="nof_port_schedulers" doc="Number of port schedulers per core"></define>
+
+            <define labels="j2p_notrev" name="nof_bits_in_chan_arb_calendar_size"
+              doc="number of bits in 'num. of entries in chan_arb calendar' representation. Essentially, log2(chan_arb_calendar_size)"></define>
+            <define labels="j2p_notrev" name="chan_arb_calendar_size" doc="number of entries in calendar of 'channelized arbiter' (chan_arb)"></define>
+            <define labels="j2p_notrev" name="nof_bits_in_port_prio_calendar_size"
+              doc="number of bits in 'num. of entries in port_prio calendar' representation. Essentially, log2(port_prio_calendar_size)"></define>
+            <define labels="j2p_notrev" name="port_prio_calendar_size" doc="number of entries in calendar of 'port priority' (also referred to as TC)"></define>
+            <define labels="j2p_notrev" name="nof_bits_in_tcg_calendar_size"
+              doc="number of bits in 'num. of entries in tcg calendar' representation. Essentially, log2(port_prio_calendar_size)"></define>
+            <define labels="j2p_notrev" name="tcg_calendar_size" doc="number of entries in calendar of 'tcg' (group of TCs, group of port_prio entries)"></define>
+
+            <define labels="j2p_notrev" name="nof_bits_in_nof_calendars"
+              doc="number of bits in 'egr nof_calendars' representation. Essentially, log2(nof_calendars)"></define>
+            <define labels="j2p_notrev" name="nof_calendars" doc="Number of calendar-pairs per core. Total number of calendars is twice this value."></define>
+            <define labels="j2p_notrev" name="nof_bits_in_egr_interface"
+              doc="number of bits in 'egr interface' representation. Essentially, log2(nof_egr_interfaces)"></define>
+            <define labels="j2p_notrev" name="nof_bits_in_egr_ch_interface"
+              doc="number of bits in 'egr ch interface' representation. Essentially, log2(nof_egr_ch_interfaces)"></define>
+            <define labels="j2p_notrev" name="nof_egr_interfaces" doc="Number of egr interfaces, per core"></define>
+            <define labels="j2p_notrev" name="nof_egr_ch_interfaces" doc="Number of egr channelized interfaces, per core"></define>
+            <define labels="j2p_notrev" name="reserved_if" doc="reserved interface (used for dummy flow control mapping in LAG SCH)"></define>
+            <define labels="j2p_notrev" name="egr_if_cpu" doc="cpu interface at egr"></define>
+            <define labels="j2p_notrev" name="egr_if_sat" doc="sat interface at egr"></define>
+            <define labels="j2p_notrev" name="egr_if_oam" doc="oam interface at egr"></define>
+            <define labels="j2p_notrev" name="egr_if_olp" doc="olp interface at egr"></define>
+            <define labels="j2p_notrev" name="egr_if_rcy" doc="recycle interface at egr"></define>
+            <define labels="j2p_notrev" name="egr_if_txi_rcy" doc="txi recycle interface at egr"></define>
+            <define labels="j2p_notrev" name="egr_if_eventor" doc="eventor interface at egr"></define>
+            <define labels="j2p_notrev" name="egr_if_nif_base" doc="base egress interface for Nif ports"></define>
+            <define labels="j2p_notrev" name="cal_res" doc="Calendar resolution. Conversion coefficient from bits to credits for DATA mode."></define>
+            <define labels="j2p_notrev" name="cal_res_packet_mode"
+              doc="Calendar resolution. Conversion coefficient from bits to credits for PACKET mode."></define>
+            <define labels="j2p_notrev" name="cal_burst_res"
+              doc="Calendar resolution. Conversion coefficient from bytes to credits. Number of credits per byte. Used for burst size conversion."></define>
+            <define labels="j2p_notrev" name="nof_bits_in_cal_cal_len" doc="Number of bits in representation of cal_cal_len (log2)"></define>
+            <define labels="j2p_notrev" name="cal_cal_len" doc="calcal calendar length"></define>
+            <define labels="j2p_notrev" name="nof_bits_in_nif_cal_len_pqp" doc="Number of bits in representation of nif_cal_len (log2) for pqp"></define>
+            <define labels="j2p_notrev" name="nif_cal_len_pqp" doc="nif calendar length for pqp"></define>
+            <define labels="j2p_notrev" name="nof_bits_in_nif_cal_len_fqp" doc="Number of bits in representation of nif_cal_len (log2) for fqp"></define>
+            <define labels="j2p_notrev" name="nif_cal_len_fqp" doc="nif calendar length for fqp"></define>
+            <define labels="j2p_notrev" name="nof_bits_in_nof_tcg" doc="Number of bits in representation of nof_tcg (log2)"></define>
+            <define labels="j2p_notrev" name="nof_tcg" doc="Number of TC groups supported by this system"></define>
+            <define labels="j2p_notrev" name="nof_bits_in_nof_egr_q_prio" doc="Number of bits in representation of nof_egr_q_prio (log2)"></define>
+            <define labels="j2p_notrev" name="nof_egr_q_prio" doc="Number of egress priorities for unscheduled traffic"></define>
+            <define labels="j2p_notrev" name="tcg_min_priorities" doc="minimum number of priorities supported by tcg"></define>           
+            <define labels="j2p_notrev" name="max_credit_number" doc="the maximum number of credits supported"></define>
+            <define labels="j2p_notrev" name="max_gbps_rate_egq"
+              doc="EGQ Maximum Gb/s rate. This is the upper boundary, it can be lower depending on the credit size"></define>
+            <define labels="j2p_notrev" name="txq_iready_th"
+              doc="Define ready TXQ treshold in PDs for non TDM queues, when Q is above this treshold FQP block relevant interface in EPS"></define>
+            <define labels="j2p_notrev" name="txq_tdm_iready_th"
+              doc="Define ready TXQ treshold in PDs for TDM queues, when Q is above this treshold FQP block relevant interface in EPS"></define>
+            <define labels="j2p_notrev" name="initial_packet_mode"
+              doc="'packet mode' value for a newly added port. See type 'bcmCosqControlShaperPacketMode' on bcm_dnx_cosq_control_set"></define>
+            <define labels="j2p_notrev" name="sub_calendar_ifc" doc="special ifc id for the sub calendar"></define>            
+            <define labels="j2p_notrev" name="txq_max_credits" doc="max credits allowed according to ESB capacity"></define>
+            <define labels="j2p_notrev" name="pqp_ifc_almost_empty_th" doc="pqp ifc almost empty threshold."></define>
+            <define labels="j2p_notrev" name="pqp_port_almost_empty_th" doc="pqp port almost empty threshold."></define>
+            <define labels="j2p_notrev" name="pqp_queue_almost_empty_th" doc="pqp queue almost empty threshold."></define>
+            <define labels="j2p_notrev" name="if_min_gap_priority_size" doc="size in bits of ifc min priority gap"></define>            
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="invalid_otm_port" doc="tm port that is marked as invalid (per core)"></numeric>
+        </numerics>
+        <features>
+            <feature labels="j2p_notrev" name="conditional_crdt_table_access"
+                       doc="Indicates whether 'port_read_enable' is required before accessing OTM_CALENDAR_CRDT_TABLE (temporary HW issue)"></feature>
+            <feature labels="j2p_notrev" name="non_j2b0_counters_are_valid"
+                       doc="Indicates whether counters, which are not supported by j2b0, are to be referenced. Set to 'invalid' for J2B0."></feature>
+            <feature labels="j2p_notrev" name="if_attributes_profile_exist"
+                       doc="Is egq interface attributes using profile"></feature>
+            <feature labels="j2p_notrev" name="cos_map_is_per_pp_port"
+                       doc="Indicates whether access to cos map is per pp port or per tm port"></feature>
+            <feature labels="j2p_notrev" name="phantom_queues" doc="support phantom queues feature"></feature>                       
+            <feature labels="j2p_notrev" name="almost_empty_delay" doc="support almost empty delay configuration"></feature>
+            <feature labels="j2p_notrev" name="fqp_calender_set_select" doc="is fqp_calender_set_select field exist in HW"></feature>
+            <feature labels="j2p_notrev" name="sub_calendar" doc="is sub calendar feature enable"></feature>
+            <feature labels="j2p_notrev" name="txq_tdm_irdy_sel_exist" doc="determine if parameter txq_tdm_irdy_sel exist"></feature>            
+        </features>
+    </sub_module>
+
+    <sub_module name="common_max_val" doc="Common max values over all calendar types">
+        <defines>
+            <define labels="j2p_notrev" name="nof_bits_in_calendar_size"
+              doc="Maximal number of bits representing any calendar size. Essentially, this is log2(calendar_size)"></define>
+            <define labels="j2p_notrev" name="calendar_size" doc="Maximal size over all calendar sizes. Essentially, this is 2^nof_bits_in_calendar_size"></define>
+            <define labels="j2p_notrev" name="slow_port_speed" doc="Maximal speed of ports that will be added to the sub calendar. units: Mbps"></define>
+            <define labels="j2p_notrev" name="mux_calendar_resolution" doc="Resolution of the MUX calendars. units: Mbps"></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="rate_measurement" doc="egress rate measure mechanism. calculates egress rate per EGQ if for various uses">
+        <features>
+            <feature labels="j2p_notrev" name="is_supported" doc="support egress rate measure mechanism"></feature>        
+        </features>
+    
+        <defines>
+            <define labels="j2p_notrev" name="max_interval" doc="Max interval value for egress rate measure [usec]"></define>
+            <define labels="j2p_notrev" name="promile_factor" doc="promile calculation factor for egress rate measure"></define>
+            <define labels="j2p_notrev" name="max_granularity" doc="max granularity value"></define>
+            <define labels="j2p_notrev" name="min_bytes_for_granularity" doc="represent the minimum number of bytes to update the rate counter in a single access. if the calculated promile is lower than this value, granularity should increase"></define>
+        </defines>
+    </sub_module>
+    
+    <sub_module name="phantom_queues" doc="phantom queues feature related info. phantom queues use egr_rate so the info is only used in devices supporting egr_rate feature.">
+        <defines>
+            <define labels="j2p_notrev" name="nof_threshold_profiles" doc="number of phantom queues threshold profiles"></define>
+            <define labels="j2p_notrev" name="max_threshold" doc="max value for phantom queues threshold"></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="reassembly" doc="egress reassembly">
+        <features>
+            <feature labels="j2p_notrev" name="prs" doc="pairs reassembly stage is part of the pipe line"></feature>
+        </features>
+    </sub_module>
+
+</device_data>
+
+
+
+
+

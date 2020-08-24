@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2c_a0" module="device">
+    <sub_module name="general">
+
+        <features>
+            <feature name="multi_core" value="0"></feature>
+            <feature name="new_crc32_calc" value="1"></feature>
+            <feature name="protection_state_ignore" value="1"></feature>
+        </features>
+        
+        <defines>
+            <define name="fap_ids_per_core_bits" value="2"></define>
+            <define name="nof_cores" value="1"></define>
+        </defines>
+        
+        <numerics>
+            <numeric name="core_max_nof_bits" value="1"></numeric>
+            <numeric name="device_id" value="0x8800"></numeric>
+            <numeric name="nof_sku_bits" value="6"></numeric>
+            <numeric name="max_nof_fap_ids_per_core" value="3"></numeric>
+        </numerics>
+        <tables>
+            <table name="ecc_err_masking" mode="map">
+                <key name="block_type"></key>
+                <value name="ecc_1bit_err_mask_reg" default="-1"></value>
+                <value name="ecc_1bit_err_field" default="-1"></value>
+                <value name="ecc_2bit_err_mask_reg" default="-1"></value>
+                <value name="ecc_2bit_err_field" default="-1"></value>
+                <entries>
+                    <entry block_type="SOC_BLK_ECGM" ecc_1bit_err_mask_reg="ECGM_ECC_ERR_1B_MONITOR_MEM_MASKr" ecc_2bit_err_mask_reg="ECGM_ECC_ERR_2B_MONITOR_MEM_MASKr" 
+                     ecc_1bit_err_field="FDCM_ECC_1B_ERR_MASKf,FQSM_ECC_1B_ERR_MASKf,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1" 
+                     ecc_2bit_err_field="FDCM_ECC_2B_ERR_MASKf,FQSM_ECC_2B_ERR_MASKf,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1"></entry>
+                    <entry block_type="SOC_BLK_CGM" ecc_1bit_err_mask_reg="CGM_ECC_ERR_1B_MONITOR_MEM_MASKr" ecc_2bit_err_mask_reg="CGM_ECC_ERR_2B_MONITOR_MEM_MASKr" 
+                     ecc_1bit_err_field="VSQC_SRAM_PDS_STATE_ECC_1B_ERR_MASKf,VSQC_SRAM_BUFFERS_STATE_ECC_1B_ERR_MASKf,VSQC_WORDS_STATE_ECC_1B_ERR_MASKf,VSQD_SRAM_PDS_STATE_ECC_1B_ERR_MASKf,VSQD_SRAM_BUFFERS_STATE_ECC_1B_ERR_MASKf,VSQD_WORDS_STATE_ECC_1B_ERR_MASKf,VSQE_WORDS_STATE_ECC_1B_ERR_MASKf,VSQE_SRAM_PDS_STATE_ECC_1B_ERR_MASKf,VSQE_SRAM_BUFFERS_STATE_ECC_1B_ERR_MASKf,-1,-1,-1" 
+                     ecc_2bit_err_field="VSQC_SRAM_PDS_STATE_ECC_2B_ERR_MASKf,VSQC_SRAM_BUFFERS_STATE_ECC_2B_ERR_MASKf,VSQC_WORDS_STATE_ECC_2B_ERR_MASKf,VSQD_SRAM_PDS_STATE_ECC_2B_ERR_MASKf,VSQD_SRAM_BUFFERS_STATE_ECC_2B_ERR_MASKf,VSQD_WORDS_STATE_ECC_2B_ERR_MASKf,VSQE_WORDS_STATE_ECC_2B_ERR_MASKf,VSQE_SRAM_PDS_STATE_ECC_2B_ERR_MASKf,VSQE_SRAM_BUFFERS_STATE_ECC_2B_ERR_MASKf,-1,-1,-1"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+</device_data>

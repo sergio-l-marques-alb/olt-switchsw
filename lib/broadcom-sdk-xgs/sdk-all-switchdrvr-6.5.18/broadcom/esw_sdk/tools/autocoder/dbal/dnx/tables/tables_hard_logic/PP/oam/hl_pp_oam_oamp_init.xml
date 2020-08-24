@@ -1,0 +1,1258 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+    <AppDB Name="OAMP_INIT_GENERAL_CFG">
+        <OneLineDescription>General OAMP Configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="OAMP teransmit enable" Name="TRANSMIT_ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="OAMP scan machine enable" Name="SCANNER_ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="Send all packets to CPU(debug purpose)" Name="RX_2_CPU" Size="1" Type="BOOL"/>
+                <Field Name="DMR_LMR_RESPONSE_ENABLE" Size="1" Type="BOOL"/>
+                <Field Name="DMR_LMR_RESPONSE_DROP_ENABLE" Size="1" Type="BOOL"/>
+                <Field Name="GOOD_PACKET_PUNT_ENABLE" Size="1" Type="BOOL"/>
+                <Field Name="REPORT_MODE"/>
+                <Field Description="'0' - Jericho/'1' - Jericho2" Name="EVENT_FORMAT" Size="1" Type="UINT"/>
+                <Field Description="Minimum OAMP packet size" Name="MIN_PKT_SIZE" Size="8" Type="UINT"/>
+                <Field Name="NUM_OF_RMEPS" Size="DNX_DATA.oam.oamp.rmep_db_entries_nof_bits" Type="UINT"/>
+                <Field Description="Number of system clocks in one second" Name="NUM_CLOCKS_SEC" Size="32" Type="UINT"/>
+                <Field Description="Value to put in PTCH2 SSP field for Down-MEP packets(OAMP port)" Name="PTCH_PP_SSP" Type="PP_PORT"/>
+                <Field Description="Value to put in PTCH2 Opaque field(PTCH-opaque-pt-attr) for Down-MEP packets" Name="PRT_QUALIFIER"/>
+                <Field Name="OAMP_MEP_DB_FULL_ENTRY_THERSHOLD" Type="OAMP_MEP_DB_INDEX"/>
+                <Field Name="OAMP_RMEP_DB_FULL_ENTRY_THERSHOLD" Type="RMEP_INDEX"/>
+                <Field Description="Enable/Disable sending an event to CPU when LOC is set for a RMEP" Name="LOC_SET_EVENT_ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="Enable/Disable sending an event to CPU when almost LOC is set for a RMEP" Name="ALMOST_LOC_SET_EVENT_ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="Enable/Disable sending an event to CPU when LOC is cleared for a RMEP" Name="LOC_CLEAR_EVENT_ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="Enable/Disable sending an event to CPU when RDI is set for a RMEP" Name="RDI_SET_EVENT_ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="Enable/Disable sending an event to CPU when RDI is cleared for a RMEP" Name="RDI_CLEAR_EVENT_ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="TX Counter Prefix" Name="TX_COUNTER_CFG_PREFIX" Size="4" Type="UINT"/>
+                <Field Description="TX Counter Shift" Name="TX_COUNTER_CFG_SHIFT" Size="5" Type="UINT"/>
+                <Field Description="RX Counter Prefix" Name="RX_COUNTER_CFG_PREFIX" Size="4" Type="UINT"/>
+                <Field Description="RX Counter Shift" Name="RX_COUNTER_CFG_SHIFT" Size="5" Type="UINT"/>
+                <Field Description="Enable/Disable SLR measurement in the Txm" Name="MEASURE_NEXT_RECEIVED_SLR_ENABLE" Size="1" Type="BOOL" Valid="DNX_DATA.oam.oamp.slm_supported"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TRANSMIT_ENABLE">
+                    <Access>
+                        <Register Name="OAMP_MODE_REGISTERr">
+                            <HwField Name="TRANSMIT_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SCANNER_ENABLE">
+                    <Access>
+                        <Register Name="OAMP_MODE_REGISTERr">
+                            <HwField Name="SCANNER_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RX_2_CPU">
+                    <Access>
+                        <Register Name="OAMP_MODE_REGISTERr">
+                            <HwField Name="RX_2_CPUf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DMR_LMR_RESPONSE_ENABLE">
+                    <Access>
+                        <Register Name="OAMP_MODE_REGISTERr">
+                            <HwField Name="DMR_LMR_RESPONSE_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DMR_LMR_RESPONSE_DROP_ENABLE">
+                    <Access>
+                        <Register Name="OAMP_MODE_REGISTERr">
+                            <HwField Name="DMR_LMR_RESPONSE_DROP_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GOOD_PACKET_PUNT_ENABLE">
+                    <Access>
+                        <Register Name="OAMP_MODE_REGISTERr">
+                            <HwField Name="GOOD_PACKET_PUNT_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="REPORT_MODE">
+                    <Access>
+                        <Register Name="OAMP_MODE_REGISTERr">
+                            <HwField Name="REPORT_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EVENT_FORMAT">
+                    <Access>
+                        <Register Name="OAMP_MODE_REGISTERr">
+                            <HwField Name="EVENT_FORMATf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MIN_PKT_SIZE">
+                    <Access>
+                        <Register Name="OAMP_MIN_NET_PKT_SIZEr">
+                            <HwField Name="MIN_NET_PKT_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="NUM_OF_RMEPS">
+                    <Access>
+                        <Register Name="OAMP_NUMBER_OF_RMEPSr">
+                            <HwField Name="NUMBER_OF_RMEPSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="NUM_CLOCKS_SEC">
+                    <Access>
+                        <Register Name="OAMP_TIMER_CONFIGr">
+                            <HwField Name="NUM_CLOCKS_SECf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PTCH_PP_SSP">
+                    <Access>
+                        <Register Name="OAMP_DOWN_PTCHr">
+                            <HwField Name="DOWN_PTCH_PP_SSPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PRT_QUALIFIER">
+                    <Access>
+                        <Register Name="OAMP_DOWN_PTCHr">
+                            <HwField Name="DOWN_PTCH_OPAQUE_PT_ATTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAMP_MEP_DB_FULL_ENTRY_THERSHOLD"> 
+                    <Access>
+                        <Register Name="OAMP_MEP_DB_FULL_ENTRY_THRESHOLDr"> 
+                             <HwField Name="MEP_DB_FULL_ENTRY_THRESHOLDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAMP_RMEP_DB_FULL_ENTRY_THERSHOLD"> 
+                    <Access>
+                        <Register Name="OAMP_R_MEP_DB_FULL_ENTRY_THRESHOLDr"> 
+                             <HwField Name="R_MEP_DB_FULL_ENTRY_THRESHOLDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LOC_SET_EVENT_ENABLE"> 
+                    <Access>
+                        <Register Name="OAMP_ENABLE_INTERRUPT_MESSAGE_EVENTr"> 
+                             <HwField Name="ENABLE_LOC_SET_EVENTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ALMOST_LOC_SET_EVENT_ENABLE"> 
+                    <Access>
+                        <Register Name="OAMP_ENABLE_INTERRUPT_MESSAGE_EVENTr"> 
+                             <HwField Name="ENABLE_ALMOST_LOC_SET_EVENTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LOC_CLEAR_EVENT_ENABLE"> 
+                    <Access>
+                        <Register Name="OAMP_ENABLE_INTERRUPT_MESSAGE_EVENTr"> 
+                             <HwField Name="ENABLE_LOC_CLEAR_EVENTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RDI_SET_EVENT_ENABLE"> 
+                    <Access>
+                        <Register Name="OAMP_ENABLE_INTERRUPT_MESSAGE_EVENTr"> 
+                             <HwField Name="ENABLE_RDI_SET_EVENTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RDI_CLEAR_EVENT_ENABLE">
+                    <Access>
+                        <Register Name="OAMP_ENABLE_INTERRUPT_MESSAGE_EVENTr">
+                             <HwField Name="ENABLE_RDI_CLEAR_EVENTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TX_COUNTER_CFG_PREFIX">
+                    <Access>
+                        <Register Name="OAMP_PER_MEP_PROFILE_TX_COUNTER_CFGr">
+                             <HwField Name="CFG_TX_PREFIXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TX_COUNTER_CFG_SHIFT">
+                    <Access>
+                        <Register Name="OAMP_PER_MEP_PROFILE_TX_COUNTER_CFGr">
+                             <HwField Name="CFG_TX_SHIFTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RX_COUNTER_CFG_PREFIX">
+                    <Access>
+                        <Register Name="OAMP_PER_MEP_PROFILE_RX_COUNTER_CFGr">
+                             <HwField Name="CFG_RX_PREFIXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="RX_COUNTER_CFG_SHIFT">
+                    <Access>
+                        <Register Name="OAMP_PER_MEP_PROFILE_RX_COUNTER_CFGr">
+                             <HwField Name="CFG_RX_SHIFTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MEASURE_NEXT_RECEIVED_SLR_ENABLE">
+                    <Access>
+                        <Register Name="OAMP_MODE_REGISTERr">
+                             <HwField Name="MEASURE_NEXT_RECEIVED_SLR_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+
+    </AppDB>
+    <AppDB Name="OAMP_INIT_MEP_DB_BANK_CFG">
+        <OneLineDescription>MEP DB scan rate configuration per bank(12)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="MEP_DB_BANK"/>
+            </Key>
+            <Result>
+                <Field Description="'0' - normal scan rate(1.67ms), '1' -slow scan rate(3.33ms)" Name="SCAN_RATE_BANK" Size="1" Type="UINT" Valid="DNX_DATA.oam.oamp.scan_rate_bank_exist"/>
+                <Field Description="Number of txm idle stages before active" Name="NUM_IDLE_STAGES" Size="4" Type="UINT"/>
+                <Field Description="Number of txm active stages before idle" Name="NUM_ACTIVE_STAGES" Size="4" Type="UINT"/>
+                <Field Description="Number of system clocks in one MEP-DB scan(1.67ms for long and 3.33ms for short entries)" Name="NUM_CLOCKS_SCAN" Size="22" Type="UINT"/>
+                <Field Name="APPLY_JITTER" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+               <Field Device="JR2_B0 J2C_A0 Q2A_A0 Q2A_B0" Name="SCAN_RATE_BANK">
+                    <Access>
+                        <Register Name="OAMP_TXM_BANK_SCAN_CONFIGr">
+                            <ArrayOffset Formula="#KEY_VALUE(MEP_DB_BANK)"/>
+                            <HwField Name="SCAN_RATE_BANK_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="NUM_IDLE_STAGES">
+                    <Access>
+                        <Register Name="OAMP_TXM_BANK_SCAN_CONFIGr">
+                            <ArrayOffset Formula="#KEY_VALUE(MEP_DB_BANK)"/>
+                            <HwField Name="NUM_STAGES_IDLE_BANK_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="NUM_ACTIVE_STAGES">
+                    <Access>
+                        <Register Name="OAMP_TXM_BANK_SCAN_CONFIGr">
+                            <ArrayOffset Formula="#KEY_VALUE(MEP_DB_BANK)"/>
+                            <HwField Name="NUM_STAGES_ACTIVE_BANK_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="NUM_CLOCKS_SCAN">
+                    <Access>
+                        <Register Name="OAMP_TXM_BANK_SCAN_CONFIGr">
+                            <ArrayOffset Formula="#KEY_VALUE(MEP_DB_BANK)"/>
+                            <HwField Name="NUM_CLOCKS_SCAN_BANK_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="APPLY_JITTER">
+                    <Access>
+                        <Register Name="OAMP_TXM_BANK_SCAN_CONFIGr">
+                            <ArrayOffset Formula="#KEY_VALUE(MEP_DB_BANK)"/>
+                            <HwField Name="APPLY_JITTER_BANK_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="OAMP_INIT_Y1731_GENERAL_CFG">
+        <OneLineDescription>Configuration Y1731 over MPLSTP_GAL/MPLSTP_GACH/PWE_GACH</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="Y1731_MPLSTP_GAL" Type="MPLS_HEADER"/>
+                <Field Name="Y1731_MPLSTP_GACH" Type="ACH_HEADER"/>
+                <Field Name="Y1731_PWE_GACH" Type="ACH_HEADER"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="Y1731_MPLSTP_GAL">
+                    <Access>
+                        <Register Name="OAMP_Y_1731O_MPLSTP_GALr">
+                            <HwField Name="Y_1731O_MPLSTP_GALf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="Y1731_MPLSTP_GACH">
+                    <Access>
+                        <Register Name="OAMP_Y_1731O_MPLSTP_GACHr">
+                            <HwField Name="Y_1731O_MPLSTP_GACHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="Y1731_PWE_GACH">
+                    <Access>
+                        <Register Name="OAMP_Y_1731O_PWE_GACHr">
+                            <HwField Name="Y_1731O_PWE_GACHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAMP_INIT_OAM_OPCODE_CFG">
+        <OneLineDescription>Structure of configurable opcode packets</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OPCODE_TYPE"/>
+            </Key>
+            <Result>
+                <Field Name="OAM_OPCODE"/>
+                <Field Description="Version field to stamp in the OAM header" Name="VERSION" Size="5" Type="UINT"/>
+                <Field Description="Flags field to stamp in the OAM header" Name="FLAGS" Size="8" Type="UINT"/>
+                <Field Description="Size of PDU to generate(including the TLV)" Name="TLV_SIZE" Size="8" Type="UINT"/>
+                <Field Description="TLV offset field to stamp in the OAM header" Name="TLV_OFFSET" Size="8" Type="UINT"/>
+                <Field Description="TYpe of payload for TLV: 8/16/32 bit pattern" Name="TLV_PATTERN_TYPE" Size="2" Type="UINT"/>
+                <Field Description="Repitable pattern to put into the TLV" Name="TLV_PATTERN" Size="32" Type="UINT"/>
+                <Field Name="OAM_MAC_DA_TYPE"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="OAM_OPCODE">
+                    <Access>
+                        <Register Name="OAMP_OPCODE_INFOr">
+                            <ArrayOffset Formula="#KEY_VALUE(OPCODE_TYPE)"/>
+                            <HwField Name="OPCODE_N_OPCODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="VERSION">
+                    <Access>
+                        <Register Name="OAMP_OPCODE_INFOr">
+                            <ArrayOffset Formula="#KEY_VALUE(OPCODE_TYPE)"/>
+                            <HwField Name="OPCODE_N_VERSIONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FLAGS">
+                    <Access>
+                        <Register Name="OAMP_OPCODE_INFOr">
+                            <ArrayOffset Formula="#KEY_VALUE(OPCODE_TYPE)"/>
+                            <HwField Name="OPCODE_N_FLAGSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TLV_SIZE">
+                    <Access>
+                        <Register Name="OAMP_OPCODE_INFOr">
+                            <ArrayOffset Formula="#KEY_VALUE(OPCODE_TYPE)"/>
+                            <HwField Name="OPCODE_N_TLV_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TLV_OFFSET">
+                    <Access>
+                        <Register Name="OAMP_OPCODE_INFOr">
+                            <ArrayOffset Formula="#KEY_VALUE(OPCODE_TYPE)"/>
+                            <HwField Name="OPCODE_N_TLV_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TLV_PATTERN_TYPE">
+                    <Access>
+                        <Register Name="OAMP_OPCODE_INFOr">
+                            <ArrayOffset Formula="#KEY_VALUE(OPCODE_TYPE)"/>
+                            <HwField Name="OPCODE_N_TLV_PATTERN_TYPEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TLV_PATTERN">
+                    <Access>
+                        <Register Name="OAMP_OPCODE_INFOr">
+                            <ArrayOffset Formula="#KEY_VALUE(OPCODE_TYPE)"/>
+                            <HwField Name="OPCODE_N_TLV_PATTERNf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAM_MAC_DA_TYPE">
+                    <Access>
+                        <Register Name="OAMP_OPCODE_INFOr">
+                            <ArrayOffset Formula="#KEY_VALUE(OPCODE_TYPE)"/>
+                            <HwField Name="OPCODE_N_DA_TYPEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAMP_PUNT_PACKET_TRAP_CODES_AND_DESTINATIONS">
+        <OneLineDescription>Configuration of CPU Port</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OAMP_ERROR_TYPE"/>
+            </Key>
+            <Result>
+                <Field Description="Value to put in ITMH Forward Destination Info field" Name="OAMP_DESTINATION" Size="DNX_DATA.oam.oamp.punt_packet_destination_size"/>
+                <Field Description="Value to put in PPH.FHEI CPU trap code field" Name="OAMP_TRAP_CODE" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="OAMP_DESTINATION">
+                    <Access>
+                        <KeyCondition Enum="ERR_PACKET" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_SYS_PORT_ERR_PACKETf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="CHAN_TYPE_MISS" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_SYS_PORT_CHAN_TYPE_MISSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TYPE_MISS" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_SYS_PORT_TYPE_MISSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="EMC_MISS" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_SYS_PORT_EMC_MISSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MAID_MISS" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_SYS_PORT_MAID_MISSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="FLEX_CRC_MISS" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_SYS_PORT_FLEX_CRC_MISSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MDL_MISS" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_SYS_PORT_MDL_MISSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="CCM_INTRVL_MISS" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_SYS_PORT_CCM_INTRVL_MISSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ERR_MY_DISC_MISS" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_SYS_PORT_ERR_MY_DISC_MISSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ERR_SRC_IP_MISS" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_SYS_PORT_ERR_SRC_IP_MISSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ERR_YOUR_DISC_MISS" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_SYS_PORT_ERR_YOUR_DISC_MISSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="SRC_PORT_MISS" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_SYS_PORT_SRC_PORT_MISSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="RMEP_STATE_CHANGE" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_SYS_PORT_RMEP_STATE_CHANGEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="PARITY_ERROR" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_SYS_PORT_PARITY_ERRORf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="DEBUG" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_SYS_PORT_DEBUGf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TIMESTAMP_MISS" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_SYS_PORT_TIMESTAMP_MISSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TRAP_CODE_MISS" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_SYS_PORT_TRAP_CODE_MISSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAMP_TRAP_CODE">
+                    <Access>
+                        <KeyCondition Enum="ERR_PACKET" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_TRAP_CODE_ERR_PACKETf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="CHAN_TYPE_MISS" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_TRAP_CODE_CHAN_TYPE_MISSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TYPE_MISS" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_TRAP_CODE_TYPE_MISSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="EMC_MISS" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_TRAP_CODE_EMC_MISSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MAID_MISS" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_TRAP_CODE_MAID_MISSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="FLEX_CRC_MISS" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_TRAP_CODE_FLEX_CRC_MISSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MDL_MISS" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_TRAP_CODE_MDL_MISSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="CCM_INTRVL_MISS" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_TRAP_CODE_CCM_INTRVL_MISSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ERR_MY_DISC_MISS" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_TRAP_CODE_ERR_MY_DISC_MISSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ERR_SRC_IP_MISS" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_TRAP_CODE_ERR_SRC_IP_MISSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ERR_YOUR_DISC_MISS" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_TRAP_CODE_ERR_YOUR_DISC_MISSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="SRC_PORT_MISS" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_TRAP_CODE_SRC_PORT_MISSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="RMEP_STATE_CHANGE" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_TRAP_CODE_RMEP_STATE_CHANGEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="PARITY_ERROR" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_TRAP_CODE_PARITY_ERRORf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="DEBUG" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_TRAP_CODE_DEBUGf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TIMESTAMP_MISS" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_TRAP_CODE_TIMESTAMP_MISSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TRAP_CODE_MISS" Field="OAMP_ERROR_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_TRAP_CODE_TRAP_CODE_MISSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAMP_INIT_CPU_PORT_CFG">
+        <OneLineDescription>Configuration of CPU Port</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Value to put in ITMH Forward Traffic Class field for packets trapped to CPU" Name="CPU_PORT_TC" Type="TC"/>
+                <Field Description="Value to put in ITMH Drop Precedence field for packets trapped to CPU" Name="CPU_PORT_DP" Type="DP"/>
+                <Field Description="Value to put in PTCH2 SSP field for packets trapped to CPU" Name="PTCH_PP_SSP" Type="PP_PORT"/>
+                <Field Description="Value to put in PTCH2 Opaque field(PTCH-opaque-pt-attr) for packets trapped to CPU" Name="PRT_QUALIFIER"/>
+                <Field Description="Size of FHEI header in punt packets" Name="PUNT_PPH_FHEI_SIZE" Size="2" Type="UINT"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CPU_PORT_TC">
+                    <Access>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CP_UPORT_TCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CPU_PORT_DP">
+                    <Access>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CP_UPORT_DPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PTCH_PP_SSP">
+                    <Access>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_PTCH_PP_SSPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PRT_QUALIFIER">
+                    <Access>
+                        <Register Name="OAMP_CPUPORTr">
+                            <HwField Name="CPU_PTCH_OPAQUE_PT_ATTRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PUNT_PPH_FHEI_SIZE">
+                    <Access>
+                        <Register Name="OAMP_PUNT_PKT_SYS_HDRr">
+                            <HwField Name="PUNT_PPH_FHEI_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAMP_INIT_RMEP_ACCESS_ENABLE_CFG">
+        <OneLineDescription>Configuration RMEP access enable memory</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OAM_OPCODE"/>
+                <Field Name="OAMP_MEP_TYPE"/>
+            </Key>
+            <Result>
+                <Field Description="Lookup Enable in RMEP according opcode and Mep Type" Name="LOOKUP_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LOOKUP_ENABLE">
+                    <Access>
+                        <Memory Name="OAMP_RMEP_INDEX_ACCm"> 
+                            <EntryOffset Formula="#KEY_VALUE(OAM_OPCODE)"/>
+                            <DataOffset Formula="#KEY_VALUE(OAMP_MEP_TYPE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAMP_INIT_MAP_OAM_ID">
+        <OneLineDescription>Enable OAM-ID lookup according to Trap-ID</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="INGRESS_TRAP_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Lookup enable" Name="LOOKUP_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LOOKUP_ENABLE">
+                    <Access>
+                        <Register Name="OAMP_MAP_OAM_IDr"> 
+                            <HwField Name="MAP_OAM_ID_ENABLEf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAMP_TX_RX_COUNTERS">
+        <OneLineDescription>OAMP TX/RX table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Outgoing OAMP packets count" Name="TX_COUNTER" Permission="READONLY" Size="24" Type="UINT"/>
+                <Field Description="Incoming OAMP packets count" Name="RX_COUNTER" Permission="READONLY" Size="24" Type="UINT"/>
+                <Field Description="Indicates whether the OAMP discarded an interrupt because interrupt fifo was full" Name="ITR_DROP" Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="Sticky bit. Indicates whether oversized packet (&gt;255 B) arrived through the RXC interface" Name="OVERSIZED_RX_PACKET" Permission="READONLY" Size="1" Type="BOOL"/>
+                <Field Description="Number of messages, resides in the events fifo, that wait for CPU to read" Name="ITR_COUNT" Permission="READONLY" Size="8" Type="UINT"/>
+                <Field Description="Free running count of the number of TXM packets that were dropped due to congestion" Name="TXM_DROPPED_COUNT" Permission="READONLY" Size="8" Type="UINT"/>
+                <Field Description="Free running count of the number of TXO packets that were dropped due to congestion" Name="TXO_DROPPED_COUNT" Permission="READONLY" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="J2P_A0" Name="TX_COUNTER">
+                    <Access>
+                        <Register Name="OAMP_REG_0168r">
+                            <HwField Name="FIELD_0_23f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0" Name="TX_COUNTER">
+                    <Access>
+                        <Register Name="OAMP_REG_0167r">
+                            <HwField Name="FIELD_0_23f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="RX_COUNTER">
+                    <Access>
+                        <Register Name="OAMP_REG_0166r">
+                            <HwField Name="FIELD_0_23f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0" Name="RX_COUNTER">
+                    <Access>
+                        <Register Name="OAMP_REG_0165r">
+                            <HwField Name="FIELD_0_23f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ITR_DROP">
+                    <Access>
+                        <Register Name="OAMP_STATUS_1_REGr">
+                            <HwField Name="ITR_DROPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OVERSIZED_RX_PACKET">
+                    <Access>
+                        <Register Name="OAMP_STATUS_1_REGr">
+                            <HwField Name="OVERSIZED_RX_PACKETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ITR_COUNT">
+                    <Access>
+                        <Register Name="OAMP_STATUS_1_REGr">
+                            <HwField Name="ITR_COUNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TXM_DROPPED_COUNT">
+                    <Access>
+                        <Register Name="OAMP_STATUS_1_REGr">
+                            <HwField Name="TXM_DROPPED_COUNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TXO_DROPPED_COUNT">
+                    <Access>
+                        <Register Name="OAMP_STATUS_1_REGr">
+                            <HwField Name="TXO_DROPPED_COUNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAMP_SLM_MEASUREMENT_PERIOD_TIMER">
+        <OneLineDescription>Enable opcode counting per opcode index</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="SLM_MEASUREMENT_PERIOD_TIMER_PROFILE_INDEX"/>
+            </Key>
+            <Result>
+                <Field Description="Store the measurement timer initial value." Name="TXM_SLM_MEASUREMENT_PERIOD_TIMER_INIT_VALUE__N" Size="16" Type="UINT"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TXM_SLM_MEASUREMENT_PERIOD_TIMER_INIT_VALUE__N">
+                    <Access>
+                        <Register Name="OAMP_TXM_SLM_MEASUREMENT_PERIOD_TIMERr">
+                            <ArrayOffset Formula="#KEY_VALUE(SLM_MEASUREMENT_PERIOD_TIMER_PROFILE_INDEX)"/>
+                            <HwField Name="TXM_SLM_MEASUREMENT_PERIOD_TIMER_INIT_VALUE__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAMP_OPCODE_FOR_COUNT">
+        <OneLineDescription>Enable opcode counting per opcode index</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OPCODE_FOR_COUNT_INDEX"/>
+            </Key>
+            <Result>
+                <Field Description="Opcode for count" Name="OPCODE_FOR_COUNT" Size="3" Type="UINT"/>
+                <Field Description="FALSE: Disable opcode countig; TRUE: Enable opcode counting" Name="OPCODE_FOR_COUNT_RX_ENABLE" Type="BOOL"/>
+                <Field Description="FALSE: Disable opcode countig; TRUE: Enable opcode counting" Name="OPCODE_FOR_COUNT_TX_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="OPCODE_FOR_COUNT">
+                    <Access>
+                        <Register Name="OAMP_OPCODE_FOR_COUNTr">
+                            <ArrayOffset Formula="#KEY_VALUE(OPCODE_FOR_COUNT_INDEX)"/>
+                            <HwField Name="OPCODE_FOR_COUNT__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OPCODE_FOR_COUNT_RX_ENABLE">
+                    <Access>
+                        <Register Name="OAMP_OPCODE_FOR_COUNTr">
+                            <ArrayOffset Formula="#KEY_VALUE(OPCODE_FOR_COUNT_INDEX)"/>
+                            <HwField Name="OPCODE_FOR_COUNT_RX_ENABLE__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OPCODE_FOR_COUNT_TX_ENABLE">
+                    <Access>
+                        <Register Name="OAMP_OPCODE_FOR_COUNTr">
+                            <ArrayOffset Formula="#KEY_VALUE(OPCODE_FOR_COUNT_INDEX)"/>
+                            <HwField Name="OPCODE_FOR_COUNT_TX_ENABLE__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAMP_OPCODE_RESPONSE_TABLE">
+        <OneLineDescription>OAMP repsonse TCAM table with data offset</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="TCAM_DIRECT">
+            <Key>
+                <Field Description="OAM opcode or channel type selected based on IS_Y1731" Name="OAM_OPCODE_CHANNEL" Size="16" Type="UINT"/>
+                <Field Description="Is Y1731 type" Name="IS_Y1731" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Response OAM Opcode or channel type" Name="OAM_RSP_OPCODE_CHANNEL" Size="16" Type="UINT"/>
+                <Field Description="Two lower bits of required OAM sub-type" Name="OAM_TS_FORMAT" Size="2" Type="UINT"/>
+                <Field Description="Confirmation to generate response packet" Name="GENERATE_RSP" Size="1" Type="UINT"/>
+                <Field Description="Not used" Name="RESERVED" Size="1" Type="UINT"/>
+                <Field Name="VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMappingTcam>
+                <Type Name="KEY">
+                    <Access>
+                        <Memory Name="OAMP_RSP_TCAMm">
+                            <HwField Name="KEYf"/>
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="KEY_MASK">
+                    <Access>
+                        <Memory Name="OAMP_RSP_TCAMm">
+                            <HwField Name="MASKf"/>
+                        </Memory>
+                    </Access>
+                </Type>
+                <Type Name="RESULT">
+                    <Access>
+                        <Memory Name="OAMP_RSP_TCAMm">
+                            <HwField Name="DATf"/>
+                        </Memory>
+                    </Access>
+                </Type>
+            </FieldMappingTcam>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="OAMP_RMEP_PUNT_GOOD_TIMER">
+        <OneLineDescription>Sampling of OAM/BFD good packets inital timer values</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Profile index for timer initial value." MaxValue="7" MinValue="1" Name="PUNT_GOOD_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Description="Number of HW scans before a single OAM/BFD packet is punted to CPU." Name="RMEP_PUNT_GOOD_TIMER_INIT_VALUE" Size="16" Type="UINT"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="RMEP_PUNT_GOOD_TIMER_INIT_VALUE">
+                    <Access>
+                        <Register Name="OAMP_RMEP_PUNT_GOOD_TIMERr">
+                            <ArrayOffset Formula="#KEY_VALUE(PUNT_GOOD_PROFILE)"/>
+                            <HwField Name="RMEP_PUNT_GOOD_TIMER_INIT_VALUE__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESS">
+        <OneLineDescription>enable dynamic memory access to OAMP</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>ECGM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0 J2C_A0" Name="ENABLE">
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="Q2A_A0 Q2A_B0" Name="ENABLE">
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_RX_OAM_ID_TCAMf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_RSP_TCAMf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_PE_1_PROG_TCAMf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_PE_0_PROG_TCAMf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_CLS_FLEX_CRC_TCAMf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_CLS_TRAP_CODE_TCAMf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_RXP_TEMP_PARSER_DATA_FIFOf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_RXP_LOCAL_MEP_PART_1_FIFOf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_RXP_LOCAL_MEP_PART_2_FIFOf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_RXP_MDB_MEP_PART_1_FIFOf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_RXP_MDB_MEP_PART_2_FIFOf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_RXP_MDB_MEP_PART_3_FIFOf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_RXB_INPUT_DECISION_FIFOf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_TXO_LENGTH_FIFOf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_PE_INPUT_CNTL_FIFO_1f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_PE_INPUT_CNTL_FIFO_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="ENABLE">
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_RX_OAM_ID_TCAMf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_RSP_TCAMf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_PE_1_PROG_TCAMf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_PE_0_PROG_TCAMf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_CLS_FLEX_CRC_TCAMf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_CLS_TRAP_CODE_TCAMf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_RXP_TEMP_PARSER_DATA_FIFOf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_RXP_LOCAL_MEP_PART_1_FIFOf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_RXP_LOCAL_MEP_PART_2_FIFOf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_RXP_MDB_MEP_PART_1_FIFOf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_RXP_MDB_MEP_PART_2_FIFOf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_RXP_MDB_MEP_PART_3_FIFOf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_RXB_INPUT_DECISION_FIFOf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_TXO_LENGTH_FIFOf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_PE_INPUT_CNTL_FIFO_1f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_PE_INPUT_CNTL_FIFO_2f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_TXM_DATA_FIFO_MEMORYf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_TXM_LENGTH_FIFO_MEMORYf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_TXO_DATA_FIFO_MEMORYf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_TXO_REQ_FIFO_MEMORYf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_RXB_INPUT_DATA_FIFOf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_RXB_OUTPUT_DATA_FIFOf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_ITR_PKT_FIFOf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_RSP_FIRST_DATA_FIFOf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_RSP_OUT_DATA_FIFOf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_PE_0_FDBK_FIFOf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_PE_1_FDBK_FIFOf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_RXI_CORE_0_MEMf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_RXI_CORE_1_MEMf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

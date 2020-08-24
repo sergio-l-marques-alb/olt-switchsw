@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="system_red">
+
+    <includes>
+        <include>bcm_int/dnx/cosq/ingress/system_red.h</include>
+        <include>bcm_int/dnx/cosq/ingress/ingress_congestion.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_dram.h</include>
+     </includes>
+     
+     <sub_module name="config" doc="system red configuration">
+        <numerics>
+            <numeric name="enable" value="0">
+                <property name="system_red_enable" method="enable">
+                    <doc>
+                        Enable System RED mechanism.
+                        When enabled, a system red-Q-size will be calculated and according to output port congestion level.
+                        when a packet is enqueued, a system red will be performed. 
+                    </doc>
+                </property>
+            </numeric> 
+        </numerics>
+    </sub_module>
+    
+     <sub_module name="info">
+        <defines>
+            <define name="nof_red_q_size" value="16"></define>
+            <define name="max_red_q_size" value="DATA(system_red,info,nof_red_q_size)-1"></define>
+            <define name="max_ing_aging_period" value="268"></define>
+            <define name="max_sch_aging_period" value="2147"></define>
+            <define name="sch_aging_period_factor" value="4"></define>
+            <define name="max_free_res_thr_range" value="3"></define>
+        </defines>
+        
+        <tables>
+             <table name="resource">
+                <key name="type" size="3"></key>
+                <value name="max" default="0"></value>
+                <value name="hw_resolution_max" default="0"></value>
+                <value name="hw_resolution_nof_bits" default="0"></value>
+                <entries>
+                    <entry type="DNX_SYSTEM_RED_RESOURCE_SRAM_PDBS"  max="DATA(ingr_congestion,info,resource,max,DNX_INGRESS_CONGESTION_RESOURCE_SRAM_PDS)/DATA(ingr_congestion,info,nof_pds_in_pdb)" hw_resolution_max="DATA(system_red,info,resource,max,DNX_SYSTEM_RED_RESOURCE_SRAM_PDBS)/DATA(ingr_congestion,info,threshold_granularity)" hw_resolution_nof_bits="11"></entry> <!-- 32K PDBs -->
+                    <entry type="DNX_SYSTEM_RED_RESOURCE_SRAM_BUFFERS"  max="DATA(ingr_congestion,info,resource,max,DNX_INGRESS_CONGESTION_RESOURCE_SRAM_BUFFERS)" hw_resolution_max="DATA(ingr_congestion,info,resource,hw_resolution_max,DNX_INGRESS_CONGESTION_RESOURCE_SRAM_BUFFERS)" hw_resolution_nof_bits="12"></entry> <!-- 64K SRAM Buffers --> 
+                    <entry type="DNX_SYSTEM_RED_RESOURCE_DRAM_BDBS"   max="DATA(dram, buffers, nof_bdbs)-1" hw_resolution_max="DATA(system_red,info,resource,max,DNX_SYSTEM_RED_RESOURCE_DRAM_BDBS)/DATA(ingr_congestion,info,threshold_granularity)" hw_resolution_nof_bits="13" ></entry> <!-- 128K DRAM BDBs --> 
+                </entries>
+            </table>
+             <table name="dbal">
+                <key name="type" size="3"></key>
+                <value name="offset" default="0"></value>
+                <entries>
+                    <entry type="DNX_SYSTEM_RED_RESOURCE_SRAM_PDBS" offset="0"></entry>
+                    <entry type="DNX_SYSTEM_RED_RESOURCE_SRAM_BUFFERS" offset="3*(DATA(system_red,info,resource,hw_resolution_nof_bits,DNX_SYSTEM_RED_RESOURCE_SRAM_PDBS)+1)"></entry>
+                    <entry type="DNX_SYSTEM_RED_RESOURCE_DRAM_BDBS" offset="3*(DATA(system_red,info,resource,hw_resolution_nof_bits,DNX_SYSTEM_RED_RESOURCE_SRAM_PDBS)+1)+3*(DATA(system_red,info,resource,hw_resolution_nof_bits,DNX_SYSTEM_RED_RESOURCE_SRAM_BUFFERS)+1)"></entry>
+
+               </entries>
+            </table>
+        </tables>
+        
+    </sub_module>
+    
+</device_data>

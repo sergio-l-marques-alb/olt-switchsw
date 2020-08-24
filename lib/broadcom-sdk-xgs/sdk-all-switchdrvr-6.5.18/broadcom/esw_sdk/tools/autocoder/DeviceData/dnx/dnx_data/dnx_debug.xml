@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="debug" bsl_flag="BSL_LS_SOC_DIAG">
+    <includes>
+        <include>soc/dnx/dbal/auto_generated/dbal_defines_fields.h</include>
+    </includes>
+
+    <sub_module name="mem" doc="Inforamtion per debug memory block">
+
+        <tables>
+            <table name="params" doc="Per ASIC block properties and characteristics">
+                <key name="block" doc="ASIC Block ID"/>
+                <value name="valid" type="int" doc="marks existence of debug memory for ASIC block"/>
+                <value name="line_nof" type="int" doc="number of lines in debug memory"/>
+                <value name="width" type="int" doc="memory width - size of lingest line"/>
+            </table>
+        </tables>
+      
+    </sub_module>
+
+    <sub_module name="hw_bug" doc="Debug related HW bugs">
+        <features>
+            <feature name="no_hit_bit_on_mdb_access" doc="If KBR is assigned to 1st access, hit bit is not relevant"></feature>
+            <feature name="pem_vt_init_fix" doc="If set, indicates that need to run a specific flow that fix bug in VT3-PEM"></feature>
+            <feature name="iparser_signals_valid" doc="If set, indicates that IParser signals are valid"></feature>
+            <feature name="fwd_action_signals_from_lbp_valid" doc="If set, indicates that fwd_action_* signals from LBP stage are valid"></feature>
+        </features>
+
+    </sub_module>
+
+    <sub_module name="kleap" doc="kleap debug inforamtion">
+        <defines>
+            <define name="fwd1_gen_data_size" doc="FWD1 general data size, used to find the const values"></define>
+            <define name="fwd2_gen_data_size" doc="FWD2 general data size, used to find the const values"></define>
+        </defines> 
+      
+    </sub_module>
+    <sub_module name="general" doc="general inforamtion">
+        <defines>
+            <define name="global_visibility" doc=" visibility global enabler"></define>
+            <define name="etpp_eop_and_sop_dec_above_threshold" doc="eop/sop decrement above threshold signal"></define>
+        </defines>
+    </sub_module>
+</device_data>

@@ -1,0 +1,1960 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="ERPP_TRAP_ACTION_PROFILE">
+        <OneLineDescription>This table reprsents trap action profile,forward strength and forward snoop for each trap</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ERPP_TRAP_ID"/>
+            </Key>
+            <Result>
+                <Field Name="TRAP_ACTION_PROFILE"/>
+                <Field Name="TRAP_FWD_STRENGTH"/>
+                <Field Name="TRAP_SNP_STRENGTH"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TRAP_ACTION_PROFILE">
+                    <Access>
+                        <KeyCondition Enum="RQP_DISCARD" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_RQP_DISCARDf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TDM_DISCARD" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_TDM_DISCARDf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="INVALID_OTM" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_INVALID_OTMf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="EXCLUDE_SRC" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_EXCLUDE_SRCf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="DSS_STACKING" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_DSS_STACKINGf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="LAG_MULTICAST" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_LAG_MULTICASTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="UNACCEPTABLE_FRAME_TYPE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_UNACCEPTABLE_FRAME_TYPEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="SRC_EQUAL_DEST" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_SRC_EQUAL_DESTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="UNKNOWN_DA" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_UNKNOWN_DAf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="SPLIT_HORIZON" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_SPLIT_HORIZONf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TTL_SCOPE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_2r">
+                            <HwField Name="ACTION_PROFILE_TTL_SCOPEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="GLEM_PP_TRAP" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_2r">
+                            <HwField Name="ACTION_PROFILE_GLEM_PP_TRAPf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="GLEM_NON_PP_TRAP" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_2r">
+                            <HwField Name="ACTION_PROFILE_GLEM_NON_PP_TRAPf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MTU_VIOLATION" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_2r">
+                            <HwField Name="ACTION_PROFILE_MTU_VIOLATIONf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_FILTERS_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_2r">
+                            <HwField Name="ACTION_PROFILE_IPV4_FILTERS_ERRORf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_FILTERS_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_2r">
+                            <HwField Name="ACTION_PROFILE_IPV6_FILTERS_ERRORf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="LAYER_4_FILTERS_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_2r">
+                            <HwField Name="ACTION_PROFILE_LAYER_4_FILTERS_ERRORf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TTL_EQUALS_ZERO" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_2r">
+                            <HwField Name="ACTION_PROFILE_TTL_EQUALS_ZEROf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TTL_EQUALS_ONE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_2r">
+                            <HwField Name="ACTION_PROFILE_TTL_EQUALS_ONEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_FWD_STRENGTH">
+                    <Access>
+                        <KeyCondition Enum="TDM_DISCARD" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_1r">
+                            <HwField Name="CFG_TDM_DISCARD_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="RQP_DISCARD" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_1r">
+                            <HwField Name="CFG_RQP_DISCARD_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="INVALID_OTM" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_1r">
+                            <HwField Name="CFG_INVALID_OTM_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="DSS_STACKING" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_1r">
+                            <HwField Name="CFG_DSS_STACKING_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="LAG_MULTICAST" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_1r">
+                            <HwField Name="CFG_LAG_MULTICAST_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="EXCLUDE_SRC" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_1r">
+                            <HwField Name="CFG_EXCLUDE_SRC_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="SRC_EQUAL_DEST" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_1r">
+                            <HwField Name="CFG_SAME_INTERFACE_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="UNACCEPTABLE_FRAME_TYPE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_1r">
+                            <HwField Name="CFG_UNACCEPTABLE_FRAME_TYPE_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="UNKNOWN_DA" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_2r">
+                            <HwField Name="CFG_UNKNOWN_DA_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="SPLIT_HORIZON" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_2r">
+                            <HwField Name="CFG_SPLIT_HORIZON_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="GLEM_PP_TRAP" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_2r">
+                            <HwField Name="CFG_GLEM_PP_TRAP_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="GLEM_NON_PP_TRAP" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_2r">
+                            <HwField Name="CFG_GLEM_NON_PP_TRAP_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TTL_SCOPE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_2r">
+                            <HwField Name="CFG_TTL_SCOPING_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TTL_EQUALS_ZERO" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_2r">
+                            <HwField Name="CFG_TTL_ZERO_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TTL_EQUALS_ONE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_2r">
+                            <HwField Name="CFG_TTL_ONE_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MTU_VIOLATION" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_2r">
+                            <HwField Name="CFG_MTU_VIOLATION_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_FILTERS_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_3r">
+                            <HwField Name="CFG_IPV4_FILTERS_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_FILTERS_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_3r">
+                            <HwField Name="CFG_IPV6_FILTERS_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="LAYER_4_FILTERS_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_3r">
+                            <HwField Name="CFG_LAYER_4_FILTERS_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_SNP_STRENGTH">
+                    <Access>
+                        <KeyCondition Enum="TDM_DISCARD" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_1r">
+                            <HwField Name="CFG_TDM_DISCARD_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="RQP_DISCARD" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_1r">
+                            <HwField Name="CFG_RQP_DISCARD_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="INVALID_OTM" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_1r">
+                            <HwField Name="CFG_INVALID_OTM_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="DSS_STACKING" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_1r">
+                            <HwField Name="CFG_DSS_STACKING_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="LAG_MULTICAST" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_1r">
+                            <HwField Name="CFG_LAG_MULTICAST_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="EXCLUDE_SRC" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_1r">
+                            <HwField Name="CFG_EXCLUDE_SRC_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="SRC_EQUAL_DEST" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_1r">
+                            <HwField Name="CFG_SAME_INTERFACE_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="UNACCEPTABLE_FRAME_TYPE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_1r">
+                            <HwField Name="CFG_UNACCEPTABLE_FRAME_TYPE_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="UNKNOWN_DA" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_2r">
+                            <HwField Name="CFG_UNKNOWN_DA_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="SPLIT_HORIZON" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_2r">
+                            <HwField Name="CFG_SPLIT_HORIZON_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="GLEM_PP_TRAP" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_2r">
+                            <HwField Name="CFG_GLEM_PP_TRAP_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="GLEM_NON_PP_TRAP" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_2r">
+                            <HwField Name="CFG_GLEM_NON_PP_TRAP_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TTL_SCOPE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_2r">
+                            <HwField Name="CFG_TTL_SCOPING_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TTL_EQUALS_ZERO" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_2r">
+                            <HwField Name="CFG_TTL_ZERO_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TTL_EQUALS_ONE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_2r">
+                            <HwField Name="CFG_TTL_ONE_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MTU_VIOLATION" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_2r">
+                            <HwField Name="CFG_MTU_VIOLATION_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_FILTERS_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_3r">
+                            <HwField Name="CFG_IPV4_FILTERS_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_FILTERS_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_3r">
+                            <HwField Name="CFG_IPV6_FILTERS_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="LAYER_4_FILTERS_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_3r">
+                            <HwField Name="CFG_LAYER_4_FILTERS_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>                
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0 Q2A_A0 Q2A_B0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TRAP_ACTION_PROFILE">
+                    <Access>
+                        <KeyCondition Enum="RQP_DISCARD" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_RQP_DISCARDf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TDM_DISCARD" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_TDM_DISCARDf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="INVALID_OTM" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_INVALID_OTMf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="EXCLUDE_SRC" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_EXCLUDE_SRCf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="DSS_STACKING" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_DSS_STACKINGf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="LAG_MULTICAST" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_LAG_MULTICASTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="UNACCEPTABLE_FRAME_TYPE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_UNACCEPTABLE_FRAME_TYPEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="SRC_EQUAL_DEST" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_SRC_EQUAL_DESTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="UNKNOWN_DA" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_UNKNOWN_DAf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="SPLIT_HORIZON" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_SPLIT_HORIZONf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TTL_SCOPE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_2r">
+                            <HwField Name="ACTION_PROFILE_TTL_SCOPEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="GLEM_PP_TRAP" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_2r">
+                            <HwField Name="ACTION_PROFILE_GLEM_PP_TRAPf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="GLEM_NON_PP_TRAP" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_2r">
+                            <HwField Name="ACTION_PROFILE_GLEM_NON_PP_TRAPf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MTU_VIOLATION" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_2r">
+                            <HwField Name="ACTION_PROFILE_MTU_VIOLATIONf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_FILTERS_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_2r">
+                            <HwField Name="ACTION_PROFILE_IPV4_FILTERS_ERRORf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_FILTERS_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_2r">
+                            <HwField Name="ACTION_PROFILE_IPV6_ERR_FILTERS_ERRORf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="LAYER_4_FILTERS_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_2r">
+                            <HwField Name="ACTION_PROFILE_LAYER_4_FILTERS_ERRORf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TTL_EQUALS_ZERO" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_2r">
+                            <HwField Name="ACTION_PROFILE_TTL_EQUALS_ZEROf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TTL_EQUALS_ONE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_2r">
+                            <HwField Name="ACTION_PROFILE_TTL_EQUALS_ONEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_FWD_STRENGTH">
+                    <Access>
+                        <KeyCondition Enum="TDM_DISCARD" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_1r">
+                            <HwField Name="CFG_TDM_DISCARD_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="RQP_DISCARD" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_1r">
+                            <HwField Name="CFG_RQP_DISCARD_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="INVALID_OTM" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_1r">
+                            <HwField Name="CFG_INVALID_OTM_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="DSS_STACKING" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_1r">
+                            <HwField Name="CFG_DSS_STACKING_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="LAG_MULTICAST" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_1r">
+                            <HwField Name="CFG_LAG_MULTICAST_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="EXCLUDE_SRC" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_1r">
+                            <HwField Name="CFG_EXCLUDE_SRC_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="SRC_EQUAL_DEST" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_1r">
+                            <HwField Name="CFG_SAME_INTERFACE_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="UNACCEPTABLE_FRAME_TYPE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_1r">
+                            <HwField Name="CFG_UNACCEPTABLE_FRAME_TYPE_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="UNKNOWN_DA" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_2r">
+                            <HwField Name="CFG_UNKNOWN_DA_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="SPLIT_HORIZON" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_2r">
+                            <HwField Name="CFG_SPLIT_HORIZON_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="GLEM_PP_TRAP" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_2r">
+                            <HwField Name="CFG_GLEM_PP_TRAP_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="GLEM_NON_PP_TRAP" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_2r">
+                            <HwField Name="CFG_GLEM_NON_PP_TRAP_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TTL_SCOPE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_2r">
+                            <HwField Name="CFG_TTL_SCOPING_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TTL_EQUALS_ZERO" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_2r">
+                            <HwField Name="CFG_TTL_ZERO_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TTL_EQUALS_ONE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_2r">
+                            <HwField Name="CFG_TTL_ONE_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MTU_VIOLATION" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_2r">
+                            <HwField Name="CFG_MTU_VIOLATION_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_FILTERS_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_3r">
+                            <HwField Name="CFG_IPV4_FILTERS_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_FILTERS_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_3r">
+                            <HwField Name="CFG_IPV6_ERR_FILTERS_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="LAYER_4_FILTERS_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_3r">
+                            <HwField Name="CFG_LAYER_4_FILTERS_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_SNP_STRENGTH">
+                    <Access>
+                        <KeyCondition Enum="TDM_DISCARD" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_1r">
+                            <HwField Name="CFG_TDM_DISCARD_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="RQP_DISCARD" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_1r">
+                            <HwField Name="CFG_RQP_DISCARD_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="INVALID_OTM" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_1r">
+                            <HwField Name="CFG_INVALID_OTM_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="DSS_STACKING" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_1r">
+                            <HwField Name="CFG_DSS_STACKING_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="LAG_MULTICAST" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_1r">
+                            <HwField Name="CFG_LAG_MULTICAST_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="EXCLUDE_SRC" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_1r">
+                            <HwField Name="CFG_EXCLUDE_SRC_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="SRC_EQUAL_DEST" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_1r">
+                            <HwField Name="CFG_SAME_INTERFACE_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="UNACCEPTABLE_FRAME_TYPE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_1r">
+                            <HwField Name="CFG_UNACCEPTABLE_FRAME_TYPE_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="UNKNOWN_DA" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_2r">
+                            <HwField Name="CFG_UNKNOWN_DA_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="SPLIT_HORIZON" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_2r">
+                            <HwField Name="CFG_SPLIT_HORIZON_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="GLEM_PP_TRAP" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_2r">
+                            <HwField Name="CFG_GLEM_PP_TRAP_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="GLEM_NON_PP_TRAP" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_2r">
+                            <HwField Name="CFG_GLEM_NON_PP_TRAP_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TTL_SCOPE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_2r">
+                            <HwField Name="CFG_TTL_SCOPING_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TTL_EQUALS_ZERO" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_2r">
+                            <HwField Name="CFG_TTL_ZERO_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TTL_EQUALS_ONE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_2r">
+                            <HwField Name="CFG_TTL_ONE_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MTU_VIOLATION" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_2r">
+                            <HwField Name="CFG_MTU_VIOLATION_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_FILTERS_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_3r">
+                            <HwField Name="CFG_IPV4_FILTERS_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_FILTERS_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_3r">
+                            <HwField Name="CFG_IPV6_ERR_FILTERS_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="LAYER_4_FILTERS_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_3r">
+                            <HwField Name="CFG_LAYER_4_FILTERS_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+            </AppToPhyDbMapping>
+            <AppToPhyDbMapping Device="J2P_A0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TRAP_ACTION_PROFILE">
+                    <Access>
+                        <KeyCondition Enum="RQP_DISCARD" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_RQP_DISCARDf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TDM_DISCARD" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_TDM_DISCARDf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="INVALID_OTM" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_INVALID_OTMf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="EXCLUDE_SRC" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_EXCLUDE_SRCf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="DSS_STACKING" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_DSS_STACKINGf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="LAG_MULTICAST" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_LAG_MULTICASTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="UNACCEPTABLE_FRAME_TYPE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_UNACCEPTABLE_FRAME_TYPEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="SRC_EQUAL_DEST" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_SRC_EQUAL_DESTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="UNKNOWN_DA" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_UNKNOWN_DAf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="SPLIT_HORIZON" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_1r">
+                            <HwField Name="ACTION_PROFILE_SPLIT_HORIZONf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TTL_SCOPE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_2r">
+                            <HwField Name="ACTION_PROFILE_TTL_SCOPEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="GLEM_PP_TRAP" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_2r">
+                            <HwField Name="ACTION_PROFILE_GLEM_PP_TRAPf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="GLEM_NON_PP_TRAP" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_2r">
+                            <HwField Name="ACTION_PROFILE_GLEM_NON_PP_TRAPf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MTU_VIOLATION" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_2r">
+                            <HwField Name="ACTION_PROFILE_MTU_VIOLATIONf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TTL_EQUALS_ZERO" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_2r">
+                            <HwField Name="ACTION_PROFILE_TTL_EQUALS_ZEROf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TTL_EQUALS_ONE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_2r">
+                            <HwField Name="ACTION_PROFILE_TTL_EQUALS_ONEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_VERSION_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_IPV4r">
+                            <HwField Name="ACTION_PROFILE_IPV4_VERSIONf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_CHECKSUM_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_IPV4r">
+                            <HwField Name="ACTION_PROFILE_IPV4_HEADER_CHECKSUMf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_HEADER_LENGTH_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_IPV4r">
+                            <HwField Name="ACTION_PROFILE_IPV4_HEADER_LENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_TOTAL_LENGTH_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_IPV4r">
+                            <HwField Name="ACTION_PROFILE_IPV4_TOTAL_LENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_HAS_OPTIONS" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_IPV4r">
+                            <HwField Name="ACTION_PROFILE_IPV4_OPTIONSf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_SIP_EQUAL_DIP" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_IPV4r">
+                            <HwField Name="ACTION_PROFILE_IPV4_SIP_EQUAL_DIPf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_DIP_ZERO" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_IPV4r">
+                            <HwField Name="ACTION_PROFILE_IPV4_DIP_ZEROf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_SIP_IS_MC" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_IPV4r">
+                            <HwField Name="ACTION_PROFILE_IPV4_SIP_MULTICASTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_VERSION_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_IPV6r">
+                            <HwField Name="ACTION_PROFILE_IPV6_VERSIONf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_MULTICAST_SOURCE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_IPV6r">
+                            <HwField Name="ACTION_PROFILE_IPV6_SIP_IS_MCf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_UNSPECIFIED_DESTINATION" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_IPV6r">
+                            <HwField Name="ACTION_PROFILE_IPV6_DIP_IS_ALL_ZEROESf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_LOOPBACK_ADDRESS" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_IPV6r">
+                            <HwField Name="ACTION_PROFILE_IPV6_LOOPBACK_SRC_OR_DSTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_UNSPECIFIED_SOURCE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_IPV6r">
+                            <HwField Name="ACTION_PROFILE_IPV6_SIP_IS_ALL_ZEROESf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_NEXT_HEADER_NULL" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_IPV6r">
+                            <HwField Name="ACTION_PROFILE_IPV6_NEXT_HEADER_IS_ZEROESf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_LOCAL_LINK_DESTINATION" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_IPV6r">
+                            <HwField Name="ACTION_PROFILE_IPV6_LINK_LOCAL_DSTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_LOCAL_SITE_DESTINATION" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_IPV6r">
+                            <HwField Name="ACTION_PROFILE_IPV6_SITE_LOCAL_DSTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_LOCAL_LINK_SOURCE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_IPV6r">
+                            <HwField Name="ACTION_PROFILE_IPV6_LINK_LOCAL_SRCf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_LOCAL_SITE_SOURCE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_IPV6r">
+                            <HwField Name="ACTION_PROFILE_IPV6_SITE_LOCAL_SRCf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_IPV4_COMPATIBLE_DESTINATION" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_IPV6r">
+                            <HwField Name="ACTION_PROFILE_IPV6_IPV4_CMP_DSTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_IPV4_MAPPED_DESTINATION" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_IPV6r">
+                            <HwField Name="ACTION_PROFILE_IPV6_IPV4_MAPPED_DSTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_MULTICAST_DESTINATION" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_IPV6r">
+                            <HwField Name="ACTION_PROFILE_IPV6_MC_DST_FILTERf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TCP_SN_FLAGS_ZERO" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_LAYER_4r">
+                            <HwField Name="ACTION_PROFILE_TCP_SEQ_NUM_ZERO_FLAGS_ZEROf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TCP_SN_ZERO_FLAGS_SET" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_LAYER_4r">
+                            <HwField Name="ACTION_PROFILE_TCP_SEQ_NUM_ZERO_FLAGS_SETf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TCP_SYN_FIN" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_LAYER_4r">
+                            <HwField Name="ACTION_PROFILE_TCP_SYN_AND_FIN_ARE_SETf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TCP_EQUAL_PORTS" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_LAYER_4r">
+                            <HwField Name="ACTION_PROFILE_TCP_SRC_PORT_EQUALS_DST_PORTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TCP_FRAGMENT_INCOMPLETE_HEADER" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_LAYER_4r">
+                            <HwField Name="ACTION_PROFILE_TCP_FRAGMENT_INCOMPLETE_HDRf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TCP_FRAGMENT_OFFSET_LT8" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_LAYER_4r">
+                            <HwField Name="ACTION_PROFILE_TCP_FRAGMENT_OFFSET_LESS_THAN_8f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="UDP_EQUAL_PORTS" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_ACTION_PROFILE_LAYER_4r">
+                            <HwField Name="ACTION_PROFILE_UDP_SRC_PORT_EQUALS_DST_PORTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_FWD_STRENGTH">
+                    <Access>
+                        <KeyCondition Enum="TDM_DISCARD" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_1r">
+                            <HwField Name="CFG_TDM_DISCARD_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="RQP_DISCARD" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_1r">
+                            <HwField Name="CFG_RQP_DISCARD_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="INVALID_OTM" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_1r">
+                            <HwField Name="CFG_INVALID_OTM_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="DSS_STACKING" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_1r">
+                            <HwField Name="CFG_DSS_STACKING_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="LAG_MULTICAST" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_1r">
+                            <HwField Name="CFG_LAG_MULTICAST_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="EXCLUDE_SRC" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_1r">
+                            <HwField Name="CFG_EXCLUDE_SRC_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="SRC_EQUAL_DEST" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_1r">
+                            <HwField Name="CFG_SAME_INTERFACE_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="UNACCEPTABLE_FRAME_TYPE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_1r">
+                            <HwField Name="CFG_UNACCEPTABLE_FRAME_TYPE_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="UNKNOWN_DA" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_2r">
+                            <HwField Name="CFG_UNKNOWN_DA_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="SPLIT_HORIZON" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_2r">
+                            <HwField Name="CFG_SPLIT_HORIZON_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="GLEM_PP_TRAP" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_2r">
+                            <HwField Name="CFG_GLEM_PP_TRAP_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="GLEM_NON_PP_TRAP" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_2r">
+                            <HwField Name="CFG_GLEM_NON_PP_TRAP_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TTL_SCOPE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_2r">
+                            <HwField Name="CFG_TTL_SCOPING_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TTL_EQUALS_ZERO" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_2r">
+                            <HwField Name="CFG_TTL_ZERO_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TTL_EQUALS_ONE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_2r">
+                            <HwField Name="CFG_TTL_ONE_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MTU_VIOLATION" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_2r">
+                            <HwField Name="CFG_MTU_VIOLATION_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_VERSION_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_IPV4r">
+                            <HwField Name="CFG_IPV4_VERSION_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_CHECKSUM_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_IPV4r">
+                            <HwField Name="CFG_IPV4_HEADER_CHECKSUM_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_HEADER_LENGTH_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_IPV4r">
+                            <HwField Name="CFG_IPV4_HEADER_LENGTH_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_TOTAL_LENGTH_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_IPV4r">
+                            <HwField Name="CFG_IPV4_TOTAL_LENGTH_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_HAS_OPTIONS" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_IPV4r">
+                            <HwField Name="CFG_IPV4_OPTIONS_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_SIP_EQUAL_DIP" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_IPV4r">
+                            <HwField Name="CFG_IPV4_SIP_EQUAL_DIP_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_DIP_ZERO" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_IPV4r">
+                            <HwField Name="CFG_IPV4_DIP_ZERO_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_SIP_IS_MC" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_IPV4r">
+                            <HwField Name="CFG_IPV4_SIP_MULTICAST_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_VERSION_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_IPV6r">
+                            <HwField Name="CFG_IPV6_VERSION_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_MULTICAST_SOURCE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_IPV6r">
+                            <HwField Name="CFG_IPV6_SIP_IS_MC_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_UNSPECIFIED_DESTINATION" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_IPV6r">
+                            <HwField Name="CFG_IPV6_DIP_IS_ALL_ZEROES_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_LOOPBACK_ADDRESS" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_IPV6r">
+                            <HwField Name="CFG_IPV6_LOOPBACK_SRC_OR_DST_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_UNSPECIFIED_SOURCE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_IPV6r">
+                            <HwField Name="CFG_IPV6_SIP_IS_ALL_ZEROES_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_NEXT_HEADER_NULL" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_IPV6r">
+                            <HwField Name="CFG_IPV6_NEXT_HEADER_IS_ZEROES_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_LOCAL_LINK_DESTINATION" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_IPV6r">
+                            <HwField Name="CFG_IPV6_LINK_LOCAL_DST_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_LOCAL_SITE_DESTINATION" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_IPV6r">
+                            <HwField Name="CFG_IPV6_SITE_LOCAL_DST_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_LOCAL_LINK_SOURCE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_IPV6r">
+                            <HwField Name="CFG_IPV6_LINK_LOCAL_SRC_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_LOCAL_SITE_SOURCE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_IPV6r">
+                            <HwField Name="CFG_IPV6_SITE_LOCAL_SRC_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_IPV4_COMPATIBLE_DESTINATION" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_IPV6r">
+                            <HwField Name="CFG_IPV6_IPV4_CMP_DST_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_IPV4_MAPPED_DESTINATION" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_IPV6r">
+                            <HwField Name="CFG_IPV6_IPV4_MAPPED_DST_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_MULTICAST_DESTINATION" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_IPV6r">
+                            <HwField Name="CFG_IPV6_MC_DST_FILTER_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TCP_SN_FLAGS_ZERO" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_I_LAYER_4r">
+                            <HwField Name="CFG_TCP_SEQ_NUM_ZERO_FLAGS_ZERO_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TCP_SN_ZERO_FLAGS_SET" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_I_LAYER_4r">
+                            <HwField Name="CFG_TCP_SEQ_NUM_ZERO_FLAGS_SET_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TCP_SYN_FIN" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_I_LAYER_4r">
+                            <HwField Name="CFG_TCP_SYN_AND_FIN_ARE_SET_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TCP_EQUAL_PORTS" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_I_LAYER_4r">
+                            <HwField Name="CFG_TCP_SRC_PORT_EQUALS_DST_PORT_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TCP_FRAGMENT_INCOMPLETE_HEADER" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_I_LAYER_4r">
+                            <HwField Name="CFG_TCP_FRAGMENT_INCOMPLETE_HDR_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TCP_FRAGMENT_OFFSET_LT8" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_I_LAYER_4r">
+                            <HwField Name="CFG_TCP_FRAGMENT_OFFSET_LESS_THAN_8_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="UDP_EQUAL_PORTS" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_FORWARDING_STRENGTH_I_LAYER_4r">
+                            <HwField Name="CFG_UDP_SRC_PORT_EQUALS_DST_PORT_FORWARDING_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_SNP_STRENGTH">
+                    <Access>
+                        <KeyCondition Enum="TDM_DISCARD" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_1r">
+                            <HwField Name="CFG_TDM_DISCARD_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="RQP_DISCARD" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_1r">
+                            <HwField Name="CFG_RQP_DISCARD_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="INVALID_OTM" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_1r">
+                            <HwField Name="CFG_INVALID_OTM_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="DSS_STACKING" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_1r">
+                            <HwField Name="CFG_DSS_STACKING_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="LAG_MULTICAST" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_1r">
+                            <HwField Name="CFG_LAG_MULTICAST_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="EXCLUDE_SRC" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_1r">
+                            <HwField Name="CFG_EXCLUDE_SRC_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="SRC_EQUAL_DEST" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_1r">
+                            <HwField Name="CFG_SAME_INTERFACE_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="UNACCEPTABLE_FRAME_TYPE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_1r">
+                            <HwField Name="CFG_UNACCEPTABLE_FRAME_TYPE_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="UNKNOWN_DA" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_2r">
+                            <HwField Name="CFG_UNKNOWN_DA_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="SPLIT_HORIZON" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_2r">
+                            <HwField Name="CFG_SPLIT_HORIZON_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="GLEM_PP_TRAP" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_2r">
+                            <HwField Name="CFG_GLEM_PP_TRAP_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="GLEM_NON_PP_TRAP" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_2r">
+                            <HwField Name="CFG_GLEM_NON_PP_TRAP_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TTL_SCOPE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_2r">
+                            <HwField Name="CFG_TTL_SCOPING_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TTL_EQUALS_ZERO" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_2r">
+                            <HwField Name="CFG_TTL_ZERO_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TTL_EQUALS_ONE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_2r">
+                            <HwField Name="CFG_TTL_ONE_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="MTU_VIOLATION" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_2r">
+                            <HwField Name="CFG_MTU_VIOLATION_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_VERSION_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_IPV4r">
+                            <HwField Name="CFG_IPV4_VERSION_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_CHECKSUM_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_IPV4r">
+                            <HwField Name="CFG_IPV4_HEADER_CHECKSUM_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_HEADER_LENGTH_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_IPV4r">
+                            <HwField Name="CFG_IPV4_HEADER_LENGTH_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_TOTAL_LENGTH_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_IPV4r">
+                            <HwField Name="CFG_IPV4_TOTAL_LENGTH_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_HAS_OPTIONS" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_IPV4r">
+                            <HwField Name="CFG_IPV4_OPTIONS_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_SIP_EQUAL_DIP" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_IPV4r">
+                            <HwField Name="CFG_IPV4_SIP_EQUAL_DIP_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_DIP_ZERO" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_IPV4r">
+                            <HwField Name="CFG_IPV4_DIP_ZERO_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV4_SIP_IS_MC" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_IPV4r">
+                            <HwField Name="CFG_IPV4_SIP_MULTICAST_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_VERSION_ERROR" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_IPV6r">
+                            <HwField Name="CFG_IPV6_VERSION_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_MULTICAST_SOURCE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_IPV6r">
+                            <HwField Name="CFG_IPV6_SIP_IS_MC_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_UNSPECIFIED_DESTINATION" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_IPV6r">
+                            <HwField Name="CFG_IPV6_DIP_IS_ALL_ZEROES_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_LOOPBACK_ADDRESS" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_IPV6r">
+                            <HwField Name="CFG_IPV6_LOOPBACK_SRC_OR_DST_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_UNSPECIFIED_SOURCE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_IPV6r">
+                            <HwField Name="CFG_IPV6_SIP_IS_ALL_ZEROES_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_NEXT_HEADER_NULL" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_IPV6r">
+                            <HwField Name="CFG_IPV6_NEXT_HEADER_IS_ZEROES_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_LOCAL_LINK_DESTINATION" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_IPV6r">
+                            <HwField Name="CFG_IPV6_LINK_LOCAL_DST_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_LOCAL_SITE_DESTINATION" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_IPV6r">
+                            <HwField Name="CFG_IPV6_SITE_LOCAL_DST_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_LOCAL_LINK_SOURCE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_IPV6r">
+                            <HwField Name="CFG_IPV6_LINK_LOCAL_SRC_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_LOCAL_SITE_SOURCE" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_IPV6r">
+                            <HwField Name="CFG_IPV6_SITE_LOCAL_SRC_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_IPV4_COMPATIBLE_DESTINATION" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_IPV6r">
+                            <HwField Name="CFG_IPV6_IPV4_CMP_DST_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_IPV4_MAPPED_DESTINATION" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_IPV6r">
+                            <HwField Name="CFG_IPV6_IPV4_MAPPED_DST_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPV6_MULTICAST_DESTINATION" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_IPV6r">
+                            <HwField Name="CFG_IPV6_MC_DST_FILTER_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TCP_SN_FLAGS_ZERO" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_I_LAYER_4r">
+                            <HwField Name="CFG_TCP_SEQ_NUM_ZERO_FLAGS_ZERO_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TCP_SN_ZERO_FLAGS_SET" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_I_LAYER_4r">
+                            <HwField Name="CFG_TCP_SEQ_NUM_ZERO_FLAGS_SET_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TCP_SYN_FIN" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_I_LAYER_4r">
+                            <HwField Name="CFG_TCP_SYN_AND_FIN_ARE_SET_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TCP_EQUAL_PORTS" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_I_LAYER_4r">
+                            <HwField Name="CFG_TCP_SRC_PORT_EQUALS_DST_PORT_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TCP_FRAGMENT_INCOMPLETE_HEADER" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_I_LAYER_4r">
+                            <HwField Name="CFG_TCP_FRAGMENT_INCOMPLETE_HDR_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TCP_FRAGMENT_OFFSET_LT8" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_I_LAYER_4r">
+                            <HwField Name="CFG_TCP_FRAGMENT_OFFSET_LESS_THAN_8_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="UDP_EQUAL_PORTS" Field="ERPP_TRAP_ID" Type="EQUAL_TO"/>
+                        <Register Name="ERPP_CFG_FILTER_SNOOP_STRENGTH_I_LAYER_4r">
+                            <HwField Name="CFG_UDP_SRC_PORT_EQUALS_DST_PORT_SNOOP_STRENGTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>                
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ERPP_TRAP_FORWARD_ACTION_PROFILE_TABLE">
+        <OneLineDescription>This table holds 8 profile, each with different actions</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TRAP_ACTION_PROFILE"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="MIRROR_PROFILE_VALID" Type="BOOL"/>
+                <Field Name="MIRROR_PROFILE" Size="2" Type="UINT"/>
+                <Field Name="SNOOP_PROFILE_VALID" Type="BOOL"/>
+                <Field Name="SNOOP_PROFILE"/>
+                <Field Name="COS_PROFILE_VALID" Type="BOOL"/>
+                <Field Name="COS_PROFILE"/>
+                <Field Name="DSP_VALID" Type="BOOL"/>
+                <Field Name="DSP"/>
+                <Field Name="CUD_VALID" Type="BOOL"/>
+                <Field Name="CUD"/>
+                <Field Name="DISCARD"/>
+                <Field Name="DP_VALID" Type="BOOL"/>
+                <Field Name="DP" Size="2"/>
+                <Field Name="TC_VALID" Type="BOOL"/>
+                <Field Name="TC" Size="3"/>
+                <Field Name="PP_DROP_REASON_VALID" Type="BOOL"/>
+                <Field Name="PP_DROP_REASON"/>
+                <Field Name="PMF_COUNTER_0_PROFILE_VALID" Type="BOOL"/>
+                <Field Name="PMF_COUNTER_0_PROFILE" Size="3" Type="PMF_COUNTER_PROFILE"/>
+                <Field Name="PMF_COUNTER_0_PTR_VALID" Type="BOOL"/>
+                <Field Name="PMF_COUNTER_0_PTR" Type="PMF_COUNTER_PTR"/>
+                <Field Name="PMF_COUNTER_1_PROFILE_VALID" Type="BOOL"/>
+                <Field Name="PMF_COUNTER_1_PROFILE" Size="3" Type="PMF_COUNTER_PROFILE"/>
+                <Field Name="PMF_COUNTER_1_PTR_VALID" Type="BOOL"/>
+                <Field Name="PMF_COUNTER_1_PTR" Type="PMF_COUNTER_PTR"/>
+                <Field Name="OUT_LIF_PROFILE_VALID" Type="BOOL"/>
+                <Field Name="OUT_LIF_PROFILE" Size="4"/>
+                <Field Name="FODO_VALID" Type="BOOL"/>
+                <Field Name="FODO"/>
+                <Field Name="TM_ACTION_TYPE_VALID" Type="BOOL"/>
+                <Field Name="TM_ACTION_TYPE"/>
+                <Field Name="TM_ACTION_IS_MC_VALID" Type="BOOL"/>
+                <Field Name="TM_ACTION_IS_MC" Type="BOOL"/>
+                <Field Name="FWD_CONTEXT_ID_VALID" Type="BOOL"/>
+                <Field Name="FWD_CONTEXT_ID"/>
+                <Field Name="OUT_LIF_VALID" Type="BOOL"/>
+                <Field Name="OUT_LIF"/>
+                <Field Name="TC_MAP_PROFILE_VALID" Type="BOOL"/>
+                <Field Name="TC_MAP_PROFILE"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="MIRROR_PROFILE_VALID">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="MIRROR_PROFILE_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MIRROR_PROFILE">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="MIRROR_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SNOOP_PROFILE_VALID">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="SNOOP_PROFILE_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SNOOP_PROFILE">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="SNOOP_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="COS_PROFILE_VALID">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="COS_PROFILE_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="COS_PROFILE">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="COS_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DSP_VALID">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="PP_DSP_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DSP">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="PP_DSPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CUD_VALID">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="CUD_OUTLIF_OR_MCDB_PTR_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CUD">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="CUD_OUTLIF_OR_MCDB_PTRf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DISCARD">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="DISCARDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DP_VALID">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="DP_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DP">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="DPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TC_VALID">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="TC_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TC">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="TCf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PP_DROP_REASON_VALID">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="PP_DROP_REASON_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PP_DROP_REASON">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="PP_DROP_REASONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PMF_COUNTER_0_PROFILE_VALID">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="PMF_COUNTER_0_PROFILE_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PMF_COUNTER_0_PROFILE">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="PMF_COUNTER_0_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PMF_COUNTER_0_PTR_VALID">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="PMF_COUNTER_0_PTR_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PMF_COUNTER_0_PTR">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="PMF_COUNTER_0_PTRf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PMF_COUNTER_1_PROFILE_VALID">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="PMF_COUNTER_1_PROFILE_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PMF_COUNTER_1_PROFILE">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="PMF_COUNTER_1_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PMF_COUNTER_1_PTR_VALID">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="PMF_COUNTER_1_PTR_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PMF_COUNTER_1_PTR">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="PMF_COUNTER_1_PTRf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUT_LIF_PROFILE_VALID">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="OUTLIF_PROFILE_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUT_LIF_PROFILE">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="OUTLIF_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FODO_VALID">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="FORWARD_DOMAIN_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FODO">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="FORWARD_DOMAINf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TM_ACTION_TYPE_VALID">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="TM_ACTION_TYPE_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TM_ACTION_TYPE">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="TM_ACTION_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TM_ACTION_IS_MC_VALID">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="TM_ACTION_IS_MC_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TM_ACTION_IS_MC">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="TM_ACTION_IS_MCf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_CONTEXT_ID_VALID">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="FORWARD_CONTEXT_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_CONTEXT_ID">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="FORWARD_CONTEXTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUT_LIF_VALID">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="LOCAL_OUTLIF_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUT_LIF">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="LOCAL_OUTLIFf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TC_MAP_PROFILE_VALID">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="TC_MAP_PROFILE_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TC_MAP_PROFILE">
+                    <Access>
+                        <Memory Name="ERPP_FORWARD_ACTION_PROFILE_TABLEm">
+                            <HwField Name="TC_MAP_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ERPP_TRAP_STRENGTH_MAP">
+        <OneLineDescription>Mapping from ingress compressed strength (3b) to egress strength (4b)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TRAP_COMPRESSED_STRENGTH" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="TRAP_FWD_STRENGTH"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TRAP_FWD_STRENGTH">
+                    <Access>
+                        <Register Name="ERPP_CFG_MAP_FORWARD_STRENGTH_TO_STRENGTHr">
+                            <DataOffset Formula="#KEY_VALUE(TRAP_COMPRESSED_STRENGTH)*4"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ERPP_TRAP_SER">
+        <OneLineDescription>ERPP SER handling register</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="TRAP_ACTION_PROFILE"/>
+                <Field Name="SER_TRAP_ENABLE" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TRAP_ACTION_PROFILE">
+                    <Access>
+                        <Register Name="ERPP_SER_ACTION_RESOLUTIONr">
+                            <HwField Name="SER_ACTION_PROFILE_INDEXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SER_TRAP_ENABLE">
+                    <Access>
+                        <Register Name="ERPP_SER_ACTION_RESOLUTIONr">
+                            <HwField Name="SER_TRAP_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+
+    <AppDB Name="ERPP_EXCLUDE_SOURCE">
+        <OneLineDescription>ERPP exclude source filter</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TRAP_FWD_STRENGTH"/>
+            </Key>
+            <Result>
+                <Field Description="Exclude source mapped" Name="EXCLUDE_SOURCE_MAPPED" Type="BOOL"/>
+            </Result>
+            <TableLabels>TRAP</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="EXCLUDE_SOURCE_MAPPED">
+                    <Access>
+                        <Register Name="ERPP_CFG_EXCLUDE_SOURCE_MAPPEDr">
+                            <HwField Name="CFG_EXCLUDE_SOURCE_MAPPEDf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

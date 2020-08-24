@@ -1,0 +1,136 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="fc" bsl_flag="BSL_LS_SOCDNX_GENERAL">
+
+     <includes>
+    </includes>
+
+    <sub_module name="general"  doc="Flow Control general configurations.">
+        <defines>
+            <define labels="j2p_notrev" name="nof_glb_rsc" doc="Number of Global Resources"></define>
+            <define labels="j2p_notrev" name="nof_gen_bmps" doc="Number of Generic bitmaps"></define>
+            <define labels="j2p_notrev" name="nof_af_nif_indications" doc="Number of AF NIF FC infications"></define>
+            <define labels="j2p_notrev" name="nof_cal_llfcs" doc="Number of Link-Level FC (from the NIF-RX-MLF) that can be mapped to calendar."></define>
+            <define labels="j2p_notrev" name="nof_entries_qmlf" doc="Number of entries in the Rx Quad MAC Lane FIFO (QMLF)."></define>
+        </defines>
+        <numerics>
+            <numeric labels="j2p_notrev" name="bcm_cos_count" doc="Number of priorities per NIF port"></numeric>
+        </numerics>
+        <features>
+            <feature labels="j2p_notrev" name="fc_to_nif_status" doc="Indication if presenting status for FC from CFC to NIF is supported"></feature>
+            <feature labels="j2p_notrev" name="ilu_fc_status" doc="Indication if presenting status indication for FC from and to ILU is supported"></feature>
+            <feature labels="j2p_notrev" name="inb_ilkn_rx_status" doc="Indication if presenting status indication for received Inband ILKN FC signals is supported"></feature>
+            <feature labels="j2p_notrev" name="glb_res_lp_to_llfc" doc="Indication if generation from Global Resources Low Priority to LLFC is supported"></feature>
+            <feature labels="j2p_notrev" name="vsqd_to_llfc_pfc" doc="Indication if generation from VSQ D to LLFC and PFC is supported"></feature>
+            <feature labels="j2p_notrev" name="oob_tx_reset" doc="Indication if reset of OOB-TX interface is supported"></feature>
+            <feature labels="j2p_notrev" name="additional_enablers" doc="Indication if additional CFC enablers are supported"></feature>
+            <feature labels="j2p_notrev" name="ilkn_inb_llfc" doc="Indication if additional CFC enablers  for the Inband ILKN are supported"></feature>
+            <feature labels="j2p_notrev" name="flexe_flow_control" doc="FLEXE Flow Control is supported"></feature>
+            <feature labels="j2p_notrev" name="glb_rsc_oob_en" doc="Indication if table GLB_RSC_OOB_EN is supported"></feature>
+            <feature labels="j2p_notrev" name="cat2_oob_en" doc="Indication if table CAT2_OOB_EN is supported"></feature>
+            <feature labels="j2p_notrev" name="pfc_rec_cdu_shift" doc="The last two CDUs of each core have one bit shift left, which is affecting the reception of PFC - CFC is sending wrong index to EGQ"></feature>
+            <feature labels="j2p_notrev" name="pfc_status_regs_double_read" doc="Registers for EGQ PFC status and NIF PFC status are both 'sticky' and will clear on read only.Changing the STATUS_SEL for each of them will result with an OR between two different ranges of the PFC vector."></feature>
+            <feature labels="j2p_notrev" name="ilkn_oob_fast_llfc" doc="Dedicated enabler for ILKN OOB fast LLFC."></feature>
+            <feature labels="j2p_notrev" name="pp_inb_enable" doc="Indication if table PP Inand enabler is supported"></feature>
+            <feature labels="j2p_notrev" name="fc_from_llfc_vsq_status_sel" doc="Indication if select is needed in order to present status for FC from VSQ LLFC to CFC is supported"></feature>
+            <feature labels="j2p_notrev" name="if_2_cfc_enablers" doc="Indication if enablers or interfaces to CFC are supported"></feature>
+            <feature labels="j2p_notrev" name="ilkn_oob_en" doc="Indication if enablers for the RX/TX ILKN OOB interfaces are supported"></feature>
+            <feature labels="j2p_notrev" name="ilkn_polarity_set" doc="Indication if setting the ILKN OOB polarity is supported"></feature>
+        </features>
+    </sub_module>
+
+    <sub_module name="coe"  doc="Flow Control COE general configurations.">
+        <defines>
+            <define labels="j2p_notrev" name="nof_coe_cal_instances" doc="Number of PP COE calendar instances" ></define>
+            <define labels="j2p_notrev" name="nof_supported_vlan_ids" doc="Number of supported VLAN IDs in PP COE flow control"></define>
+            <define labels="j2p_notrev" name="nof_coe_vid_mask_width" doc="Number of COE_VID_MASK width"></define>
+            <define labels="j2p_notrev" name="nof_coe_vid_right_shift_width" doc="Number of COE VID right shift width"></define>
+            <define labels="j2p_notrev" name="max_coe_ticks" doc="Max value for COE ticks. N-1 where N number of clocks for pause counters decrement."></define>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="calendar_pause_resolution" value="0" doc="PP COE Pause counter rate. Unit: usec." ></numeric>
+            <numeric labels="j2p_notrev" name="data_offset" value="0" doc="Define offset in bytes from after Ethernet Frame for COE FC data. Valid range = [0-31]" ></numeric>
+            <numeric labels="j2p_notrev" name="ethertype" value="0" doc="Set ethertype of COE FC packet.(16bits)" ></numeric>
+            <numeric labels="j2p_notrev" name="control_opcode" value="0x10" doc="Set PP COE Control Opcode used to identify COE.(16bits)" ></numeric>
+            <numeric labels="j2p_notrev" name="coe_vid_offset" value="0x3" doc="Set Offset for COE VID" ></numeric>
+            <numeric labels="j2p_notrev" name="coe_vid_mask" value="0xff" doc="Set mask for COE VID" ></numeric>
+            <numeric labels="j2p_notrev" name="coe_vid_right_shift" value="0x2" doc="Set right shift for COE VID shift" ></numeric>
+        </numerics>
+
+        <tables>
+            <table labels="j2p_notrev" name="calendar_mode" doc="PP COE">
+                <value name="mode" type="int" doc="PP COE Mode"></value>
+            </table>
+        </tables>
+        <tables>
+            <table labels="j2p_notrev" name="mac_address" doc="MAC address of COE FC">
+                <value name="mac" type="uint8[6]" doc="Set the mac address of COE FC packet (48 bits)"></value>
+            </table>
+            <table labels="j2p_notrev" name="calender_length" doc="Flow Control COE calender length.">
+                <key name="cal_id" doc="Calendar ID"></key>
+                <value name="len"  type="int" doc="Flow Control COE calender length."></value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="oob"  doc="Flow Control OOB general configurations.">
+        <defines>
+            <define labels="j2p_notrev" name="nof_oob_ids" doc="Number of Out of Band interfaces."></define>
+        </defines>
+        <tables>
+
+            <table labels="j2p_notrev" name="calender_length" doc="Flow Control Out-Of-Band calender length.">
+                <key name="oob_id" doc="Out-Of-Band ID"></key>
+                <value name="tx"  type="int" doc="Flow Control Out-Of-Band TX calender length."></value>
+                <value name="rx"  type="int" doc="Flow Control Out-Of-Band RX calender length."></value>
+            </table>
+
+            <table labels="j2p_notrev" name="calender_rep_count" doc="Flow Control Out-Of-Band repeat count.">
+                <key name="oob_id" doc="Out-Of-Band ID"></key>
+                <value name="tx"  type="int" doc="Flow Control Out-Of-Band TX repeat count."></value>
+                <value name="rx"  type="int" doc="Flow Control Out-Of-Band RX repeat count."></value>
+            </table>
+
+            <table labels="j2p_notrev" name="tx_freq" doc="Flow Control OOB TX Speed relatively to the Core Clock.">
+                <key name="oob_id" doc="Out-Of-Band ID"></key>
+                <value name="ratio" type="int" doc="Flow Control OOB TX Speed ratio "></value>
+            </table>
+
+            <table labels="j2p_notrev" name="port" doc="Flow Control Out-Of-Band port type and port mode.">
+                <key name="oob_id" doc="Out-Of-Band ID"></key>
+                <value name="type"  type="int" doc="Flow Control Out-Of-Band port type."></value>
+                <value name="mode"  type="int" doc="Flow Control Out-Of-Band port mode."></value>
+            </table>
+            <table labels="j2p_notrev" name="indication_invert" doc="his option controls the meaning of '0'/'1' in the of Calendar FC indications per interface.">
+                <key name="oob_id" doc="Out-Of-Band ID"></key>
+                <value name="ilkn_tx"  type="int" doc="Polarity for OOB-ILKN TX."></value>
+                <value name="ilkn_rx"  type="int" doc="Polarity for OOB-ILKN RX."></value>
+                <value name="spi"  type="int" doc="Polarity for OOB-SPI."></value>
+            </table>
+        </tables>
+    </sub_module>
+    <sub_module name="inband"  doc="Flow Control inband general configurations.">
+        <tables>
+            <table labels="j2p_notrev" name="calender_length" doc="Flow Control In-Band calender length.">
+                <key name="ilkn_id" doc="ILKN ID"></key>
+                <value name="tx" type="int" doc="Flow Control In-Band ILKN TX calender length."></value>
+                <value name="rx" type="int" doc="Flow Control In-Band ILKN RX calender length."></value>
+            </table>
+            <table labels="j2p_notrev" name="port" doc="Flow Control InBand(interlaken) port mode.">
+                <key name="ilkn_id" doc="ILKN ID"></key>
+                <value name="mode"  type="int" doc="Flow Control InBand(interlaken) port mode."></value>
+                <value name="llfc_mode"  type="int" doc="Flow Control InBand(interlaken) LLFC mode."></value>
+            </table>
+        </tables>
+        <defines>
+            <define labels="j2p_notrev" name="nof_inband_intlkn_cal_instances" doc="Number of Inband ILKN calendar instances"></define>
+        </defines>
+    </sub_module>
+    <sub_module name="pfc_deadlock"  doc="PFC Deadlock detection and recovery.">
+        <numerics>
+            <numeric labels="j2p_notrev" name="cdum_intr_id" doc="PFC Deadlock detection interrupt ID for CDUM block."></numeric>
+            <numeric labels="j2p_notrev" name="cdu_intr_id" doc="PFC Deadlock detection interrupt ID for CDU block."></numeric>
+            <numeric labels="j2p_notrev" name="clu_intr_id" doc="PFC Deadlock detection interrupt ID for CLU block."></numeric>
+        </numerics>
+    </sub_module>
+</device_data>

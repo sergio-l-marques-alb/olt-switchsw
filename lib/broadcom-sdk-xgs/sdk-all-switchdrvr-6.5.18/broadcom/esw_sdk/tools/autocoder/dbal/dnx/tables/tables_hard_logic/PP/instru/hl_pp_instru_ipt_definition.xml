@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- ****************************************************** DBAL Hard-Logic
+    Logical Tables: This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process ******************************************************
+    DB Rules: ********* --><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <!-- IPT profile configurations -->
+    <AppDB Name="INSTRU_IPT_PROFILE">
+        <OneLineDescription>Set IPT profile information</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PROFILE" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="METADATA_BITMAP" Size="9" Type="UINT"/>
+                <Field Name="METADATA_SIZE" Size="5" Type="UINT"/>
+            </Result>
+            <TableLabels>INSTRU</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="METADATA_BITMAP">
+                    <Access>
+                        <Register Name="ETPPC_CFG_TAIL_EDITING_BITMAPr">
+                            <HwField Name="CFG_TAIL_EDITING_BITMAPf"/>
+                            <DataOffset Formula="#KEY_VALUE(PROFILE)*#RESULT_SIZE(METADATA_BITMAP)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="METADATA_SIZE">
+                    <Access>
+                        <Register Name="ETPPC_CFG_TAIL_EDITING_SIZEr">
+                            <HwField Name="CFG_TAIL_EDITING_SIZEf"/>
+                            <DataOffset Formula="#KEY_VALUE(PROFILE)*#RESULT_SIZE(METADATA_SIZE)"/>
+                        </Register>
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <!-- IPT general configurations -->
+     <AppDB Name="INSTRU_IPT_GENERAL_CONFIG">
+        <OneLineDescription>Set IPT general system configurations</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="SWITCH_ID" Size="11" Type="UINT"/>
+            </Result>
+            <TableLabels>INSTRU</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="SWITCH_ID">
+                    <Access>
+                        <Register Name="ETPPC_CFG_SWITCH_IDr">
+                            <HwField Name="CFG_SWITCH_IDf"/>
+                        </Register>
+                    </Access>
+                </Field>              
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

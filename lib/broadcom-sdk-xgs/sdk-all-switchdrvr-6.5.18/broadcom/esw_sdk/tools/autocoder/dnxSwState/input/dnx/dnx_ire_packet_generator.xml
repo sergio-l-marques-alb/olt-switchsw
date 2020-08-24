@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<access_module name="dnx_ire_packet_generator">
+
+    <structs>
+      <struct name="dnx_ire_packet_generator_info_struct" instance="ire_packet_generator_info" doc="Set of DNX debug info. to be saved">
+            <param name="ire_datapath_enable_state" type="uint32" doc="store the datapath enable state, before start sending IRE packets"></param>
+      </struct>
+    </structs>
+
+</access_module>

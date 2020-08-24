@@ -1,0 +1,2248 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="SCH_REGION">
+        <OneLineDescription>Scheduler region parameters.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="ODD_EVEN_MODE" NofInstances="DNX_DATA.sch.flow.nof_regions-DNX_DATA.sch.flow.nof_connectors_only_regions"/>
+                <Field Name="INTERDIGITATED" NofInstances="DNX_DATA.sch.flow.nof_regions-DNX_DATA.sch.flow.nof_connectors_only_regions" Type="BOOL"/>
+                <Field Name="SHARED_SHAPER_PROP_ORDER" NofInstances="DNX_DATA.sch.flow.nof_regions-DNX_DATA.sch.flow.nof_connectors_only_regions"/>
+                
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="ODD_EVEN_MODE">
+                    <Access instanceIndex="ALL">
+                        <Register Name="SCH_FSF_COMPOSITE_CONFIGURATIONr">
+                            <HwField Name="FSF_COMP_ODD_EVENf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="INTERDIGITATED">
+                    <Access instanceIndex="ALL">
+                        <Register Name="SCH_SELECT_FLOW_TO_QUEUE_MAPPINGr">
+                            <HwField Name="INTER_DIGf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SHARED_SHAPER_PROP_ORDER">
+                    <Access instanceIndex="ALL">
+                        <Register Name="SCH_SWITCH_CIR_EIR_IN_DUAL_SHAPERSr">
+                            <HwField Name="SWITCH_CIR_EIRf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="ODD_EVEN_MODE">
+                    <Access instanceIndex="ALL">
+                        <Register Name="SCH_FSF_COMPOSITE_CONFIGURATIONr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()/32"/>
+                            <HwField Name="FSF_COMP_ODD_EVEN_Nf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()%32"/>
+                         </Register>
+                    </Access>
+                </Field>
+                <Field Name="INTERDIGITATED">
+                    <Access instanceIndex="ALL">
+                        <Register Name="SCH_SELECT_FLOW_TO_QUEUE_MAPPINGr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()/32"/>
+                            <HwField Name="INTER_DIG_Nf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()%32"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SHARED_SHAPER_PROP_ORDER">
+                    <Access instanceIndex="ALL">
+                        <Register Name="SCH_SWITCH_CIR_EIR_IN_DUAL_SHAPERSr">
+                            <ArrayOffset Formula="#INSTANCE_IDX()/32"/>
+                            <HwField Name="SWITCH_CIR_EIR_Nf"/>
+                            <DataOffset Formula="#INSTANCE_IDX()%32"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="SCH_SHARED_SHAPER">
+        <OneLineDescription>Scheduler shared shaper configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="DNX_DATA.sch.flow.nof_flows/8-1" MinValue="DNX_DATA.sch.flow.first_se_flow_id/8" Name="FLOW_OCTET_ID" Size="DNX_DATA.sch.dbal.flow_bits-3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="SHARED_SHAPER_MODE"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SHARED_SHAPER_MODE">
+                    <Access>
+                        <Memory Name="SCH_DUAL_SHAPER_MEMORY_DSMm">
+                            <EntryOffset Formula="#KEY_VALUE(FLOW_OCTET_ID)/8-dnx_data_sch.flow.first_se_flow_id_get(unit)/64"/>
+                            <HwField Name="DUAL_SHAPER_ENAf"/>
+                            <DataOffset Formula="#KEY_VALUE(FLOW_OCTET_ID)%8*2"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="SCH_SCHEDULER_ENABLE_TABLE">
+        <OneLineDescription>Is Scheduler Element enabled as scheduler.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="SE_OCTET_ID" Size="DNX_DATA.sch.dbal.scheduler_enable_key_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field MaxValue="1" Name="IS_SCHEDULER" Size="DNX_DATA.sch.dbal.scheduler_enable_grouping_factor" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="IS_SCHEDULER">
+                    <Access EncodeType="MULTIPLY" EncodeValue="DNX_DATA.sch.dbal.scheduler_enable_dbal_mult_factor">
+                        <Memory Name="SCH_SCHEDULER_ENABLE_MEMORY_SEMm">
+                            <HwField Name="SCH_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                    <Access EncodeType="MULTIPLY" EncodeValue="DNX_DATA.sch.dbal.scheduler_enable_dbal_mult_factor">
+                        <Memory Name="SCH_SCHEDULER_ENABLE_MEMORY_SEM_Bm">
+                            <HwField Name="SCH_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="SCH_SCHEDULER_COMPOSITE_ENABLE_TABLE">
+        <OneLineDescription>Is flow composite.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="DNX_DATA.sch.dbal.flow_id_pair_max" Name="FLOW_ID_PAIR" Size="DNX_DATA.sch.dbal.flow_id_pair_key_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="IS_COMPOSITE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="IS_COMPOSITE">
+                    <Access>
+                        <Memory Name="SCH_FLOW_SUB_FLOW_FSFm">
+                            <EntryOffset Formula="#KEY_VALUE(FLOW_ID_PAIR)/16"/>
+                            <HwField Name="SF_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(FLOW_ID_PAIR)%16"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_FLOW_SHAPER_DYNAMIC_TABLE">
+        <OneLineDescription>This table contains the dynamic information about the shaper. Normally updated by HW</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="SCH_FLOW_ID"/>
+            </Key>
+            <Result>
+                <Field Name="TOKEN_COUNT" Size="9" Type="UINT"/>
+                <Field Name="SLOW_TOKEN_COUNT" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="TOKEN_COUNT">
+                    <Access>
+                        <Memory Name="SCH_TOKEN_MEMORY_CONTROLLER_TMCm">
+                            <ArrayOffset Formula="#KEY_VALUE(SCH_FLOW_ID)%8"/>
+                            <EntryOffset Formula="#KEY_VALUE(SCH_FLOW_ID)/8"/>
+                            <HwField Name="TOKEN_COUNTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SLOW_TOKEN_COUNT">
+                    <Access>
+                        <Memory Name="SCH_TOKEN_MEMORY_CONTROLLER_TMCm">
+                            <ArrayOffset Formula="#KEY_VALUE(SCH_FLOW_ID)%8"/>
+                            <EntryOffset Formula="#KEY_VALUE(SCH_FLOW_ID)/8"/>
+                            <HwField Name="SLOW_STATUSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_SHAPER_DESCRIPTOR_TABLE">
+        <OneLineDescription>This table contains the Shaper-Flow-Attributes,peak rate man/exp, max burst</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="SCH_FLOW_ID"/>
+            </Key>
+            <Result>
+                <Field Name="RATE_MAN" Size="DNX_DATA.sch.dbal.flow_shaper_mant_bits" Type="UINT"/>
+                <Field Name="RATE_EXP" Size="4" Type="UINT"/>
+                <Field Name="MAX_BURST" Size="9" Type="UINT"/>
+                <Field Name="SLOW_RATE_2" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="RATE_MAN">
+                    <Access>
+                        <Memory Name="SCH_SHAPER_DESCRIPTOR_MEMORY_STATIC_SHDSm">
+                            <EntryOffset Formula="#KEY_VALUE(SCH_FLOW_ID)/8"/>
+                            <DataOffset Formula="#KEY_VALUE(SCH_FLOW_ID)%8*dnx_data_sch.dbal.flow_shaper_descr_bits_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RATE_EXP">
+                    <Access>
+                        <Memory Name="SCH_SHAPER_DESCRIPTOR_MEMORY_STATIC_SHDSm">
+                            <EntryOffset Formula="#KEY_VALUE(SCH_FLOW_ID)/8"/>
+                            <DataOffset Formula="#KEY_VALUE(SCH_FLOW_ID)%8*dnx_data_sch.dbal.flow_shaper_descr_bits_get(unit)+dnx_data_sch.dbal.flow_shaper_mant_bits_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAX_BURST">
+                    <Access>
+                        <Memory Name="SCH_SHAPER_DESCRIPTOR_MEMORY_STATIC_SHDSm">
+                            <EntryOffset Formula="#KEY_VALUE(SCH_FLOW_ID)/8"/>
+                            <DataOffset Formula="#KEY_VALUE(SCH_FLOW_ID)%8*dnx_data_sch.dbal.flow_shaper_descr_bits_get(unit)+dnx_data_sch.dbal.flow_shaper_mant_bits_get(unit)+4"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SLOW_RATE_2">
+                    <Access>
+                        <Memory Name="SCH_SHAPER_DESCRIPTOR_MEMORY_STATIC_SHDSm">
+                            <EntryOffset Formula="#KEY_VALUE(SCH_FLOW_ID)/8"/>
+                            <DataOffset Formula="#KEY_VALUE(SCH_FLOW_ID)%8*dnx_data_sch.dbal.flow_shaper_descr_bits_get(unit)+dnx_data_sch.dbal.flow_shaper_mant_bits_get(unit)+4+9"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_SLOW_RATE_TABLE">
+        <OneLineDescription>This table contains slow rates (presented as mantissa/exponent) per profile (A or B)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="SLOW_PROFILE" Size="1" Type="UINT"/>
+                <Field Name="SLOW_LEVEL" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="RATE_MAN" Size="DNX_DATA.sch.dbal.flow_shaper_mant_bits" Type="UINT"/>
+                <Field Name="RATE_EXP" Size="4" Type="UINT"/>
+                <Field Name="MAX_BUCKET" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="RATE_MAN">
+                    <Access>
+                        <KeyCondition Field="SLOW_PROFILE" Type="EQUAL_TO" Value="0"/>
+                        <Memory Name="SCH_SLOW_SCALE_A_SSAm">
+                            <EntryOffset Formula="#KEY_VALUE(SLOW_LEVEL)"/>
+                            <HwField Name="SLOW_RATEf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="SLOW_PROFILE" Type="EQUAL_TO" Value="1"/>
+                        <Memory Name="SCH_SLOW_SCALE_B_SSBm">
+                            <EntryOffset Formula="#KEY_VALUE(SLOW_LEVEL)"/>
+                            <HwField Name="SLOW_RATEf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="RATE_EXP">
+                    <Access>
+                        <KeyCondition Field="SLOW_PROFILE" Type="EQUAL_TO" Value="0"/>
+                        <Memory Name="SCH_SLOW_SCALE_A_SSAm">
+                            <EntryOffset Formula="#KEY_VALUE(SLOW_LEVEL)"/>
+                            <HwField Name="SLOW_RATEf"/>
+                            <DataOffset Formula="dnx_data_sch.dbal.flow_shaper_mant_bits_get(unit)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="SLOW_PROFILE" Type="EQUAL_TO" Value="1"/>
+                        <Memory Name="SCH_SLOW_SCALE_B_SSBm">
+                            <EntryOffset Formula="#KEY_VALUE(SLOW_LEVEL)"/>
+                            <HwField Name="SLOW_RATEf"/>
+                            <DataOffset Formula="dnx_data_sch.dbal.flow_shaper_mant_bits_get(unit)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAX_BUCKET">
+                    <Access>
+                        <KeyCondition Field="SLOW_PROFILE" Type="EQUAL_TO" Value="0"/>
+                        <Memory Name="SCH_SLOW_SCALE_A_SSAm">
+                            <EntryOffset Formula="#KEY_VALUE(SLOW_LEVEL)"/>
+                            <HwField Name="MAX_BUCKETf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="SLOW_PROFILE" Type="EQUAL_TO" Value="1"/>
+                        <Memory Name="SCH_SLOW_SCALE_B_SSBm">
+                            <EntryOffset Formula="#KEY_VALUE(SLOW_LEVEL)"/>
+                            <HwField Name="MAX_BUCKETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_FLOW_SLOW_STATUS">
+        <OneLineDescription>This table holds the slow status of flows/schedulers. For a flow the entry reflects the status of the ingress queue. For a scheduler the entry reflects wether it has a flow attached</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="SCH_FLOW_ID"/>
+            </Key>
+            <Result>
+                <Field Name="FLOW_SLOW_STATUS" Permission="READONLY"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="FLOW_SLOW_STATUS">
+                    <Access>
+                        <Memory Name="SCH_FLOW_STATUS_MEMORY_FSMm">
+                            <EntryOffset Formula="#KEY_VALUE(SCH_FLOW_ID)/8"/>
+                            <DataOffset Formula="#KEY_VALUE(SCH_FLOW_ID)%8*2"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_SHARED_DRM" Valid="DNX_DATA.sch.device.shared_drm">
+        <OneLineDescription>This table describes device shared credit generator</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="RCI_LEVEL"/> <!-- RCI_LEVEL sits in LSB of the actual offset -->
+                <Field MaxValue="DNX_DATA.sch.dbal.drm_nof_links_max" Name="ACTIVE_LINKS" Size="7" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="RATE" Size="20" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="RATE">
+                    <Access>
+                        <Memory Name="SCH_SHARED_DEVICE_RATE_SHARED_DRMm">
+                            <HwField Name="SHARED_DRMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_CORE_DRM">
+        <OneLineDescription>This table describes credit generator per core</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="RCI_LEVEL"/> <!-- RCI_LEVEL sits in LSB of the actual offset -->
+                <Field MaxValue="DNX_DATA.sch.dbal.drm_nof_links_max" Name="ACTIVE_LINKS" Size="7" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="RATE" Size="20" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="RATE">
+                    <Access>
+                        <Memory Name="SCH_DEVICE_RATE_MEMORY_DRMm">
+                            <HwField Name="DEVICE_RATEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_BW_PROFILE_BIASING_PROBABILITY">
+        <OneLineDescription>This table contains the Uninstall, Replicate and Discard probability for the new RCI throttling mechanism per high/low, local/fabric and rci level</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="7" Name="RCI_LEVEL"/>
+                <Field Name="IS_FABRIC" Type="BOOL"/>
+                <Field Name="IS_HIGH_PRIO" Type="BOOL"/>
+            </Key>
+            <Result>
+                <Field Name="UNINSTALL_THRESHOLD" Size="8" Type="UINT"/>
+                <Field Name="DISCARD_THRESHOLD" Size="10" Type="UINT"/>
+                <Field Name="REPLICATE_THRESHOLD" Size="10" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="UNINSTALL_THRESHOLD">
+                    <Access>
+                        <Memory Name="SCH_RCI_UNLINK_FLOW_TH_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(RCI_LEVEL)+#KEY_VALUE(IS_FABRIC)*8+#KEY_VALUE(IS_HIGH_PRIO)*16"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DISCARD_THRESHOLD">
+                    <Access>
+                        <Memory Name="SCH_RCI_CREDIT_JITTER_LOW_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(RCI_LEVEL)+#KEY_VALUE(IS_FABRIC)*8+#KEY_VALUE(IS_HIGH_PRIO)*16"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REPLICATE_THRESHOLD">
+                    <Access>
+                        <Memory Name="SCH_RCI_CREDIT_JITTER_HIGH_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(RCI_LEVEL)+#KEY_VALUE(IS_FABRIC)*8+#KEY_VALUE(IS_HIGH_PRIO)*16"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_RCI_BIASING_MODE_CONFIG">
+        <OneLineDescription>This table contains the new RCI throttling mechanism mode : be Global(default)/dev-biasing/flow-biasing</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Name="RCI_BIASING_MODE"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <!-- The mapping to HW is done as the following
+                  bit 0: SCH_RCI_PARAMS.RCI_ENA
+                  bit 1: SCH_RCI_PARAMS.DEVICE_RCI_ENA
+                      2: SCH_RCI_PARAMS.SHARED_FABRIC_LINKS_MODE
+                      3: SCH_RCI_PARAMS.FABRIC_RCI_DISCARD_MODE
+                      4: SCH_RCI_PARAMS.USE_ONLY_LOCAL_RCI_FOR_CORE_RCI
+                      5: SCH_RCI_PARAMS.RCI_UNLINK_ENA
+                      6: SCH_RCI_PARAMS.RCI_UNLINK_AGGREGATE_ENA
+                      7: SCH_RCI_BFC_PARAMS.RCI_TRIGGERS_FLOW_CONTROL_ENA
+                      8: SCH_RCI_CREDIT_JITTER.CRDT_JTR_EN
+                -->
+                <Field Name="RCI_BIASING_MODE">
+                    <Access Offset="0" Size="1">
+                        <Register Name="SCH_RCI_PARAMSr">
+                            <HwField Name="RCI_ENAf"/>
+                        </Register>
+                    </Access>
+                    <Access Offset="1" Size="1">
+                        <Register Name="SCH_RCI_PARAMSr">
+                            <HwField Name="DEVICE_RCI_ENAf"/>
+                        </Register>
+                    </Access>
+                    <Access Offset="2" Size="1">
+                        <Register Name="SCH_RCI_PARAMSr">
+                            <HwField Name="SHARED_FABRIC_LINKS_MODEf"/>
+                        </Register>
+                    </Access>
+                    <Access Offset="3" Size="1">
+                        <Register Name="SCH_RCI_PARAMSr">
+                            <HwField Name="FABRIC_RCI_DISCARD_MODEf"/>
+                        </Register>
+                    </Access>
+                    <Access Offset="4" Size="1">
+                        <Register Name="SCH_RCI_PARAMSr">
+                            <HwField Name="USE_ONLY_LOCAL_RCI_FOR_CORE_RCIf"/>
+                        </Register>
+                    </Access>
+                    <Access Offset="5" Size="1">
+                        <Register Name="SCH_RCI_PARAMSr">
+                            <HwField Name="RCI_UNLINK_ENAf"/>
+                        </Register>
+                    </Access>
+                    <Access Offset="6" Size="1">
+                        <Register Name="SCH_RCI_PARAMSr">
+                            <HwField Name="RCI_UNLINK_AGGREGATE_ENAf"/>
+                        </Register>
+                    </Access>
+                    <Access Offset="7" Size="1">
+                        <Register Name="SCH_RCI_BFC_PARAMSr">
+                            <HwField Name="RCI_TRIGGERS_FLOW_CONTROL_ENAf"/>
+                        </Register>
+                    </Access>
+                    <Access Offset="8" Size="1">
+                        <Register Name="SCH_RCI_CREDIT_JITTERr">
+                            <HwField Name="CRDT_JTR_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_FLOW_ATTR">
+        <OneLineDescription>This table contains flow attributes.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="SCH_FLOW_ID"/>
+            </Key>
+            <Result>
+                <Field MaxValue="DNX_DATA.sch.flow.max_se" Name="CREDIT_SRC_SE_ID" Size="DNX_DATA.sch.dbal.se_bits" Type="UINT"/>
+                <Field Name="CREDIT_SRC_HR_SEL_DUAL" Type="BOOL"/>
+                <Field Name="IS_FABRIC" Type="BOOL"/>
+                <Field Name="IS_HIGH_PRIO" Type="BOOL"/>
+                <Field Name="IS_SLOW_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CREDIT_SRC_SE_ID">
+                    <Access>
+                        <Memory Name="SCH_FLOW_DESCRIPTOR_MEMORY_STATIC_FDMSm">
+                            <HwField Name="SCH_NUMBERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CREDIT_SRC_HR_SEL_DUAL">
+                    <Access>
+                        <Memory Name="SCH_FLOW_DESCRIPTOR_MEMORY_STATIC_FDMSm">
+                            <HwField Name="HR_SEL_DUALf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_FABRIC">
+                    <Access>
+                        <Memory Name="SCH_FLOW_DESCRIPTOR_MEMORY_STATIC_FDMSm">
+                            <HwField Name="FABRIC_OR_LOCAL_FLOWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_HIGH_PRIO">
+                    <Access>
+                        <Memory Name="SCH_FLOW_DESCRIPTOR_MEMORY_STATIC_FDMSm">
+                            <HwField Name="HIGH_OR_LOW_PRIORITY_FLOWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_SLOW_ENABLE">
+                    <Access>
+                        <Memory Name="SCH_FLOW_TO_QUEUE_MAPPING_FQMm">
+                            <EntryOffset Formula="#KEY_VALUE(SCH_FLOW_ID)/4"/>
+                            <HwField Name="FLOW_SLOW_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(SCH_FLOW_ID)%4"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_FLOW_CREDIT_SRC_COS">
+        <OneLineDescription>This table contains flow credit src cos attribute.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="SCH_FLOW_ID"/>
+            </Key>
+            <MultipleResults>
+                <Result>
+                    <Field Description="simple CL cos" Name="RESULT_TYPE" Size="2" Value="CL_SIMPLE"/>
+                    <Field Name="COS_CL"/>
+                </Result>
+                <Result>
+                    <Field Description="simple HR cos" Name="RESULT_TYPE" Size="2" Value="HR_SIMPLE"/>
+                    <Field Name="COS_HR"/>
+                </Result>
+                <Result>
+                    <Field Description="HR mantissa - exponent weight" Name="RESULT_TYPE" Size="2" Value="HR_WFQ_WEIGHT"/>
+                    <Field Name="WEIGHT_MANT" Size="5" Type="UINT"/>
+                    <Field Name="WEIGHT_EXP" Size="3" Type="UINT"/>
+                </Result>
+                <Result>
+                    <Field Description="CL weight" Name="RESULT_TYPE" Size="2" Value="CL_WFQ_WEIGHT"/>
+                    <Field Name="WEIGHT" Size="8" Type="UINT"/>
+                </Result>
+            </MultipleResults>
+             <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <MultipleResultsMapping>
+                <Result LogicalValue="CL_SIMPLE" Value="0"/>
+                <Result LogicalValue="HR_SIMPLE" Value="1"/>
+                <Result LogicalValue="CL_WFQ_WEIGHT" Value="2"/>
+                <Result LogicalValue="HR_WFQ_WEIGHT" Value="3"/>
+            </MultipleResultsMapping>
+            <FieldMapping ResultType="CL_SIMPLE">
+                <Field Name="RESULT_TYPE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field>
+                <Field Name="COS_CL">
+                    <Access>
+                        <Memory Name="SCH_FLOW_DESCRIPTOR_MEMORY_STATIC_FDMSm">
+                            <HwField Name="COSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+            <FieldMapping ResultType="HR_SIMPLE">
+                <Field Name="RESULT_TYPE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field>
+                <Field Name="COS_HR">
+                    <Access>
+                        <Memory Name="SCH_FLOW_DESCRIPTOR_MEMORY_STATIC_FDMSm">
+                            <HwField Name="COSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+            <FieldMapping ResultType="HR_WFQ_WEIGHT">
+                <Field Name="RESULT_TYPE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field>
+                <Field Name="WEIGHT_MANT">
+                    <Access>
+                        <Memory Name="SCH_FLOW_DESCRIPTOR_MEMORY_STATIC_FDMSm">
+                            <HwField Name="COSf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="WEIGHT_EXP">
+                    <Access>
+                        <Memory Name="SCH_FLOW_DESCRIPTOR_MEMORY_STATIC_FDMSm">
+                            <HwField Name="COSf"/>
+                            <DataOffset Formula="5"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+            <FieldMapping ResultType="CL_WFQ_WEIGHT">
+                <Field Name="RESULT_TYPE">
+                    <Access>
+                        <SwState SwType="SW"/>
+                    </Access>
+                </Field>
+                <Field Name="WEIGHT">
+                    <Access>
+                        <Memory Name="SCH_FLOW_DESCRIPTOR_MEMORY_STATIC_FDMSm">
+                            <HwField Name="COSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_SE_COLOR_GROUP">
+        <OneLineDescription>What group (color) SE belongs to</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="DNX_DATA.sch.flow.max_se" Name="SE_ID" Size="DNX_DATA.sch.dbal.se_bits" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field MaxValue="2" Name="GROUP" Size="2" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="GROUP">
+                    <Access>
+                        <Memory Name="SCH_FLOW_GROUP_MEMORY_FGMm">
+                            <EntryOffset Formula="#KEY_VALUE(SE_ID)/8"/>
+                            <DataOffset Formula="#KEY_VALUE(SE_ID)%8*2"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="SE_ID" Type="BIGGER_THAN" Value="DNX_DATA.sch.flow.hr_se_id_min-1"/>
+                        <KeyCondition Field="SE_ID" Type="LOWER_THAN" Value="DNX_DATA.sch.flow.hr_se_id_max+1"/>
+                        <Memory Name="SCH_PORT_GROUP_PFGMm">
+
+                            <!--         Formula="(SE_ID - DNX_DATA.sch.flow.hr_se_id_min)/8" -->
+                            <EntryOffset Formula="#KEY_VALUE(SE_ID)/8-dnx_data_sch.flow.hr_se_id_min_get(unit)/8"/>
+
+                            <!--        Formula="(SE_ID - DNX_DATA.sch.flow.hr_se_id_min)%8 * 2" -->
+                            <DataOffset Formula="#KEY_VALUE(SE_ID)%8*2"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_SE_CL_MAPPING">
+        <OneLineDescription>Mapping from CL to the class profile</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="DNX_DATA.sch.flow.nof_cl-1" Name="CL_ID" Size="DNX_DATA.sch.dbal.cl_bits" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="CL_PROFILE" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CL_PROFILE">
+                    <Access>
+                        <Memory Name="SCH_CL_SCHEDULERS_CONFIGURATION_SCCm">
+                            <HwField Name="CL_SCH_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_SE_CL_CONFIG">
+        <OneLineDescription>Parameters of each CL profile</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="CL_PROFILE" Size="8" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="CL_MODE"/>
+                <Field Name="PRIORITY_INV_WEIGHT" NofInstances="4" Size="10" Type="UINT"/>
+                <Field Name="WFQ_WEIGHT_MODE"/>
+                <Field Name="CL_ENHANCED_MODE"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CL_MODE">
+                    <Access>
+                        <Memory Name="SCH_CL_SCHEDULERS_TYPE_SCTm">
+                            <HwField Name="CL_CONFIGf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PRIORITY_INV_WEIGHT">
+                    <Access instanceIndex="0">
+                        <Memory Name="SCH_CL_SCHEDULERS_TYPE_SCTm">
+                            <HwField Name="AF_0_INV_WEIGHTf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Memory Name="SCH_CL_SCHEDULERS_TYPE_SCTm">
+                            <HwField Name="AF_1_INV_WEIGHTf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Memory Name="SCH_CL_SCHEDULERS_TYPE_SCTm">
+                            <HwField Name="AF_2_INV_WEIGHTf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Memory Name="SCH_CL_SCHEDULERS_TYPE_SCTm">
+                            <HwField Name="AF_3_INV_WEIGHTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="WFQ_WEIGHT_MODE">
+                    <Access>
+                        <Memory Name="SCH_CL_SCHEDULERS_TYPE_SCTm">
+                            <HwField Name="WFQ_MODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CL_ENHANCED_MODE">
+                    <Access>
+                        <Memory Name="SCH_CL_SCHEDULERS_TYPE_SCTm">
+                            <HwField Name="ENH_CL_ENf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_HR_IS_PORT">
+        <OneLineDescription>Is HR used as port HR</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="HR_ID"/>
+            </Key>
+            <Result>
+                <Field Name="IS_PORT_HR" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="IS_PORT_HR">
+                    <Access>
+                        <Memory Name="SCH_PORT_ENABLE_PORTENm">
+                            <EntryOffset Formula="#KEY_VALUE(HR_ID)/8"/>
+                            <DataOffset Formula="#KEY_VALUE(HR_ID)%8"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_HR_FORCE_FC">
+        <OneLineDescription>Force FC on port HR</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="HR_ID"/>
+            </Key>
+            <Result>
+                <Field Name="FORCE_FC" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="FORCE_FC">
+                    <Access>
+                        <Register Name="SCH_FORCE_PORT_FC_REGISTERr">
+                            <ArrayOffset Formula="#KEY_VALUE(HR_ID)/32"/>
+                            <DataOffset Formula="#KEY_VALUE(HR_ID)%32"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_HR_CONFIG">
+        <OneLineDescription>HR configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="HR_ID"/>
+            </Key>
+            <Result>
+                <Field Name="HR_MODE"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="HR_MODE">
+                    <Access>
+                        <Memory Name="SCH_HR_SCHEDULER_CONFIGURATION_SHCm">
+                            <HwField Name="HR_MODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_FLOW_TO_FAP_MAPPING">
+        <OneLineDescription>map 8 flows to remote fap</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="DNX_DATA.sch.flow.nof_flows/8-1" Name="OCTET_INDEX" Size="DNX_DATA.sch.dbal.flow_bits-3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="FAP_ID"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="FAP_ID">
+                    <Access>
+                        <Memory Name="SCH_FLOW_TO_FIP_MAPPING_FFMm">
+                            <HwField Name="DEVICE_NUMBERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_FLOW_TO_QUEUE_MAPPING">
+        <OneLineDescription>map 4 flows to remote queue</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="DNX_DATA.sch.flow.nof_flows/4-1" Name="QUARTET_INDEX" Size="DNX_DATA.sch.dbal.flow_bits-2" Type="UINT"/>
+            </Key>
+            <Result>
+                <!-- QUEUE_QUAD is a VOQ on remote device. Can't use local device dnx data for size of this field -->
+                <Field Name="QUEUE_QUAD" Size="16" Type="UINT"/>
+                <Field Name="IS_COMPOSITE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="QUEUE_QUAD">
+                    <Access>
+                        <Memory Name="SCH_FLOW_TO_QUEUE_MAPPING_FQMm">
+                            <HwField Name="BASE_QUEUE_NUMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IS_COMPOSITE">
+                    <Access>
+                        <Memory Name="SCH_FLOW_TO_QUEUE_MAPPING_FQMm">
+                            <HwField Name="SUB_FLOW_MODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_PORT_HR_TO_TCG">
+        <OneLineDescription>Map each HR to TCG in port scheduler</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="HR_ID"/>
+            </Key>
+            <Result>
+                <Field Name="TCG" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="TCG">
+                    <Access>
+                        <Memory Name="SCH_PORT_SCHEDULER_MAP_PSMm">
+                            <EntryOffset Formula="#KEY_VALUE(HR_ID)/8"/>
+                            <HwField Name="TC_PG_MAPf"/>
+                            <DataOffset Formula="#KEY_VALUE(HR_ID)%8*3"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_PORT_TCG_WEIGHT">
+        <OneLineDescription>Priority Port TCG EIR Weight</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="PS_ID" Size="DNX_DATA.sch.dbal.hr_bits-3" Type="UINT"/>
+                <Field Name="TCG_ID" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="VALID" Type="BOOL"/>
+                <Field Name="WEIGHT" Size="10" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="VALID">
+                    <Access>
+                        <Memory Name="SCH_PORT_SCHEDULER_MAP_PSMm">
+                            <EntryOffset Formula="#KEY_VALUE(PS_ID)"/>
+                            <HwField Name="PG_WFQ_VALIDf"/>
+                            <DataOffset Formula="#KEY_VALUE(TCG_ID)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="WEIGHT">
+                    <Access>
+                        <Memory Name="SCH_PORT_SCHEDULER_WEIGHTS_PSWm">
+                            <EntryOffset Formula="#KEY_VALUE(PS_ID)"/>
+                            <DataOffset Formula="#KEY_VALUE(TCG_ID)*10"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_PORT_CREDIT_CONFIGURATION">
+        <OneLineDescription>Credit worth Configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Name="CREDIT_WORTH" Size="16" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CREDIT_WORTH">
+                    <Access>
+                        <Register Name="SCH_ASSIGNED_CREDIT_CONFIGURATIONr">
+                            <HwField Name="ASSIGNED_CREDIT_WORTHf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="SCH_REBOUNDED_CREDIT_CONFIGURATIONr">
+                            <HwField Name="REBOUNDED_CREDIT_WORTHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_PORT_TC_SHAPER">
+        <OneLineDescription>Shaper of Port TC</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="HR_ID"/>
+            </Key>
+            <Result>
+                <Field Name="QUANTA_TO_ADD" Size="DNX_DATA.sch.dbal.ps_shaper_quanta_bits" Type="UINT"/>
+                <Field Name="MAX_BURST" Size="DNX_DATA.sch.dbal.ps_shaper_max_burst_bits" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <PackedFields>
+                    <Access>
+                        <Memory Name="SCH_PIR_SHAPERS_STATIC_TABEL_PSSTm"/>
+                    </Access>
+                </PackedFields>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="QUANTA_TO_ADD">
+                    <Access>
+                        <Memory Name="SCH_PIR_SHAPERS_STATIC_TABEL_PSSTm">
+                            <EntryOffset Formula="#KEY_VALUE(HR_ID)/8"/>  
+                            <DataOffset Formula="#KEY_VALUE(HR_ID)%8*dnx_data_sch.dbal.ps_shaper_bits_get(unit)"/>  
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAX_BURST">
+                    <Access>
+                        <Memory Name="SCH_PIR_SHAPERS_STATIC_TABEL_PSSTm">
+                            <EntryOffset Formula="#KEY_VALUE(HR_ID)/8"/>  
+                            <DataOffset Formula="#KEY_VALUE(HR_ID)%8*dnx_data_sch.dbal.ps_shaper_bits_get(unit)+dnx_data_sch.dbal.ps_shaper_quanta_bits_get(unit)"/>  
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_PORT_TC_SHAPER_CONFIGURATION">
+        <OneLineDescription>Configuration  of Port TC Shaper</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Name="CALENDAR_ACCESS_PERIOD_RESIDUE" Size="4" Type="UINT"/>
+                <Field Name="CALENDAR_ACCESS_PERIOD" Size="12" Type="UINT"/>
+                <Field Name="CALENDAR_MAX_INDEX" Type="HR_ID"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <PackedFields>
+                    <Access>
+                        <Register Name="SCH_PIR_SHAPERS_CONFIGURATIONr"/>
+                    </Access>
+                </PackedFields>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_PORT_TCG_SHAPER">
+        <OneLineDescription>Shaper of Port TCG</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="GLOBAL_TCG_ID" Type="HR_ID"/>
+            </Key>
+            <Result>
+                <Field Name="QUANTA_TO_ADD" Size="DNX_DATA.sch.dbal.ps_shaper_quanta_bits" Type="UINT"/>
+                <Field Name="MAX_BURST" Size="DNX_DATA.sch.dbal.ps_shaper_max_burst_bits" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <PackedFields>
+                    <Access>
+                        <Memory Name="SCH_CIR_SHAPERS_STATIC_TABEL_CSSTm"/>
+                    </Access>
+                </PackedFields>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="QUANTA_TO_ADD">
+                    <Access>
+                        <Memory Name="SCH_CIR_SHAPERS_STATIC_TABEL_CSSTm">
+                            <EntryOffset Formula="#KEY_VALUE(GLOBAL_TCG_ID)/8"/> 
+                            <DataOffset Formula="#KEY_VALUE(GLOBAL_TCG_ID)%8*dnx_data_sch.dbal.ps_shaper_bits_get(unit)"/> 
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAX_BURST">
+                    <Access>
+                        <Memory Name="SCH_CIR_SHAPERS_STATIC_TABEL_CSSTm">
+                            <EntryOffset Formula="#KEY_VALUE(GLOBAL_TCG_ID)/8"/>  
+                            <DataOffset Formula="#KEY_VALUE(GLOBAL_TCG_ID)%8*dnx_data_sch.dbal.ps_shaper_bits_get(unit)+dnx_data_sch.dbal.ps_shaper_quanta_bits_get(unit)"/> 
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_PORT_TCG_SHAPER_CONFIGURATION">
+        <OneLineDescription>Configuration  of Port TCG Shaper</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Name="CALENDAR_ACCESS_PERIOD_RESIDUE" Size="4" Type="UINT"/>
+                <Field Name="CALENDAR_ACCESS_PERIOD" Size="12" Type="UINT"/>
+                <Field Name="CALENDAR_MAX_INDEX" Type="HR_ID"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <PackedFields>
+                    <Access>
+                        <Register Name="SCH_CIR_SHAPERS_CONFIGURATIONr"/>
+                    </Access>
+                </PackedFields>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_PORT_PRIORITY">
+        <OneLineDescription>Configuration Port priority</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="PS_ID" Size="DNX_DATA.sch.dbal.ps_bits" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="NOF_PS_PRIORITIES"/>
+                <Field Name="PRIORITY_PROPAGATION_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="NOF_PS_PRIORITIES">
+                    <Access Offset="0" Size="1">
+                        <Register Name="SCH_PS_1P_PRIORITY_MODE_REGISTERr">
+                            <ArrayOffset Formula="#KEY_VALUE(PS_ID)/32"/>
+                            <HwField Name="PS_1P_PRIORITY_MODE_BITMAP_Nf"/>
+                            <DataOffset Formula="#KEY_VALUE(PS_ID)%32"/>
+                        </Register>
+                    </Access>
+                    <Access Offset="1" Size="1">
+                        <Register Name="SCH_PS_2P_PRIORITY_MODE_REGISTERr">
+                            <ArrayOffset Formula="#KEY_VALUE(PS_ID)/32"/>
+                            <HwField Name="PS_2P_PRIORITY_MODE_BITMAP_Nf"/>
+                            <DataOffset Formula="#KEY_VALUE(PS_ID)%32"/>
+                        </Register>
+                    </Access>
+                    <Access Offset="2" Size="1">
+                        <Register Name="SCH_PS_4P_PRIORITY_MODE_REGISTERr">
+                            <ArrayOffset Formula="#KEY_VALUE(PS_ID)/32"/>
+                            <HwField Name="PS_4P_PRIORITY_MODE_BITMAP_Nf"/>
+                            <DataOffset Formula="#KEY_VALUE(PS_ID)%32"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PRIORITY_PROPAGATION_ENABLE">
+                    <Access>
+                        <Register Name="SCH_PS_PRIORITY_PROPAGATION_ENABLEr">
+                            <ArrayOffset Formula="#KEY_VALUE(PS_ID)/32"/>
+                            <HwField Name="PS_PRIORITY_PROPAGATION_ENABLE_Nf"/>
+                            <DataOffset Formula="#KEY_VALUE(PS_ID)%32"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_INTERFACE_PRIORITY">
+        <OneLineDescription>Configuration Port priority propagation (per 8 interfaces)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="DNX_DATA.sch.interface.nof_sch_interfaces/8" Name="IF_GROUP" Size="DNX_DATA.sch.dbal.interface_bits-3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="NOF_PRIORITY_PROPAGATION_PRIORITIES" Type="NOF_PS_PRIORITIES"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="NOF_PRIORITY_PROPAGATION_PRIORITIES">
+                    <Access Offset="0" Size="1">
+                        <Register Name="SCH_NIF_1P_PRIORITY_MODE_REGISTERr">
+                            <HwField Name="NIF_1P_PRIORITY_MODE_BITMAPf"/>
+                            <DataOffset Formula="#KEY_VALUE(IF_GROUP)"/>
+                        </Register>
+                    </Access>
+                    <Access Offset="1" Size="1">
+                        <Register Name="SCH_NIF_2P_PRIORITY_MODE_REGISTERr">
+                            <HwField Name="NIF_2P_PRIORITY_MODE_BITMAPf"/>
+                            <DataOffset Formula="#KEY_VALUE(IF_GROUP)"/>
+                        </Register>
+                    </Access>
+                    <Access Offset="2" Size="1">
+                        <Register Name="SCH_NIF_4P_PRIORITY_MODE_REGISTERr">
+                            <HwField Name="NIF_4P_PRIORITY_MODE_BITMAPf"/>
+                            <DataOffset Formula="#KEY_VALUE(IF_GROUP)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_INTERFACE_FORCE_PAUSE">
+        <OneLineDescription>Force pause to sch interface</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="DNX_DATA.sch.interface.nof_sch_interfaces-1" Name="SCH_INTERFACE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="FORCE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="FORCE">
+                    <Access>
+                        <Register Name="SCH_DVS_NIF_CONFIGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SCH_INTERFACE_ID)/32"/>
+                            <HwField Name="NIF_FORCE_PAUSE_Nf"/>
+                            <DataOffset Formula="#KEY_VALUE(SCH_INTERFACE_ID)%32"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_EGQ_TO_SCH_IF_MAP">
+        <OneLineDescription>Force pause to sch interface</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="DNX_DATA.egr_queuing.params.nof_egr_interfaces-1" Name="EGQ_INTERFACE_ID" Size="DNX_DATA.egr_queuing.params.nof_bits_in_egr_interface" Type="UINT"/>
+                <!-- 
+                  Note: in regular mode the mapping is from EGQ to SCH interface
+                  There is reverse mode (defined by SCH_SCHEDULER_CONFIGURATION_REGISTER.FCM_INVERT)
+                  where the mapping is from SCH to EGQ interface
+                 -->
+            </Key>
+            <Result>
+                <Field MaxValue="DNX_DATA.sch.interface.reserved" Name="SCH_INTERFACE_ID"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SCH_INTERFACE_ID">
+                <!-- 
+                 Map both Low and High EGQ interfaces to the same sch interface
+                 -->
+                    <Access>
+                        <Memory Name="SCH_FC_MAP_FCMm">
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_INTERFACE_ID)"/>
+                            <HwField Name="FC_MAP_FCMf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <Memory Name="SCH_FC_MAP_FCMm">
+                        <!-- Since the table can work in both directions, 
+                             can use num of interfaces either from EGQ of from SCH
+                             EGQ dnx data is limited over what HW provided and cannot be used here
+                          -->
+                            <EntryOffset Formula="#KEY_VALUE(EGQ_INTERFACE_ID)+dnx_data_sch.interface.nof_sch_interfaces_get(unit)"/>
+                            <HwField Name="FC_MAP_FCMf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_SCH_IF_TO_EGQ_IF_MAP">
+        <OneLineDescription>Force pause to sch interface - reverse mode</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="DNX_DATA.sch.interface.nof_sch_interfaces-1" Name="SCH_INTERFACE_ID"/>
+                <!-- 
+                  Note: in regular mode the mapping is from EGQ to SCH interface
+                  There is reverse mode (defined by SCH_SCHEDULER_CONFIGURATION_REGISTER.FCM_INVERT)
+                  where the mapping is from SCH to EGQ interface
+                 -->
+            </Key>
+            <Result>
+                <Field MaxValue="DNX_DATA.egr_queuing.params.reserved_if" Name="EGQ_INTERFACE_ID" Size="DNX_DATA.egr_queuing.params.nof_bits_in_egr_interface" Type="UINT"/>
+                <Field Name="IS_HIGH_PRIORITY" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="EGQ_INTERFACE_ID">
+                    <Access>
+                        <Memory Name="SCH_FC_MAP_FCMm">
+                            <HwField Name="FC_MAP_FCMf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+               </Field>
+                <Field Name="IS_HIGH_PRIORITY">
+                    <Access>
+                        <Memory Name="SCH_FC_MAP_FCMm">
+                            <HwField Name="FC_MAP_FCMf"/>
+                            <DataOffset Formula="dnx_data_egr_queuing.params.nof_bits_in_egr_interface_get(unit)"/>
+                        </Memory>
+                    </Access>
+               </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_IF_SHAPER">
+        <OneLineDescription>Interface shaper</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="DNX_DATA.sch.interface.nof_channelized_calendars-1" Name="SCH_IF_ID" Size="DNX_DATA.sch.dbal.calendar_bits" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="CREDIT_RATE" Size="17" Type="UINT"/>
+                <Field Name="DVS_PRIORITY" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CREDIT_RATE">
+                    <Access>
+                        <Memory Name="SCH_CH_NIF_RATES_CONFIGURATION_CNRCm">
+                            <HwField Name="CH_NI_FXX_MAX_CR_RATEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DVS_PRIORITY">
+                    <Access>
+                        <Memory Name="SCH_CH_NIF_CALENDAR_CONFIGURATION_CNCCm">
+                            <HwField Name="CH_NI_FXX_WEIGHTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_NON_CHANNELIZED_IF_SHAPER" Valid="DNX_DATA.sch.interface.non_channelized_calendar">
+        <OneLineDescription>Interface shaper</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="DNX_DATA.sch.interface.nof_sch_interfaces-1" MinValue="DNX_DATA.sch.interface.nof_channelized_calendars" Name="SCH_IF_ID" Size="DNX_DATA.sch.dbal.interface_bits" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="CREDIT_RATE" Size="21" Type="UINT"/>
+                <Field Name="DVS_PRIORITY" Size="3" Type="UINT"/>
+                <Field Name="HR_ID"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CREDIT_RATE">
+                    <Access>
+                    <Memory Name="SCH_ONE_PORT_NIF_CONFIGURATION_OPNCm">
+                        <EntryOffset Formula="#KEY_VALUE(SCH_IF_ID)-dnx_data_sch.interface.nof_channelized_calendars_get(unit)"/>
+                        <HwField Name="PORT_NIF_MAX_CR_RATEf"/>
+                    </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DVS_PRIORITY">
+                    <Access>
+                        <Memory Name="SCH_ONE_PORT_NIF_CONFIGURATION_OPNCm">
+                        <EntryOffset Formula="#KEY_VALUE(SCH_IF_ID)-dnx_data_sch.interface.nof_channelized_calendars_get(unit)"/>
+                            <HwField Name="PORT_NIF_WEIGHTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+
+                <Field Name="HR_ID">
+                    <Access>
+                    <Memory Name="SCH_ONE_PORT_NIF_CONFIGURATION_OPNCm">
+                        <EntryOffset Formula="#KEY_VALUE(SCH_IF_ID)-dnx_data_sch.interface.nof_channelized_calendars_get(unit)"/>
+                        <HwField Name="PORT_IDf"/>
+                    </Memory>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_IF_CALENDAR_CONFIGURATION">
+        <OneLineDescription>Interface calendar configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="SCH_CAL_ID"/>
+            </Key>
+            <Result>
+                <Field Name="CALENDAR_A_MAX_INDEX" Size="10" Type="UINT"/>
+                <Field Name="CALENDAR_B_MAX_INDEX" Size="10" Type="UINT"/>
+                <Field Name="SELECT" Size="1" Type="UINT"/>
+                <Field Name="CALENDAR_SPEED" Size="21" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CALENDAR_A_MAX_INDEX">
+                    <Access>
+                        <Memory Name="SCH_CH_NIF_CALENDAR_CONFIGURATION_CNCCm">
+                            <HwField Name="CAL_A_LENf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CALENDAR_B_MAX_INDEX">
+                    <Access>
+                        <Memory Name="SCH_CH_NIF_CALENDAR_CONFIGURATION_CNCCm">
+                            <HwField Name="CAL_B_LENf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SELECT">
+                    <Access>
+                        <Memory Name="SCH_CH_NIF_CALENDAR_CONFIGURATION_CNCCm">
+                            <HwField Name="DVS_CALENDAR_SEL_CH_NI_FXXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CALENDAR_SPEED">
+                    <Access>
+                        <Memory Name="SCH_CH_NIF_RATES_CONFIGURATION_CNRCm">
+                            <HwField Name="CH_NI_FXX_SUM_OF_PORTSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_IF_BIG_CALENDAR">
+        <OneLineDescription>Big Interface calendars</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="7" Name="CAL_ID" Type="SCH_CAL_ID"/>
+                <Field Name="SELECT" Size="1" Type="UINT"/>
+                <Field Name="ENTRY" Size="10" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="HR_ID"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="HR_ID">
+                    <Access>
+                        <Memory GroupName="SCH_IF_CALENDAR">
+                            <GroupOffset Formula="#KEY_VALUE(CAL_ID)/2"/>
+                            <EntryOffset Formula="#KEY_VALUE(ENTRY)+#KEY_VALUE(SELECT)*1024+#KEY_VALUE(CAL_ID)%2*2048"/>  
+                        </Memory>
+
+                     </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_IF_REGULAR_CALENDAR">
+        <OneLineDescription>Regular Interface calendars</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MinValue="8" Name="CAL_ID" Type="SCH_CAL_ID"/>
+                <Field Name="SELECT" Size="1" Type="UINT"/>
+                <Field Name="ENTRY" Size="8" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="HR_ID"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="HR_ID">
+                    <Access>
+                        <Memory GroupName="SCH_IF_CALENDAR">
+                            <GroupOffset Formula="#KEY_VALUE(CAL_ID)/2"/>
+                            <EntryOffset Formula="#KEY_VALUE(ENTRY)+#KEY_VALUE(SELECT)*256+#KEY_VALUE(CAL_ID)%2*512"/>  
+                        </Memory>
+                     </Access>
+               </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_PER_CORE_CONFIGURATION">
+        <OneLineDescription>Scheduler per core configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="ERP_ENABLE" Type="BOOL"/>
+                <Field Name="LOW_RATE_MIN" Size="#log2_round_up(DNX_DATA.sch.flow.first_se_flow_id/16)" Type="UINT"/>
+                <Field Name="LOW_RATE_MAX" Size="#log2_round_up(DNX_DATA.sch.flow.first_se_flow_id/16)" Type="UINT"/>
+                <Field MaxValue="1" Name="LOW_RATE_ENABLE" Size="16" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="ERP_ENABLE">
+                    <Access>
+                        <Register Name="SCH_SCHEDULER_CONFIGURATION_REGISTERr">
+                            <HwField Name="ERP_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LOW_RATE_MIN">
+                    <Access>
+                        <Register Name="SCH_LOW_RATE_FLOW_CONFIG_RANGEr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LOW_RATE_FLOW_RANGE_MIN_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LOW_RATE_MAX">
+                    <Access>
+                        <Register Name="SCH_LOW_RATE_FLOW_CONFIG_RANGEr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LOW_RATE_FLOW_RANGE_MAX_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LOW_RATE_ENABLE">
+                    <Access EncodeType="MULTIPLY" EncodeValue="0xffff">
+                        <Register Name="SCH_LOW_RATE_FLOW_EN_MASKr">
+                            <ArrayOffset Formula="0"/>
+                            <HwField Name="LOW_RATE_EN_MASK_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_CONFIGURATION">
+        <OneLineDescription>Scheduler global configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Name="OVERRIDE_SLOW_RATE" Type="BOOL"/>
+                <Field Name="DLM_ENABLE" Size="3" Type="UINT"/>
+                <Field Name="SMP_BACKUP_MSG_ENABLE" Type="BOOL"/>
+                <Field Name="DLM_PER_GROUP_BW" Size="10" Type="UINT"/>
+                <Field Name="LOW_DLM_PER_GROUP_BW" Size="5" Type="UINT"/>
+                <Field Name="QPM_OVERRIDE" Type="BOOL"/>
+                <Field Name="LOW_RATE_FACTOR"/>
+                <Field Name="PORT_PRIORITY_PROPAGATION_ENABLE" Type="BOOL"/>       
+                <Field Name="TCG_STRICT_PRIORITY" Type="BOOL"/>       
+                <Field Name="DUMMY_TM_PORT" Type="TM_PORT" Valid="DNX_DATA.device.general.multi_core"/>       
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="OVERRIDE_SLOW_RATE">
+                    <Access>
+                        <Register Name="SCH_SHAPER_CONFIGURATION_REGISTER_1r">
+                            <HwField Name="OVERRIDE_SLOW_RATEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DLM_ENABLE">
+                    <Access>
+                        <Register Name="SCH_DELETE_MECHANISM_CONFIGURATION_REGISTERr">
+                            <HwField Name="DLM_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SMP_BACKUP_MSG_ENABLE">
+                    <Access>
+                        <Register Name="SCH_SMP_BACK_UP_MESSAGESr">
+                            <HwField Name="BACKUP_MSG_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DLM_PER_GROUP_BW">
+                    <Access>
+                        <Register Name="SCH_DELETE_MECHANISM_CONFIGURATION_REGISTERr">
+                            <HwField Name="DLM_PER_GROUP_BWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LOW_DLM_PER_GROUP_BW">
+                    <Access>
+                        <Register Name="SCH_DELETE_MECHANISM_CONFIGURATION_REGISTERr">
+                            <HwField Name="LOW_DLM_PER_GROUP_BWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="QPM_OVERRIDE">
+                    <Access>
+                        <Register Name="SCH_BFC_PARAMSr">
+                            <HwField Name="QPM_OVERRIDEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LOW_RATE_FACTOR">
+                    <Access>
+                        <Register Name="SCH_SHAPER_CONFIGURATION_REGISTER_1r">
+                            <HwField Name="LOW_RATE_DOUBLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PORT_PRIORITY_PROPAGATION_ENABLE">
+                    <Access>
+                        <Register Name="SCH_SCHEDULER_CONFIGURATION_REGISTERr">
+                            <HwField Name="FCM_INVERTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TCG_STRICT_PRIORITY">
+                    <Access>
+                        <Register Name="SCH_DVS_CONFIG_2r">
+                            <HwField Name="PS_SP_INSTEAD_FQf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DUMMY_TM_PORT">
+                    <Access>
+                        <Register Name="FCR_FCR_PRE_CONFIGURED_DUMMY_PORTr">
+                            <HwField Name="FCR_PRE_CONFIGURED_DUMMY_PORT_CORE_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="FCR_FCR_PRE_CONFIGURED_DUMMY_PORTr">
+                            <HwField Name="FCR_PRE_CONFIGURED_DUMMY_PORT_CORE_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+
+           </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_DEVICE_SCHEDULER">
+        <OneLineDescription>Scheduler table for device scheduler configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="DEVICE_SCHEDULER_MODE" Size="1" Type="UINT"/>
+                <Field MaxValue="1" Name="WEIGHT" Size="10" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DEVICE_SCHEDULER_MODE">
+                    <Access>
+                        <Register Name="SCH_DVS_WEIGHT_ENABLEr">
+                            <HwField Name="DVS_WFQ_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="WEIGHT">
+                    <Access>
+                        <Register Name="SCH_DVS_WEIGHT_CONFIGr">
+                        <!-- when array offset is not specified, all offsets are configured -->
+                            <HwField Name="WFQ_WEIGHT_0__Nf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="SCH_DVS_WEIGHT_CONFIGr">
+                            <HwField Name="WFQ_WEIGHT_1__Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+           </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_DSP_TO_HR_MAP">
+        <OneLineDescription>Scheduler table for destination port to HR map</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="TM_PORT"/>
+            </Key>
+            <Result>
+                <Field Name="HR_ID"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="HR_ID">
+                    <Access>
+                        <Memory Name="SCH_DSP_2_PORT_MAP_DSPPm">
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_QPAIR_TO_HR_MAP">
+        <OneLineDescription>Map q-pairs on all cores to HR</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="QPAIR"/>
+                <Field Name="EGQ_CORE" Type="CORE"/>
+            </Key>
+            <Result>
+                <Field Name="HR_ID"/>
+                <Field Name="VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="HR_ID">
+                    <Access>
+                        <Memory Name="SCH_QPAIR_TO_PORT_MAP_QPMm">
+                        <!-- First half of indexes are for local core, the second half is for other core -->
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)/16+(#KEY_VALUE(EGQ_CORE)^#KEY_VALUE(CORE_ID))*dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/16"/>  
+                            <DataOffset Formula="#KEY_VALUE(QPAIR)%16*(dnx_data_sch.dbal.hr_bits_get(unit)+1)"/> 
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VALID">
+                    <Access>
+                        <Memory Name="SCH_QPAIR_TO_PORT_MAP_QPMm">
+                            <EntryOffset Formula="#KEY_VALUE(QPAIR)/16+(#KEY_VALUE(EGQ_CORE)^#KEY_VALUE(CORE_ID))*dnx_data_egr_queuing.params.nof_q_pairs_get(unit)/16"/>  
+                            <DataOffset Formula="#KEY_VALUE(QPAIR)%16*(dnx_data_sch.dbal.hr_bits_get(unit)+1)+dnx_data_sch.dbal.hr_bits_get(unit)"/> 
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_LAG_PORT_CONFIG" Valid="DNX_DATA.device.general.multi_core">
+        <OneLineDescription>LAG port configuration </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="TM_PORT"/>
+            </Key>
+            <Result>
+                <Field Name="CORE_FLIP" Type="BOOL"/>
+                <Field Name="MEMBER" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CORE_FLIP">
+                    <Access>
+                        <KeyCondition Field="CORE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="FCR_FCR_ENABLE_LAG_CORE_DEST_FLIP_PER_PORTr">
+                            <BlockIndex Formula="0"/>
+                            <HwField Name="FCR_ENABLE_LAG_DEST_FLIP_PER_PORT_CORE_0f"/>
+                            <DataOffset Formula="#KEY_VALUE(TM_PORT)"/> 
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CORE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="FCR_FCR_ENABLE_LAG_CORE_DEST_FLIP_PER_PORTr">
+                            <BlockIndex Formula="0"/>
+                            <HwField Name="FCR_ENABLE_LAG_DEST_FLIP_PER_PORT_CORE_1f"/>
+                            <DataOffset Formula="#KEY_VALUE(TM_PORT)"/> 
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MEMBER">
+                    <Access>
+                        <KeyCondition Field="CORE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="FCR_FCR_ENABLE_LAG_PORT_DEST_MODIFY_PER_PORTr">
+                            <BlockIndex Formula="0"/>
+                            <HwField Name="FCR_ENABLE_LAG_PORT_DEST_MODIFY_PER_PORT_CORE_0f"/>
+                            <DataOffset Formula="#KEY_VALUE(TM_PORT)"/> 
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CORE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="FCR_FCR_ENABLE_LAG_PORT_DEST_MODIFY_PER_PORTr">
+                            <BlockIndex Formula="0"/>
+                            <HwField Name="FCR_ENABLE_LAG_PORT_DEST_MODIFY_PER_PORT_CORE_1f"/>
+                            <DataOffset Formula="#KEY_VALUE(TM_PORT)"/> 
+                        </Register>
+                   </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+<!-- 
+  ***************************
+  ** Counters
+  ***************************
+  -->
+
+    <AppDB Name="SCH_FLOW_CREDIT_COUNTER">
+        <OneLineDescription>Configure the programmable credit counter per flow</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="SCH_FLOW_ID"/>
+                <Field Name="FILTER_BY_FLOW" Type="BOOL"/>
+                <Field Name="FILTER_BY_SUB_FLOW" Type="BOOL"/>
+                <Field Name="FILTER_BY_DEST_FAP" Type="BOOL"/>
+                <Field Name="CREDIT_COUNT" Permission="READONLY" Size="31" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SCH_FLOW_ID">
+                    <Access>
+                        <Register Name="SCH_CREDIT_COUNTER_CONFIGURATION_REG_1r">
+                            <HwField Name="FILTER_FLOWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FILTER_BY_FLOW">
+                    <Access>
+                        <Register Name="SCH_CREDIT_COUNTER_CONFIGURATION_REG_2r">
+                            <HwField Name="FILTER_BY_FLOWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FILTER_BY_SUB_FLOW">
+                    <Access>
+                        <Register Name="SCH_CREDIT_COUNTER_CONFIGURATION_REG_2r">
+                            <HwField Name="FILTER_BY_SUB_FLOWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FILTER_BY_DEST_FAP">
+                    <Access>
+                        <Register Name="SCH_CREDIT_COUNTER_CONFIGURATION_REG_2r">
+                            <HwField Name="FILTER_BY_DEST_FAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CREDIT_COUNT">
+                    <Access>
+                        <Register Name="SCH_DBG_CREDIT_COUNTERr">
+                            <HwField Name="CREDIT_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_PORT_CREDIT_COUNTER">
+        <OneLineDescription>Configure the programmable credit counter per port</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="HR_ID"/>
+                <Field Name="FILTER_BY_PORT" Type="BOOL"/>
+                <Field Name="FILTER_BY_NIF" Type="BOOL"/>
+                <Field Name="CREDIT_COUNT" Permission="READONLY" Size="31" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="HR_ID">
+                    <Access>
+                        <Register Name="SCH_DBG_DVS_CREDIT_COUNTER_CONFIGURATIONr">
+                            <HwField Name="DVS_FILTER_PORTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FILTER_BY_PORT">
+                    <Access>
+                        <Register Name="SCH_DBG_DVS_CREDIT_COUNTER_CONFIGURATIONr">
+                            <HwField Name="CNT_BY_PORTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FILTER_BY_NIF">
+                    <Access>
+                        <Register Name="SCH_DBG_DVS_CREDIT_COUNTER_CONFIGURATIONr">
+                            <HwField Name="CNT_BY_NIFf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CREDIT_COUNT">
+                    <Access>
+                        <Register Name="SCH_DVS_CREDIT_COUNTERr">
+                            <HwField Name="DVS_CREDIT_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_FC_COUNTER">
+        <OneLineDescription>Configure the programmable FC counter</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="HR_ID"/>
+                <Field Name="COUNT_PER_PORT" Type="BOOL"/>
+                <Field Name="COUNT_PER_IF_FC" Type="BOOL"/>
+                <Field Name="COUNT_PER_CL_FC" Type="BOOL"/>
+                <Field Name="FC_COUNT" Permission="READONLY" Size="31" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="HR_ID">
+                    <Access>
+                        <Register Name="SCH_DBG_DVS_FC_COUNTERS_CONFIGURATIONr">
+                            <HwField Name="FC_CNT_PORTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COUNT_PER_PORT">
+                    <Access>
+                        <Register Name="SCH_DBG_DVS_FC_COUNTERS_CONFIGURATIONr">
+                            <HwField Name="CNT_PORT_FCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COUNT_PER_IF_FC">
+                    <Access>
+                        <Register Name="SCH_DBG_DVS_FC_COUNTERS_CONFIGURATIONr">
+                            <HwField Name="CNT_INTERFACE_FCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COUNT_PER_CL_FC">
+                    <Access>
+                        <Register Name="SCH_DBG_DVS_FC_COUNTERS_CONFIGURATIONr">
+                            <HwField Name="CNT_CLFCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FC_COUNT">
+                    <Access>
+                        <Register Name="SCH_DBG_DVS_FLOW_CONTROL_COUNTERr">
+                            <HwField Name="DVS_FC_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_CREDIT_COUNTER">
+        <OneLineDescription>Scheduler table for credit counter configuration. used in diagnostics </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="COUNTER_TYPE" Type="SCH_CREDIT_COUNTER_TYPE"/>
+                <Field Name="COUNT_ONLY_GROUP_MATCH" Type="BOOL"/>
+                <Field Name="COUNT_ONLY_FLOW_MATCH" Type="BOOL"/>
+                <Field Name="GROUP" Size="2" Type="UINT"/>
+                <Field Name="FLOW" Type="SCH_FLOW_ID"/>
+                <Field Name="CREDIT_COUNTER_VAL" Permission="READONLY" Size="31" Type="UINT"/>
+                <Field Name="CREDIT_COUNTER_OVF" Permission="READONLY" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SCHEDULER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="COUNTER_TYPE">
+                    <Access>
+                        <Register Name="SCH_RESERVED_3r">
+                            <HwField Name="FIELD_0_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COUNT_ONLY_GROUP_MATCH">
+                    <Access>
+                        <Register Name="SCH_RESERVED_3r">
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COUNT_ONLY_FLOW_MATCH">
+                    <Access>
+                        <Register Name="SCH_RESERVED_3r">
+                            <HwField Name="FIELD_3_3f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GROUP">
+                    <Access>
+                        <Register Name="SCH_RESERVED_3r">
+                            <HwField Name="FIELD_4_5f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FLOW">
+                    <Access>
+                        <Register Name="SCH_RESERVED_3r">
+                            <DataOffset Formula="8"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CREDIT_COUNTER_VAL">
+                    <Access>
+                        <Register Name="SCH_DVS_CREDIT_COUNTERr">
+                            <HwField Name="DVS_CREDIT_CNTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CREDIT_COUNTER_OVF">
+                    <Access>
+                        <Register Name="SCH_DVS_CREDIT_COUNTERr">
+                            <HwField Name="DVS_CREDIT_CNT_OVF_OR_FINf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

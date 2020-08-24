@@ -1,0 +1,251 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="fc" bsl_flag="BSL_LS_SOCDNX_GENERAL">
+
+     <includes>
+        <include>bcm/types.h</include>
+        <include>bcm_int/dnx/cosq/flow_control/cosq_fc.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_nif.h</include>
+        <include>soc/dnx/intr/auto_generated/jr2/jr2_intr.h</include>
+    </includes>
+
+    <sub_module name="general"  doc="Flow Control general configurations.">
+        <defines>
+            <define name="nof_glb_rsc" value="13"></define>
+            <define name="nof_gen_bmps" value="32"></define>
+            <define name="nof_af_nif_indications" value="DATA(nif,phys,nof_phys_per_core)"></define>
+            <!-- 48 NIF + 4 CMIC -->
+            <define name="nof_cal_llfcs" value="DATA(nif,phys,nof_phys_per_core) + 4"></define>
+            <define name="nof_entries_qmlf" value="32767"></define>
+        </defines>
+        <numerics>
+            <numeric name="bcm_cos_count" value="BCM_COS_COUNT"></numeric>
+        </numerics>
+        <features>
+            <feature name="fc_to_nif_status" value="0"></feature>
+            <feature name="ilu_fc_status" value="0"></feature>
+            <feature name="inb_ilkn_rx_status" value="0"></feature>
+            <feature name="glb_res_lp_to_llfc" value="0"></feature>
+            <feature name="vsqd_to_llfc_pfc" value="0"></feature>
+            <feature name="oob_tx_reset" value="1"></feature>
+            <feature name="additional_enablers" value="0"></feature>
+            <feature name="ilkn_inb_llfc" value="0"></feature>
+            <feature name="flexe_flow_control" value="0"></feature>
+            <feature name="glb_rsc_oob_en" value="1"></feature>
+            <feature name="cat2_oob_en" value="1"></feature>
+            <feature name="pfc_rec_cdu_shift" value="1"></feature>
+            <feature name="pfc_status_regs_double_read" value="1"></feature>
+            <feature name="ilkn_oob_fast_llfc" value="1"></feature>
+            <feature name="pp_inb_enable" value="1"></feature>
+            <feature name="fc_from_llfc_vsq_status_sel" value="1"></feature>
+            <feature name="if_2_cfc_enablers" value="0"></feature>
+            <feature name="ilkn_oob_en" value="1"></feature>
+            <feature name="ilkn_polarity_set" value="1"></feature>
+        </features>
+    </sub_module>
+
+    <sub_module name="coe"  doc="Flow Control COE general configurations.">
+        <defines>
+            <define name="nof_coe_cal_instances" value="2"></define>
+            <define name="nof_supported_vlan_ids" value="1024"></define>
+            <define name="nof_coe_vid_mask_width" value="8"></define>
+            <define name="nof_coe_vid_right_shift_width" value="3"></define>
+            <define name="max_coe_ticks" value="8191"></define>
+        </defines>
+
+        <numerics>
+            <numeric name="calendar_pause_resolution" value="0">
+                <property name="fc_calendar_pause_resolution" method="range" range_min="0" range_max="4294967295">
+                    <doc>
+                        PP COE Pause counter rate. Unit: usec.
+                    </doc>
+                </property>
+             </numeric>
+             <numeric name="data_offset" value="0">
+                <property name="fc_coe_data_offset" method="range" range_min="0" range_max="31">
+                    <doc>
+                        Define offset in bytes from after Ethernet Frame for COE FC data. Valid range = [0-31]
+                    </doc>
+                </property>
+             </numeric>
+             <numeric name="ethertype" value="0">
+                <property name="fc_coe_ethertype" method="range" range_min="0" range_max="65535">
+                    <doc>
+                        Set ethertype of COE FC packet.(16bits)
+                    </doc>
+                </property>
+             </numeric>
+             <numeric name="control_opcode" value="0x10">
+                <property name="fc_calendar_coe_mode" method="direct_map">
+                        <map name="PAUSE" value="0x10"></map>
+                        <map name="PFC" value="0x101"></map>
+                    <doc>
+                        Set PP COE Control Opcode used to identify COE.(16bits)
+                    </doc>
+                </property>
+             </numeric>
+             <numeric name="coe_vid_offset" value="0x3">
+             </numeric>
+             <numeric name="coe_vid_mask" value="0xff">
+             </numeric>
+             <numeric name="coe_vid_right_shift" value="0x2">
+             </numeric>
+        </numerics>
+
+        <tables>
+            <table name="calendar_mode">
+                <value name="mode" default="0">
+                    <property name="fc_calendar_coe_mode" method="direct_map">
+                        <map name="PAUSE" value="DNX_FC_COE_MODE_PAUSE"></map>
+                        <map name="PFC" value="DNX_FC_COE_MODE_PFC"></map>
+                        <doc>
+                             PP COE Mode
+                             Valid value: PAUSE/PFC
+                        </doc>
+                    </property>
+                </value>
+            </table>
+            <table name="mac_address">
+                <value name="mac" default="0, 0, 0, 0, 0, 0"></value>
+                <property name="fc_coe_mac_address" method="custom">
+                    <doc>
+                       Set the mac address of COE FC packet (48 bits)
+                    </doc>
+                </property>
+            </table>
+            <table name="calender_length">
+                <key name="cal_id" size="2"></key>
+                <value name="len" default="256">
+                    <property name="fc_coe_calender_length" method="port_range" range_min="1" range_max="256">
+                        <doc>
+                            Flow Control COE RX calender length.
+                        </doc>
+                    </property>
+                </value>
+            </table>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="oob"  doc="Flow Control OOB general configurations.">
+        <defines>
+            <define name="nof_oob_ids" value="2"></define>
+        </defines>
+        <tables>
+            <table name="calender_length">
+                <key name="oob_id" size="2"></key>
+                <value name="tx" default="512"></value>
+                <value name="rx" default="512"></value>
+                <property name="fc_oob_calender_length" method="custom">
+                    <doc>
+                        Flow Control Out-Of-Band TX/RX calender length.
+                    </doc>
+                </property>
+            </table>
+            <table name="calender_rep_count">
+                <key name="oob_id" size="2"></key>
+                <value name="tx" default="1"></value>
+                <value name="rx" default="1"></value>
+                    <property name="fc_oob_calender_rep_count" method="custom">
+                        <doc>
+                            Flow Control Out-Of-Band TX/RX repeat count.
+                        </doc>
+                    </property>
+            </table>
+            <table name="tx_freq">
+                <key name="oob_id" size="2"></key>
+                <value name="ratio" default="1" >
+                    <property name="fc_oob_tx_freq_ratio" method="port_direct_map">
+                        <map name="2" value="0"></map>
+                        <map name="4" value="1"></map>
+                        <map name="6" value="2"></map>
+                        <map name="8" value="3"></map>
+                        <map name="10" value="4"></map>
+                        <map name="12" value="5"></map>
+                        <map name="14" value="6"></map>
+                        <map name="16" value="7"></map>
+                        <doc>
+                            Sets the Flow Control OOB TX Speed relatively to the Core Clock. Possible values:
+                            1 - Same as Core Clock
+                            2 - Core Clock / 2
+                            4 - Core Clock / 4
+                            6 - Core Clock / 6
+                            8 - Core Clock / 8
+                            10 - Core Clock / 10
+                            12 - Core Clock / 12
+                            14 - Core Clock / 14
+                            16 - Core Clock / 16
+                        </doc>
+                    </property>
+                </value>
+            </table>
+
+            <table name="port">
+                <key name="oob_id" size="2"></key>
+                <value name="type" default="1">
+                    <property name="fc_oob_type" method="port_direct_map">
+                        <map name="1" value="1"></map>
+                        <map name="2" value="2"></map>
+                        <doc>
+                            Flow Control Out-Of-Band port type. Values:
+                            0x1 for SPI,  0x2 for ILKN
+                        </doc>
+                    </property>
+                </value>
+                <value name="mode" default="DNX_FC_CAL_MODE_DISABLE">
+                    <key name="oob_id" size="2"></key>
+                    <property name="fc_oob_mode" method="port_direct_map">
+                        <map name="0" value="DNX_FC_CAL_MODE_DISABLE"></map>
+                        <map name="1" value="DNX_FC_CAL_MODE_RX_ENABLE"></map>
+                        <map name="2" value="DNX_FC_CAL_MODE_TX_ENABLE"></map>
+                        <map name="3" value="DNX_FC_CAL_MODE_TX_RX_ENABLE"></map>
+                        <doc>
+                            Flow Control Out-Of-Band port mode.. Values:
+                            0x0 for disable, 0x1 for RX, 0x2 for TX, 0x3 for both
+                        </doc>
+                    </property>
+                </value>
+            </table>
+
+            <table name="indication_invert">
+                <key name="oob_id" size="2"></key>
+                <value name="ilkn_tx" default="0">
+                    <property name="fc_intlkn_indication_invert" method="suffix_enable" suffix="tx">
+                        <doc>
+                            This option controls the meaning of '0'/'1' in the of Calendar FC indications per interface.
+                            If unset (default), use the standard FC indication. If set, use an inverted FC indication.
+                        </doc>
+                    </property>
+                </value>
+                <value name="ilkn_rx" default="0">
+                    <property name="fc_intlkn_indication_invert" method="suffix_enable" suffix="rx">
+                        <doc>
+                            This option controls the meaning of '0'/'1' in the of Calendar FC indications per interface.
+                            If unset (default), use the standard FC indication. If set, use an inverted FC indication.
+                        </doc>
+                    </property>
+                </value>
+                <value name="spi" default="0">
+                    <property name="fc_spi_indication_invert" method="enable">
+                        <doc>
+                            This option controls the meaning of '0'/'1' in the of Calendar FC indications per interface.
+                            If unset (default), use the standard FC indication. If set, use an inverted FC indication.
+                        </doc>
+                    </property>
+                </value>
+            </table>
+        </tables>
+    </sub_module>
+    <sub_module name="inband"  doc="Flow Control inband general configurations.">
+        <defines>
+            <define name="nof_inband_intlkn_cal_instances" value="0"></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="pfc_deadlock"  doc="PFC Deadlock detection and recovery.">
+        <numerics>
+            <numeric name="cdum_intr_id" value="JR2_INT_CDUM_PFC_DEADLOCK_BREAKING_MECHANISM_INT"></numeric>
+            <numeric name="cdu_intr_id" value="JR2_INT_CDU_PFC_DEADLOCK_BREAKING_MECHANISM_INT"></numeric>
+            <numeric name="clu_intr_id" value="JR2_INT_LAST"></numeric>
+        </numerics>
+    </sub_module>
+</device_data>

@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../mdb_schema.xsd">
+
+    <GeneralInfo image="standard_1" dynamic_loading="0" />
+
+<AppDB Name="KBP_IPV4_MULTICAST_TCAM_FORWARD">
+    <OneLineDescription> {VRF,G,S,InLif0} in KBP . </OneLineDescription>
+    <AccessMethod>KBP</AccessMethod>
+    <Maturity Level="HIGH"/>
+    <AppDbInterface Type="TCAM">
+        <Key>
+            <Field Name="VRF" Size="16"/>
+            <Field Name="IPV4_DIP" Size="32" Type="IPV4"/>
+            <Field Name="IPV4_SIP" Size="32" Type="IPV4"/>
+            <Field Name="KBP_GLOB_IN_LIF" Size="24"/>
+        </Key>
+        <MultipleResults>
+            <Result>
+                <Field Description="This is a special format used in KBP
+When used in the KBP Forward DBs (e.g. KBP_IPV4_UNICAST_PRIVATE_LPM_FORWARD)
+  Forward results in 24b/32b buffer in the KBP are zero padded (on the MSBs) to 64b on the KBP&gt;DNX bus
+  The zero padding is taken as the &quot;Type&quot;, i.e. for 24b/32b the Type is not encoded on the entry itself in the KBP Buffer
+  KBP_DEST_W_DEFAULT can be used in KBP forwarding DBs (e.g. KBP_IPV4_UNICAST_PRIVATE_LPM_FORWARD) in 3 possible sub formats:
+    1. As a 24b result with up to 2b  KBP_FORWARD_PMF_GENERIC_DATA used by PMF
+    2. As a 32b result with up to 10b KBP_FORWARD_PMF_GENERIC_DATA used by PMF
+    3. As a 64b result with up to 36b KBP_FORWARD_PMF_GENERIC_DATA used by PMF (in the 64b format 6b on the buffer are used as type)
+When used in the KBP RPF DBs (e.g. KBP_IPV4_UNICAST_PRIVATE_LPM_RPF)
+  RPF results in 24b buffer in the KBP are zero padded (on the MSBs) to 32b on the KBP&gt;DNX bus
+  The zero padding is taken as the &quot;Type&quot;, i.e. for 24b the Type is not encoded on the entry itself in the KBP Buffer
+  KBP_DEST_W_DEFAULT can be used in KBP RPF DBs (e.g. KBP_IPV4_UNICAST_PRIVATE_LPM_RPF) in 2 possible sub formats:
+    1. As a 24b result with up to 2b  KBP_FORWARD_PMF_GENERIC_DATA used by PMF
+    2. As a 32b result with up to 4b  KBP_FORWARD_PMF_GENERIC_DATA used by PMF (in the 32b format 6b on the buffer are used as type)
+       Note: Future implementation can increase the number of bits available for KBP_FORWARD_PMF_GENERIC_DATA
+             in RPF 32b result by using type smaller than 6b" Name="RESULT_TYPE" Size="6" Value="KBP_DEST_W_DEFAULT"/>
+                <Field Name="KBP_FORWARD_PMF_GENERIC_DATA" Size="36"/>
+                <Field Name="DESTINATION" Size="21"/>
+                <Field Name="IS_DEFAULT" Size="1" Type="BOOL"/>
+            </Result>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="6" Value="KBP_FORWARD_DEST_EEI_W_DEFAULT"/>
+                <Field Name="DESTINATION" Size="21"/>
+                <Field Name="EEI" Size="24"/>
+                <Field Name="IS_DEFAULT" Size="1" Type="BOOL"/>
+                <Field Name="KBP_FORWARD_PMF_GENERIC_DATA" Size="12"/>
+            </Result>
+            <Result>
+                <Field Description="This is a special format used in KBP" Name="RESULT_TYPE" Size="6" Value="KBP_FORWARD_DEST_STAT_W_DEFAULT"/>
+                <Field Name="DESTINATION" Size="21"/>
+                <Field Name="STAT_OBJECT_ID" Size="20"/>
+                <Field Name="STAT_OBJECT_CMD" Size="5"/>
+                <Field Name="IS_DEFAULT" Size="1" Type="BOOL"/>
+                <Field Name="KBP_FORWARD_PMF_GENERIC_DATA" Size="11"/>
+            </Result>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="6" Value="KBP_FORWARD_OUTLIF_W_DEFAULT"/>
+                <Field Name="DESTINATION" Size="21"/>
+                <Field Name="GLOB_OUT_LIF" Size="22"/>
+                <Field Name="IS_DEFAULT" Size="1" Type="BOOL"/>
+                <Field Name="KBP_FORWARD_PMF_GENERIC_DATA" Size="14"/>
+            </Result>
+        </MultipleResults>
+        <TableLabels>L2 L3 MPLS</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+        <CoreMode Mode="SBC"/>
+        <PhyDb>KBP</PhyDb>
+        <ReferenceField Name="IRPP_FWD_STAGE_FORMATS"/>
+    </AppToPhyDbMapping>
+</AppDB>
+
+
+<AppDB Name="KBP_IPV4_UNICAST_PRIVATE_LPM_FORWARD">
+    <OneLineDescription> {VRF,IPv4} in KBP </OneLineDescription>
+    <AccessMethod>KBP</AccessMethod>
+    <Maturity Level="HIGH"/>
+    <AppDbInterface Type="LPM">
+        <Key>
+            <Field Name="VRF" Size="16"/>
+            <Field Name="IPV4" Size="32"/>
+        </Key>
+        <MultipleResults>
+            <Result>
+                <Field Description="This is a special format used in KBP
+When used in the KBP Forward DBs (e.g. KBP_IPV4_UNICAST_PRIVATE_LPM_FORWARD)
+  Forward results in 24b/32b buffer in the KBP are zero padded (on the MSBs) to 64b on the KBP&gt;DNX bus
+  The zero padding is taken as the &quot;Type&quot;, i.e. for 24b/32b the Type is not encoded on the entry itself in the KBP Buffer
+  KBP_DEST_W_DEFAULT can be used in KBP forwarding DBs (e.g. KBP_IPV4_UNICAST_PRIVATE_LPM_FORWARD) in 3 possible sub formats:
+    1. As a 24b result with up to 2b  KBP_FORWARD_PMF_GENERIC_DATA used by PMF
+    2. As a 32b result with up to 10b KBP_FORWARD_PMF_GENERIC_DATA used by PMF
+    3. As a 64b result with up to 36b KBP_FORWARD_PMF_GENERIC_DATA used by PMF (in the 64b format 6b on the buffer are used as type)
+When used in the KBP RPF DBs (e.g. KBP_IPV4_UNICAST_PRIVATE_LPM_RPF)
+  RPF results in 24b buffer in the KBP are zero padded (on the MSBs) to 32b on the KBP&gt;DNX bus
+  The zero padding is taken as the &quot;Type&quot;, i.e. for 24b the Type is not encoded on the entry itself in the KBP Buffer
+  KBP_DEST_W_DEFAULT can be used in KBP RPF DBs (e.g. KBP_IPV4_UNICAST_PRIVATE_LPM_RPF) in 2 possible sub formats:
+    1. As a 24b result with up to 2b  KBP_FORWARD_PMF_GENERIC_DATA used by PMF
+    2. As a 32b result with up to 4b  KBP_FORWARD_PMF_GENERIC_DATA used by PMF (in the 32b format 6b on the buffer are used as type)
+       Note: Future implementation can increase the number of bits available for KBP_FORWARD_PMF_GENERIC_DATA
+             in RPF 32b result by using type smaller than 6b" Name="RESULT_TYPE" Size="6" Value="KBP_DEST_W_DEFAULT"/>
+                <Field Name="KBP_FORWARD_PMF_GENERIC_DATA" Size="36"/>
+                <Field Name="DESTINATION" Size="21"/>
+                <Field Name="IS_DEFAULT" Size="1" Type="BOOL"/>
+            </Result>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="6" Value="KBP_FORWARD_DEST_EEI_W_DEFAULT"/>
+                <Field Name="DESTINATION" Size="21"/>
+                <Field Name="EEI" Size="24"/>
+                <Field Name="IS_DEFAULT" Size="1" Type="BOOL"/>
+                <Field Name="KBP_FORWARD_PMF_GENERIC_DATA" Size="12"/>
+            </Result>
+            <Result>
+                <Field Description="This is a special format used in KBP" Name="RESULT_TYPE" Size="6" Value="KBP_FORWARD_DEST_STAT_W_DEFAULT"/>
+                <Field Name="DESTINATION" Size="21"/>
+                <Field Name="STAT_OBJECT_ID" Size="20"/>
+                <Field Name="STAT_OBJECT_CMD" Size="5"/>
+                <Field Name="IS_DEFAULT" Size="1" Type="BOOL"/>
+                <Field Name="KBP_FORWARD_PMF_GENERIC_DATA" Size="11"/>
+            </Result>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="6" Value="KBP_FORWARD_OUTLIF_W_DEFAULT"/>
+                <Field Name="DESTINATION" Size="21"/>
+                <Field Name="GLOB_OUT_LIF" Size="22"/>
+                <Field Name="IS_DEFAULT" Size="1" Type="BOOL"/>
+                <Field Name="KBP_FORWARD_PMF_GENERIC_DATA" Size="14"/>
+            </Result>
+        </MultipleResults>
+        <TableLabels>L2 L3 MPLS</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+        <CoreMode Mode="SBC"/>
+        <PhyDb>KBP</PhyDb>
+        <ReferenceField Name="IRPP_FWD_STAGE_FORMATS"/>
+    </AppToPhyDbMapping>
+</AppDB>
+
+
+<AppDB Name="KBP_IPV4_UNICAST_PRIVATE_LPM_RPF">
+    <OneLineDescription> {VRF,IPv4} in KBP </OneLineDescription>
+    <AccessMethod>KBP</AccessMethod>
+    <Maturity Level="HIGH"/>
+    <AppDbInterface Type="LPM">
+        <Key>
+            <Field Name="VRF" Size="16"/>
+            <Field Name="IPV4" Size="32"/>
+        </Key>
+        <MultipleResults>
+            <Result>
+                <Field Description="This is a special format used in KBP
+When used in the KBP Forward DBs (e.g. KBP_IPV4_UNICAST_PRIVATE_LPM_FORWARD)
+  Forward results in 24b/32b buffer in the KBP are zero padded (on the MSBs) to 64b on the KBP&gt;DNX bus
+  The zero padding is taken as the &quot;Type&quot;, i.e. for 24b/32b the Type is not encoded on the entry itself in the KBP Buffer
+  KBP_DEST_W_DEFAULT can be used in KBP forwarding DBs (e.g. KBP_IPV4_UNICAST_PRIVATE_LPM_FORWARD) in 3 possible sub formats:
+    1. As a 24b result with up to 2b  KBP_FORWARD_PMF_GENERIC_DATA used by PMF
+    2. As a 32b result with up to 10b KBP_FORWARD_PMF_GENERIC_DATA used by PMF
+    3. As a 64b result with up to 36b KBP_FORWARD_PMF_GENERIC_DATA used by PMF (in the 64b format 6b on the buffer are used as type)
+When used in the KBP RPF DBs (e.g. KBP_IPV4_UNICAST_PRIVATE_LPM_RPF)
+  RPF results in 24b buffer in the KBP are zero padded (on the MSBs) to 32b on the KBP&gt;DNX bus
+  The zero padding is taken as the &quot;Type&quot;, i.e. for 24b the Type is not encoded on the entry itself in the KBP Buffer
+  KBP_DEST_W_DEFAULT can be used in KBP RPF DBs (e.g. KBP_IPV4_UNICAST_PRIVATE_LPM_RPF) in 2 possible sub formats:
+    1. As a 24b result with up to 2b  KBP_FORWARD_PMF_GENERIC_DATA used by PMF
+    2. As a 32b result with up to 4b  KBP_FORWARD_PMF_GENERIC_DATA used by PMF (in the 32b format 6b on the buffer are used as type)
+       Note: Future implementation can increase the number of bits available for KBP_FORWARD_PMF_GENERIC_DATA
+             in RPF 32b result by using type smaller than 6b" Name="RESULT_TYPE" Size="6" Value="KBP_DEST_W_DEFAULT"/>
+                <Field Name="KBP_FORWARD_PMF_GENERIC_DATA" Size="36"/>
+                <Field Name="DESTINATION" Size="21"/>
+                <Field Name="IS_DEFAULT" Size="1" Type="BOOL"/>
+            </Result>
+        </MultipleResults>
+        <TableLabels>L2 L3 MPLS</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+        <CoreMode Mode="SBC"/>
+        <PhyDb>KBP</PhyDb>
+        <ReferenceField Name="IRPP_FWD_STAGE_FORMATS"/>
+    </AppToPhyDbMapping>
+</AppDB>
+
+
+<AppDB Name="KBP_IPV6_MULTICAST_TCAM_FORWARD">
+    <OneLineDescription> {VRF,G,S,InLif0} in KBP . </OneLineDescription>
+    <AccessMethod>KBP</AccessMethod>
+    <Maturity Level="HIGH"/>
+    <AppDbInterface Type="TCAM">
+        <Key>
+            <Field Name="VRF" Size="16"/>
+            <Field Name="IPV6_DIP" Size="128" Type="IPV6"/>
+            <Field Name="IPV6_SIP" Size="128" Type="IPV6"/>
+            <Field Name="KBP_GLOBAL_IN_LIF_21_16" Size="8"/>
+            <Field Name="GLOBAL_IN_LIF_15_00" Size="16"/>
+        </Key>
+        <MultipleResults>
+            <Result>
+                <Field Description="This is a special format used in KBP
+When used in the KBP Forward DBs (e.g. KBP_IPV4_UNICAST_PRIVATE_LPM_FORWARD)
+  Forward results in 24b/32b buffer in the KBP are zero padded (on the MSBs) to 64b on the KBP&gt;DNX bus
+  The zero padding is taken as the &quot;Type&quot;, i.e. for 24b/32b the Type is not encoded on the entry itself in the KBP Buffer
+  KBP_DEST_W_DEFAULT can be used in KBP forwarding DBs (e.g. KBP_IPV4_UNICAST_PRIVATE_LPM_FORWARD) in 3 possible sub formats:
+    1. As a 24b result with up to 2b  KBP_FORWARD_PMF_GENERIC_DATA used by PMF
+    2. As a 32b result with up to 10b KBP_FORWARD_PMF_GENERIC_DATA used by PMF
+    3. As a 64b result with up to 36b KBP_FORWARD_PMF_GENERIC_DATA used by PMF (in the 64b format 6b on the buffer are used as type)
+When used in the KBP RPF DBs (e.g. KBP_IPV4_UNICAST_PRIVATE_LPM_RPF)
+  RPF results in 24b buffer in the KBP are zero padded (on the MSBs) to 32b on the KBP&gt;DNX bus
+  The zero padding is taken as the &quot;Type&quot;, i.e. for 24b the Type is not encoded on the entry itself in the KBP Buffer
+  KBP_DEST_W_DEFAULT can be used in KBP RPF DBs (e.g. KBP_IPV4_UNICAST_PRIVATE_LPM_RPF) in 2 possible sub formats:
+    1. As a 24b result with up to 2b  KBP_FORWARD_PMF_GENERIC_DATA used by PMF
+    2. As a 32b result with up to 4b  KBP_FORWARD_PMF_GENERIC_DATA used by PMF (in the 32b format 6b on the buffer are used as type)
+       Note: Future implementation can increase the number of bits available for KBP_FORWARD_PMF_GENERIC_DATA
+             in RPF 32b result by using type smaller than 6b" Name="RESULT_TYPE" Size="6" Value="KBP_DEST_W_DEFAULT"/>
+                <Field Name="KBP_FORWARD_PMF_GENERIC_DATA" Size="36"/>
+                <Field Name="DESTINATION" Size="21"/>
+                <Field Name="IS_DEFAULT" Size="1" Type="BOOL"/>
+            </Result>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="6" Value="KBP_FORWARD_DEST_EEI_W_DEFAULT"/>
+                <Field Name="DESTINATION" Size="21"/>
+                <Field Name="EEI" Size="24"/>
+                <Field Name="IS_DEFAULT" Size="1" Type="BOOL"/>
+                <Field Name="KBP_FORWARD_PMF_GENERIC_DATA" Size="12"/>
+            </Result>
+            <Result>
+                <Field Description="This is a special format used in KBP" Name="RESULT_TYPE" Size="6" Value="KBP_FORWARD_DEST_STAT_W_DEFAULT"/>
+                <Field Name="DESTINATION" Size="21"/>
+                <Field Name="STAT_OBJECT_ID" Size="20"/>
+                <Field Name="STAT_OBJECT_CMD" Size="5"/>
+                <Field Name="IS_DEFAULT" Size="1" Type="BOOL"/>
+                <Field Name="KBP_FORWARD_PMF_GENERIC_DATA" Size="11"/>
+            </Result>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="6" Value="KBP_FORWARD_OUTLIF_W_DEFAULT"/>
+                <Field Name="DESTINATION" Size="21"/>
+                <Field Name="GLOB_OUT_LIF" Size="22"/>
+                <Field Name="IS_DEFAULT" Size="1" Type="BOOL"/>
+                <Field Name="KBP_FORWARD_PMF_GENERIC_DATA" Size="14"/>
+            </Result>
+        </MultipleResults>
+        <TableLabels>L2 L3 MPLS</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+        <CoreMode Mode="SBC"/>
+        <PhyDb>KBP</PhyDb>
+        <ReferenceField Name="IRPP_FWD_STAGE_FORMATS"/>
+    </AppToPhyDbMapping>
+</AppDB>
+
+
+<AppDB Name="KBP_IPV6_UNICAST_PRIVATE_LPM_FORWARD">
+    <OneLineDescription> {VRF,IPv6} in KBP </OneLineDescription>
+    <AccessMethod>KBP</AccessMethod>
+    <Maturity Level="HIGH"/>
+    <AppDbInterface Type="LPM">
+        <Key>
+            <Field Name="VRF" Size="16"/>
+            <Field Name="IPV6" Size="128"/>
+        </Key>
+        <MultipleResults>
+            <Result>
+                <Field Description="This is a special format used in KBP
+When used in the KBP Forward DBs (e.g. KBP_IPV4_UNICAST_PRIVATE_LPM_FORWARD)
+  Forward results in 24b/32b buffer in the KBP are zero padded (on the MSBs) to 64b on the KBP&gt;DNX bus
+  The zero padding is taken as the &quot;Type&quot;, i.e. for 24b/32b the Type is not encoded on the entry itself in the KBP Buffer
+  KBP_DEST_W_DEFAULT can be used in KBP forwarding DBs (e.g. KBP_IPV4_UNICAST_PRIVATE_LPM_FORWARD) in 3 possible sub formats:
+    1. As a 24b result with up to 2b  KBP_FORWARD_PMF_GENERIC_DATA used by PMF
+    2. As a 32b result with up to 10b KBP_FORWARD_PMF_GENERIC_DATA used by PMF
+    3. As a 64b result with up to 36b KBP_FORWARD_PMF_GENERIC_DATA used by PMF (in the 64b format 6b on the buffer are used as type)
+When used in the KBP RPF DBs (e.g. KBP_IPV4_UNICAST_PRIVATE_LPM_RPF)
+  RPF results in 24b buffer in the KBP are zero padded (on the MSBs) to 32b on the KBP&gt;DNX bus
+  The zero padding is taken as the &quot;Type&quot;, i.e. for 24b the Type is not encoded on the entry itself in the KBP Buffer
+  KBP_DEST_W_DEFAULT can be used in KBP RPF DBs (e.g. KBP_IPV4_UNICAST_PRIVATE_LPM_RPF) in 2 possible sub formats:
+    1. As a 24b result with up to 2b  KBP_FORWARD_PMF_GENERIC_DATA used by PMF
+    2. As a 32b result with up to 4b  KBP_FORWARD_PMF_GENERIC_DATA used by PMF (in the 32b format 6b on the buffer are used as type)
+       Note: Future implementation can increase the number of bits available for KBP_FORWARD_PMF_GENERIC_DATA
+             in RPF 32b result by using type smaller than 6b" Name="RESULT_TYPE" Size="6" Value="KBP_DEST_W_DEFAULT"/>
+                <Field Name="KBP_FORWARD_PMF_GENERIC_DATA" Size="36"/>
+                <Field Name="DESTINATION" Size="21"/>
+                <Field Name="IS_DEFAULT" Size="1" Type="BOOL"/>
+            </Result>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="6" Value="KBP_FORWARD_DEST_EEI_W_DEFAULT"/>
+                <Field Name="DESTINATION" Size="21"/>
+                <Field Name="EEI" Size="24"/>
+                <Field Name="IS_DEFAULT" Size="1" Type="BOOL"/>
+                <Field Name="KBP_FORWARD_PMF_GENERIC_DATA" Size="12"/>
+            </Result>
+            <Result>
+                <Field Description="This is a special format used in KBP" Name="RESULT_TYPE" Size="6" Value="KBP_FORWARD_DEST_STAT_W_DEFAULT"/>
+                <Field Name="DESTINATION" Size="21"/>
+                <Field Name="STAT_OBJECT_ID" Size="20"/>
+                <Field Name="STAT_OBJECT_CMD" Size="5"/>
+                <Field Name="IS_DEFAULT" Size="1" Type="BOOL"/>
+                <Field Name="KBP_FORWARD_PMF_GENERIC_DATA" Size="11"/>
+            </Result>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="6" Value="KBP_FORWARD_OUTLIF_W_DEFAULT"/>
+                <Field Name="DESTINATION" Size="21"/>
+                <Field Name="GLOB_OUT_LIF" Size="22"/>
+                <Field Name="IS_DEFAULT" Size="1" Type="BOOL"/>
+                <Field Name="KBP_FORWARD_PMF_GENERIC_DATA" Size="14"/>
+            </Result>
+        </MultipleResults>
+        <TableLabels>L2 L3 MPLS</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+        <CoreMode Mode="SBC"/>
+        <PhyDb>KBP</PhyDb>
+        <ReferenceField Name="IRPP_FWD_STAGE_FORMATS"/>
+    </AppToPhyDbMapping>
+</AppDB>
+
+
+<AppDB Name="KBP_IPV6_UNICAST_PRIVATE_LPM_RPF">
+    <OneLineDescription> {VRF,IPv6} in KBP </OneLineDescription>
+    <AccessMethod>KBP</AccessMethod>
+    <Maturity Level="HIGH"/>
+    <AppDbInterface Type="LPM">
+        <Key>
+            <Field Name="VRF" Size="16"/>
+            <Field Name="IPV6" Size="128"/>
+        </Key>
+        <MultipleResults>
+            <Result>
+                <Field Description="This is a special format used in KBP
+When used in the KBP Forward DBs (e.g. KBP_IPV4_UNICAST_PRIVATE_LPM_FORWARD)
+  Forward results in 24b/32b buffer in the KBP are zero padded (on the MSBs) to 64b on the KBP&gt;DNX bus
+  The zero padding is taken as the &quot;Type&quot;, i.e. for 24b/32b the Type is not encoded on the entry itself in the KBP Buffer
+  KBP_DEST_W_DEFAULT can be used in KBP forwarding DBs (e.g. KBP_IPV4_UNICAST_PRIVATE_LPM_FORWARD) in 3 possible sub formats:
+    1. As a 24b result with up to 2b  KBP_FORWARD_PMF_GENERIC_DATA used by PMF
+    2. As a 32b result with up to 10b KBP_FORWARD_PMF_GENERIC_DATA used by PMF
+    3. As a 64b result with up to 36b KBP_FORWARD_PMF_GENERIC_DATA used by PMF (in the 64b format 6b on the buffer are used as type)
+When used in the KBP RPF DBs (e.g. KBP_IPV4_UNICAST_PRIVATE_LPM_RPF)
+  RPF results in 24b buffer in the KBP are zero padded (on the MSBs) to 32b on the KBP&gt;DNX bus
+  The zero padding is taken as the &quot;Type&quot;, i.e. for 24b the Type is not encoded on the entry itself in the KBP Buffer
+  KBP_DEST_W_DEFAULT can be used in KBP RPF DBs (e.g. KBP_IPV4_UNICAST_PRIVATE_LPM_RPF) in 2 possible sub formats:
+    1. As a 24b result with up to 2b  KBP_FORWARD_PMF_GENERIC_DATA used by PMF
+    2. As a 32b result with up to 4b  KBP_FORWARD_PMF_GENERIC_DATA used by PMF (in the 32b format 6b on the buffer are used as type)
+       Note: Future implementation can increase the number of bits available for KBP_FORWARD_PMF_GENERIC_DATA
+             in RPF 32b result by using type smaller than 6b" Name="RESULT_TYPE" Size="6" Value="KBP_DEST_W_DEFAULT"/>
+                <Field Name="KBP_FORWARD_PMF_GENERIC_DATA" Size="36"/>
+                <Field Name="DESTINATION" Size="21"/>
+                <Field Name="IS_DEFAULT" Size="1" Type="BOOL"/>
+            </Result>
+        </MultipleResults>
+        <TableLabels>L2 L3 MPLS</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+        <CoreMode Mode="SBC"/>
+        <PhyDb>KBP</PhyDb>
+        <ReferenceField Name="IRPP_FWD_STAGE_FORMATS"/>
+    </AppToPhyDbMapping>
+</AppDB>
+
+</AppDbCatalog>

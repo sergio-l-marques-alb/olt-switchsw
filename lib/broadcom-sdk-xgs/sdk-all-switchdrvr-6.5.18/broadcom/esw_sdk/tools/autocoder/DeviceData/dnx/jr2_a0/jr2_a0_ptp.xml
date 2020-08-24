@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0" module="ptp">
+    <sub_module name="general">
+        <features>
+            <feature name="has_trap_code_offset" value="0"></feature>
+        </features>
+
+        <defines>
+            <define name="nof_port_profiles" value="4"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>

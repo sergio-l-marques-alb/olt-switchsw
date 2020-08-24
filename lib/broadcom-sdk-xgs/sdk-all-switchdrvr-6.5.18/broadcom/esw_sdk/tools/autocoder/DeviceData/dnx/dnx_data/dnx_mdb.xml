@@ -1,0 +1,578 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="mdb" bsl_flag="BSL_LS_BCMDNX_MDBDNX">
+    <includes>
+        <include>soc/dnx/dbal/dbal.h</include>
+        <include>soc/dnx/dbal/auto_generated/dbal_defines_tables.h</include>
+    </includes>
+    
+    <sub_module name="global" doc="MDB global defines">
+
+        <features>
+            <feature name="adapter_use_stub" doc="If enabled, use the adapter logical stub interface."></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+   <sub_module name="dh" doc="Data handlers information">
+
+        <features>
+            <feature name="macro_A_half_nof_clusters_enable" doc="If enabled, macro A only supports half the nof_macro_clusters."></feature>
+            <feature name="macro_A_75_nof_clusters_enable" doc="If enabled, macro A (1,2,3,4,7,8,9,11) only supports half the nof_macro_clusters."></feature>
+            <feature name="bpu_setup_extended_support" doc="If enabled, supports extended bpu setup options such as 120_240_120 and 120_360."></feature>
+        </features>
+
+        <defines>
+            <define name="nof_macroes_type_A" doc="The NOF type A macroes in the device"></define>
+            <define name="nof_macroes_type_B" doc="The NOF type B macroes in the device"></define>
+            <define name="total_nof_macroes" doc="the total NOF macroes in the device"></define>
+            <define name="total_nof_macroes_plus_em_ovf_or_eedb_bank" doc="the total NOF macroes in the device plus another place for either the OVF buffer for EM tables or banks for EEDB tables."></define>
+            <define name="total_nof_macroes_plus_data_width" doc="he total NOF macroes in the device plus another place for the data width."></define>
+            <define name="max_nof_cluster_interfaces" doc="max NOF interfaces that can be associated with a single cluster."></define>
+            <define name="nof_macro_clusters" doc="nof clusters in a single macro."></define>
+            <define name="nof_bucket_clusters" doc="nof clusters in a a bucket"></define>
+            <define name="nof_buckets_in_macro" doc="The NOF buckets in a macro"></define>
+            <define name="nof_pair_clusters" doc="nof clusters in a pair."></define>
+            <define name="nof_bits_address_in_macro_a_cluster" doc="NOF bits needed for a cluster A address."></define>
+            <define name="nof_bits_address_in_macro_b_cluster" doc="NOF bits needed for a cluster B address."></define>
+            <define name="nof_rows_in_macro_a_cluster" doc="NOF rows in a cluster that is places on a macro of type A."></define>
+            <define name="nof_rows_in_macro_b_cluster" doc="NOF rows in a cluster that is places on a macro of type B."></define>
+            <define name="nof_rows_in_eedb_bank" doc="NOF rows in an EEDB bank"></define>
+            <define name="nof_data_rows_per_hitbit_row" doc="How many eedb rows each hitbit row is mapped to"></define>
+            <define name="nof_rows_in_eedb_hitbit_bank" doc="How many rows in each eedb hitbit bank"></define>
+            <define name="cluster_row_width_bits" doc="NOF bits in a single cluster row."></define>
+            <define name="has_dhc_type_blocks" doc="This device uses DHC types blocks"></define>
+            <define name="data_out_granularity" doc="The granularity used for data out."></define>
+            <define name="bpu_setup_bb_connected" doc="If set, the two buckets are connected, also known as J2 960 mode."></define>
+            <define name="bpu_setup_size_120_240_120" doc="The BPU setup size associated with 120_240_120 bucket allocation, requires extended."></define>
+            <define name="bpu_setup_size_480_odd" doc="The BPU setup size associated with 480_odd bucket allocation, the odd is used to distinguish between buckets in case of 960 allocation."></define>
+            <define name="bpu_setup_size_480" doc="The BPU setup size associated with 480 bucket allocation."></define>
+            <define name="bpu_setup_size_360_120" doc="The BPU setup size associated with 360_120 bucket allocation, requires extended."></define>
+            <define name="bpu_setup_size_120_360" doc="The BPU setup size associated with 120_360 bucket allocation, requires extended."></define>
+            <define name="bpu_setup_size_240_240" doc="The BPU setup size associated with 240_240 bucket allocation."></define>
+            <define name="bpu_setup_size_120_120_240" doc="The BPU setup size associated with 120_120_240 bucket allocation."></define>
+            <define name="bpu_setup_size_240_120_120" doc="The BPU setup size associated with 240_120_120 bucket allocation."></define>
+            <define name="bpu_setup_size_120_120_120_120" doc="The BPU setup size associated with 120_120_120_120 bucket allocation."></define>
+            <define name="ddha_dynamic_memory_access_dpc" doc="The DDHA dynamic memory is of DPC type."></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+            <table name="dh_info" doc="general information of the MDB data handlers">
+                <key name="mdb_table_id" type="dbal_enum_value_field_mdb_physical_table_e" doc="MDB physical DB."></key>
+                <value name="table_macro_interface_mapping" type="uint32[DNX_DATA_MAX_MDB_DH_TOTAL_NOF_MACROES_PLUS_EM_OVF_OR_EEDB_BANK]" doc="This is a mapping from a PDB MAG to the available DHs that connected to it.Each row represent a MAG and each column the MACROs  A0, A1, A2 .... A11, B0, B1 ... B7.The last column in every row is the position after the last available DH which used for the OVF (relevant for EM only).0xF means that the MAG isn't connected to the MACRO otherwise the number represent the serialconnection number of the MACRO to the MAGThere are some DHs which have 2 interfaces to the same MAG, in that case the difference between two legal interface values will be 2."></value>
+                <value name="cluster_if_offsets_values" type="uint32[DNX_DATA_MAX_MDB_DH_TOTAL_NOF_MACROES_PLUS_DATA_WIDTH]" doc="The following array maps a PDB into his data in offset position (byte granularity) in a macro.Each column represent a macro A0, A1 ... A11, B0, .. B7 and the last column is the PDB data size (byte granularity)."></value>
+                <value name="if_cluster_offsets_values" type="uint32[DNX_DATA_MAX_MDB_DH_TOTAL_NOF_MACROES_PLUS_DATA_WIDTH]" doc="This table holds the position of all the 30 bits chunks of a PDB in the IF cluster offset register.Each column represent a macro A0, A1 ... A11, B0, .. B7 and the last column is the PDB data size (30 bits granularity)."></value>
+                <value name="row_width" type="uint32" doc="The table row width in bits."></value>
+                <value name="dh_in_width" type="uint32" doc="The data handler in size."></value>
+                <value name="dh_out_width" type="uint32" doc="The data handler out size."></value>
+                <value name="two_ways_connectivity_bm" type="uint32" doc="Bit map of all the DHs that have two ways for a given PDB."></value>
+            </table>
+            
+            <table name="macro_interface_mapping" doc="The available interfaces for each macro">
+                <key name="global_macro_index" type="uint32" doc="global macro index including all the macro types in the count."></key>
+                <value name="interfaces" type="dbal_enum_value_field_mdb_physical_table_e[DNX_DATA_MAX_MDB_DH_MAX_NOF_CLUSTER_INTERFACES]" doc="array of available interfaces."></value>
+            </table>
+            
+            <table name="table_way_to_macro_mapping" doc="Maps from table way to global macro index, this is the reverse mapping of dh_info->table_macro_interface_mapping">
+                <key name="mdb_table_id" type="dbal_enum_value_field_mdb_physical_table_e" doc="MDB physical DB."></key>
+                <value name="table_way_to_macro_mapping" type="uint32[DNX_DATA_MAX_MDB_DH_NOF_MACROES_TYPE_A]" doc="This is a mapping from a table way to global macro index, assumes no table is connected to more than NOF_MACROES_TYPE_A macros. Default value is NOF_MACRO_A + NOF_MACRO_B"></value>
+            </table>
+        
+            <table name="block_info" doc="holds the DH blocks information.">
+                <key name="global_macro_index" type="uint32" doc="global macro index including all the macro types in the count."></key>
+                <value name="block_type" type="dbal_enum_value_field_mdb_block_types_e" doc="the block type that used by the DH macro (e.g. DDHA, DDHB or DHC)"></value>
+                <value name="block_index" type="int" doc="each block type have several blocks, this is the instance of the block type used by this DH"></value>
+            </table>
+        
+            <table name="mdb_75_macro_halved" doc="holds the mdb_75 macro information.">
+                <key name="macro_index" type="uint8" doc="macro A index"></key>
+                <value name="macro_halved" type="uint8" doc="TRUE/FALSE if the macro is halved"></value>
+            </table>
+            
+            <table name="entry_banks_info" doc="holds the DHs entry banks and ABK banks information.">
+                <key name="global_macro_index" type="uint32" doc="global macro index including all the macro types in the count."></key>
+                <value name="entry_bank" type="soc_mem_t" doc="the entries bank memory."></value>
+                <value name="overflow_reg" type="soc_reg_t" doc="The overflow buffer used to hold the overflowed data of the last entry in the bank."></value>
+                <value name="abk_bank_a" type="soc_mem_t" doc="The ABK memory of type A (destination hit bit)"></value>
+                <value name="abk_bank_b" type="soc_mem_t" doc="The ABK memory of type B ()source hit bit)"></value>
+            </table>
+            
+            <table name="mdb_1_info" doc="No documentation.">
+                <key name="global_macro_index" type="uint32" doc="no description."></key>
+                <value name="dbal_table" type="dbal_tables_e" doc="no description."></value>
+                <value name="mdb_item_2_field_size" type="uint32" doc="no description."></value>
+                <value name="mdb_item_3_array_size" type="uint32" doc="no description."></value>
+                <value name="mdb_item_4_field_size" type="uint32" doc="no description."></value>
+            </table>
+            
+           <table name="mdb_2_info" doc="No documentation.">
+                <key name="global_macro_index" type="uint32" doc="no description."></key>
+                <value name="dbal_table" type="dbal_tables_e" doc="no description."></value>
+                <value name="mdb_item_1_field_size" type="uint32" doc="no description."></value>
+            </table>
+            
+            
+            <table name="mdb_3_info" doc="No documentation.">
+                <key name="global_macro_index" type="uint32" doc="no description."></key>
+                <value name="dbal_table" type="dbal_tables_e" doc="no description."></value>
+                <value name="mdb_item_0_array_size" type="uint32" doc="no description."></value>
+            </table>
+            
+        </tables>
+  
+
+    </sub_module>
+    
+    
+    <sub_module name="pdbs" doc="general physical data bases information">
+        <defines>
+            <define name="max_nof_interface_dhs" doc="Max nof different DHs that can be associated with a single interface"></define>
+            <define name="kaps_nof_blocks" doc="NOF KPAS blocks"></define>
+            <define name="mesh_mode_support" type="uint8" doc="Indicate if the device support mesh mode." ></define>
+            <define name="max_key_size" doc="The largest key size from all the PDBs key sizes."></define>
+            <define name="max_payload_size" doc="The largest payload size from all the PDBs payloads sizes."></define>
+            <define name="table_mdb_9_mdb_item_1_array_size" doc="no description."></define>
+            <define name="table_mdb_9_mdb_item_2_array_size" doc="no description."></define>
+            <define name="table_mdb_9_mdb_item_3_array_size" doc="no description."></define>
+            <define name="table_mdb_40_mdb_item_0_array_size" doc="no description."></define>
+            <define name="table_mdb_dynamic_memory_access_memory_access_field_size" doc="The MDB dynamic memory access register size."></define>
+            <define name="table_mdb_mact_dynamic_memory_access_memory_access_field_size" doc="The MACT dynamic memory access register size."></define>
+            <define name="table_mdb_kaps_dynamic_memory_access_sbc_memory_access_field_size" doc="The KAPS SBC dynamic memory access register size."></define>
+            <define name="table_mdb_kaps_dynamic_memory_access_dpc_memory_access_field_size" doc="The KAPS DPC dynamic memory access register size."></define>
+            <define name="table_mdb_ddha_dynamic_memory_access_sbc_memory_access_field_size" doc="The DDHA SBC dynamic memory access register size."></define>
+            <define name="table_mdb_ddha_dynamic_memory_access_dpc_memory_access_field_size" doc="The DDHA DPC dynamic memory access register size."></define>
+            <define name="table_mdb_ddhb_dynamic_memory_access_memory_access_field_size" doc="The DDHB dynamic memory access register size."></define>
+            <define name="mdb_nof_profiles" doc="The global number of supported MDB profiles."></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+        
+        <tables>
+            <table name="mdb_profile" doc="MDB profile SoC property">
+                <value name="profile" type="char *" doc="The MDB profile"></value>
+            </table>
+            
+            <table name="mdb_profiles_info" doc="MDB info per profile">
+                <key name="mdb_profile_index" type="uint32" doc="The MDB profile index, iterated on using mdb_nof_profiles."></key>
+                <value name="supported" type="uint8" doc="TRUE/FALSE valid indication per profile. Different devices/SKUs support different profiles."></value>
+                <value name="name" type="char *" doc="The profile name, compared with the mdb_profile soc property."></value>
+            </table>
+            
+            <table name="mdb_profile_kaps_cfg" doc="KAPS database configuration based on the MDB profile">
+                <value name="val" type="uint32" doc="The KAPS configuration"></value>
+            </table>
+            
+           <table name="pdbs_info" doc="general information of the MDB physical data bases">
+                <key name="mdb_table_id" type="dbal_enum_value_field_mdb_physical_table_e" doc="MDB physical DB." ></key>
+                <value name="db_type" type="dbal_enum_value_field_mdb_db_type_e" doc="the DB type EM, direct, KAPS, TCAM or EEDB"></value>
+                <value name="row_width" type="uint32" doc="The table row width in bits."></value>
+                <value name="direct_payload_type" type="dbal_enum_value_field_direct_payload_sizes_e" doc="the direct payload size."></value>
+                <value name="direct_max_payload_type" type="dbal_enum_value_field_direct_payload_sizes_e" doc="the direct max payload size. Different from payload size for INLIF (60 vs. 120/180)"></value>
+            </table>
+            
+            <table name="pdb_info" doc="general information of the MDB physical data bases">
+                <key name="dbal_id" type="dbal_physical_tables_e" doc="logical tables according to the XML definitions from the MDB"></key>
+                <value name="logical_to_physical" type="dbal_enum_value_field_mdb_physical_table_e" doc="map between MDB logical DB into a physical DB."></value>
+                <value name="db_type" type="dbal_enum_value_field_mdb_db_type_e" doc="the DB type EM, direct, KAPS, TCAM or EEDB"></value>
+                <value name="row_width" type="uint32" doc="The table row width in bits."></value>
+                <value name="max_key_size" type="uint32" doc="The maximal key size used for this PDB."></value>
+                <value name="max_payload_size" type="uint32" doc="The maximal payload size used from this PDB."></value>
+            </table>
+            
+            <table name="mdb_11_info" doc="No documentation.">
+                <key name="mdb_table" type="dbal_enum_value_field_mdb_physical_table_e" doc="no description."></key>
+                <value name="dbal_table" type="dbal_tables_e" doc="no description."></value>
+                <value name="mdb_item_0_array_size" type="uint32" doc="no description."></value>
+                <value name="mdb_item_0_field_size" type="uint32" doc="no description."></value>
+                <value name="mdb_item_1_field_size" type="uint32" doc="no description."></value>
+                <value name="mdb_item_3_array_size" type="uint32" doc="no description."></value>
+                <value name="mdb_item_3_field_size" type="uint32" doc="no description."></value>
+                <value name="mdb_item_4_array_size" type="uint32" doc="no description."></value>
+                <value name="mdb_item_4_field_size" type="uint32" doc="no description."></value>
+            </table>
+            
+            <table name="mdb_12_info" doc="No documentation.">
+                <key name="mdb_table" type="dbal_enum_value_field_mdb_physical_table_e" doc="no description."></key>
+                <value name="dbal_table" type="dbal_tables_e" doc="no description."></value>
+            </table>
+            
+            <table name="mdb_26_info" doc="No documentation.">
+                <key name="mdb_table" type="dbal_enum_value_field_mdb_physical_table_e" doc="no description."></key>
+                <value name="dbal_table" type="dbal_tables_e" doc="no description."></value>
+                <value name="mdb_item_0_field_size" type="uint32" doc="no description."></value>
+                <value name="mdb_item_1_field_size" type="uint32" doc="no description."></value>
+            </table>
+            
+            <table name="mdb_adapter_mapping" doc="Mapping between DBAL MDB physical tables and adapter memory IDs.">
+                <key name="dbal_id" type="dbal_physical_tables_e" doc="DBAL MDB physical table"></key>
+                <value name="memory_id" type="uint8" doc="adapter memory ID"></value>
+            </table>
+        </tables>
+
+    </sub_module>
+    
+    <sub_module name="em" doc="EM information">
+
+        <features>
+            <feature name="entry_type_parser" doc="Is the entry type parsed by HW (or needs to be provided)?"></feature>
+        </features>
+
+        <defines>
+            <define name="total_nof_lem_aging_bits" doc="The total number of bits available for the LEM aging."></define>
+            <define name="total_nof_exem_aging_bits" doc="The total number of bits available for the EXEM aging."></define>
+            <define name="age_row_size_bits" doc="The number of bits in a single aging memory row"></define>
+            <define name="age_ovfcam_row_size_bits" doc="The number of bits in a single aging ovfcam memory row"></define>
+            <define name="age_entry_size_bits" doc="The number of bits in a single aging memory entry"></define>
+            <define name="ovf_cam_max_size" doc="the MAX size of an OVF CAM."></define>
+            <define name="age_support_per_entry_size_ratio" type="uint8" doc="Indicate if the aging profiles are supported per entry ratio size."></define>
+            <define name="nof_aging_profiles" doc="The NOF aging profile avialable in the device."></define>
+            <define name="aging_profiles_size_in_bits" doc="The number of bits needed for the NOF aging profiles."></define>
+            <define name="max_tid_size" doc="The largest TID size in bits."></define>
+            <define name="max_nof_tids" doc="max NOF of TIDs for a PDB"></define>
+            <define name="flush_support_tids" doc="The max NOF of TIDs an MDB table that support flush machine could have."></define>
+            <define name="flush_max_supported_key" doc="The largest key size that can be used by the flush machine."></define>
+            <define name="flush_max_supported_payload" doc="The largest payload size that can be used by the flush machine."></define>
+            <define name="flush_max_supported_key_plus_payload" doc="The largest key+payload size that can be used by the flush machine."></define>
+            <define name="dh_120_entry_encoding_nof_bits" doc="Number of bits representing a EM DH 120 width cluster encoding value."></define>
+            <define name="dh_240_entry_encoding_nof_bits" doc="Number of bits representing a EM DH 240 width cluster encoding value."></define>
+            <define name="format_granularity" doc="The granularity used for the EM format configuration."></define>
+            <define name="max_nof_vmv_size" doc="The number of bits used to represent the vmv, smaller vmv sizes are simply aligned to the MSB and the configuration iterates on all possible values of the LSB."></define>
+            <define name="vmv_nof_values" doc="NOF values available for the VMV (depends on the nof_vmv_size value)"></define> 
+            <define name="nof_vmv_size_nof_bits" doc="the nof_vmv_size size in bits."></define>
+            <define name="esem_nof_vmv_size" doc="The number of bits used to represent the vmv for ESEM only, smaller vmv sizes are simply aligned to the MSB and the configuration iterates on all possible values of the LSB."></define>
+            <define name="glem_nof_vmv_size" doc="The number of bits used to represent the VMV for GLEM only, smaller vmv sizes are simply aligned to the MDB and the configuration iterates on all possible values of the LSB."></define>
+            <define name="mact_nof_vmv_size" doc="The number of bits used to represent the vmv for MACT only, smaller vmv sizes are simply aligned to the MSB and the configuration iterates on all possible values of the LSB;This value is a HW constraint related to MACT LEL, other LEM logical tables can utilize the full MDB_NOF_VMV_BITS"></define>
+            <define name="mact_max_payload_size" doc="MACT payload has to be this size or smaller"></define>
+            <define name="shift_vmv_max_size" doc="NOF of EM lookup per stage."></define>
+            <define name="shift_vmv_max_regs_per_table" doc="NOF of different shift vmv registers associated with a single EM table."></define>
+            <define name="min_nof_app_id_bits" doc="The minimal number of bits used to represent APP ID."></define>
+            <define name="max_nof_spn_sizes" doc="The maximal NOF of SPN sizes options for a single EM PDB."></define>
+            <define name="nof_lfsr_sizes" doc="The NOF of LFSR sizes options for a single EM PDB."></define>
+            <define name="nof_formats" doc="The NOF formats which the EM application can used, a format define by the key size and address size and the table address space."></define>
+            <define name="defragmentation_priority_supported" doc="Overflow CAM defrag machine has priority over Host/Ext support."></define>
+            <define name="disable_cuckoo_loop_detection_support" doc="indicate if the device has an option to disable loop detectionin cuckoo processing"></define>
+            <define name="disable_cuckoo_hit_bit_sync" doc="indicate if the device has an option to disable cuckoo hit bit handle"></define>
+            <define name="age_profile_per_ratio_support" doc="indicate if the device has an age profile per ratio support."></define>
+            <define name="flex_mag_supported" doc="the flex supported in the MAG but not necessarily fully supported "></define>
+            <define name="flex_fully_supported" doc="flex feature is fully supported (if this is set so does the flex_mag_supported should be)."></define>
+            <define name="step_table_max_size" doc="The max NOF rows that a step table can hold."></define>
+            <define name="nof_encoding_values" doc="the NOF encoding values (values that represent the payload size out of row width) in the device"></define>
+            <define name="nof_encoding_types" doc="the NOF encoding types (ONE/HALF/QUARTER/EIGHTH) in the device"></define>
+            <define name="extra_vmv_shift_registers" doc="Device have a larger NOF VMV shift registers."></define>
+        </defines>
+
+        <numerics>
+            <numeric name="interrupt_register" doc="EM interrupt register."></numeric>
+        </numerics>
+
+        <tables>
+        
+            <table name="spn" doc="holds SPN information">
+                <key name="dbal_id" type="dbal_physical_tables_e" doc="logical tables according to the XML definitions from the MDB (only EM tables are valid in this case)"></key>
+                <value name="nof_spn_size" type="uint8" doc="The NOF SPNs sizes available for a given EM table."></value>
+                <value name="spn_array" type="uint8[DNX_DATA_MAX_MDB_EM_MAX_NOF_SPN_SIZES]" doc="the given table SPN sizes."></value>
+            </table>
+        
+             <table name="lfsr" doc="holds LFSR information">
+                <key name="lfsr_index" type="uint8" doc="the index number of the  requseted LFSR."></key>
+                <value name="lfsr_size" type="int" doc="The LFSR size."></value>
+            </table>
+        
+
+            <table name="em_aging_cfg" doc="aging information">
+                <key name="profile" type="uint8" doc="The aging profile to set."></key>
+                <key name="emp_table" type="dbal_enum_value_field_mdb_emp_table_e" doc="The EMP table to set."></key>
+                <value name="init_value" type="uint8" doc="When an entry is entered/learned this is the initial age value that it received."></value>
+                <value name="global_value" type="uint8" doc="Allows updating the age value in multiplication of scan cycles."></value>
+                <value name="global_mask" type="uint8" doc="Allows updating the age value in multiplication of scan cycles."></value>
+                <value name="external_profile" type="uint8" doc="Whether to take the age configuration from this register or externally (e.g. MACT age configuration)."></value>
+                <value name="aging_disable" type="uint8" doc="Disable ageing."></value>
+                <value name="elephant_disable" type="uint8" doc="Disable elephant option."></value>
+                <value name="elephant_values" type="uint8" doc="A lower age threshold which an entry that reaches/pass this age threshold get some dedicated payload."></value>
+                <value name="mouse_values" type="uint8" doc="An upper age threshold which an entry that reaches/pass this age threshold get some dedicated payload."></value>
+                <value name="age_max_values" type="uint8" doc="An entry age can be update up to this value."></value>
+                <value name="increment_values" type="uint8" doc="In case of an entry hit the age will be incremented by this value."></value>
+                <value name="decrement_values" type="uint8" doc="In case the age scan found the an entry was not accessed (no hit) the age value will be decremented by this value."></value>
+                <value name="out_values" type="uint8" doc="The age of entry that trigger entry removal (usually it will be zero)."></value>
+                <value name="hit_bit_mode" type="dbal_enum_value_field_mdb_em_aging_hit_bit_e" doc="The hit bit mode that will determine an age hit."></value> 
+            </table>        
+        
+            <table name="em_info" doc="Holds EM tables information">
+                <key name="dbal_id" type="dbal_physical_tables_e" doc="logical tables according to the XML definitions from the MDB (only EM tables are valid in this case)"></key>
+                <value name="tid_size" type="uint32" doc="The MDB table TID size."></value>
+                <value name="em_interface" type="soc_mem_t" doc="no description."></value>
+                <value name="age_mem" type="soc_mem_t" doc="no description."></value>
+                <value name="age_ovf_cam_mem"  type="soc_mem_t" doc="no description."></value>
+                <value name="status_reg" type="soc_reg_t" doc="no description."></value>
+                <value name="interrupt_field" type="soc_field_t" doc="no description."></value>
+                <value name="step_table_size" type="uint32" doc="step table NOF rows"></value>
+                <value name="ovf_cam_size" type="uint32" doc="overflow CAM NOF rows"></value>
+            </table>
+
+
+            <table name="step_table_pdb_max_depth" doc="hold the maximal depth of the step table that is supported by an EM PDB.">
+                <key name="dbal_id" type="dbal_physical_tables_e" doc="logical tables according to the XML definitions from the MDB (only EM tables are valid in this case)"></key>
+                <value name="max_depth" type="uint32" doc="the step table max depth."></value>
+            </table>
+
+            <table name="step_table_max_depth_possible" doc="hold the maximal depth of the step table for different aspect ratio combinations and table sizes">
+                <key name="step_table_size_indication" type="uint32" doc="indicate the step table size where 0> 512, 1->1024 and 2->2048 means rows in the step table."></key>
+                <key name="aspect_ratio_combination" type="uint32" doc="the aspect ratio that are in the step table where bit to ratio mapping is 0->one, 1->half, 2->quarter, 3->eighth"></key>
+                <value name="max_depth" type="uint32" doc="the step table max depth."></value>
+            </table>
+
+            <table name="mdb_13_info" doc="No documentation.">
+                <key name="mdb_table" type="uint32" doc="no description."></key>
+                <value name="dbal_table" type="dbal_tables_e" doc="no description."></value>
+            </table>
+
+            <table name="mdb_15_info" doc="No documentation.">
+                <key name="mdb_table" type="uint32" doc="no description."></key>
+                <value name="dbal_table" type="dbal_tables_e" doc="no description."></value>
+                <value name="mdb_item_5_field_size" type="uint32" doc="no description."></value>
+            </table>
+            
+            <table name="mdb_16_info" doc="No documentation.">
+                <key name="mdb_table" type="dbal_enum_value_field_mdb_physical_table_e" doc="no description."></key>
+                <value name="dbal_table" type="dbal_tables_e" doc="no description."></value>
+                <value name="mdb_item_0_field_size" type="uint32" doc="no description."></value>
+            </table>
+
+            <table name="mdb_18_info" doc="No documentation.">
+                <key name="mdb_table" type="uint32" doc="no description."></key>
+                <value name="dbal_table" type="dbal_tables_e" doc="no description."></value>
+            </table>
+            
+            <table name="mdb_21_info" doc="No documentation.">
+                <key name="mdb_table" type="dbal_enum_value_field_mdb_physical_table_e" doc="no description."></key>
+                <value name="dbal_table" type="dbal_tables_e" doc="no description."></value>
+                <value name="mdb_item_0_field_size" type="uint32" doc="no description."></value>
+            </table>
+            
+            <table name="mdb_23_info" doc="No documentation.">
+                <key name="mdb_table" type="dbal_enum_value_field_mdb_physical_table_e" doc="no description."></key>
+                <value name="dbal_table" type="dbal_tables_e" doc="no description."></value>
+                <value name="mdb_item_0_field_size" type="uint32" doc="no description."></value>
+                <value name="mdb_item_1_field_size" type="uint32" doc="no description."></value>
+            </table>
+            
+            <table name="mdb_24_info" doc="No documentation.">
+                <key name="mdb_table" type="dbal_enum_value_field_mdb_physical_table_e" doc="no description."></key>
+                <value name="dbal_table" type="dbal_tables_e" doc="no description."></value>
+                <value name="mdb_item_0_array_size" type="uint32" doc="no description."></value>
+                <value name="mdb_item_1_array_size" type="uint32" doc="no description."></value>
+                <value name="mdb_item_1_field_size" type="uint32" doc="no description."></value>
+            </table>
+            
+           <table name="mdb_29_info" doc="No documentation.">
+                <key name="mdb_table" type="dbal_enum_value_field_mdb_physical_table_e" doc="no description."></key>
+                <value name="dbal_table" type="dbal_tables_e" doc="no description."></value>
+                <value name="mdb_item_0_array_size" type="uint32" doc="no description."></value>
+                <value name="mdb_item_1_array_size" type="uint32" doc="no description."></value>
+            </table>
+            
+            <table name="mdb_31_info" doc="No documentation.">
+                <key name="mdb_table" type="uint32" doc="no description."></key>
+                <value name="dbal_table" type="dbal_tables_e" doc="no description."></value>
+                <value name="array_size" type="uint32" doc="no description."></value>
+                <value name="mdb_item_0_field_size" type="uint32" doc="no description."></value>
+            </table>
+            
+           <table name="mdb_32_info" doc="No documentation.">
+                <key name="mdb_table" type="uint32" doc="no description."></key>
+                <value name="dbal_table" type="dbal_tables_e" doc="no description."></value>
+                <value name="mdb_item_0_field_size" type="uint32" doc="no description."></value>
+            </table>
+            
+            <table name="mdb_41_info" doc="No documentation.">
+                <key name="mdb_table" type="uint32" doc="no description."></key>
+                <value name="dbal_table" type="dbal_tables_e" doc="no description."></value>
+                <value name="array_size" type="uint32" doc="no description."></value>
+                <value name="mdb_item_2_field_size" type="uint32" doc="no description."></value>
+                <value name="mdb_item_3_field_size" type="uint32" doc="no description."></value>
+            </table>
+            
+            <table name="mdb_em_tables_info" doc="No documentation.">
+                <key name="mdb_table" type="uint32" doc="no description."></key>
+                <value name="mdb_14_table" type="dbal_tables_e" doc="no description."></value>
+                <value name="mdb_15_table" type="dbal_tables_e" doc="no description."></value>
+                <value name="mdb_17_table" type="dbal_tables_e" doc="no description."></value>
+                <value name="mdb_step_table" type="dbal_tables_e" doc="no description."></value>
+                <value name="mdb_32_table" type="dbal_tables_e" doc="no description."></value>
+            </table>
+            
+            <table name="mdb_emp_tables_info" doc="No documentation.">
+                <key name="mdb_table" type="dbal_enum_value_field_mdb_physical_table_e" doc="no description."></key>
+                <value name="emp_age_cfg_table" type="dbal_tables_e" doc="no description."></value>
+                <value name="mdb_22_table" type="dbal_tables_e" doc="no description."></value>
+            </table>
+            
+            <table name="mdb_em_shift_vmv_regs" doc="Holds the shift vmv DBAL tables associated with each MDB EM table.">
+                <key name="dbal_id" type="dbal_physical_tables_e" doc="logical tables according to the XML definitions from the MDB (only EM tables are valid in this case)"></key>
+                <value name="nof_valid_regs" type="uint8" doc="The NOF valid shift vmv regs associated with this table."></value>
+                <value name="table_name_arr" type="dbal_tables_e[DNX_DATA_MAX_MDB_EM_SHIFT_VMV_MAX_REGS_PER_TABLE]" doc="The associated DBAL table names."></value>
+                <value name="field_name_arr" type="dbal_fields_e[DNX_DATA_MAX_MDB_EM_SHIFT_VMV_MAX_REGS_PER_TABLE]" doc="The associated DBAL field names."></value>
+                <value name="key_name_arr" type="dbal_fields_e[DNX_DATA_MAX_MDB_EM_SHIFT_VMV_MAX_REGS_PER_TABLE]" doc="The associated DBAL key names."></value>
+                <value name="stage_index_arr" type="uint8[DNX_DATA_MAX_MDB_EM_SHIFT_VMV_MAX_REGS_PER_TABLE]" doc="The index within the specific register."></value>
+            </table>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="direct" doc="direct information.">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="physical_address_max_bits" doc="The number of DB_ATR_PHYSICAL_ADDRESS_SPACE bits associated with encoding 0."></define>
+            <define name="physical_address_max_bits_support_single_macro_b_granularity_fec_alloc" doc="The largest address space value which can support a single macro B granularity for the FEC"></define>
+            <define name="vsi_physical_address_max_bits" doc="The VSI number of DB_ATR_PHYSICAL_ADDRESS_SPACE bits associated with encoding 0."></define>
+            <define name="fec_address_mapping_bits" doc="The FEC address mapping bits."></define>
+            <define name="fec_address_mapping_bits_relevant" doc="The FEC relevant mapping bits."></define>
+            <define name="fec_max_cluster_pairs" doc="The maximal NOF cluster that can be associated to two FEC hierarchies."></define>
+            <define name="max_payload_size" doc="The largest payload size associated with a direct table."></define>
+            <define name="nof_fecs_in_super_fec" doc="NOF of FECs contained in a single super FEC."></define>
+            <define name="nof_fec_ecmp_hierarchies" doc="NOF of FEC/ECMP hierarchies."></define>
+        </defines>
+
+        <numerics>
+            <numeric name="map_payload_size_enum" doc="Payload size Enum of PMF MAPS DB, configured using pmf_maps_payload_size SOC property"></numeric>
+            <numeric name="map_payload_type_enum" doc="Payload type Enum of PMF MAPS DB, configured using pmf_maps_payload_size SOC property"></numeric>
+            <numeric name="map_payload_size" doc="Payload size of PMF MAPS DB, configured using pmf_maps_payload_size SOC property"></numeric>
+        </numerics>
+
+        <tables>
+        
+            <table name="direct_info" doc="general information of the direct table PDBs">
+                <key name="dbal_id" type="dbal_physical_tables_e" doc="logical tables according to the XML definitions from the MDB"></key>
+                <value name="payload_type" type="dbal_enum_value_field_mdb_direct_payload_e" doc="the type of the direct payload"></value>
+            </table>
+        
+        
+            <table name="hit_bit_pos_in_abk" doc="Each 30 bits of each entry has a matching ABK bit, this table matches hit bit option to an ABK hit bit position.">
+                <key name="hit_bit_index" type="uint8" doc="the hit bit index"></key>
+                <value name="hit_bit_position" type="uint8" doc="The hit bit position in the ABK (relative to the entry)."></value>
+            </table>
+            
+            <table name="mdb_42_info" doc="No documentation.">
+                <key name="mdb_table" type="dbal_enum_value_field_mdb_physical_table_e" doc="no description."></key>
+                <value name="dbal_table" type="dbal_tables_e" doc="no description."></value>
+            </table>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="eedb" doc="EEDB information.">
+
+        <features>
+            <feature name="eedb_bank_hitbit_masked_clear" doc="If enabled, it is possible to do a masked hitbit clear on the eedb abk bank."></feature>
+        </features>
+
+        <defines>
+            <define name="phase_map_bits" doc="number of msbits used for the phase mapping."></define>
+            <define name="phase_map_array_size" doc="Size of phase map array."></define>
+            <define name="nof_phase_per_mag" doc="the NOF phases each MAGs Is associated with."></define>
+            <define name="nof_phases" doc="NOF of EEDB phases."></define>
+            <define name="nof_eedb_mags" doc="NOF of EEDB MAGs"></define>
+            <define name="nof_eedb_banks" doc="NOF of EEDB banks"></define>
+            <define name="nof_phases_per_eedb_bank" doc="Each EEDB bank can be associated with one of this amount of phases"></define>
+            <define name="nof_phases_per_eedb_bank_size" doc="nof_phases_per_eedb_bank size"></define>
+            <define name="phase_bank_select_default" doc="the default phase value for a bank."></define>
+            <define name="entry_format_bits" doc="Number of MSbits used to determine the payload size in MDB_ENTRY_FORMATr"></define>
+            <define name="entry_format_encoding_bits" doc="Number of bits used to represent the payload size (30/60/90/120) in MDB_ENTRY_FORMATr"></define>
+            <define name="bank_id_bits" doc="Number of bits used for bank_id comparison."></define>
+        </defines>
+
+        <numerics>
+            <numeric name="entry_bank" doc="the EEDB entry bank memory."></numeric>
+            <numeric name="abk_bank" doc="the EEDB abk bank memory."></numeric>
+        </numerics>
+
+        <tables>
+        
+            <table name="phase_info" doc="general information per EEDB phase.">
+                <key name="phase_number" type="dbal_enum_value_field_mdb_eedb_phase_e" doc="the phase number."></key>
+                <value name="nof_available_banks" type="uint32" doc="NOF available banks for the phase."></value>
+            </table>
+            <table name="outlif_physical_phase_granularity" doc="Assign an outlif physical phase granularity.">
+                <key name="outlif_physical_phase" doc="Physical phase."></key>
+                <value name="data_granularity" type="uint32" doc="The granularity of the EEDB data."></value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="kaps" doc="kaps information.">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="nof_small_bbs" doc="nof small BBs."></define>
+            <define name="nof_big_bbs_blk_ids" doc="nof KBPSDK blk_ids associated with big BBs."></define>
+            <define name="nof_rows_in_small_bb" doc="nof row in a small BB."></define>
+            <define name="nof_rows_in_small_rpb_hitbits" doc="nof row in a small RPB hitbits."></define>
+            <define name="nof_bytes_in_hitbit_row" doc="nof bytes in a hitbit database row."></define>
+            <define name="key_lsn_bits" doc="RPB input = {key, search_lsn}."></define>
+            <define name="key_prefix_length" doc="The KAPS DB prefix length."></define>
+            <define name="max_prefix_in_bb_row" doc="The maximum number of prefixes in a single KAPS BB row."></define>
+            <define name="key_width_in_bits" doc="The KAPS(LPM) key size."></define>
+            <define name="ad_width_in_bits" doc="The KAPS(LPM) payload size."></define>
+            <define name="bb_byte_width" doc="the BB width in bytes"></define>
+            <define name="rpb_byte_width" doc="the RPB width in bytes"></define>
+            <define name="ads_byte_width" doc="the ADS width in bytes"></define>
+            <define name="rpb_valid_bits" doc="the RPB valid size in bits"></define>
+            <define name="dynamic_memory_access_dpc" doc="The KAPS dynamic memory is of DPC type."></define>
+        </defines>
+
+        <numerics>
+            <numeric name="rpb_field" doc="LPM RPB field."></numeric>
+            <numeric name="result_core0_db0_reg" doc="The LPM search interface result for core 0 db 0."></numeric>
+            <numeric name="result_core0_db1_reg" doc="The LPM search interface result for core 0 db 1."></numeric>
+            <numeric name="result_core1_db0_reg" doc="The LPM search interface result for core 1 db 0."></numeric>
+            <numeric name="result_core1_db1_reg" doc="The LPM search interface result for core 1 db 1."></numeric>
+            <numeric name="big_kaps_revision_val" doc="The big KAPS revision register value to pass on to the KBPSDK."></numeric>
+        </numerics>
+
+        <tables>
+            <table name="big_bb_blk_id_mapping" doc="Mapping from KBPSDK blk_id to global_macro_index">
+                <key name="blk_id" type="uint8" doc="The KBPSDK blk_id, first big BB blk_id is 0"></key>
+                <value name="global_macro_index" type="uint32" doc="The global_macro_index associated with the blk_id"></value>
+            </table>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="hw_bug" doc="MDB related hw bug">
+
+        <features>
+            <feature name="step_table_supports_mix_ar_algo" doc="step table fully support mix aspect ratio algorithm. HWJERICHO2-2156"></feature>
+            <feature name="eedb_bank_traffic_lock" doc="Unable to write to eedb after traffic has been sent through it. HWJERICHO2-2622"></feature>
+            <feature name="em_dfg_ovf_cam_disabled" doc="EM overflow CAM DFG is disabled. HWJERICHO2-2208"></feature>
+            <feature name="em_mact_transplant_no_reply" doc="EM MACT transplant does not generate reply. HWJERICHO2-2481"></feature>
+            <feature name="em_mact_use_refresh_on_insert" doc="EM MACT add entry should use refresh command instead of insert command. HWJERICHO2-2600"></feature>
+            <feature name="em_mact_insert_flush_drop_on_exceed_limit" doc="EM MACT insert that exceeds limit returns fail_reason == FLUSH_DROP instead of EXCEED_LIMIT. HWJERICHO2-2581"></feature>
+            <feature name="em_sbus_interface_shutdown" doc="EM interface shuts down SW interface to the ASIC until EM process ends. HWJERICHO2-2091"></feature>
+            <feature name="em_ecc_simple_command_deadlock" doc="EM simple command interface deadlocks in case it encounters an ECC error when DMA-mode is set. HWJERICHO2-2695"></feature>
+            <feature name="em_compare_init" doc="EM compare init requires HW read. HWJERICHO2-2734"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+</device_data>

@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="linkscan" bsl_flag="BSL_LS_BCMDNX_LINKSCANDNX">
+    <sub_module name="general" doc="general data">
+
+        <features>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev"  name="error_delay" doc="the amount of time in microseconds for which the bcm_linkscan module will suspend a port from further update processing after 'max_error' errors are detected.  After this delay, the error state for the port is cleared and normal linkscan processing resumes on the port"></numeric>
+            <numeric labels="j2p_notrev"  name="max_error" doc="The number of port update errors which will cause the bcm_linkscan module to suspend a port from update processing for the period of time set in 'error_delay'"></numeric>
+            <numeric labels="j2p_notrev"  name="thread_priority" doc="specifies the priority of the BCM Linkscan thread"></numeric>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+</device_data>

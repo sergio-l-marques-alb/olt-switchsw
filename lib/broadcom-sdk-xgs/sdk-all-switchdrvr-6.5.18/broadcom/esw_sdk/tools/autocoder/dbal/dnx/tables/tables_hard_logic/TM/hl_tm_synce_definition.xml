@@ -1,0 +1,780 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="SYNCE_ENABLE_CTRL">
+        <OneLineDescription>This table is used for enabling the SyncE functionality.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Reset the SyncE block" Name="RESET" Type="NIF_RESET_REVERSE_LOGIC"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYNCE</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="RESET">
+                    <Access>
+                        <KeyCondition Field="CORE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="ECI_SYNC_E_RSTNr">
+                            <HwField Name="NIF_CORE_0_SYNC_E_RSTNf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CORE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="ECI_SYNC_E_RSTNr">
+                            <HwField Name="NIF_CORE_1_SYNC_E_RSTNf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0 Q2A_A0 Q2A_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="RESET">
+                    <Access>
+                        <Register Name="ECI_SYNC_E_RSTNr">
+                            <HwField Name="NIF_SYNC_E_RSTNf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="SYNCE_OUTPUT_CLK_MODE_CTRL">
+        <OneLineDescription>This table is used for controlling the SyncE output CLK mode.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="If set to '0', the Synchronous Ethernet pad0 is output; otherwise input." Name="CLK0_OUTPUT_ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="If set to '0', the Synchronous Ethernet pad1 is output; otherwise input." Name="CLK1_OUTPUT_ENABLE" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYNCE</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0 J2C_A0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CLK0_OUTPUT_ENABLE">
+                    <Access>
+                        <Register Name="CFC_SELECT_OUTPUT_OF_SYNCHRONOUS_ETHERNET_PADSr">
+                            <HwField Name="SYNC_ETH_PAD_0_OE_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CLK1_OUTPUT_ENABLE">
+                    <Access>
+                        <Register Name="CFC_SELECT_OUTPUT_OF_SYNCHRONOUS_ETHERNET_PADSr">
+                            <HwField Name="SYNC_ETH_PAD_1_OE_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="Q2A_A0 Q2A_B0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CLK0_OUTPUT_ENABLE">
+                    <Access>
+                        <Register Name="ECI_SELECT_OUTPUT_OF_SYNCHRONOUS_ETHERNET_PADSr">
+                            <HwField Name="SYNC_ETH_PAD_0_OE_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CLK1_OUTPUT_ENABLE">
+                    <Access>
+                        <Register Name="ECI_SELECT_OUTPUT_OF_SYNCHRONOUS_ETHERNET_PADSr">
+                            <HwField Name="SYNC_ETH_PAD_1_OE_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="SYNCE_COUNTER">
+        <OneLineDescription>This is SyncE statistic table.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="SYNCE_INDEX"/>
+            </Key>
+            <Result>
+                <Field Description="SyncE counter." Name="COUNTER" Permission="READONLY" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYNCE</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="COUNTER">
+                    <Access>
+                        <Register Name="NMG_SYNC_ETH_COUNTERr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(CORE_ID)"/>
+                            <HwField Name="SYNC_ETH_COUNTER_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="SYNCE_REF_CLK_SEL_NIF_CTRL">
+        <OneLineDescription>This table is used for selecting SyncE PLL reference clock in NIF module</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-150969" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="NIF_SYNCE_CLK_BLK" Size="4" Type="NIF_SYNCE_CLK_BLK_ID"/>
+                <Field Name="SYNCE_INDEX"/>
+            </Key>
+            <Result>
+                <Field Description="Select one recovered clock to drive on primiray recovered clock output." Name="CLOCK_LANE_SEL" Type="NIF_INTERNAL_LANE"/>
+                <Field Description="Select one Link valid indications to use for recovered clk chosen." Name="VALID_LANE_SEL" Type="NIF_INTERNAL_LANE"/>
+                <Field Description="Select one Link status indications to use for recovered clk chosen" Name="LINK_STATUS_LANE_SEL" Type="NIF_INTERNAL_LANE"/>
+                <Field Description="Select internal or external clock winner." Name="CLOCK_CHAIN_SEL" Size="1" Type="BOOL"/>
+                <Field Description="Select internal or external clock valid winner." Name="VALID_CHAIN_SEL" Size="1" Type="BOOL"/>
+                <Field Description="Select internal or external link status winner." Name="LINK_STATUS_CHAIN_SEL" Size="1" Type="BOOL"/>
+                <Field Description="Select NMG chain winner." Name="NMG_CHAIN_SEL" Size="1" Type="BOOL" Valid="DNX_DATA.synce.general.synce_nmg_chain_select"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYNCE</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CLOCK_LANE_SEL">
+                    <Access Offset="0" Size="3">
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CDUM_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)"/>
+                            <HwField Name="SYNC_ETH_CLOCK_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                    <Access Offset="0" Size="3">
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="EQUAL_TO" Value="6"/>
+                        <Register Name="CDUM_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)/6"/>
+                            <HwField Name="SYNC_ETH_CLOCK_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                    <Access Offset="0" Size="3">
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="BIGGER_THAN" Value="0"/>
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="LOWER_THAN" Value="6"/>
+                        <Register Name="CDU_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)-1"/>
+                            <HwField Name="SYNC_ETH_CLOCK_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                    <Access Offset="0" Size="3">
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="BIGGER_THAN" Value="6"/>
+                        <Register Name="CDU_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)-2"/>
+                            <HwField Name="SYNC_ETH_CLOCK_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="VALID_LANE_SEL">
+                    <Access Offset="0" Size="3">
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CDUM_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)"/>
+                            <HwField Name="SYNC_ETH_VALID_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                    <Access Offset="0" Size="3">
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="EQUAL_TO" Value="6"/>
+                        <Register Name="CDUM_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)/6"/>
+                            <HwField Name="SYNC_ETH_VALID_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                    <Access Offset="0" Size="3">
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="BIGGER_THAN" Value="0"/>
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="LOWER_THAN" Value="6"/>
+                        <Register Name="CDU_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)-1"/>
+                            <HwField Name="SYNC_ETH_VALID_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                    <Access Offset="0" Size="3">
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="BIGGER_THAN" Value="6"/>
+                        <Register Name="CDU_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)-2"/>
+                            <HwField Name="SYNC_ETH_VALID_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LINK_STATUS_LANE_SEL">
+                    <Access Offset="0" Size="3">
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CDUM_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)"/>
+                            <HwField Name="SYNC_ETH_LINK_STATUS_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                    <Access Offset="0" Size="3">
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="EQUAL_TO" Value="6"/>
+                        <Register Name="CDUM_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)/6"/>
+                            <HwField Name="SYNC_ETH_LINK_STATUS_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                    <Access Offset="0" Size="3">
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="BIGGER_THAN" Value="0"/>
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="LOWER_THAN" Value="6"/>
+                        <Register Name="CDU_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)-1"/>
+                            <HwField Name="SYNC_ETH_LINK_STATUS_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                    <Access Offset="0" Size="3">
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="BIGGER_THAN" Value="6"/>
+                        <Register Name="CDU_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)-2"/>
+                            <HwField Name="SYNC_ETH_LINK_STATUS_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CLOCK_CHAIN_SEL">
+                    <Access>
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CDUM_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)"/>
+                            <HwField Name="SYNC_ETH_CHAIN_CLOCK_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="EQUAL_TO" Value="6"/>
+                        <Register Name="CDUM_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)/6"/>
+                            <HwField Name="SYNC_ETH_CHAIN_CLOCK_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="BIGGER_THAN" Value="0"/>
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="LOWER_THAN" Value="6"/>
+                        <Register Name="CDU_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)-1"/>
+                            <HwField Name="SYNC_ETH_CHAIN_CLOCK_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="BIGGER_THAN" Value="6"/>
+                        <Register Name="CDU_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)-2"/>
+                            <HwField Name="SYNC_ETH_CHAIN_CLOCK_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="VALID_CHAIN_SEL">
+                    <Access>
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CDUM_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)"/>
+                            <HwField Name="SYNC_ETH_CHAIN_VALID_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="EQUAL_TO" Value="6"/>
+                        <Register Name="CDUM_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)/6"/>
+                            <HwField Name="SYNC_ETH_CHAIN_VALID_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="BIGGER_THAN" Value="0"/>
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="LOWER_THAN" Value="6"/>
+                        <Register Name="CDU_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)-1"/>
+                            <HwField Name="SYNC_ETH_CHAIN_VALID_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="BIGGER_THAN" Value="6"/>
+                        <Register Name="CDU_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)-2"/>
+                            <HwField Name="SYNC_ETH_CHAIN_VALID_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LINK_STATUS_CHAIN_SEL">
+                    <Access>
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CDUM_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)"/>
+                            <HwField Name="SYNC_ETH_CHAIN_LINK_STATUS_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="EQUAL_TO" Value="6"/>
+                        <Register Name="CDUM_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)/6"/>
+                            <HwField Name="SYNC_ETH_CHAIN_LINK_STATUS_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="BIGGER_THAN" Value="0"/>
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="LOWER_THAN" Value="6"/>
+                        <Register Name="CDU_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)-1"/>
+                            <HwField Name="SYNC_ETH_CHAIN_LINK_STATUS_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="BIGGER_THAN" Value="6"/>
+                        <Register Name="CDU_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)-2"/>
+                            <HwField Name="SYNC_ETH_CHAIN_LINK_STATUS_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0 Q2A_A0 Q2A_B0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CLOCK_LANE_SEL">
+                     <Access Offset="0" Size="3">
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="LOWER_THAN" Value="DNX_DATA.nif.eth.cdu_nof"/>
+                        <Register Name="CDU_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)"/>
+                            <HwField Name="SYNC_ETH_CLOCK_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="BIGGER_THAN" Value="DNX_DATA.nif.eth.cdu_nof-1"/>
+                        <Register Name="CLUP_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)-dnx_data_nif.eth.cdu_nof_get(unit)"/>
+                            <HwField Name="SYNC_ETH_CLOCK_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="VALID_LANE_SEL">
+                    <Access Offset="0" Size="3">
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="LOWER_THAN" Value="DNX_DATA.nif.eth.cdu_nof"/>
+                        <Register Name="CDU_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)"/>
+                            <HwField Name="SYNC_ETH_VALID_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="BIGGER_THAN" Value="DNX_DATA.nif.eth.cdu_nof-1"/>
+                        <Register Name="CLUP_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)-dnx_data_nif.eth.cdu_nof_get(unit)"/>
+                            <HwField Name="SYNC_ETH_VALID_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LINK_STATUS_LANE_SEL">
+                    <Access Offset="0" Size="3">
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="LOWER_THAN" Value="DNX_DATA.nif.eth.cdu_nof"/>
+                        <Register Name="CDU_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)"/>
+                            <HwField Name="SYNC_ETH_LINK_STATUS_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="BIGGER_THAN" Value="DNX_DATA.nif.eth.cdu_nof-1"/>
+                        <Register Name="CLUP_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)-dnx_data_nif.eth.cdu_nof_get(unit)"/>
+                            <HwField Name="SYNC_ETH_LINK_STATUS_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CLOCK_CHAIN_SEL">
+                    <Access>
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="LOWER_THAN" Value="DNX_DATA.nif.eth.cdu_nof"/>
+                        <Register Name="CDU_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)"/>
+                            <HwField Name="SYNC_ETH_CHAIN_CLOCK_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="BIGGER_THAN" Value="DNX_DATA.nif.eth.cdu_nof-1"/>
+                        <Register Name="CLUP_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)-dnx_data_nif.eth.cdu_nof_get(unit)"/>
+                            <HwField Name="SYNC_ETH_CHAIN_CLOCK_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="VALID_CHAIN_SEL">
+                    <Access>
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="LOWER_THAN" Value="DNX_DATA.nif.eth.cdu_nof"/>
+                        <Register Name="CDU_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)"/>
+                            <HwField Name="SYNC_ETH_CHAIN_VALID_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="BIGGER_THAN" Value="DNX_DATA.nif.eth.cdu_nof-1"/>
+                        <Register Name="CLUP_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)-dnx_data_nif.eth.cdu_nof_get(unit)"/>
+                            <HwField Name="SYNC_ETH_CHAIN_VALID_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LINK_STATUS_CHAIN_SEL">
+                    <Access>
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="LOWER_THAN" Value="DNX_DATA.nif.eth.cdu_nof"/>
+                        <Register Name="CDU_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)"/>
+                            <HwField Name="SYNC_ETH_CHAIN_LINK_STATUS_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="NIF_SYNCE_CLK_BLK" Type="BIGGER_THAN" Value="DNX_DATA.nif.eth.cdu_nof-1"/>
+                        <Register Name="CLUP_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(NIF_SYNCE_CLK_BLK)-dnx_data_nif.eth.cdu_nof_get(unit)"/>
+                            <HwField Name="SYNC_ETH_CHAIN_LINK_STATUS_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="NMG_CHAIN_SEL">
+                    <Access>
+                        <Register Name="NMG_SYNC_ETH_CHAIN_SEL_FOR_SYNCE_CLK_WINNERr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="0"/>
+                            <HwField Name="SYNC_ETH_CHAIN_SEL_N_FOR_SYNCE_CLK_WINNERf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="NMG_SYNC_ETH_CHAIN_SEL_FOR_CLOCK_VLDr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="0"/>
+                            <HwField Name="SYNC_ETH_CHAIN_SEL_N_FOR_CLOCK_VLDf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="NMG_SYNC_ETH_CHAIN_SEL_FOR_LINK_STATUSr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="0"/>
+                            <HwField Name="SYNC_ETH_CHAIN_SEL_N_FOR_LINK_STATUSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="SYNCE_REF_CLK_DIV_NIF_CTRL">
+        <OneLineDescription>This table is used for configuring the SyncE divider in NIF module.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="SYNCE_INDEX"/>
+            </Key>
+            <Result>
+                <Field Description="Enable clock divider for the selected primary recovered clock." Name="CLOCK_DIV_MODE" Size="2" Type="UINT"/>
+                <Field Description="This number equals to number of zero phase." Name="DIV_PHASE_ZERO" Size="4" Type="UINT"/>
+                <Field Description="This number equals to number of one phase." Name="DIV_PHASE_ONE" Size="4" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYNCE</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CLOCK_DIV_MODE">
+                    <Access>
+                        <Register Name="NMG_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(CORE_ID)"/>
+                            <HwField Name="SYNC_ETH_CLOCK_DIV_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DIV_PHASE_ZERO">
+                    <Access>
+                        <Register Name="NMG_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(CORE_ID)"/>
+                            <HwField Name="SYNC_ETH_DIVIDER_PHASE_ZERO_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DIV_PHASE_ONE">
+                    <Access>
+                        <Register Name="NMG_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <BlockIndex Formula="#KEY_VALUE(CORE_ID)"/>
+                            <HwField Name="SYNC_ETH_DIVIDER_PHASE_ONE_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="SYNCE_CORE_CTRL">
+        <OneLineDescription>This table is used to controlling the SyncE commnon per core function.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="SYNCE_INDEX"/>
+            </Key>
+            <Result>
+                <Field Description="If set, automatic squelch function will be enabled for the primary recovered clock." Name="SQUELCH_ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="Select the valid signal for the recovered clock from the link status or SRD status." Name="LINK_VALID_SEL" Size="1" Type="BOOL"/>
+                <Field Description="Enable the SyncE gtimer mode." Name="GTIMER_MODE" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYNCE</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SQUELCH_ENABLE">
+                    <Access>
+                        <Register Name="NMG_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <HwField Name="SYNC_ETH_SQUELCH_EN_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LINK_VALID_SEL">
+                    <Access>
+                        <Register Name="NMG_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <HwField Name="SYNC_ETH_LINK_VALID_SEL_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_MODE">
+                    <Access>
+                        <Register Name="NMG_SYNC_ETH_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(SYNCE_INDEX)"/>
+                            <HwField Name="SYNC_ETH_GTIMER_MODE_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="SYNCE_AUTO_SEQUELCH_TH_CTRL">
+        <OneLineDescription>This table is used to controlling the SyncE automatic squelch threshold.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Threshold used for enabling the Squelch function." Name="SQUELCH_EN_THRESHOLD" Size="16" Type="UINT"/>
+                <Field Description="Threshold used for disabling the Squelch function." Name="SQUELCH_DIS_THRESHOLD" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYNCE</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SQUELCH_EN_THRESHOLD">
+                    <Access>
+                        <Register Name="NMG_SYNC_ETH_SQUELCH_EN_TH_REGr">
+                            <BlockIndex Formula="#KEY_VALUE(CORE_ID)"/>
+                            <HwField Name="SYNC_ETH_SQUELCH_EN_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SQUELCH_DIS_THRESHOLD">
+                    <Access>
+                        <Register Name="NMG_SYNC_ETH_SQUELCH_DIS_TH_REGr">
+                            <BlockIndex Formula="#KEY_VALUE(CORE_ID)"/>
+                            <HwField Name="SYNC_ETH_SQUELCH_DIS_THf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="FABRIC_SYNCE_REF_CLK_FDR_CTRL" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Select the Fabric SyncE reference clock per FDR.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Link select for master clock (0~55)" Name="MASTER_CLK_SEL" Size="6" Type="UINT"/>
+                <Field Description="Link select for slave clock (0~55)" Name="SLAVE_CLK_SEL" Size="6" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYNCE</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="MASTER_CLK_SEL">
+                    <Access>
+                        <Register Name="FDR_SYNC_E_SELECTr">
+                            <BlockIndex Formula="#KEY_VALUE(CORE_ID)"/>
+                            <HwField Name="MASTER_CLK_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SLAVE_CLK_SEL">
+                    <Access>
+                        <Register Name="FDR_SYNC_E_SELECTr">
+                            <BlockIndex Formula="#KEY_VALUE(CORE_ID)"/>
+                            <HwField Name="SLAVE_CLK_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="FABRIC_SYNCE_REF_CLK_FMAC_SEL" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Select the FMAC instance.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                 <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Select the fmac instance for master clk" Name="MASTER_FMAC_INSTANCE" Size="3" Type="UINT"/>
+                <Field Description="Select the fmac instance for slave clk" Name="SLAVE_FMAC_INSTANCE" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYNCE</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="MASTER_FMAC_INSTANCE">
+                    <Access>
+                        <KeyCondition Field="CORE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="ECI_SELECT_OUTPUT_OF_SYNCHRONOUS_ETHERNET_PADSr">
+                            <HwField Name="SYNCE_MASTER_FMAC_0_SELf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                         <KeyCondition Field="CORE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="ECI_SELECT_OUTPUT_OF_SYNCHRONOUS_ETHERNET_PADSr">
+                            <HwField Name="SYNCE_MASTER_FMAC_1_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SLAVE_FMAC_INSTANCE">
+                    <Access>
+                         <KeyCondition Field="CORE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="ECI_SELECT_OUTPUT_OF_SYNCHRONOUS_ETHERNET_PADSr">
+                            <HwField Name="SYNCE_SLAVE_FMAC_0_SELf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                         <KeyCondition Field="CORE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="ECI_SELECT_OUTPUT_OF_SYNCHRONOUS_ETHERNET_PADSr">
+                            <HwField Name="SYNCE_SLAVE_FMAC_1_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="FABRIC_SYNCE_REF_CLK_FSRD_CTRL" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Select the Fabric SyncE reference clock per FSRD.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FABRIC_SYNCE_CLK_BLK" Size="4" Type="FABRIC_SYNCE_CLK_BLK_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Link select for master clock" Name="MASTER_CLK_SEL" Size="4" Type="UINT"/>
+                <Field Description="Link select for slave clock" Name="SLAVE_CLK_SEL" Size="4" Type="UINT"/>
+                <Field Description="Negative phase of the clock divider" Name="DIV_PHASE_0" Size="4" Type="UINT" Valid="DNX_DATA.synce.general.synce_no_sdm_mode"/>
+                <Field Description="Positive phase of the clock divider" Name="DIV_PHASE_1" Size="4" Type="UINT" Valid="DNX_DATA.synce.general.synce_no_sdm_mode"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYNCE</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MASTER_CLK_SEL">
+                    <Access>
+                        <Register Name="FSRD_SYNC_E_SELECTr">
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_SYNCE_CLK_BLK)"/>
+                            <HwField Name="MASTER_CLK_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SLAVE_CLK_SEL">
+                    <Access>
+                        <Register Name="FSRD_SYNC_E_SELECTr">
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_SYNCE_CLK_BLK)"/>
+                            <HwField Name="SLAVE_CLK_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DIV_PHASE_0">
+                    <Access>
+                        <Register Name="FSRD_SYNC_E_SELECTr">
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_SYNCE_CLK_BLK)"/>
+                            <HwField Name="SYNC_E_CLK_DIV_PHASE_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DIV_PHASE_1">
+                    <Access>
+                        <Register Name="FSRD_SYNC_E_SELECTr">
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_SYNCE_CLK_BLK)"/>
+                            <HwField Name="SYNC_E_CLK_DIV_PHASE_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

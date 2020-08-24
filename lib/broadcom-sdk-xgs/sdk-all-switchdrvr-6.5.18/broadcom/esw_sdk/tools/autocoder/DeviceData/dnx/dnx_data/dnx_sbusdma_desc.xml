@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="sbusdma_desc" bsl_flag="BSL_LS_SOCDNX_DMA">
+    <includes>
+    </includes>
+    
+    <sub_module name="global" doc="Descriptor DMA global defines">
+
+        <features>
+            <feature name="desc_dma" doc="Descriptor DMA aggregation and async commit to HW."></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+
+        <numerics>
+                <numeric name="dma_desc_aggregator_chain_length_max" doc="Maximal number of descriptors in a single chain."></numeric>
+                <numeric name="dma_desc_aggregator_buff_size_kb" doc="Total size in KB of dmmable memory allocated in favor of the descriptor DMA double-buffer."></numeric>
+                <numeric name="dma_desc_aggregator_timeout_usec" doc="Timeout between the creation of a descriptor chain and its commit to HW"></numeric>
+        </numerics>
+
+        <tables>
+                <table name="enable_module_desc_dma" doc="Enable descriptor DMA per module">
+                        <key name="module_enum_val" doc="The module name."></key>
+                        <value name="enable" type="uint32" doc="Enable descriptor DMA for the given module."></value>
+                </table>
+        </tables>
+    </sub_module>
+
+</device_data>

@@ -1,0 +1,360 @@
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Examples Results</title>
+        <style>
+              body {font-family: Arial;}
+              h1 {font-size: 18pt; font-weight: bold;}
+              h2 {font-size: 16pt; font-weight: bold;}
+              h3 {font-size: 14pt; font-weight: bold;}
+              h4 {font-size: 12pt; font-weight: bold;}
+              h5 {font-size: 11pt; font-weight: bold;}
+              p {font-size: 10pt;}
+              th {font-size: 9pt; font-weight: bold;}
+              td {font-size: 9pt;}
+        </style>
+    </head>
+    <body>
+        </p><a name="tocLink">
+            <h1><font color="CC092F">Table of Contents</font></h1></a>
+            <table style="width:30%" border="1" cellpadding="5">
+                <tr bgcolor="#D0D0CE">
+                    <th>#</th>
+                    <th>Commands</th>
+                </tr>
+                <tr>
+                    <td>0.</td>
+                    <td><a href="#Layer2 INFo">Layer2 INFo</a></td>
+                </tr>
+                <tr>
+                    <td>1.</td>
+                    <td><a href="#Layer2 ConFiG mode=IngCntrCpu cb lg">Layer2 ConFiG mode=IngCntrCpu cb lg</a></td>
+                </tr>
+                <tr>
+                    <td>2.</td>
+                    <td><a href="#Layer2 ConFiG mode=IngCntrCpu cb cou">Layer2 ConFiG mode=IngCntrCpu cb cou</a></td>
+                </tr>
+                <tr>
+                    <td>3.</td>
+                    <td><a href="#Layer2 ConFiG mode=IngDstr">Layer2 ConFiG mode=IngDstr</a></td>
+                </tr>
+                <tr>
+                    <td>4.</td>
+                    <td><a href="#Layer2 Add mac=11:22:33:44:55:66 vlan=5 pbp=0x200000000000000000000000000000000000000000000000000">Layer2 Add mac=11:22:33:44:55:66 vlan=5 pbp=0x200000000000000000000000000000000000000000000000000</a></td>
+                </tr>
+                <tr>
+                    <td>5.</td>
+                    <td><a href="#Layer2 Add mac=11:22:33:44:55:77 vlan=1 port=200 static=false">Layer2 Add mac=11:22:33:44:55:77 vlan=1 port=200 static=false</a></td>
+                </tr>
+                <tr>
+                    <td>6.</td>
+                    <td><a href="#Layer2 Add mac=22:33:44:55:66:00 vlan=1 pbp=cpu">Layer2 Add mac=22:33:44:55:66:00 vlan=1 pbp=cpu</a></td>
+                </tr>
+                <tr>
+                    <td>7.</td>
+                    <td><a href="#Layer2 Add mac=00:00:11:22:33:44 vsi=1 port=201 vid=5">Layer2 Add mac=00:00:11:22:33:44 vsi=1 port=201 vid=5</a></td>
+                </tr>
+                <tr>
+                    <td>8.</td>
+                    <td><a href="#Layer2 Add mac=11:22:33:44:77:88 vlan=1 tgid=2">Layer2 Add mac=11:22:33:44:77:88 vlan=1 tgid=2</a></td>
+                </tr>
+                <tr>
+                    <td>9.</td>
+                    <td><a href="#Layer2 Add mac=11:22:33:44:77:88 vsi=1 tgid=2 vid=5">Layer2 Add mac=11:22:33:44:77:88 vsi=1 tgid=2 vid=5</a></td>
+                </tr>
+                <tr>
+                    <td>10.</td>
+                    <td><a href="#Layer2 Add mac=11:22:33:44:77:11 vlan=1 mc_g=100">Layer2 Add mac=11:22:33:44:77:11 vlan=1 mc_g=100</a></td>
+                </tr>
+                <tr>
+                    <td>11.</td>
+                    <td><a href="#Layer2 Add mac=11:22:33:44:55:66 vlan=4 pbp=0x200000000000000000000000000000000000000000000000000">Layer2 Add mac=11:22:33:44:55:66 vlan=4 pbp=0x200000000000000000000000000000000000000000000000000</a></td>
+                </tr>
+                <tr>
+                    <td>12.</td>
+                    <td><a href="#Layer2 Add mac=11:22:33:44:77:00 vsi=1 mc_group=100">Layer2 Add mac=11:22:33:44:77:00 vsi=1 mc_group=100</a></td>
+                </tr>
+                <tr>
+                    <td>13.</td>
+                    <td><a href="#Layer2 Add mac=11:22:33:44:77:22 vsi=1 mc_group=100 vid=5">Layer2 Add mac=11:22:33:44:77:22 vsi=1 mc_group=100 vid=5</a></td>
+                </tr>
+                <tr>
+                    <td>14.</td>
+                    <td><a href="#Layer2 SHOW svl">Layer2 SHOW svl</a></td>
+                </tr>
+                <tr>
+                    <td>15.</td>
+                    <td><a href="#Layer2 SHOW  ivl">Layer2 SHOW  ivl</a></td>
+                </tr>
+                <tr>
+                    <td>16.</td>
+                    <td><a href="#Layer2 SHOW">Layer2 SHOW</a></td>
+                </tr>
+                <tr>
+                    <td>17.</td>
+                    <td><a href="#Layer2 CouNT">Layer2 CouNT</a></td>
+                </tr>
+                <tr>
+                    <td>18.</td>
+                    <td><a href="#Layer2 DeLeTe mac=11:22:33:44:55:66 vlan=5">Layer2 DeLeTe mac=11:22:33:44:55:66 vlan=5</a></td>
+                </tr>
+                <tr>
+                    <td>19.</td>
+                    <td><a href="#Layer2 DeLeTe mac=11:22:33:44:55:77 vlan=1 count=1">Layer2 DeLeTe mac=11:22:33:44:55:77 vlan=1 count=1</a></td>
+                </tr>
+                <tr>
+                    <td>20.</td>
+                    <td><a href="#Layer2 DeLeTe mac=22:33:44:55:66:00 vlan=1">Layer2 DeLeTe mac=22:33:44:55:66:00 vlan=1</a></td>
+                </tr>
+                <tr>
+                    <td>21.</td>
+                    <td><a href="#Layer2 DeLeTe mac=00:00:11:22:33:44 vsi=1 vid=5">Layer2 DeLeTe mac=00:00:11:22:33:44 vsi=1 vid=5</a></td>
+                </tr>
+                <tr>
+                    <td>22.</td>
+                    <td><a href="#Layer2 DeLeTe mac=11:22:33:44:77:88 vlan=1">Layer2 DeLeTe mac=11:22:33:44:77:88 vlan=1</a></td>
+                </tr>
+                <tr>
+                    <td>23.</td>
+                    <td><a href="#Layer2 DeLeTe mac=11:22:33:44:77:88 vsi=1 vid=5">Layer2 DeLeTe mac=11:22:33:44:77:88 vsi=1 vid=5</a></td>
+                </tr>
+                <tr>
+                    <td>24.</td>
+                    <td><a href="#Layer2 DeLeTe mac=11:22:33:44:77:11 vsi=1">Layer2 DeLeTe mac=11:22:33:44:77:11 vsi=1</a></td>
+                </tr>
+                <tr>
+                    <td>25.</td>
+                    <td><a href="#Layer2 DeLeTe mac=11:22:33:44:77:00 vlan=1">Layer2 DeLeTe mac=11:22:33:44:77:00 vlan=1</a></td>
+                </tr>
+                <tr>
+                    <td>26.</td>
+                    <td><a href="#Layer2 DeLeTe mac=11:22:33:44:77:22 vsi=1 vid=5">Layer2 DeLeTe mac=11:22:33:44:77:22 vsi=1 vid=5</a></td>
+                </tr>
+                <tr>
+                    <td>27.</td>
+                    <td><a href="#Layer2 CLear mac=11:22:33:44:55:66 vlan=4">Layer2 CLear mac=11:22:33:44:55:66 vlan=4</a></td>
+                </tr>
+                <tr>
+                    <td>28.</td>
+                    <td><a href="#Layer2 CLear port=200">Layer2 CLear port=200</a></td>
+                </tr>
+                <tr>
+                    <td>29.</td>
+                    <td><a href="#Layer2 CLear port=200 modid=1">Layer2 CLear port=200 modid=1</a></td>
+                </tr>
+                <tr>
+                    <td>30.</td>
+                    <td><a href="#Layer2 CLear mac=66:55:44:33:22:11 static=true">Layer2 CLear mac=66:55:44:33:22:11 static=true</a></td>
+                </tr>
+                <tr>
+                    <td>31.</td>
+                    <td><a href="#Layer2 CLear tgid=2">Layer2 CLear tgid=2</a></td>
+                </tr>
+                <tr>
+                    <td>32.</td>
+                    <td><a href="#Layer2 CLear all">Layer2 CLear all</a></td>
+                </tr>
+                <tr>
+                    <td>33.</td>
+                    <td><a href="#Layer2 CLear all svl">Layer2 CLear all svl</a></td>
+                </tr>
+                <tr>
+                    <td>34.</td>
+                    <td><a href="#Layer2 CLear all ivl">Layer2 CLear all ivl</a></td>
+                </tr>
+                <tr>
+                    <td>35.</td>
+                    <td><a href="#Layer2 VSI">Layer2 VSI</a></td>
+                </tr>
+                <tr>
+                    <td>36.</td>
+                    <td><a href="#Layer2 LIF">Layer2 LIF</a></td>
+                </tr>
+            </table>
+        <h5><a name="Layer2 INFo">Layer2 INFo</a></h5>
+        <textarea cols='180' rows='4' >L2 Opportunistic Learning: Opportunistic learn mode is OFF &#13;&#10;L2 Learning Mode: Ingress Distributed &#13;&#10;L2 Learning Limit Mode: VLAN&#13;&#10;L2 Aging: Meta cycle time is 40 seconds </textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 ConFiG mode=IngCntrCpu cb lg">Layer2 ConFiG mode=IngCntrCpu cb lg</a></h5>
+        <textarea cols='180' rows='1' ></textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 ConFiG mode=IngCntrCpu cb cou">Layer2 ConFiG mode=IngCntrCpu cb cou</a></h5>
+        <textarea cols='180' rows='1' >Learn Mode is already:IngCntrCPU</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 ConFiG mode=IngDstr">Layer2 ConFiG mode=IngDstr</a></h5>
+        <textarea cols='180' rows='1' ></textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 Add mac=11:22:33:44:55:66 vlan=5 pbp=0x200000000000000000000000000000000000000000000000000">Layer2 Add mac=11:22:33:44:55:66 vlan=5 pbp=0x200000000000000000000000000000000000000000000000000</a></h5>
+        <textarea cols='180' rows='1' ></textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 Add mac=11:22:33:44:55:77 vlan=1 port=200 static=false">Layer2 Add mac=11:22:33:44:55:77 vlan=1 port=200 static=false</a></h5>
+        <textarea cols='180' rows='1' ></textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 Add mac=22:33:44:55:66:00 vlan=1 pbp=cpu">Layer2 Add mac=22:33:44:55:66:00 vlan=1 pbp=cpu</a></h5>
+        <textarea cols='180' rows='1' ></textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 Add mac=00:00:11:22:33:44 vsi=1 port=201 vid=5">Layer2 Add mac=00:00:11:22:33:44 vsi=1 port=201 vid=5</a></h5>
+        <textarea cols='180' rows='1' ></textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 Add mac=11:22:33:44:77:88 vlan=1 tgid=2">Layer2 Add mac=11:22:33:44:77:88 vlan=1 tgid=2</a></h5>
+        <textarea cols='180' rows='1' ></textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 Add mac=11:22:33:44:77:88 vsi=1 tgid=2 vid=5">Layer2 Add mac=11:22:33:44:77:88 vsi=1 tgid=2 vid=5</a></h5>
+        <textarea cols='180' rows='1' ></textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 Add mac=11:22:33:44:77:11 vlan=1 mc_g=100">Layer2 Add mac=11:22:33:44:77:11 vlan=1 mc_g=100</a></h5>
+        <textarea cols='180' rows='1' ></textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 Add mac=11:22:33:44:55:66 vlan=4 pbp=0x200000000000000000000000000000000000000000000000000">Layer2 Add mac=11:22:33:44:55:66 vlan=4 pbp=0x200000000000000000000000000000000000000000000000000</a></h5>
+        <textarea cols='180' rows='1' ></textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 Add mac=11:22:33:44:77:00 vsi=1 mc_group=100">Layer2 Add mac=11:22:33:44:77:00 vsi=1 mc_group=100</a></h5>
+        <textarea cols='180' rows='1' ></textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 Add mac=11:22:33:44:77:22 vsi=1 mc_group=100 vid=5">Layer2 Add mac=11:22:33:44:77:22 vsi=1 mc_group=100 vid=5</a></h5>
+        <textarea cols='180' rows='1' ></textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 SHOW svl">Layer2 SHOW svl</a></h5>
+        <textarea cols='180' rows='31' >=============================================================================================&#13;&#10;|                                     MACT address table                                    |&#13;&#10;=============================================================================================&#13;&#10;| MAC address       | vsi | Gport      | encap_id   | Destination | Type    | OutLif | Stat |&#13;&#10;=============================================================================================&#13;&#10;| 00:66:77:88:99:AA | 1   | 0x6c0000c9 | 0x00000000 | 0xc9        | PORT_ID | 0      | D    |&#13;&#10;---------------------------------------------------------------------------------------------&#13;&#10;| 11:22:33:44:77:88 | 1   | 0x0e000002 | 0x00000000 | 0x2         | LAG_ID  | 0      | S    |&#13;&#10;---------------------------------------------------------------------------------------------&#13;&#10;| 11:22:33:44:77:11 | 1   | 0x00000000 | 0x00000000 | 0x64        | MC_ID   | 0      | S    |&#13;&#10;---------------------------------------------------------------------------------------------&#13;&#10;| 22:33:44:55:66:02 | 1   | 0x6c0000c9 | 0x00000000 | 0xc9        | PORT_ID | 0      | S    |&#13;&#10;---------------------------------------------------------------------------------------------&#13;&#10;| 11:22:33:44:55:66 | 5   | 0x6c000000 | 0x00000000 | 0x0         | PORT_ID | 0      | S    |&#13;&#10;---------------------------------------------------------------------------------------------&#13;&#10;| 11:22:33:44:55:66 | 4   | 0x6c000000 | 0x00000000 | 0x0         | PORT_ID | 0      | S    |&#13;&#10;---------------------------------------------------------------------------------------------&#13;&#10;| 22:33:44:55:66:00 | 1   | 0x6c000000 | 0x00000000 | 0x0         | PORT_ID | 0      | S    |&#13;&#10;---------------------------------------------------------------------------------------------&#13;&#10;| 11:22:33:44:55:77 | 1   | 0x6c0000c8 | 0x00000000 | 0xc8        | PORT_ID | 0      | D    |&#13;&#10;---------------------------------------------------------------------------------------------&#13;&#10;| 00:06:07:08:09:0A | 1   | 0x6c0000c8 | 0x00000000 | 0xc8        | PORT_ID | 0      | D    |&#13;&#10;---------------------------------------------------------------------------------------------&#13;&#10;| 22:33:44:55:66:03 | 1   | 0x6c0000ca | 0x00000000 | 0xca        | PORT_ID | 0      | S    |&#13;&#10;---------------------------------------------------------------------------------------------&#13;&#10;| 11:22:33:44:77:00 | 1   | 0x00000000 | 0x00000000 | 0x64        | MC_ID   | 0      | S    |&#13;&#10;---------------------------------------------------------------------------------------------&#13;&#10;| 22:33:44:55:66:04 | 1   | 0x6c0000cb | 0x00000000 | 0xcb        | PORT_ID | 0      | S    |&#13;&#10;---------------------------------------------------------------------------------------------&#13;&#10;| 22:33:44:55:66:01 | 1   | 0x6c0000c8 | 0x00000000 | 0xc8        | PORT_ID | 0      | S    |&#13;&#10;=============================================================================================</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 SHOW  ivl">Layer2 SHOW  ivl</a></h5>
+        <textarea cols='180' rows='11' >========================================================================================================&#13;&#10;|                                           MACT address table                                         |&#13;&#10;========================================================================================================&#13;&#10;| MAC address       | vsi | Gport      | encap_id   | Destination | Type    | OutLif | Stat | Learning |&#13;&#10;========================================================================================================&#13;&#10;| 11:22:33:44:77:88 | 1   | 0x0e000002 | 0x00000000 | 0x2         | LAG_ID  | 0      | S    | 5        |&#13;&#10;--------------------------------------------------------------------------------------------------------&#13;&#10;| 11:22:33:44:77:22 | 1   | 0x00000000 | 0x00000000 | 0x64        | MC_ID   | 0      | S    | 5        |&#13;&#10;--------------------------------------------------------------------------------------------------------&#13;&#10;| 00:00:11:22:33:44 | 1   | 0x6c0000c9 | 0x00000000 | 0xc9        | PORT_ID | 0      | S    | 5        |&#13;&#10;========================================================================================================</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 SHOW">Layer2 SHOW</a></h5>
+        <textarea cols='180' rows='37' >========================================================================================================&#13;&#10;|                                           MACT address table                                         |&#13;&#10;========================================================================================================&#13;&#10;| MAC address       | vsi | Gport      | encap_id   | Destination | Type    | OutLif | Stat | Learning |&#13;&#10;========================================================================================================&#13;&#10;| 00:66:77:88:99:AA | 1   | 0x6c0000c9 | 0x00000000 | 0xc9        | PORT_ID | 0      | D    |          |&#13;&#10;--------------------------------------------------------------------------------------------------------&#13;&#10;| 11:22:33:44:77:88 | 1   | 0x0e000002 | 0x00000000 | 0x2         | LAG_ID  | 0      | S    |          |&#13;&#10;--------------------------------------------------------------------------------------------------------&#13;&#10;| 11:22:33:44:77:11 | 1   | 0x00000000 | 0x00000000 | 0x64        | MC_ID   | 0      | S    |          |&#13;&#10;--------------------------------------------------------------------------------------------------------&#13;&#10;| 22:33:44:55:66:02 | 1   | 0x6c0000c9 | 0x00000000 | 0xc9        | PORT_ID | 0      | S    |          |&#13;&#10;--------------------------------------------------------------------------------------------------------&#13;&#10;| 11:22:33:44:55:66 | 5   | 0x6c000000 | 0x00000000 | 0x0         | PORT_ID | 0      | S    |          |&#13;&#10;--------------------------------------------------------------------------------------------------------&#13;&#10;| 11:22:33:44:55:66 | 4   | 0x6c000000 | 0x00000000 | 0x0         | PORT_ID | 0      | S    |          |&#13;&#10;--------------------------------------------------------------------------------------------------------&#13;&#10;| 22:33:44:55:66:00 | 1   | 0x6c000000 | 0x00000000 | 0x0         | PORT_ID | 0      | S    |          |&#13;&#10;--------------------------------------------------------------------------------------------------------&#13;&#10;| 11:22:33:44:55:77 | 1   | 0x6c0000c8 | 0x00000000 | 0xc8        | PORT_ID | 0      | D    |          |&#13;&#10;--------------------------------------------------------------------------------------------------------&#13;&#10;| 00:06:07:08:09:0A | 1   | 0x6c0000c8 | 0x00000000 | 0xc8        | PORT_ID | 0      | D    |          |&#13;&#10;--------------------------------------------------------------------------------------------------------&#13;&#10;| 22:33:44:55:66:03 | 1   | 0x6c0000ca | 0x00000000 | 0xca        | PORT_ID | 0      | S    |          |&#13;&#10;--------------------------------------------------------------------------------------------------------&#13;&#10;| 11:22:33:44:77:00 | 1   | 0x00000000 | 0x00000000 | 0x64        | MC_ID   | 0      | S    |          |&#13;&#10;--------------------------------------------------------------------------------------------------------&#13;&#10;| 22:33:44:55:66:04 | 1   | 0x6c0000cb | 0x00000000 | 0xcb        | PORT_ID | 0      | S    |          |&#13;&#10;--------------------------------------------------------------------------------------------------------&#13;&#10;| 22:33:44:55:66:01 | 1   | 0x6c0000c8 | 0x00000000 | 0xc8        | PORT_ID | 0      | S    |          |&#13;&#10;--------------------------------------------------------------------------------------------------------&#13;&#10;| 11:22:33:44:77:88 | 1   | 0x0e000002 | 0x00000000 | 0x2         | LAG_ID  | 0      | S    | 5        |&#13;&#10;--------------------------------------------------------------------------------------------------------&#13;&#10;| 11:22:33:44:77:22 | 1   | 0x00000000 | 0x00000000 | 0x64        | MC_ID   | 0      | S    | 5        |&#13;&#10;--------------------------------------------------------------------------------------------------------&#13;&#10;| 00:00:11:22:33:44 | 1   | 0x6c0000c9 | 0x00000000 | 0xc9        | PORT_ID | 0      | S    | 5        |&#13;&#10;========================================================================================================</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 CouNT">Layer2 CouNT</a></h5>
+        <textarea cols='180' rows='1' >The number of MACT entries is: 16</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 DeLeTe mac=11:22:33:44:55:66 vlan=5">Layer2 DeLeTe mac=11:22:33:44:55:66 vlan=5</a></h5>
+        <textarea cols='180' rows='1' ></textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 DeLeTe mac=11:22:33:44:55:77 vlan=1 count=1">Layer2 DeLeTe mac=11:22:33:44:55:77 vlan=1 count=1</a></h5>
+        <textarea cols='180' rows='1' ></textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 DeLeTe mac=22:33:44:55:66:00 vlan=1">Layer2 DeLeTe mac=22:33:44:55:66:00 vlan=1</a></h5>
+        <textarea cols='180' rows='1' ></textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 DeLeTe mac=00:00:11:22:33:44 vsi=1 vid=5">Layer2 DeLeTe mac=00:00:11:22:33:44 vsi=1 vid=5</a></h5>
+        <textarea cols='180' rows='1' ></textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 DeLeTe mac=11:22:33:44:77:88 vlan=1">Layer2 DeLeTe mac=11:22:33:44:77:88 vlan=1</a></h5>
+        <textarea cols='180' rows='1' ></textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 DeLeTe mac=11:22:33:44:77:88 vsi=1 vid=5">Layer2 DeLeTe mac=11:22:33:44:77:88 vsi=1 vid=5</a></h5>
+        <textarea cols='180' rows='1' ></textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 DeLeTe mac=11:22:33:44:77:11 vsi=1">Layer2 DeLeTe mac=11:22:33:44:77:11 vsi=1</a></h5>
+        <textarea cols='180' rows='1' ></textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 DeLeTe mac=11:22:33:44:77:00 vlan=1">Layer2 DeLeTe mac=11:22:33:44:77:00 vlan=1</a></h5>
+        <textarea cols='180' rows='1' ></textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 DeLeTe mac=11:22:33:44:77:22 vsi=1 vid=5">Layer2 DeLeTe mac=11:22:33:44:77:22 vsi=1 vid=5</a></h5>
+        <textarea cols='180' rows='1' ></textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 CLear mac=11:22:33:44:55:66 vlan=4">Layer2 CLear mac=11:22:33:44:55:66 vlan=4</a></h5>
+        <textarea cols='180' rows='1' >Deleting an address by MAC and VLAN</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 CLear port=200">Layer2 CLear port=200</a></h5>
+        <textarea cols='180' rows='37' >Deleting non-static addresses by modid/port&#13;&#10;&#13;&#10;src/soc/dnx/mdb/mdb_em.c[1230]mdb_em_mact_entry_check_status unit 0: Error 'Table full' indicated, LEM MACT entry operation failed with: FLUSH_DROP.&#13;&#10;&#13;&#10;src/soc/dnx/mdb/mdb_em.c[1672]mdb_em_entry_add unit 0: Error 'Table full' indicated ; &#13;&#10;&#13;&#10;src/soc/dnx/dbal/dbal_mdb_access.c[2712]dbal_mdb_access_write unit 0: Error 'Table full' indicated ; &#13;&#10;&#13;&#10;src/soc/dnx/dbal/dbal_mdb_access.c[2787]dbal_mdb_table_entry_add unit 0: Error 'Table full' indicated ; &#13;&#10;&#13;&#10;src/soc/dnx/dbal/dbal_actions.c[1627]dbal_actions_access_entry_commit unit 0: Error 'Table full' indicated ; &#13;&#10;&#13;&#10;src/soc/dnx/dbal/dbal_actions.c[566]dbal_entry_commit_force unit 0: Error 'Table full' indicated ; &#13;&#10;&#13;&#10;src/soc/dnx/dbal/dbal_api.c[1637]dbal_entry_commit unit 0: Error 'Table full' indicated ; &#13;&#10;&#13;&#10;src/bcm/dnx/l2/l2_addr.c[738]dnx_l2_addr_add_fwd_mact unit 0: Error 'Table full' indicated ; &#13;&#10;&#13;&#10;src/bcm/dnx/l2/l2_addr.c[810]bcm_dnx_l2_addr_add unit 0: Error 'Table full' indicated ; &#13;&#10;&#13;&#10;src/soc/dnx/mdb/mdb_em.c[1230]mdb_em_mact_entry_check_status unit 0: Error 'Table full' indicated, LEM MACT entry operation failed with: FLUSH_DROP.&#13;&#10;&#13;&#10;src/soc/dnx/mdb/mdb_em.c[1672]mdb_em_entry_add unit 0: Error 'Table full' indicated ; &#13;&#10;&#13;&#10;src/soc/dnx/dbal/dbal_mdb_access.c[2712]dbal_mdb_access_write unit 0: Error 'Table full' indicated ; &#13;&#10;&#13;&#10;src/soc/dnx/dbal/dbal_mdb_access.c[2787]dbal_mdb_table_entry_add unit 0: Error 'Table full' indicated ; &#13;&#10;&#13;&#10;src/soc/dnx/dbal/dbal_actions.c[1627]dbal_actions_access_entry_commit unit 0: Error 'Table full' indicated ; &#13;&#10;&#13;&#10;src/soc/dnx/dbal/dbal_actions.c[566]dbal_entry_commit_force unit 0: Error 'Table full' indicated ; &#13;&#10;&#13;&#10;src/soc/dnx/dbal/dbal_api.c[1637]dbal_entry_commit unit 0: Error 'Table full' indicated ; &#13;&#10;&#13;&#10;src/bcm/dnx/l2/l2_addr.c[738]dnx_l2_addr_add_fwd_mact unit 0: Error 'Table full' indicated ; &#13;&#10;&#13;&#10;src/bcm/dnx/l2/l2_addr.c[810]bcm_dnx_l2_addr_add unit 0: Error 'Table full' indicated ; </textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 CLear port=200 modid=1">Layer2 CLear port=200 modid=1</a></h5>
+        <textarea cols='180' rows='1' >Deleting non-static addresses by modid/port</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 CLear mac=66:55:44:33:22:11 static=true">Layer2 CLear mac=66:55:44:33:22:11 static=true</a></h5>
+        <textarea cols='180' rows='1' >Deleting static and non-static addresses by MAC</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 CLear tgid=2">Layer2 CLear tgid=2</a></h5>
+        <textarea cols='180' rows='1' >Deleting non-static addresses by trunk ID</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 CLear all">Layer2 CLear all</a></h5>
+        <textarea cols='180' rows='2' >Deleting L2 mac table&#13;&#10;Deleting L2 IVL mac table</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 CLear all svl">Layer2 CLear all svl</a></h5>
+        <textarea cols='180' rows='1' >Deleting L2 mac table</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 CLear all ivl">Layer2 CLear all ivl</a></h5>
+        <textarea cols='180' rows='1' >Deleting L2 IVL mac table</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 VSI">Layer2 VSI</a></h5>
+        <textarea cols='180' rows='9' >=========================================&#13;&#10;|               VSI Properties          |&#13;&#10;=========================================&#13;&#10;| VSI | Learn Profile | Limit   | Count |&#13;&#10;=========================================&#13;&#10;| 0   | 0             | 2097151 | 0     |&#13;&#10;-----------------------------------------&#13;&#10;| 1   | 0             | 2097151 | 0     |&#13;&#10;=========================================</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+        <h5><a name="Layer2 LIF">Layer2 LIF</a></h5>
+        <textarea cols='180' rows='1' >Supported only in VLAN_PORT mode</textarea>
+
+    <p><a href="#tocLink">Table of Contents</a></p>
+
+    </body>
+</html>

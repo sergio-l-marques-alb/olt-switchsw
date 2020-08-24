@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0" module="device">
+    <sub_module name="general">
+        <features>
+            <feature name="multi_core" value="0"></feature>
+            <feature name="new_crc32_calc" value="1"></feature>
+            <feature name="protection_state_ignore" value="1"></feature>
+        </features>
+        
+        <defines>        
+            <define name="nof_cores" value="1"></define>
+        </defines>
+        
+        <numerics>
+            <numeric name="core_max_nof_bits" value="1"></numeric>
+            <numeric name="device_id" value="0x8480"></numeric>
+            <numeric name="nof_faps" value="1">
+                <property name="fabric_connect_mode" method="direct_map">
+                    <map name="SINGLE_FAP" value="1"></map>
+                    <doc>NULL</doc> <!--  not required - soc property already defined by a different data -->
+                </property>
+            </numeric>
+            <numeric name="core_clock_khz" value="600000">
+                <property name="core_clock_speed" method="suffix_range" suffix="khz" range_min="300000" range_max="3000000">
+                    <doc>
+                        Device core clock frequency in KHZ
+                        Synopsis: core_clock_speed_khz=#freq#
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="system_ref_core_clock_khz" support="0"></numeric> 
+            <numeric name="bus_size_in_bits" value="2048"></numeric>
+        </numerics>
+        <tables>
+            <table name="ecc_err_masking" mode="map">
+                <key name="block_type"></key>
+                <value name="ecc_1bit_err_mask_reg" default="-1"></value>
+                <value name="ecc_1bit_err_field" default="-1"></value>
+                <value name="ecc_2bit_err_mask_reg" default="-1"></value>
+                <value name="ecc_2bit_err_field" default="-1"></value>
+                <entries>
+                    <entry block_type="SOC_BLK_ECGM" ecc_1bit_err_mask_reg="ECGM_ECC_ERR_1B_MONITOR_MEM_MASKr" ecc_2bit_err_mask_reg="ECGM_ECC_ERR_2B_MONITOR_MEM_MASKr" 
+                     ecc_1bit_err_field="QDCM_ECC_1B_ERR_MASKf,QQSM_ECC_1B_ERR_MASKf,PDCM_ECC_1B_ERR_MASKf,PQSM_ECC_1B_ERR_MASKf,FDCM_ECC_1B_ERR_MASKf,FQSM_ECC_1B_ERR_MASKf,-1,-1,-1,-1,-1,-1" 
+                     ecc_2bit_err_field="QDCM_ECC_2B_ERR_MASKf,QQSM_ECC_2B_ERR_MASKf,PDCM_ECC_2B_ERR_MASKf,PQSM_ECC_2B_ERR_MASKf,FDCM_ECC_2B_ERR_MASKf,FQSM_ECC_2B_ERR_MASKf,-1,-1,-1,-1,-1,-1"></entry>
+                     <entry block_type="SOC_BLK_CGM" ecc_1bit_err_mask_reg="CGM_ECC_ERR_1B_MONITOR_MEM_MASKr" ecc_2bit_err_mask_reg="CGM_ECC_ERR_2B_MONITOR_MEM_MASKr" 
+                     ecc_1bit_err_field="VSQE_WORDS_STATE_ECC_1B_ERR_MASKf,VSQC_SRAM_PDS_STATE_ECC_1B_ERR_MASKf,VSQC_SRAM_BUFFERS_STATE_ECC_1B_ERR_MASKf,VSQE_SRAM_PDS_STATE_ECC_1B_ERR_MASKf,VSQC_WORDS_STATE_ECC_1B_ERR_MASKf,VSQE_SRAM_BUFFERS_STATE_ECC_1B_ERR_MASKf,VSQD_SRAM_PDS_STATE_ECC_1B_ERR_MASKf,VSQD_SRAM_BUFFERS_STATE_ECC_1B_ERR_MASKf,VSQD_WORDS_STATE_ECC_1B_ERR_MASKf,VSQF_SRAM_BUFFERS_STATE_ECC_1B_ERR_MASKf,VSQF_WORDS_STATE_ECC_1B_ERR_MASKf,VSQF_SRAM_PDS_STATE_ECC_1B_ERR_MASKf,-1" 
+                     ecc_2bit_err_field="VSQE_WORDS_STATE_ECC_2B_ERR_MASKf,VSQC_SRAM_PDS_STATE_ECC_2B_ERR_MASKf,VSQC_SRAM_BUFFERS_STATE_ECC_2B_ERR_MASKf,VSQE_SRAM_PDS_STATE_ECC_2B_ERR_MASKf,VSQC_WORDS_STATE_ECC_2B_ERR_MASKf,VSQE_SRAM_BUFFERS_STATE_ECC_2B_ERR_MASKf,VSQD_SRAM_PDS_STATE_ECC_2B_ERR_MASKf,VSQD_SRAM_BUFFERS_STATE_ECC_2B_ERR_MASKf,VSQD_WORDS_STATE_ECC_2B_ERR_MASKf,VSQF_SRAM_BUFFERS_STATE_ECC_2B_ERR_MASKf,VSQF_WORDS_STATE_ECC_2B_ERR_MASKf,VSQF_SRAM_PDS_STATE_ECC_2B_ERR_MASKf,-1"></entry>
+                </entries>
+            </table>
+        
+        </tables>
+    </sub_module>
+</device_data>

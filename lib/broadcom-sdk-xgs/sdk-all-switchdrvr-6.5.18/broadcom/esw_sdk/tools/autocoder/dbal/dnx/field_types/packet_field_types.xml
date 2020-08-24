@@ -1,0 +1,452 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<!--
+    ******************************************************
+    DBAL Fields Types DB:
+    This xml contains the fields types DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+    According to:d88547d
+    DB Rules:
+    *********
+-->
+
+<FieldTypesDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="field_types_schema.xsd">
+
+<!-- Basic Types, unique with printing types -->
+
+    <FieldType Name="IPV4" Size="32" Print="IPV4">
+        <OneLineDescription>An Internet Protocol address (IP address) v4</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IPV6" Size="128" Print="IPV6">
+        <OneLineDescription>An Internet Protocol address (IP address) v6</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+
+    <FieldType Name="L2_MAC" Size="48" Print="MAC">
+        <OneLineDescription>MAC Address</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+
+    <FieldType Name="IPV4_DSCP" Size="6" Print="UINT32">
+        <OneLineDescription>DSCP result</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IPV4_ECN" Size="2" Print="UINT32">
+        <OneLineDescription>ECN result</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IP_PROTOCOL" Size="8" Print="UINT32">
+        <OneLineDescription>IP IANA Protocols</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IPV4_TOS" Size="8" Print="UINT32">
+        <OneLineDescription>IPV4 Type os Service</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IPV4_HEADER_RESERVED_FLAG" Size="1" Print="BOOL">
+        <OneLineDescription>Reserved flag</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IPV4_HEADER_DF_FLAG" Size="1" Print="BOOL">
+        <OneLineDescription>Don't-fragment flag</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IPV6_TOS" Size="8" Print="UINT32">
+        <OneLineDescription>IPV6 Type of Service</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IPV6_FLOW_LABEL" Size="20" Print="UINT32">
+        <OneLineDescription>IPV6 Flow Label</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IPV6_HOP_LIMIT" Size="8" Print="UINT32">
+        <OneLineDescription>IPV6 Hop Limit</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="L4_SRC_PORT" Size="16" Print="UINT32">
+        <OneLineDescription>L4 Source Port</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="L4_DST_PORT" Size="16" Print="UINT32">
+        <OneLineDescription>L4 Destination Port</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="TCP_CTL" Size="6" Print="UINT32">
+        <OneLineDescription>TCP ctl</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="VCCV_CHANNEL_TYPE" Size="16" Print="UINT32">
+        <OneLineDescription>GACH channel type</OneLineDescription>
+        <FieldDbInterface>
+            <FieldDefines>
+                <Define Name="IPV4"    Value="33"     Description="GACH channel type for Ipv4"/>
+                <Define Name="IPV6"    Value="87"     Description="GACH channel type for Ipv6"/>
+            </FieldDefines>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="NEXT_PROTOCOL" Size="8" Print="UINT32">
+        <OneLineDescription>IP next protocol</OneLineDescription>
+        <FieldDbInterface>
+            <FieldDefines>
+                <Define Name="ICMP"    Value="1"     Description="Next protocol after IP is ICMP"/>
+                <Define Name="IGMP"    Value="2"     Description="Next protocol after IP is IGMP"/>
+                <Define Name="ICMPV6"  Value="58"    Description="Next protocol after IP is ICMPv6"/>
+            </FieldDefines>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="VXLAN_NEXT_PROTOCOL" Size="8" Print="ENUM">
+        <OneLineDescription>Pemla config parser next protocol</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="DEFAULT"             Description="DEFAULT"/>
+                <EnumVal Name="IPV4"                Description="Next protocol after VXLAN is IPv4"/>
+                <EnumVal Name="IPV6"                Description="Next protocol after VXLAN is IPv6"/>
+                <EnumVal Name="ETHERNET"            Description="Next protocol after VXLAN is Ethernet"/>
+                <EnumVal Name="NSH"                 Description="Next protocol after VXLAN is Network Service Header"/>
+                <EnumVal Name="MPLS"                Description="Next protocol after VXLAN is MPLS"/>
+                <EnumVal Name="IPT"                 Description="Next protocol after VXLAN is IPT"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="DEFAULT"             Value="0"/>
+                <EnumVal Name="IPV4"                Value="1"/>
+                <EnumVal Name="IPV6"                Value="2"/>
+                <EnumVal Name="ETHERNET"            Value="3"/>
+                <EnumVal Name="NSH"                 Value="4"/>
+                <EnumVal Name="MPLS"                Value="5"/>
+                <EnumVal Name="IPT"                 Value="6"/>
+             </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="ETHERTYPE" Size="16" Print="UINT32">
+        <OneLineDescription>EtherType values</OneLineDescription>
+        <FieldDbInterface>
+            <FieldDefines>
+                <Define Name="IPV4" Value="2048"  Description="Ipv4 Ethertype"/>
+                <Define Name="MPLS" Value="34887" Description="MPLS Ethertype"/>
+                <Define Name="PPP"  Value="34916" Description="PPP Ethertype"/>
+                <Define Name="IPV6" Value="34525" Description="IPv6 Ethertype"/>
+                <Define Name="1588" Value="35063" Description="1588(PTP) Ethertype"/>
+                <Define Name="FCOE" Value="35078" Description="FCOE Ethertype"/>
+            </FieldDefines>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="UDP_PORT" Size="16" Print="UINT32">
+        <OneLineDescription>UDP destination port values</OneLineDescription>
+        <FieldDbInterface>
+            <FieldDefines>
+                <Define Name="PTP_EVENT_MSG"   Value="319"   Description="Next protocol after UDP is PTP Event Msg"/>
+                <Define Name="PTP_GENERAL_MSG" Value="320"   Description="Next protocol after UDP is PTP General Msg"/>                
+                <Define Name="BFD_SINGLE_HOP"  Value="3784"  Description="Next protocol after UDP is BFD single hop"/>
+                <Define Name="BFD_MULTI_HOP"   Value="4784"  Description="Next protocol after UDP is BFD multi hop"/>
+                <Define Name="BFD_ECHO"        Value="3785"  Description="Next protocol after UDP is BFD echo"/>
+                <Define Name="GENEVE"          Value="6081"  Description="Next protocol after UDP is GENEVE"/>
+                <Define Name="IPV4"            Value="26117" Description="Next protocol after UDP is IPv4"/>
+                <Define Name="MICROBFD"        Value="6784"  Description="Next protocol after UDP is MICROBFD"/>
+                <Define Name="IPV6"            Value="26133" Description="Next protocol after UDP is IPv6"/>
+                <Define Name="L2TP"            Value="1701"  Description="Next protocol after UDP is L2TPv3"/>
+                <Define Name="MPLS"            Value="26165" Description="Next protocol after UDP is MPLS"/>
+                <Define Name="ETH"             Value="0"     Description="Next protocol after UDP is ETH"/>
+                <Define Name="VXLAN"           Value="4789"  Description="Next protocol after UDP is VXLAN"/>
+                <Define Name="VXLAN_GPE"       Value="4790"  Description="Next protocol after UDP is VXLAN GPE"/>
+            </FieldDefines>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="MPLS_LABEL" Size="20" Print="UINT32">
+        <OneLineDescription>MPLS Label ID</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="BOS" Size="1" Print="BOOL">
+        <OneLineDescription>Bottom of Stack</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="MPLS_HEADER" Size="32" Print="STRUCTURE">
+        <OneLineDescription>MPLS Header</OneLineDescription>
+     <FieldDbInterface>
+         <StructFields>
+             <StructField Name="TTL" Size="8" Description="Time-to-Live"/>
+             <StructField Name="BOS" Size="1" Description="Bottom-of-Stack"/>
+             <StructField Name="EXP"/>
+             <StructField Name="MPLS_LABEL" Size="20" />
+         </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+         <StructFieldsEncoding>
+             <StructField Name="TTL"/>
+             <StructField Name="BOS"/>
+             <StructField Name="EXP"/>
+             <StructField Name="MPLS_LABEL"/>
+         </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="GACH_INDICATION" Size="4" Print="UINT32">
+        <OneLineDescription>G-ACH indication</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="ACH_VER" Size="4" Print="UINT32">
+        <OneLineDescription>ACH Version</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="ACH_HEADER" Size="32" Print="STRUCTURE">
+        <OneLineDescription>Generic Assotiated channel header(G-ACH)</OneLineDescription>
+     <FieldDbInterface>
+         <StructFields>
+             <StructField Name="CHANNEL_TYPE" Size="16"/>
+             <StructField Name="RESERVED" Type="UINT" Size="8"/>
+             <StructField Name="ACH_VER" Size="4"/>
+             <StructField Name="GACH_INDICATION" Size="4"/>
+         </StructFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+         <StructFieldsEncoding>
+             <StructField Name="CHANNEL_TYPE"/>
+             <StructField Name="RESERVED"/>
+             <StructField Name="ACH_VER"/>
+             <StructField Name="GACH_INDICATION"/>
+         </StructFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="CHANNEL_TYPE" Size="16" Print="UINT32">
+        <OneLineDescription>Channel type in PWE control word</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="TPID" Size="16" Print="UINT32">
+        <OneLineDescription>TPID value</OneLineDescription>
+        <FieldDbInterface>
+            <FieldDefines>
+                <Define Name="DOT1BR" Value="35135" Description="default tpid for 802.1BR:0x893F"/>
+                <Define Name="MIM" Value="35047" Description="mac in mac tpid :0x88E7"/>
+            </FieldDefines>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="TNI" Size="24" Print="UINT32">
+        <OneLineDescription>TNI field</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="EXP" Size="3" Print="UINT32">
+        <OneLineDescription>MPLS Exp Value</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="VLAN_ID" Size="12" Print="UINT32">
+        <OneLineDescription>VLAN tagging Identifier in the packet Ethernet header</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="VNI" Size="24" Print="UINT32">
+        <OneLineDescription>Virtual network identifier</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="BIER_MPLS" Size="10" Print="UINT32">
+        <OneLineDescription>BIER MPLS identifier</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="BIER_FORWARDING_DOMAIN" Size="10" Print="UINT32">
+        <OneLineDescription>BIER FODO identifier</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="BIER_NEXT_PROTOCOL" Size="10" Print="UINT32">
+        <OneLineDescription>BIER next protocol identifier</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="IPV4_FLAGS" Size="3" Print="UINT32">
+        <OneLineDescription>IPv4 Flags</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="TTL" Size="8" Print="UINT32">
+        <OneLineDescription>Pipe Mapped TTL_Variable</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="SRH_SEGMENT_LEFT" Size="8" Print="UINT32">
+        <OneLineDescription>Segnemt left in SRv6 base header, indicate the next SID in list</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="SRH_LAST_ENTRY" Size="8" Print="UINT32">
+        <OneLineDescription>Last entry in SRv6 base header, indicate size of SIDs list</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="SRH_FLAGS" Size="8" Print="UINT32">
+        <OneLineDescription>Flags field in SRv6 base header</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="SRH_TAG" Size="16" Print="UINT32">
+        <OneLineDescription>Tag field in SRv6 base header</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="SRH_ROUTING_TYPE" Size="8" Print="UINT32">
+        <OneLineDescription>Routing type in SRv6 base header</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="PCP" Size="3" Print="UINT32">
+        <OneLineDescription>PCP field</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="DEI" Size="1" Print="UINT32">
+        <OneLineDescription>DEI Field</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+</FieldTypesDbCatalog>

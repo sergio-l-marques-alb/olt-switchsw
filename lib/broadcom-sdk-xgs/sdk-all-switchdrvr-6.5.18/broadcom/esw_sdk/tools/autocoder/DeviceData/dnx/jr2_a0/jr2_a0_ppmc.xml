@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0" module="ppmc">
+    <includes>
+    </includes>
+    <sub_module name="param" doc="default values for PPMC table related actions">
+        <defines>
+            <define name="max_mc_replication_id" value="0x3BFFFF"></define>
+            <define name="min_mc_replication_id" value="0x300000"></define>
+        </defines>
+    </sub_module>
+   
+</device_data>
+

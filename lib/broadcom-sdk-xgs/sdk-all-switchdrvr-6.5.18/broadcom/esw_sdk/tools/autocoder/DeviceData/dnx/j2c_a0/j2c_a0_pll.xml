@@ -1,0 +1,120 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2c_a0"  module="pll">
+    <includes>
+        <include>soc/dnx/pll/pll.h</include>
+    </includes>
+    <sub_module name="general" doc="PLL general configurations">
+        <features>
+            <feature name="ts_freq_lock" value="1">
+                <property name="phy_1588_dpll_frequency_lock" method="enable">
+                    <doc>
+                        IEEE1588 DPLL mode
+                        Supported values: 0 - phase lock, 1 - frequency lock
+                    </doc>
+                </property>
+            </feature>
+            <feature name="bs_enable" value="0">
+                <property name="broadsync_enable_clk" method="enable">
+                    <doc>
+                        Broadsync clock enable.
+                        Supported values: 0,1 (disable/enable)
+                    </doc>
+                </property>
+            </feature>
+        </features>
+    </sub_module>
+    <sub_module name="pll1"  doc="PLL1 configurations">
+        <defines>
+            <define name="nof_pll1" value="3"></define>
+        </defines>
+        <tables>
+            <table name="config">
+                <key name="pll1_type" size="DNX_PLL1_TYPE_COUNT"></key>
+                <value name="pll1_id" default="-1"></value>
+                <value name="valid" default="-1"></value>
+                <value name="pdiv" default="-1"></value>
+                <value name="ndiv_int" default="-1"></value>
+                <value name="ch0_mdiv" default="-1"></value>
+                <value name="ch1_mdiv" default="-1"></value>
+                <value name="ch2_mdiv" default="-1"></value>
+                <value name="ch3_mdiv" default="-1"></value>
+                <value name="ch4_mdiv" default="-1"></value>
+                <value name="ch5_mdiv" default="-1"></value>
+                <value name="output_cml_en" default="-1"></value>
+                <value name="refclk_source_sel" default="-1"></value>
+                <value name="refclk" default="-1"></value>
+                <entries>
+                    <entry pll1_type="DNX_PLL1_TYPE_TS"  pll1_id="0" valid="1" pdiv="1" ndiv_int="160" ch0_mdiv="4" ch1_mdiv="8" ch2_mdiv="10" ch3_mdiv="16" ch4_mdiv="40" output_cml_en="1" refclk_source_sel="1" refclk="25"></entry>
+                    <entry pll1_type="DNX_PLL1_TYPE_BS"  pll1_id="1" valid="1" pdiv="1" ndiv_int="120" ch0_mdiv="120" output_cml_en="1" refclk_source_sel="0" refclk="25"></entry>
+                    <entry pll1_type="DNX_PLL1_TYPE_FAB"  pll1_id="2" valid="1" pdiv="4" ndiv_int="116" ch0_mdiv="5" ch1_mdiv="29" ch2_mdiv="3" ch3_mdiv="12" output_cml_en="0" refclk_source_sel="1" refclk="156"></entry>
+                </entries>
+            </table>
+        </tables>
+        <numerics>
+            <numeric name="ts_phase_initial_lo" value="0x00000000">
+                <property name="phy_1588_dpll_phase_initial_lo" method="range" range_min="0" range_max="4294967295">
+                    <doc>
+                        Initial phase values for the IEEE1588 DPLL, lower 32 bits
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="ts_phase_initial_hi" value="0x2000"> <!-- HW ts_counter runs at 500MHz, value 0x2000 will configure the increment value (2ns). total TS will increase every one nsec -->
+                <property name="phy_1588_dpll_phase_initial_hi" method="range" range_min="0" range_max="65535">
+                    <doc>
+                        Initial phase values for the IEEE1588 DPLL, higher 16 bits
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="ts_nof_bits_hi" value="20"></numeric>
+            <numeric name="ts_pll1_id" value="DATA(pll,pll1,config,pll1_id,DNX_PLL1_TYPE_TS)"></numeric>
+            <numeric name="bs_pll1_id" value="DATA(pll,pll1,config,pll1_id,DNX_PLL1_TYPE_BS)"></numeric>
+            <numeric name="fab_pll1_id" value="DATA(pll,pll1,config,pll1_id,DNX_PLL1_TYPE_FAB)"></numeric>
+        </numerics>
+        <features>
+            <feature name="ts_phase_initial_hi_config" value="1"></feature>
+            <feature name="ts_refclk_source_internal" value="0">
+                <property name="custom_feature" method="suffix_enable" suffix="ts_pll_internal_clock_reference">
+                    <doc>
+                        Determine if the ts pll gets the reference clock from external 25Mhz clock or internal clock.
+                        Can be 0 and 1.
+                        Value 1 for internal reference clock.
+                        Default: 0
+                    </doc>
+                </property>
+            </feature>
+        </features>
+    </sub_module>
+        <sub_module name="pll3"  doc="PLL3 configurations">
+        <defines>
+            <define name="nof_pll3" value="0"></define>
+        </defines>
+        <tables>
+            <table name="nif_pll">
+                <key name="pll_index" size="2"></key>
+                <value name="in_freq" type="int" default="DNX_SERDES_REF_CLOCK_156_25"></value>
+                <value name="out_freq" type="int" default="DNX_SERDES_REF_CLOCK_156_25"></value>
+                <entries>
+                    <entry pll_index="0" in_freq="DNX_SERDES_REF_CLOCK_156_25" out_freq="DNX_SERDES_REF_CLOCK_156_25"></entry>
+                </entries>
+            </table>
+            <table name="fabric_pll">
+                <key name="pll_index" size="2"></key>
+                <value name="in_freq" type="int" default="DNX_SERDES_REF_CLOCK_156_25"></value>
+                <value name="out_freq" type="int" default="DNX_SERDES_REF_CLOCK_156_25"></value>
+                <entries>
+                    <entry pll_index="0" in_freq="DNX_SERDES_REF_CLOCK_156_25" out_freq="DNX_SERDES_REF_CLOCK_156_25"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+    <sub_module name="pll4" doc="PLL4 configurations">
+        <defines>
+            <define name="nof_pll4" value="0"></define>
+        </defines>
+    </sub_module>
+    <sub_module name="synce_pll" doc="synce PLL general configurations">
+        <features>
+            <feature name="present"></feature>
+        </features>
+    </sub_module>
+</device_data>

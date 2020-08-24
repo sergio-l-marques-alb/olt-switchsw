@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0"  module="tune">
+    <sub_module name="ecgm">
+        <defines>
+            <define name="port_uc_flow_control_min_divider" value="1"></define>
+        </defines>
+
+        <tables>
+            <table name="port_dp_ratio">
+                <key name="dp" size="4"></key>
+                <value name="percentage_ratio" default="100"></value>
+                <entries>
+                    <entry dp="0" percentage_ratio="100"></entry>
+                    <entry dp="1" percentage_ratio="100"></entry>
+                    <entry dp="2" percentage_ratio="50"></entry>
+                    <entry dp="3" percentage_ratio="50"></entry>
+                </entries>                
+            </table>
+        </tables>
+
+    </sub_module>
+    <sub_module name="iqs">
+        
+        <features>
+        </features>
+        
+        <defines>
+        </defines>
+
+        <numerics>
+            <numeric name="fabric_delay" value="300">
+                <property name="fabric_connect_mode" method="direct_map">
+                    <map name="SINGLE_FAP" value="300"></map>
+                    <doc>
+                        See fabric module
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>        
+        
+    </sub_module>
+        
+</device_data>
+
+
+

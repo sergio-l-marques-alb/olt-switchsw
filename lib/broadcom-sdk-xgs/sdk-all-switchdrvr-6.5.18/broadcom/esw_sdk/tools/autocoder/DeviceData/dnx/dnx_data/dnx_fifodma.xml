@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="fifodma" bsl_flag="BSL_LS_BCMDNX_TEMPLATEMNGR">
+    <includes>
+        <include>soc/dnx/dnx_fifodma.h</include>
+    </includes>
+    <sub_module name="general" doc="fifodma general data">
+        <defines>
+            <define labels="j2p_notrev" name="nof_fifodma_channels" doc="number of fifodma channels supported"></define>
+            <define labels="j2p_notrev" name="min_nof_host_entries" doc="minimum number of host entries supported"></define>
+            <define labels="j2p_notrev" name="max_nof_host_entries" doc="maximum number of host entries supported"></define>
+        </defines>
+        <tables>
+            <table labels="j2p_notrev" name="fifodma_map" doc="1-1 map between fifodma channel id and fifodma source">
+                <key name="fifodma_source" doc="fifodma source"></key>
+                <value name="fifodma_channel" type="int" doc="fifodma channel id"></value>
+            </table>
+        </tables>
+    </sub_module>
+</device_data>

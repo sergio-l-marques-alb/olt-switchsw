@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0" module="failover">
+    <includes>
+    </includes>
+    <sub_module name="path_select">
+
+        <defines>
+            <define name="egress_size" value="128*1024"></define>
+            <define name="ingress_size" value="16*1024"></define>
+            <define name="fec_size" value="256*1024"></define>
+            <define name="egr_no_protection" value="0"></define>
+            <define name="ing_no_protection" value="0"></define>
+            <define name="fec_no_protection" value="DATA(failover,path_select,fec_size)-1"></define>
+            <define name="fec_facility_protection" value="DATA(failover,path_select,fec_size)-2"></define>
+            <define name="nof_fec_path_select_banks" value="16"></define>
+            <define name="fec_bank_size" value="DATA(failover,path_select,fec_size)/DATA(failover,path_select,nof_fec_path_select_banks)"></define>
+            <define name="in_lif_protection_pointer_nof_msb" value="2"></define>
+            <define name="in_lif_protection_pointer_nof_lsb" value="12"></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="facility">
+        <features>
+            <feature name="accelerated_mode_enable" value="0">
+                <property name="bcm886xx_fec_accelerated_reroute_mode" method="enable">
+                    <doc>
+                        Enable/disable facility accelerated protection.
+                    </doc>
+                </property>
+            </feature>
+        </features>               
+    </sub_module>
+
+        
+</device_data>

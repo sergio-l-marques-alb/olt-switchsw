@@ -1,0 +1,703 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+    <AppDB Name="INGRESS_OAM_KEY_SELECT">
+        <OneLineDescription>OAM ingress key selection map for OAM-LIF-DB accesses</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="NOF_VALID_LM_LIFS"/>
+                <Field Name="IN_LIF_VALID_FOR_LM"/>
+                <Field Name="YOUR_DISC_VALID"/>
+            </Key>
+            <Result>
+                <Field Name="OAM_ING_KEY_BASE_SELECT_1" Type="OAM_ING_KEY_BASE_SELECT"/>
+                <Field Name="OAM_KEY_PREFIX_1" Type="OAM_KEY_PREFIX"/>
+                <Field Name="OAM_ING_KEY_BASE_SELECT_2" Type="OAM_ING_KEY_BASE_SELECT"/>
+                <Field Name="OAM_KEY_PREFIX_2" Type="OAM_KEY_PREFIX"/>
+                <Field Name="OAM_ING_KEY_BASE_SELECT_3" Type="OAM_ING_KEY_BASE_SELECT"/>
+                <Field Name="OAM_KEY_PREFIX_3" Type="OAM_KEY_PREFIX"/>
+                <Field Name="MP_PROFILE_SEL"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="OAM_ING_KEY_BASE_SELECT_1">
+                    <Access>
+                        <Memory Name="IPPB_OAM_KEY_SEL_MEMm">
+                            <HwField Name="OAM_KEY_BASE_SEL_0f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_KEY_PREFIX_1">
+                    <Access>
+                        <Memory Name="IPPB_OAM_KEY_SEL_MEMm">
+                            <HwField Name="OAM_KEY_PREFIX_0f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_ING_KEY_BASE_SELECT_2">
+                    <Access>
+                        <Memory Name="IPPB_OAM_KEY_SEL_MEMm">
+                            <HwField Name="OAM_KEY_BASE_SEL_1f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_KEY_PREFIX_2">
+                    <Access>
+                        <Memory Name="IPPB_OAM_KEY_SEL_MEMm">
+                            <HwField Name="OAM_KEY_PREFIX_1f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_ING_KEY_BASE_SELECT_3">
+                    <Access>
+                        <Memory Name="IPPB_OAM_KEY_SEL_MEMm">
+                            <HwField Name="OAM_KEY_BASE_SEL_2f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_KEY_PREFIX_3">
+                    <Access>
+                        <Memory Name="IPPB_OAM_KEY_SEL_MEMm">
+                            <HwField Name="OAM_KEY_PREFIX_2f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MP_PROFILE_SEL">
+                    <Access>
+                        <Memory Name="IPPB_OAM_KEY_SEL_MEMm">
+                            <HwField Name="MP_PROFILE_SELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="EGRESS_OAM_KEY_SELECT">
+        <OneLineDescription>OAM egress key selection map for OAM-LIF-DB accesses</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OAM_INJECT"/>
+                <Field Name="NOF_VALID_LM_LIFS"/>
+                <Field Name="COUNTER_PTR_VALID"/>
+                <Field Name="PACKET_IS_OAM"/>
+            </Key>
+            <Result>
+                <Field Name="OAM_KEY_PREFIX_1" Type="OAM_KEY_PREFIX"/>
+                <Field Name="OAM_KEY_PREFIX_2" Type="OAM_KEY_PREFIX"/>
+                <Field Name="OAM_KEY_PREFIX_3" Type="OAM_KEY_PREFIX"/>
+                <Field Name="OAM_EG_KEY_BASE_SELECT_1" Type="OAM_EG_KEY_BASE_SELECT"/>
+                <Field Name="OAM_EG_KEY_BASE_SELECT_2" Type="OAM_EG_KEY_BASE_SELECT"/>
+                <Field Name="OAM_EG_KEY_BASE_SELECT_3" Type="OAM_EG_KEY_BASE_SELECT"/>
+                <Field Name="MP_PROFILE_SEL"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="OAM_KEY_PREFIX_1">
+                    <Access>
+                        <Memory Name="ETPPC_OAM_KEY_TABLEm">
+                            <HwField Name="PREFIX_1f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_KEY_PREFIX_2">
+                    <Access>
+                        <Memory Name="ETPPC_OAM_KEY_TABLEm">
+                            <HwField Name="PREFIX_2f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_KEY_PREFIX_3">
+                    <Access>
+                        <Memory Name="ETPPC_OAM_KEY_TABLEm">
+                            <HwField Name="PREFIX_3f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_EG_KEY_BASE_SELECT_1">
+                    <Access>
+                        <Memory Name="ETPPC_OAM_KEY_TABLEm">
+                            <HwField Name="BASE_SEL_1f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_EG_KEY_BASE_SELECT_2">
+                    <Access>
+                        <Memory Name="ETPPC_OAM_KEY_TABLEm">
+                            <HwField Name="BASE_SEL_2f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_EG_KEY_BASE_SELECT_3">
+                    <Access>
+                        <Memory Name="ETPPC_OAM_KEY_TABLEm">
+                            <HwField Name="BASE_SEL_3f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MP_PROFILE_SEL">
+                    <Access>
+                        <Memory Name="ETPPC_OAM_KEY_TABLEm">
+                            <HwField Name="MP_PROFILE_SELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="INGRESS_ETHERNET_OAM_OPCODE_MAP">
+        <OneLineDescription>OAM header opcode maping to internal opcode(Ingress)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OAM_OPCODE" Size="8"/>
+            </Key>
+            <Result>
+                <Field Name="OAM_INTERNAL_OPCODE" Size="4"/>
+                <Field Name="OAM_COUNTER_STAMP_OFFSET" Size="8"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/> 
+            <FieldMapping>
+                <Field Name="OAM_INTERNAL_OPCODE"> 
+                    <Access>
+                        <Memory Name="IPPB_ETHERNET_OAM_OPCODE_MAPm"> 
+                            <HwField Name="OPCODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_COUNTER_STAMP_OFFSET"> 
+                    <Access>
+                        <Memory Name="IPPB_ETHERNET_OAM_OPCODE_MAPm"> 
+                            <HwField Name="OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_ETHERNET_OAM_OPCODE_MAP">
+        <OneLineDescription>OAM header opcode maping to internal opcode(Egress)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OAM_OPCODE" Size="8"/>
+            </Key>
+            <Result>
+                <Field Name="OAM_INTERNAL_OPCODE" Size="4"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/> 
+            <FieldMapping>
+                <Field Name="OAM_INTERNAL_OPCODE"> 
+                    <Access>
+                        <Memory Name="ETPPC_ETH_OAM_OPCODE_MAPm"> 
+                            <HwField Name="ETH_OAM_OPCODE_MAP_DATAf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="INGRESS_OAM_MP_TYPE_MAP">
+        <OneLineDescription>Values of MP type for processed OAM packets</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="NOF_MEP_ABOVE_MDL" Size="3"/>
+                <Field Name="MDL_MP_TYPE" Size="2"/>
+                <Field Name="NOF_MEP_BELOW_MDL" Size="3"/>
+                <Field Name="PACKET_IS_BFD" Size="1"/>
+                <Field Name="MIP_ABOVE_MDL" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="MP_TYPE" Size="4"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/> 
+            <FieldMapping>
+                <Field Name="MP_TYPE"> 
+                    <Access>
+                        <Memory Name="IPPB_OAM_MP_TYPE_MAPm"> 
+                            <HwField Name="OAM_MP_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_OAM_MP_TYPE_MAP">
+        <OneLineDescription>Values of MP type for processed OAM packets</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="NOF_MEP_ABOVE_MDL"/>
+                <Field Name="MDL_MP_TYPE"/>
+                <Field Name="NOF_MEP_BELOW_MDL"/>
+                <Field Name="PACKET_IS_BFD"/>
+                <Field Name="MIP_ABOVE_MDL"/>
+            </Key>
+            <Result>
+                <Field Name="MP_TYPE"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/> 
+            <FieldMapping>
+                <Field Name="MP_TYPE"> 
+                    <Access>
+                        <Memory Name="ETPPC_OAM_MP_TYPE_MAPm"> 
+                            <HwField Name="OAM_MP_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_OAM_LIF_ACTION_DB">
+        <OneLineDescription>OAM-1 : OAM Action Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OAM_DA_IS_MC"/>
+                <Field Name="OAM_INJECT"/>
+                <Field Name="OAM_MY_CFM_MAC"/>
+                <Field Name="MP_PROFILE"/>
+                <Field Name="OAM_INTERNAL_OPCODE"/>
+                <Field Name="MP_TYPE"/>
+            </Key>
+            <Result>
+                <Field Name="TRAP_SNP_STRENGTH"/>
+                <Field Name="TRAP_FWD_STRENGTH"/>
+                <Field Name="INGRESS_TRAP_ID"/>
+                <Field Name="OAM_COUNTER_DISABLE_ACCESS_0" Type="OAM_COUNTER_DISABLE"/>
+                <Field Name="OAM_COUNTER_DISABLE_ACCESS_1" Type="OAM_COUNTER_DISABLE"/>
+                <Field Name="OAM_COUNTER_DISABLE_ACCESS_2" Type="OAM_COUNTER_DISABLE"/>
+                <Field Name="OAM_INGRESS_METER_DISABLE"/>
+                <Field Name="OAM_SUB_TYPE"/>
+                <Field Name="OAM_INGRESS_UP_MEP"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="INGRESS_TRAP_ID">
+                    <Access>
+                        <Memory Name="IPPB_OAMAm">
+                            <HwField Name="INGRESS_CPU_TRAP_CODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_FWD_STRENGTH">
+                    <Access>
+                        <Memory Name="IPPB_OAMAm">
+                            <HwField Name="INGRESS_FORWARDING_STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_SNP_STRENGTH">
+                    <Access>
+                        <Memory Name="IPPB_OAMAm">
+                            <HwField Name="INGRESS_SNOOP_STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_INGRESS_UP_MEP">
+                    <Access>
+                        <Memory Name="IPPB_OAMAm">
+                            <HwField Name="INGRESS_UP_MEPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_INGRESS_METER_DISABLE">
+                    <Access>
+                        <Memory Name="IPPB_OAMAm">
+                            <HwField Name="INGRESS_METER_DISABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_SUB_TYPE">
+                    <Access>
+                        <Memory Name="IPPB_OAMAm">
+                            <HwField Name="SUB_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_COUNTER_DISABLE_ACCESS_0">
+                    <Access>
+                        <Memory Name="IPPB_OAMAm">
+                            <HwField Name="COUNTER_DISABLEf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_COUNTER_DISABLE_ACCESS_1">
+                    <Access>
+                        <Memory Name="IPPB_OAMAm">
+                            <HwField Name="COUNTER_DISABLEf"/>
+                            <DataOffset Formula="#RESULT_SIZE(OAM_COUNTER_DISABLE_ACCESS_0)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_COUNTER_DISABLE_ACCESS_2">
+                    <Access>
+                        <Memory Name="IPPB_OAMAm"> 
+                            <HwField Name="COUNTER_DISABLEf"/>
+                            <DataOffset Formula="#RESULT_SIZE(OAM_COUNTER_DISABLE_ACCESS_0)+#RESULT_SIZE(OAM_COUNTER_DISABLE_ACCESS_1)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_OAM_LIF_ACTION_DB">
+        <OneLineDescription>OAM-1 : OAM Action Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OAM_DA_IS_MC"/>
+                <Field Name="OAM_INJECT"/>
+                <Field Name="OAM_MY_CFM_MAC"/>
+                <Field Name="MP_PROFILE"/>
+                <Field Name="OAM_INTERNAL_OPCODE"/>
+                <Field Name="MP_TYPE"/>
+            </Key>
+            <Result>
+                <Field Name="ETPP_TRAP_ACTION_PROFILE" Size="3" Type="UINT"/>
+                <Field Name="TRAP_FWD_STRENGTH"/>
+                <Field Name="TRAP_SNP_STRENGTH"/>
+                <Field Name="OAM_SUB_TYPE"/>
+                <Field Name="OAM_COUNTER_DISABLE_ACCESS_0" Type="OAM_COUNTER_DISABLE"/>
+                <Field Name="OAM_COUNTER_DISABLE_ACCESS_1" Type="OAM_COUNTER_DISABLE"/>
+                <Field Name="OAM_COUNTER_DISABLE_ACCESS_2" Type="OAM_COUNTER_DISABLE"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ETPP_TRAP_ACTION_PROFILE"> 
+                    <Access>
+                        <Memory Name="ETPPC_OAMAm">
+                            <HwField Name="EGRESS_ACTION_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_FWD_STRENGTH">
+                    <Access>
+                        <Memory Name="ETPPC_OAMAm">
+                            <HwField Name="EGRESS_FWD_ACTION_STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_SNP_STRENGTH">
+                    <Access>
+                        <Memory Name="ETPPC_OAMAm">
+                            <HwField Name="EGRESS_SNP_ACTION_STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_SUB_TYPE">
+                    <Access>
+                        <Memory Name="ETPPC_OAMAm">
+                            <HwField Name="SUB_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_COUNTER_DISABLE_ACCESS_0">
+                    <Access>
+                        <Memory Name="ETPPC_OAMAm">
+                            <HwField Name="COUNTER_DISABLEf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_COUNTER_DISABLE_ACCESS_1">
+                    <Access>
+                        <Memory Name="ETPPC_OAMAm">
+                            <HwField Name="COUNTER_DISABLEf"/>
+                            <DataOffset Formula="#RESULT_SIZE(OAM_COUNTER_DISABLE_ACCESS_0)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_COUNTER_DISABLE_ACCESS_2">
+                    <Access>
+                        <Memory Name="ETPPC_OAMAm">
+                            <HwField Name="COUNTER_DISABLEf"/>
+                            <DataOffset Formula="#RESULT_SIZE(OAM_COUNTER_DISABLE_ACCESS_0)+#RESULT_SIZE(OAM_COUNTER_DISABLE_ACCESS_1)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+
+        </AppToPhyDbMapping>
+    </AppDB>
+ 
+    <AppDB Name="INGRESS_OAM_ACC_MEP_ACTION_DB">
+        <OneLineDescription>OAM-2 : OAM Accelerated MEP Action Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OAM_DA_IS_MC"/>
+                <Field Name="OAM_INJECT"/>
+                <Field Name="OAM_MY_CFM_MAC"/>
+                <Field Name="OAM_INTERNAL_OPCODE"/>
+                <Field Name="MP_PROFILE"/>
+                <Field Name="PACKET_IS_BFD"/>
+            </Key>
+            <Result>
+                <Field Name="INGRESS_TRAP_ID"/>
+                <Field Name="TRAP_FWD_STRENGTH"/>
+                <Field Name="TRAP_SNP_STRENGTH"/>
+                <Field Name="OAM_INGRESS_UP_MEP"/>
+                <Field Name="OAM_INGRESS_METER_DISABLE"/>
+                <Field Name="OAM_SUB_TYPE"/>
+                <Field Name="OAM_COUNTER_DISABLE"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="INGRESS_TRAP_ID"> 
+                    <Access>
+                        <Memory Name="IPPB_OAMBm"> 
+                            <HwField Name="INGRESS_CPU_TRAP_CODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_FWD_STRENGTH"> 
+                    <Access>
+                        <Memory Name="IPPB_OAMBm"> 
+                            <HwField Name="INGRESS_FORWARDING_STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_SNP_STRENGTH"> 
+                    <Access>
+                        <Memory Name="IPPB_OAMBm"> 
+                            <HwField Name="INGRESS_SNOOP_STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_INGRESS_UP_MEP"> 
+                    <Access>
+                        <Memory Name="IPPB_OAMBm"> 
+                            <HwField Name="INGRESS_UP_MEPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_INGRESS_METER_DISABLE"> 
+                    <Access>
+                        <Memory Name="IPPB_OAMBm"> 
+                            <HwField Name="INGRESS_METER_DISABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_SUB_TYPE"> 
+                    <Access>
+                        <Memory Name="IPPB_OAMBm"> 
+                            <HwField Name="SUB_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_COUNTER_DISABLE"> 
+                    <Access>
+                        <Memory Name="IPPB_OAMBm"> 
+                            <HwField Name="COUNTER_DISABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_OAM_ACC_MEP_ACTION_DB">
+        <OneLineDescription>OAM-2 : OAM Accelerated MEP Action Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OAM_DA_IS_MC"/>
+                <Field Name="OAM_INJECT"/>
+                <Field Name="OAM_MY_CFM_MAC"/>
+                <Field Name="OAM_INTERNAL_OPCODE"/>
+                <Field Name="MP_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="ETPP_TRAP_ACTION_PROFILE" Size="3" Type="UINT"/>
+                <Field Name="TRAP_FWD_STRENGTH"/>
+                <Field Name="TRAP_SNP_STRENGTH"/>
+                <Field Name="OAM_SUB_TYPE"/>
+                <Field Name="OAM_COUNTER_DISABLE"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ETPP_TRAP_ACTION_PROFILE"> 
+                    <Access>
+                        <Memory Name="ETPPC_OAMBm"> 
+                            <HwField Name="EGRESS_ACTION_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_FWD_STRENGTH"> 
+                    <Access>
+                        <Memory Name="ETPPC_OAMBm"> 
+                            <HwField Name="EGRESS_FWD_ACTION_STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TRAP_SNP_STRENGTH"> 
+                    <Access>
+                        <Memory Name="ETPPC_OAMBm"> 
+                            <HwField Name="EGRESS_SNP_ACTION_STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_SUB_TYPE"> 
+                    <Access>
+                        <Memory Name="ETPPC_OAMBm"> 
+                            <HwField Name="SUB_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_COUNTER_DISABLE"> 
+                    <Access>
+                        <Memory Name="ETPPC_OAMBm"> 
+                            <HwField Name="COUNTER_DISABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="INGRESS_OAM_DEFAULT_PAYLOAD">
+        <OneLineDescription>OAM-2 : Default ingress OAM/BFD MEP parameters</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DEFAULT_PROFILE_ID" Size="2" Type="UINT"/>
+            </Key>
+            <Result>
+	            <Field Name="MDL_MP_TYPE" NofInstances="8" Size="2"/>
+	            <Field Name="MP_PROFILE" Size="4"/>
+	            <Field Name="OAM_COUNTER_BASE" Size="20" Type="COUNTER_BASE"/>
+	            <Field Name="COUNTER_INTERFACE" Size="2"/>
+            </Result>
+            <TableLabels>OAM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MDL_MP_TYPE"> 
+                    <Access instanceIndex="0">
+                        <Register Name="IPPB_OAM_DEFAULT_MP_TYPE_VECTORr">
+                            <DataOffset Formula="16*#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="IPPB_OAM_DEFAULT_MP_TYPE_VECTORr">
+                            <DataOffset Formula="16*#FULL_KEY_VALUE()+2"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="IPPB_OAM_DEFAULT_MP_TYPE_VECTORr">
+                            <DataOffset Formula="16*#FULL_KEY_VALUE()+4"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="IPPB_OAM_DEFAULT_MP_TYPE_VECTORr">
+                            <DataOffset Formula="16*#FULL_KEY_VALUE()+6"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Register Name="IPPB_OAM_DEFAULT_MP_TYPE_VECTORr">
+                            <DataOffset Formula="16*#FULL_KEY_VALUE()+8"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Register Name="IPPB_OAM_DEFAULT_MP_TYPE_VECTORr">
+                            <DataOffset Formula="16*#FULL_KEY_VALUE()+10"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Register Name="IPPB_OAM_DEFAULT_MP_TYPE_VECTORr">
+                            <DataOffset Formula="16*#FULL_KEY_VALUE()+12"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="7">
+                        <Register Name="IPPB_OAM_DEFAULT_MP_TYPE_VECTORr">
+                            <DataOffset Formula="16*#FULL_KEY_VALUE()+14"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MP_PROFILE"> 
+                    <Access>
+                        <Register Name="IPPB_OAM_DEFAULT_ACC_MEP_PROFILESr"> 
+                            <DataOffset Formula="#RESULT_SIZE(MP_PROFILE)*#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OAM_COUNTER_BASE"> 
+                    <Access>
+                        <Register Name="IPPB_OAM_DEFAULT_COUNTERSr"> 
+                            <DataOffset Formula="#RESULT_SIZE(OAM_COUNTER_BASE)*#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COUNTER_INTERFACE"> 
+                    <Access>
+                        <Register Name="IPPB_OAM_DEFAULT_INTERFACEr"> 
+                            <DataOffset Formula="#RESULT_SIZE(COUNTER_INTERFACE)*#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<top>
+    <!-- Signals are retrieved as Shared Between Cores (sbc="1") for legacy purposes -->
+    <command line="sig get all show=hw,nocond" sbc="1"/>
+    <!-- Diagnostic commands -->
+    <command line="pp vis ekleap full" category="diagnostics" />
+    <command line="pp vis ikleap silence=false" category="diagnostics" />
+    <command line="pp vis ppi" category="diagnostics" />
+    <command line="pp vis pkttm" category="diagnostics" />
+    <command line="pp vis fdt" category="diagnostics" />
+    <command line="pp vis fer" category="diagnostics" />
+    <command line="pp vis term" category="diagnostics" />
+    <command line="pp vis ive" category="diagnostics" />
+    <command line="pp vis eve" category="diagnostics" />
+    <command line="pp vis context" category="diagnostics" />
+</top>

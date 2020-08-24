@@ -1,0 +1,138 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0"  module="ingr_congestion">
+    
+    <includes>
+        <include>bcm_int/dnx/cosq/ingress/ingress_congestion.h</include>
+    </includes>
+     
+    <sub_module name="info" doc="Ingress congestion info">
+        <features>
+            <feature name="soft_dram_block_supported"></feature>
+            <feature name="latency_based_admission" value="1"></feature>
+        </features>
+        
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>        
+        
+        <tables>
+            <table name="resource">
+                <key name="type" size="3"></key>
+                <value name="max" default="0"></value>
+                <value name="hw_resolution_max" default="0"></value>
+                <value name="hw_resolution_nof_bits" default="0"></value>
+                <value name="fadt_alpha_min" default="0"></value>
+                <value name="fadt_alpha_max" default="0"></value>
+                <entries>
+                    <entry type="DNX_INGRESS_CONGESTION_RESOURCE_TOTAL_BYTES"   max="0x7fffffff" hw_resolution_max="DATA(ingr_congestion,info,resource,max,DNX_INGRESS_CONGESTION_RESOURCE_TOTAL_BYTES)/DATA(ingr_congestion,info,bytes_threshold_granularity)" hw_resolution_nof_bits="23" fadt_alpha_min="-15" fadt_alpha_max="15"></entry> <!-- 2G Bytes -->
+                    <entry type="DNX_INGRESS_CONGESTION_RESOURCE_SRAM_BUFFERS"  max="32*1024-1"  hw_resolution_max="DATA(ingr_congestion,info,resource,max,DNX_INGRESS_CONGESTION_RESOURCE_SRAM_BUFFERS)/DATA(ingr_congestion,info,threshold_granularity)"      hw_resolution_nof_bits="11" fadt_alpha_min="-7"  fadt_alpha_max="7"></entry> <!-- 32K SRAM Buffers --> 
+                    <entry type="DNX_INGRESS_CONGESTION_RESOURCE_SRAM_PDS"      max="64*1024-1"  hw_resolution_max="DATA(ingr_congestion,info,resource,max,DNX_INGRESS_CONGESTION_RESOURCE_SRAM_PDS)/DATA(ingr_congestion,info,threshold_granularity)"          hw_resolution_nof_bits="12" fadt_alpha_min="-7"  fadt_alpha_max="7"></entry> <!-- 64K SRAM PDs --> 
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="vsq" doc="VSQ info">
+        <features>
+            <feature name="size_watermark_support" value="1"></feature>
+        </features>
+        
+        <defines>
+            <define name="vsq_e_hw_nof" value="64"></define>
+            <define name="vsq_f_hw_nof" value="488"></define>
+            <!-- In Q2A we have total 64 LLFC VSQ.
+                 60 of them for NIF ports and the rest for internal ports.
+ 
+                 VSQ 0-51 are connected to Ethernet ports.
+ 
+                 VSQ 59-52 are mapped according to configuration in CFC:
+                 1) Option 1 - VSQ 55-52 connected to ILKN ports
+                 2) Option 2 - VSQ 59-52 are connected to FlexE ports.
+ 
+                 Since Flex-E does not support FC, option 2 would not be implemented 
+                 and CFC is always configured for ILKN ports
+            -->
+            <!-- we treat Flex-E port as non-NIF port and allocated it VSQ-E starting from VSQ-E 56 -->
+            <define name="nif_vsq_e_nof" value="56"></define>
+        </defines>
+
+        <numerics>
+        </numerics>        
+    </sub_module>
+
+    <sub_module name="dbal" doc="init info">
+
+        <numerics>
+            <numeric name="admission_test_nof" value="38"></numeric> 
+            <numeric name="dram_bdbs_nof_bits" value="17"></numeric>
+            <numeric name="sram_pdbs_nof_bits" value="15"></numeric>
+            <numeric name="sram_buffer_nof_bits" value="16"></numeric>
+        </numerics>
+        
+        <tables>
+            <table name="admission_bits_mapping">
+                <key name="rjct_bit" size="DNX_INGRESS_CONGESTION_REJECT_BIT_NOF"></key>
+                <value name="index" default="-1"></value>
+                <entries>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VOQ_SRAM_PDS_TOTAL_SHARED" index="0"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VOQ_SRAM_PDS_MAX_SIZE" index="1"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VOQ_SRAM_BUFFERS_TOTAL_SHARED" index="2"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VOQ_SRAM_BUFFERS_MAX_SIZE" index="3"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VOQ_WORDS_TOTAL_SHARED" index="4"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VOQ_WORDS_MAX_SIZE" index="5"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VOQ_SYSTEM_RED" index="6"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VOQ_LATENCY" index="7"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VOQ_WRED" index="8"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VOQ_DRAM_BLOCK" index="9"></entry>
+
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_E_F_SRAM_PDS_TOTAL_SHARED" index="10"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_E_F_SRAM_PDS_MAX_SIZE" index="11"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_D_SRAM_PDS_MAX_SIZE" index="12"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_C_SRAM_PDS_MAX_SIZE" index="13"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_B_SRAM_PDS_MAX_SIZE" index="14"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_A_SRAM_PDS_MAX_SIZE" index="15"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_E_F_SRAM_BUFFERS_TOTAL_SHARED" index="16"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_E_F_SRAM_BUFFERS_MAX_SIZE" index="17"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_D_SRAM_BUFFERS_MAX_SIZE" index="18"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_C_SRAM_BUFFERS_MAX_SIZE" index="19"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_B_SRAM_BUFFERS_MAX_SIZE" index="20"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_A_SRAM_BUFFERS_MAX_SIZE" index="21"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_E_F_WORDS_TOTAL_SHARED" index="22"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_E_F_WORDS_MAX_SIZE" index="23"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_D_WORDS_MAX_SIZE" index="24"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_C_WORDS_MAX_SIZE" index="25"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_B_WORDS_MAX_SIZE" index="26"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_A_WORDS_MAX_SIZE" index="27"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_F_WORDS_WRED" index="28"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_E_WORDS_WRED" index="29"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_D_WORDS_WRED" index="30"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_C_WORDS_WRED" index="31"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_B_WORDS_WRED" index="32"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_VSQ_A_WORDS_WRED" index="33"></entry>
+
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_DRAM_BDBS_OCCUPANCY" index="34"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_SRAM_BUFFERS_OCCUPANCY" index="35"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_SRAM_PDS_OCCUPANCY" index="36"></entry>
+                    <entry rjct_bit="DNX_INGRESS_CONGESTION_REJECT_BIT_DP_LEVEL" index="37"></entry>
+                 </entries>
+            </table>
+
+        </tables>
+    </sub_module>
+    
+    <sub_module name="mirror_on_drop">
+        <defines>
+            <define name="nof_groups" value="8"></define>
+            <define name="aging_clocks_resolution" value="1024"></define>                  
+        </defines>
+        
+        <features>
+             <feature name="is_supported"></feature>
+        </features>
+    </sub_module>
+</device_data>
+
+
+

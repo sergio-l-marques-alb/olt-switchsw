@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="stg">
+    <sub_module name="stg">
+        <features>
+        </features>
+
+        <defines>
+            <define name="nof_topology_ids" doc="Number of Topology IDs" value="128"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>
+
+
+

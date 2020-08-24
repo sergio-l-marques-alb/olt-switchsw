@@ -1,0 +1,617 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="port">
+    <includes>
+        <include>soc/dnxc/dnxc_port.h</include>
+        <include>bcm/port.h</include>
+        <include>bcm/switch.h</include>
+        <include>bcm_int/dnx/algo/port/algo_port_mgmt.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_fabric.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_device.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_nif.h</include>
+        <include>bcm_int/dnx/port/imb/imb.h</include>
+    </includes>
+
+    <sub_module name="general">    
+        <features>
+            <feature name="unrestricted_portmod_pll" value="0">
+             <property name="custom_feature" method="suffix_enable" suffix="disable_force_single_pll" extern="0">
+                  <doc>
+                        disable forcing using single PLL
+                        is not recommended as allows buggy configuration
+                  </doc>
+             </property>
+            </feature>
+        </features>
+
+        <defines>
+            <define name="erp_tm_port" value="255"></define>
+            <define name="reserved_tm_port" value="254"></define>
+            <define name="max_nof_channels" value="256"></define>
+            <define name="fabric_phys_offset" value="DATA(nif,phys,nof_phys)"></define>
+            <define name="pp_dsp_size" value="8"></define>
+            <define name="ingress_vlan_domain_size" value="9"></define>
+            <define name="vlan_domain_size" value="9"></define>
+            <define name="ffc_instruction_size" value="19"></define>
+            <define name="max_first_header_size_to_skip" value="63"></define>
+            <define name="prt_ffc_width_start_offset" value="5"></define>
+            <define name="prt_ffc_start_input_offset" value="10"></define>
+        </defines>
+        
+        <numerics>
+            <numeric name="nof_tm_ports" value="256"></numeric>
+            <numeric name="nof_tm_ports_per_fap_id" value="256"></numeric>
+            <numeric name="nof_pp_ports" value="256"></numeric>
+            <numeric name="nof_vlan_membership_if" value="512"></numeric>
+            <numeric name="max_vlan_membership_if" value="511"></numeric>
+            <numeric name="fabric_port_base" value="256">
+                <property name="fabric_logical_port_base" method="custom">
+                    <doc>
+                        By default fabric logical ports are 256..(256 + nof links)
+                        To extend the logical_port_num range so that ports in range 0...511 can be used, use the following SOC property: fabric_logical_port_base=512.
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="nof_port_bits_in_pp_bus" value="8"></numeric>
+            <numeric name="pp_port_bits_size" value="8"></numeric>
+        </numerics>
+
+        <tables>
+            <table name="prt_configuration" mode="sequential">
+                <key name="index"></key>
+                <value name="prt_recycle_profile" default="0"></value>
+                <value name="port_termination_ptc_profile" default="0"></value>
+                <value name="prt_qual_mode" default="0"></value>
+                <value name="layer_offset" default="0"></value>
+                <value name="context_select" default="0"></value>
+                <value name="kbr_valid_bitmap_4" default="0"></value>
+                <value name="kbr_valid_bitmap_3" default="0"></value>
+                <value name="kbr_valid_bitmap_2" default="0"></value>
+                <value name="kbr_valid_bitmap_1" default="0"></value>
+                <value name="ffc_5_offset" default="0"></value>
+                <value name="ffc_5_width" default="0"></value>
+                <value name="ffc_5_input_offset" default="0"></value>
+                <value name="ffc_4_offset" default="0"></value>
+                <value name="ffc_4_width" default="0"></value>
+                <value name="ffc_4_input_offset" default="0"></value>
+                <value name="ffc_3_offset" default="0"></value>
+                <value name="ffc_3_width" default="0"></value>
+                <value name="ffc_3_input_offset" default="0"></value>
+                <value name="ffc_2_offset" default="0"></value>
+                <value name="ffc_2_width" default="0"></value>
+                <value name="ffc_2_input_offset" default="0"></value>
+                <value name="ffc_1_offset" default="0"></value>
+                <value name="ffc_1_width" default="0"></value>
+                <value name="ffc_1_input_offset" default="0"></value>
+                <value name="ffc_0_offset" default="0"></value>
+                <value name="ffc_0_width" default="0"></value>
+                <value name="ffc_0_input_offset" default="0"></value>
+                <value name="src_sys_port_prt_mode" default="0"></value>
+                <value name="pp_port_en" default="0"></value>
+                <value name="tcam_mode_full_en" default="0"></value>
+                <entries>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_NONE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_PTCH2" prt_qual_mode="1" layer_offset="2" context_select="1" kbr_valid_bitmap_4="2" kbr_valid_bitmap_3="4" kbr_valid_bitmap_2="0" kbr_valid_bitmap_1="1" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="0" ffc_4_input_offset="0" ffc_3_offset="0" ffc_3_width="0" ffc_3_input_offset="0" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="255" ffc_1_offset="0" ffc_1_width="3" ffc_1_input_offset="252" ffc_0_offset="0" ffc_0_width="7" ffc_0_input_offset="240" src_sys_port_prt_mode="0" pp_port_en="0" tcam_mode_full_en="1"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_NONE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_PTCH1" prt_qual_mode="1" layer_offset="3" context_select="1" kbr_valid_bitmap_4="2" kbr_valid_bitmap_3="4" kbr_valid_bitmap_2="0" kbr_valid_bitmap_1="9" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="0" ffc_4_input_offset="0" ffc_3_offset="16" ffc_3_width="0" ffc_3_input_offset="321" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="255" ffc_1_offset="0" ffc_1_width="3" ffc_1_input_offset="252" ffc_0_offset="0" ffc_0_width="15" ffc_0_input_offset="232" src_sys_port_prt_mode="1" pp_port_en="1" tcam_mode_full_en="0"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_NONE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_ETHERNET" prt_qual_mode="0" layer_offset="0" context_select="0" kbr_valid_bitmap_4="0" kbr_valid_bitmap_3="0" kbr_valid_bitmap_2="16" kbr_valid_bitmap_1="1" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="15" ffc_4_input_offset="292" ffc_3_offset="0" ffc_3_width="0" ffc_3_input_offset="0" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="0" ffc_1_offset="0" ffc_1_width="0" ffc_1_input_offset="0" ffc_0_offset="0" ffc_0_width="7" ffc_0_input_offset="308" src_sys_port_prt_mode="2" pp_port_en="0" tcam_mode_full_en="1"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_PTCH2" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_ETHERNET" prt_qual_mode="1" layer_offset="2" context_select="1" kbr_valid_bitmap_4="2" kbr_valid_bitmap_3="4" kbr_valid_bitmap_2="16" kbr_valid_bitmap_1="1" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="15" ffc_4_input_offset="292" ffc_3_offset="0" ffc_3_width="0" ffc_3_input_offset="0" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="255" ffc_1_offset="0" ffc_1_width="3" ffc_1_input_offset="252" ffc_0_offset="0" ffc_0_width="7" ffc_0_input_offset="240" src_sys_port_prt_mode="2" pp_port_en="0" tcam_mode_full_en="1"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_802_1BR_TYPE1" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_ETHERNET" prt_qual_mode="0" layer_offset="8" context_select="0" kbr_valid_bitmap_4="0" kbr_valid_bitmap_3="0" kbr_valid_bitmap_2="16" kbr_valid_bitmap_1="1" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="15" ffc_4_input_offset="292" ffc_3_offset="0" ffc_3_width="0" ffc_3_input_offset="0" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="0" ffc_1_offset="0" ffc_1_width="0" ffc_1_input_offset="0" ffc_0_offset="0" ffc_0_width="7" ffc_0_input_offset="308" src_sys_port_prt_mode="2" pp_port_en="0" tcam_mode_full_en="1"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_802_1BR_TYPE2" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_ETHERNET" prt_qual_mode="0" layer_offset="8" context_select="0" kbr_valid_bitmap_4="0" kbr_valid_bitmap_3="0" kbr_valid_bitmap_2="16" kbr_valid_bitmap_1="1" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="15" ffc_4_input_offset="292" ffc_3_offset="0" ffc_3_width="0" ffc_3_input_offset="0" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="0" ffc_1_offset="0" ffc_1_width="0" ffc_1_input_offset="0" ffc_0_offset="0" ffc_0_width="7" ffc_0_input_offset="308" src_sys_port_prt_mode="2" pp_port_en="0" tcam_mode_full_en="1"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_NONE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_RCH" prt_qual_mode="0" layer_offset="0" context_select="0" kbr_valid_bitmap_4="0" kbr_valid_bitmap_3="0" kbr_valid_bitmap_2="4" kbr_valid_bitmap_1="1" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="0" ffc_4_input_offset="0" ffc_3_offset="0" ffc_3_width="0" ffc_3_input_offset="0" ffc_2_offset="0" ffc_2_width="15" ffc_2_input_offset="128" ffc_1_offset="0" ffc_1_width="0" ffc_1_input_offset="0" ffc_0_offset="0" ffc_0_width="7" ffc_0_input_offset="308" src_sys_port_prt_mode="2" pp_port_en="0" tcam_mode_full_en="1"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_COE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_COE" prt_qual_mode="0" layer_offset="4" context_select="0" kbr_valid_bitmap_4="0" kbr_valid_bitmap_3="0" kbr_valid_bitmap_2="0" kbr_valid_bitmap_1="11" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="0" ffc_4_input_offset="0" ffc_3_offset="14" ffc_3_width="2" ffc_3_input_offset="321" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="0" ffc_1_offset="8" ffc_1_width="5" ffc_1_input_offset="308" ffc_0_offset="0" ffc_0_width="7" ffc_0_input_offset="224" src_sys_port_prt_mode="0" pp_port_en="1" tcam_mode_full_en="0"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_PTCH2" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_RCH" prt_qual_mode="1" layer_offset="2" context_select="1" kbr_valid_bitmap_4="2" kbr_valid_bitmap_3="4" kbr_valid_bitmap_2="0" kbr_valid_bitmap_1="1" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="0" ffc_4_input_offset="0" ffc_3_offset="0" ffc_3_width="4" ffc_3_input_offset="280" ffc_2_offset="0" ffc_2_width="15" ffc_2_input_offset="128" ffc_1_offset="0" ffc_1_width="3" ffc_1_input_offset="252" ffc_0_offset="0" ffc_0_width="7" ffc_0_input_offset="240" src_sys_port_prt_mode="0" pp_port_en="0" tcam_mode_full_en="1"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_NONE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_PTCH2_JR1" prt_qual_mode="1" layer_offset="2" context_select="1" kbr_valid_bitmap_4="2" kbr_valid_bitmap_3="12" kbr_valid_bitmap_2="0" kbr_valid_bitmap_1="1" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="0" ffc_4_input_offset="0" ffc_3_offset="1" ffc_3_width="1" ffc_3_input_offset="321" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="255" ffc_1_offset="0" ffc_1_width="3" ffc_1_input_offset="252" ffc_0_offset="0" ffc_0_width="7" ffc_0_input_offset="240" src_sys_port_prt_mode="0" pp_port_en="0" tcam_mode_full_en="1"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_NONE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_ITMH" prt_qual_mode="0" layer_offset="0" context_select="0" kbr_valid_bitmap_4="0" kbr_valid_bitmap_3="0" kbr_valid_bitmap_2="0" kbr_valid_bitmap_1="1" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="0" ffc_4_input_offset="0" ffc_3_offset="0" ffc_3_width="0" ffc_3_input_offset="0" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="0" ffc_1_offset="0" ffc_1_width="0" ffc_1_input_offset="0" ffc_0_offset="0" ffc_0_width="7" ffc_0_input_offset="308" src_sys_port_prt_mode="0" pp_port_en="0" tcam_mode_full_en="1"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_NONE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_PTCH2_UD1" prt_qual_mode="1" layer_offset="2" context_select="1" kbr_valid_bitmap_4="2" kbr_valid_bitmap_3="4" kbr_valid_bitmap_2="0" kbr_valid_bitmap_1="1" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="0" ffc_4_input_offset="0" ffc_3_offset="0" ffc_3_width="0" ffc_3_input_offset="0" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="255" ffc_1_offset="0" ffc_1_width="3" ffc_1_input_offset="252" ffc_0_offset="0" ffc_0_width="7" ffc_0_input_offset="240" src_sys_port_prt_mode="0" pp_port_en="0" tcam_mode_full_en="1"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_NONE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_ETH_UD1" prt_qual_mode="0" layer_offset="0" context_select="0" kbr_valid_bitmap_4="0" kbr_valid_bitmap_3="0" kbr_valid_bitmap_2="16" kbr_valid_bitmap_1="1" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="15" ffc_4_input_offset="292" ffc_3_offset="0" ffc_3_width="0" ffc_3_input_offset="0" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="0" ffc_1_offset="0" ffc_1_width="0" ffc_1_input_offset="0" ffc_0_offset="0" ffc_0_width="7" ffc_0_input_offset="308" src_sys_port_prt_mode="2" pp_port_en="0" tcam_mode_full_en="1"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_NONE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_PTCH2_UD2" prt_qual_mode="1" layer_offset="2" context_select="1" kbr_valid_bitmap_4="2" kbr_valid_bitmap_3="4" kbr_valid_bitmap_2="0" kbr_valid_bitmap_1="1" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="0" ffc_4_input_offset="0" ffc_3_offset="0" ffc_3_width="0" ffc_3_input_offset="0" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="255" ffc_1_offset="0" ffc_1_width="3" ffc_1_input_offset="252" ffc_0_offset="0" ffc_0_width="7" ffc_0_input_offset="240" src_sys_port_prt_mode="0" pp_port_en="0" tcam_mode_full_en="1"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_NONE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_ETH_UD2" prt_qual_mode="0" layer_offset="0" context_select="0" kbr_valid_bitmap_4="0" kbr_valid_bitmap_3="0" kbr_valid_bitmap_2="16" kbr_valid_bitmap_1="1" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="15" ffc_4_input_offset="292" ffc_3_offset="0" ffc_3_width="0" ffc_3_input_offset="0" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="0" ffc_1_offset="0" ffc_1_width="0" ffc_1_input_offset="0" ffc_0_offset="0" ffc_0_width="7" ffc_0_input_offset="308" src_sys_port_prt_mode="2" pp_port_en="0" tcam_mode_full_en="1"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_NONE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_PTCH1_UD1" prt_qual_mode="1" layer_offset="3" context_select="1" kbr_valid_bitmap_4="2" kbr_valid_bitmap_3="4" kbr_valid_bitmap_2="0" kbr_valid_bitmap_1="9" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="0" ffc_4_input_offset="0" ffc_3_offset="16" ffc_3_width="0" ffc_3_input_offset="321" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="255" ffc_1_offset="0" ffc_1_width="3" ffc_1_input_offset="252" ffc_0_offset="0" ffc_0_width="15" ffc_0_input_offset="232" src_sys_port_prt_mode="1" pp_port_en="1" tcam_mode_full_en="0"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_NONE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_PTCH1_UD1_AFTER_INJECTED" prt_qual_mode="1" layer_offset="3" context_select="1" kbr_valid_bitmap_4="2" kbr_valid_bitmap_3="4" kbr_valid_bitmap_2="0" kbr_valid_bitmap_1="9" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="0" ffc_4_input_offset="0" ffc_3_offset="16" ffc_3_width="0" ffc_3_input_offset="321" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="255" ffc_1_offset="0" ffc_1_width="3" ffc_1_input_offset="252" ffc_0_offset="0" ffc_0_width="15" ffc_0_input_offset="232" src_sys_port_prt_mode="1" pp_port_en="1" tcam_mode_full_en="0"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_NONE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_RAW" prt_qual_mode="0" layer_offset="0" context_select="0" kbr_valid_bitmap_4="0" kbr_valid_bitmap_3="0" kbr_valid_bitmap_2="16" kbr_valid_bitmap_1="1" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="15" ffc_4_input_offset="292" ffc_3_offset="0" ffc_3_width="0" ffc_3_input_offset="0" ffc_2_offset="0" ffc_2_width="0" ffc_2_input_offset="0" ffc_1_offset="0" ffc_1_width="0" ffc_1_input_offset="0" ffc_0_offset="0" ffc_0_width="7" ffc_0_input_offset="308" src_sys_port_prt_mode="2" pp_port_en="0" tcam_mode_full_en="1"></entry>
+                    <entry prt_recycle_profile="DBAL_ENUM_FVAL_RECYCLE_CMD_PRT_PROFILE_COE" port_termination_ptc_profile="DBAL_ENUM_FVAL_PORT_TERMINATION_PTC_PROFILE_PON" prt_qual_mode="0" layer_offset="4" context_select="0" kbr_valid_bitmap_4="0" kbr_valid_bitmap_3="0" kbr_valid_bitmap_2="0" kbr_valid_bitmap_1="7" ffc_5_offset="0" ffc_5_width="0" ffc_5_input_offset="0"  ffc_4_offset="0" ffc_4_width="0" ffc_4_input_offset="0" ffc_3_offset="0" ffc_3_width="0" ffc_3_input_offset="0" ffc_2_offset="13" ffc_2_width="3" ffc_2_input_offset="292" ffc_1_offset="3" ffc_1_width="7" ffc_1_input_offset="308" ffc_0_offset="0" ffc_0_width="2" ffc_0_input_offset="236" src_sys_port_prt_mode="0" pp_port_en="1" tcam_mode_full_en="0"></entry>                    
+               </entries>
+            </table>
+
+            <table name="first_header_size">
+                <key name="port"  size="DATA(port,general,fabric_port_base)"></key>
+                <value name="first_header_size" default="0">
+                 <property name="first_header_size" method="port_range" range_min="0" range_max="63">
+                    <doc>
+                        Indicates the size (in Bytes) of a first header to skip before the major header at ingress (e.g. Ethernet).
+                    </doc>
+                </property>
+                </value>
+            </table>
+        </tables>
+
+    </sub_module>
+    
+    <sub_module name="static_add">    
+        <defines>
+            <define name="default_speed_for_special_if" value="10000" init_only="1"></define>
+        </defines>
+        
+        <tables>
+            <table name="ucode_port" init_only="1">
+                <key name="port" size="DATA(port,general,fabric_port_base)"></key>
+                <value name="interface" default="BCM_PORT_IF_NULL"></value>
+                <value name="nof_lanes" default="0"></value>
+                <value name="interface_offset" default="-1"></value>
+                <value name="core" default="-1"></value>
+                <value name="tm_port" default="-1"></value>
+                <value name="channel" default="-1"></value>
+                <value name="is_stif" default="0"></value>
+                <value name="is_kbp" default="0"></value>
+                <value name="is_cross_connect" default="0"></value>
+                <value name="is_flexe_phy" default="0"></value>
+                <value name="is_ingress_interleave" default="0"></value>
+                <value name="is_egress_interleave" default="0"></value>
+                <value name="is_tdm" default="0"></value>
+                <value name="is_if_tdm_only" default="0"></value>
+                <value name="is_if_tdm_hybrid" default="0"></value>
+                <value name="sch_priority_propagation_en" default="0"></value>
+                <value name="num_priorities" default="2"></value>
+                <value name="base_q_pair" default="-1"></value>
+                <value name="num_sch_priorities" default="2"></value>
+                <value name="base_hr" default="-1"></value>
+                
+                <property name="ucode_port, port_priorities, otm_base_q_pair, port_priorities_sch, port_base_hr, ilkn_is_burst_interleaving" method="custom">
+                    <doc>
+                        1.
+                        To map a physical interface and channel to a local logical port and to a core ID and TM port in the core, use the SOC property:
+                        ucode_port_#logical_port_num# = #interface_type##interface_id#[.#channel_num#]:core#core-id#.#tm-port#[:stat][:kbp][:tdm][:if_tdm_only][:if_tdm_hybrid], where:
+                        *    logical_port_num is the logical port index.
+                        *    interface_type is the Physical Interface type.
+                        *    interface_id is the index of the specific physical interface, if applicable.
+                        *    channel_num is the channel number within the physical interface, if applicable (relevant for channelized interfaces).
+                        *    core-id is the core index, 0 or 1.
+                        *    tm-port is the TM port of the core, in range 0-254 (255 is reserved for ERP).
+                        *    stat - add ':stat' to use this logical port as statistics interface (see Statistics Interface section for further details)
+                        *    kbp - add ':kbp' to use this logical port as KBP
+                        *    tdm - add ':tdm' to use this logical port as TDM
+                        *    if_tdm_only - add ':if_tdm_only' to use this interface to include TDM ports only
+                        *    if_tdm_hybrid - add ':if_tdm_hybrid' to use this interface to include both TDM ports and non TDM ports
+                        *    cross_connect - add ':cross_connect' to use this logical port as cross connect
+                        *    flexe - add ':flexe' to use this logical port as FlexE physical port
+                        *    egr_ilv - add ':egr_ilv' to enable egress interleaving for the interface of that port. relevant for master port.
+                        *    sch_priority_propagation - add ':sch_priority_propagation' to enable port priority propagation for the port. All ports of the interface must have the same value of sch_priority_propagation
+                        Example: ucode_port_5 = ILKN1.35:core0.2 maps logical port 5 to Interlaken interface number 1 on channel 35, and to core 0 TM port 2.
+                        
+                        2.
+                        To determine the number of OTM queue-pairs for a port, use the following SOC property:
+                        port_priorities#port# = 1/2/4/8.
+
+                        3.
+                        Usually queue pairs are automatically allocated for each port.
+                        A user can choose to manage the queues explicitly by using the SOC property otm_base_q_pair_#port#=0-254 
+                        ('255' value is reserved and cannot be used). 
+                        This can be useful for example when dynamic port provisioning is required, to optimize queue pair allocation for the more challenging scenario
+                        4.
+                        To determine the number of HRs for a port, use the following SOC property:
+                        port_priorities_sch#port# = 1/2/4/8.
+
+                        5.
+                        Usually HRs are automatically allocated for each port.
+                        A user can choose to manage the HRs explicitly by using the SOC property port_base_hr_#port#=0-255 
+                        ('255' value is reserved for ERP port). 
+                        This can be useful for example when dynamic port provisioning is required, to optimize HR allocation for the more challenging scenario
+
+                        6.
+                        To set ILKN interface to work in interleaved mode in ingress, use the following SOC property:
+                        ilkn_is_burst_interleaving#ILKN_id# = 1.
+                    </doc>
+                </property>
+                
+            </table>
+            
+            <table name="speed" init_only="1">
+                <key name="port" size="DATA(port,general,fabric_port_base) + DATA(fabric,links,nof_links)"></key>
+                <value name="val" default="DNXC_PORT_INVALID_SPEED">
+                    <property name="port_init_speed" method="port_range" range_min="-1" range_max="4000000">
+                        <doc>
+                             The default port rate is decided according to interface type.                    
+                             To set different port rate (mbps) use:
+                             port_init_speed_&lt;port&gt;=#speed#
+                             A list of supported rates per interface type can be found in User Manual.
+                        </doc>
+                    </property>
+                </value>
+            </table>
+            <table name="ext_stat_speed">
+                <key name="ext_stat_port" size="4"></key>
+                <value name="speed" default="DNXC_PORT_INVALID_SPEED"></value>
+                <value name="nof_lanes" default="0"></value>
+                    <property name="port_init_speed" method="custom">
+                        <doc>
+                             ext_stat_speed configure the speed of the external device (kbp) statistic port. 
+                             The default port rate is invalid. meaning the external kbp port does not exist.
+                             In addition, it also determine how many lanes the port has.
+                             Use the Soc property ext_stat_speed with suffix ext_stat in order to configure it.
+                             Syntax:
+                             port_init_speed_ext_stat[ext_stat_port_id]=[speed_MHz].[nof_lanes]lanes
+                             Examples: 
+                             1. port_init_speed_ext_stat0=200000.4lanes - ext stat port_id=0, speed=200GHz, 4 lanes.
+                             2. port_init_speed_ext_stat2=100000.2lanes - ext stat port_id=2, speed=100GHz, 2 lanes.
+                        </doc>
+                    </property>
+            </table>
+            
+            <table name="eth_padding" init_only="1">
+                <key name="port" size="DATA(port,general,fabric_port_base)"></key>
+                <value name="pad_size" default="0">
+                    <property name="packet_padding_size" method="port_range" range_min="64" range_max="96">
+                        <doc>
+                             Configure padding size per eth port (min 64 max 96)
+                        </doc>
+                    </property>
+                </value>
+            </table>
+            
+            
+            <table name="link_training" init_only="1">
+                <key name="port" size="DATA(port,general,fabric_port_base) + DATA(fabric,links,nof_links)"></key>
+                <value name="val" default="BCM_PORT_RESOURCE_DEFAULT_REQUEST">
+                    <property name="port_init_cl72" method="port_enable">
+                        <doc>
+                            Enable /Disable CL72
+                            port_init_cl72_&lt;port&gt; = 1 / 0
+                        </doc>
+                    </property>
+                </value>
+            </table>
+
+            <table name="ext_stat_link_training">
+                <key name="ext_stat_port" size="4"></key>
+                <value name="val" default="0">
+                    <property name="port_init_cl72" method="suffix_enable" suffix="ext_stat">
+                        <doc>
+                            Enable /Disable link training (CL72) for external device (kbp) statistic port.
+                        </doc>
+                    </property>
+                </value>
+            </table>
+            
+            <table name="fec_type" init_only="1">
+                <key name="port" size="DATA(port,general,fabric_port_base) + DATA(fabric,links,nof_links)"></key>
+                <value name="val" default="BCM_PORT_RESOURCE_DEFAULT_REQUEST">
+                    <property name="port_fec" method="port_direct_map">
+                        <map name="0" value="bcmPortPhyFecNone"></map>
+                        <map name="1" value="bcmPortPhyFecBaseR"></map>
+                        <map name="2" value="bcmPortPhyFecRsFec"></map>
+                        <map name="3" value="bcmPortPhyFecRs544"></map>                        
+                        <map name="4" value="bcmPortPhyFecRs272"></map>
+                        <map name="5" value="bcmPortPhyFecRs206"></map>
+                        <map name="6" value="bcmPortPhyFecRs108"></map>
+                        <map name="7" value="bcmPortPhyFecRs545"></map>
+                        <map name="8" value="bcmPortPhyFecRs304"></map>
+                        <map name="9" value="bcmPortPhyFecRs544_2xN"></map>
+                        <map name="10" value="bcmPortPhyFecRs272_2xN"></map>
+                        <doc>
+                            Specifies the FEC type. The types are as follows:
+                            0 - no FEC
+                            1 - BASE R - 64/66b KR FEC
+                            2 - CL91/RS-FEC
+                            3 - Rs544, using 1xN RS FEC architecture
+                            4 - RS 272, using 1xN RS FEC architecture
+                            5 - RS 206 - 64/66b 5T RS FEC
+                            6 - RS 108 - 64/66b 5T low latency RS FEC
+                            7 - RS 545 - 64/66b 15T RS FEC
+                            8 - RS 304 - 64/66b 15T low latency RS FEC
+                            9 - Rs544, using 2xN RS FEC architecture
+                            10 - Rs272, using 2xN RS FEC architecture
+                        </doc>
+                    </property>
+                </value>
+            </table>
+
+            <table name="serdes_lane_config" init_only="1">
+                <key name="port" size="DATA(port,general,fabric_port_base) + DATA(fabric,links,nof_links)"></key>
+                <value name="dfe" default="DNXC_PORT_SERDES_LANE_CONFIG_INVALID_VAL">
+                    <property name="serdes_lane_config" method="port_suffix_direct_map" suffix="dfe">
+                        <map name="on" value="soc_dnxc_port_dfe_on"></map>
+                        <map name="off" value="soc_dnxc_port_dfe_off"></map>
+                        <map name="lp" value="soc_dnxc_port_lp_dfe"></map>
+                        <doc>
+                            DFE filter
+                            serdes_lane_config_dfe_&lt;port&gt;=on|off|lp
+                            on - dfe is on and lp dfe is off
+                            off - both dfe and lp dfe are off
+                            lp - both dfe and lp dfe are on
+                        </doc>
+                    </property>
+                </value>
+                <value name="media_type" default="DNXC_PORT_SERDES_LANE_CONFIG_INVALID_VAL">
+                    <property name="serdes_lane_config" method="port_suffix_direct_map" suffix="media_type">
+                        <map name="backplane" value="BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_BACKPLANE"></map>
+                        <map name="copper" value="BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_COPPER_CABLE"></map>
+                        <map name="optics" value="BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_OPTICS"></map>
+                        <doc>
+                            media type
+                            serdes_lane_config_media_type_&lt;port&gt;=backplane|copper|optics
+                        </doc>
+                    </property>
+                </value>
+                <value name="unreliable_los" default="DNXC_PORT_SERDES_LANE_CONFIG_INVALID_VAL">
+                    <property name="serdes_lane_config" method="port_suffix_enable" suffix="unreliable_los">
+                        <doc>
+                            unreliable los
+                            serdes_lane_config_unreliable_los_&lt;port&gt;=0|1
+                        </doc>
+                    </property>
+                </value>
+                <value name="cl72_auto_polarity_enable" default="DNXC_PORT_SERDES_LANE_CONFIG_INVALID_VAL">
+                    <property name="serdes_lane_config" method="port_suffix_enable" suffix="cl72_auto_polarity_en">
+                        <doc>
+                            enable cl72 auto polarity
+                            serdes_lane_config_cl72_auto_polarity_en_&lt;port&gt;=0|1
+                        </doc>
+                    </property>
+                </value>
+                <value name="cl72_restart_timeout_enable" default="DNXC_PORT_SERDES_LANE_CONFIG_INVALID_VAL">
+                    <property name="serdes_lane_config" method="port_suffix_enable" suffix="cl72_restart_timeout_en">
+                        <doc>
+                            enable cl72 restart timeout
+                            serdes_lane_config_cl72_restart_timeout_en_&lt;port&gt;=0|1
+                        </doc>
+                    </property>
+                </value>
+                <value name="channel_mode" default="DNXC_PORT_SERDES_LANE_CONFIG_INVALID_VAL">
+                    <property name="serdes_lane_config" method="port_suffix_direct_map" suffix="channel_mode">
+                        <map name="force_nr" value="soc_dnxc_port_force_nr"></map>
+                        <map name="force_er" value="soc_dnxc_port_force_er"></map>
+                        <doc>
+                            channel mode
+                            serdes_lane_config_channel_mode_&lt;port&gt;=force_nr|force_er
+                        </doc>
+                    </property>
+                </value>
+            </table>
+
+            <table name="serdes_tx_taps" init_only="1">
+                <key name="port" size="DATA(port,general,fabric_port_base) + DATA(fabric,links,nof_links)"></key>
+                <value name="pre" default="0"></value>
+                <value name="main" default="DNXC_PORT_TX_FIR_INVALID_MAIN_TAP"></value>
+                <value name="post" default="0"></value>
+                <value name="pre2" default="0"></value>
+                <value name="post2" default="0"></value>
+                <value name="post3" default="0"></value>
+                <value name="tx_tap_mode" default="bcmPortPhyTxTapMode3Tap"></value>
+                <value name="signalling_mode" default="bcmPortPhySignallingModeNRZ"></value>
+                <property name="serdes_tx_taps" method="custom">
+                    <doc>
+                        a set of TX FIR parameters for the port.
+                        serdes_tx_taps_&lt;port&gt;=signalling_mode:pre:main:post:pre2:post2:post3
+                        signalling_mode can be either pam4 or nrz.
+                        [pre2:post2:post3] part is optional:
+                            - if it is given - this it 6-tap mode.
+                            - if it is not given - this is 3-tap mode.
+                        main is set to DNXC_PORT_TX_FIR_INVALID_MAIN_TAP by default to distinguish between whether the SoC property was set or not.
+                    </doc>
+                </property>
+            </table>
+
+            <table name="ext_stat_global_serdes_tx_taps">
+                <value name="pre" default="0"></value>
+                <value name="main" default="DNXC_PORT_TX_FIR_INVALID_MAIN_TAP"></value>
+                <value name="post" default="0"></value>
+                <value name="pre2" default="0"></value>
+                <value name="post2" default="0"></value>
+                <value name="post3" default="0"></value>
+                <value name="txfir_tap_enable" default="1"></value> <!-- default is NRZ_6TAP -->
+                <property name="serdes_tx_taps" method="custom">
+                    <doc>
+                        a set of TX FIR parameters for the external stat kbp device.
+                        It is configured once for the entire device, as follow:
+                        serdes_tx_taps_ext_stat=signalling_mode:pre:main:post:pre2:post2:post3                        
+                        signalling_mode can be either pam4 or nrz.
+                        [pre2:post2:post3] are mandatory. (Can be set to zero).
+                        main is set to DNXC_PORT_TX_FIR_INVALID_MAIN_TAP by default to distinguish between whether the SoC property was set or not.
+                    </doc>
+                </property>
+            </table>
+            
+            <table name="ext_stat_lane_serdes_tx_taps">
+                <key name="lane" size="32"></key>
+                <value name="pre" default="0"></value>
+                <value name="main" default="DNXC_PORT_TX_FIR_INVALID_MAIN_TAP"></value>
+                <value name="post" default="0"></value>
+                <value name="pre2" default="0"></value>
+                <value name="post2" default="0"></value>
+                <value name="post3" default="0"></value>
+                <value name="txfir_tap_enable" default="1"></value> <!-- default is NRZ_6TAP -->
+                <property name="serdes_tx_taps" method="custom">
+                    <doc>
+                        a set of TX FIR parameters for the external stat kbp device
+                        It is configured per stat lane, as follow:
+                        serdes_tx_taps_ext_stat_lane&lt;lane_id&gt;=signalling_mode:pre:main:post:pre2:post2:post3
+                        signalling_mode can be either pam4 or nrz.
+                        [pre2:post2:post3] are mandatory. (Can be set to zero).
+                        main is set to DNXC_PORT_TX_FIR_INVALID_MAIN_TAP by default to distinguish between whether the SoC property was set or not.
+                    </doc>
+                </property>
+            </table>
+
+            <table name="tx_pam4_precoder" init_only="1">
+                <key name="port" size="DATA(port,general,fabric_port_base) + DATA(fabric,links,nof_links)"></key>
+                <value name="val" default="0">
+                    <property name="port_tx_pam4_precoder" method="port_direct_map">
+                        <map name="enable" value="1"></map>
+                        <map name="disable" value="0"></map>
+                        <doc>
+                            is the precoding enabled on TX side.
+                            port_tx_pam4_precoder_&lt;port&gt;=enable/disable
+                        </doc>
+                    </property>
+                </value>
+            </table>
+
+            <table name="lp_tx_precoder" init_only="1">
+                <key name="port" size="DATA(port,general,fabric_port_base) + DATA(fabric,links,nof_links)"></key>
+                <value name="val" default="0">
+                    <property name="port_lp_tx_precoder" method="port_direct_map">
+                        <map name="enable" value="1"></map>
+                        <map name="disable" value="0"></map>
+                        <doc>
+                            has the link partner enabled pre-coding on its TX side. 
+                            in other words - enable the decoding on my RX side.
+                            port_lp_tx_precoder_&lt;port&gt;=enable/disable
+                        </doc>
+                    </property>
+                </value>
+            </table>
+
+            <table name="fabric_quad_info" init_only="1">
+                <key name="quad" size="DATA(port,general,fabric_port_base) / DATA(fabric,blocks,nof_links_in_fmac)"></key>
+                <value name="quad_enable" default="1">
+                    <property name="serdes_qrtt_active" method="custom">
+                        <doc>
+                            Enable / Disable Quad.
+                            serdes_qrtt_active_&lt;quad_number&gt;=1/0
+                            If there is no quad_number suffix, the enable/disable will be done for all quads.
+                            Default - all quads are enabled.
+                        </doc>
+                    </property>
+                </value>
+            </table>
+
+            <table name="header_type">
+                <key name="port"  size="DATA(port,general,fabric_port_base)"></key>
+                <value name="header_type_in" default="BCM_SWITCH_PORT_HEADER_TYPE_ETH">
+                <property name="tm_port_header_type" method="port_suffix_direct_map" suffix="in">
+                        <map name="ETH" value="BCM_SWITCH_PORT_HEADER_TYPE_ETH"></map>
+                        <map name="RAW" value="BCM_SWITCH_PORT_HEADER_TYPE_RAW"></map>
+                        <map name="INJECTED_2_PP" value="BCM_SWITCH_PORT_HEADER_TYPE_INJECTED_2_PP"></map>
+                        <map name="INJECTED_2_PP_JR1_MODE" value="BCM_SWITCH_PORT_HEADER_TYPE_INJECTED_2_PP_JR1_MODE"></map>
+                        <map name="INJECTED_2" value="BCM_SWITCH_PORT_HEADER_TYPE_INJECTED_2"></map>
+                        <map name="INJECTED_2_JR1_MODE" value="BCM_SWITCH_PORT_HEADER_TYPE_INJECTED_2_JR1_MODE"></map>
+                        <map name="INJECTED" value="BCM_SWITCH_PORT_HEADER_TYPE_INJECTED"></map>
+                        <map name="TM" value="BCM_SWITCH_PORT_HEADER_TYPE_TM"></map>
+                    <doc>
+                        Header type per incoming port.
+                    </doc>
+                </property>
+                </value>
+                <value name="header_type_out" default="BCM_SWITCH_PORT_HEADER_TYPE_ETH">
+                <property name="tm_port_header_type" method="port_suffix_direct_map" suffix="out">
+                        <map name="ETH" value="BCM_SWITCH_PORT_HEADER_TYPE_ETH"></map>
+                        <map name="RAW" value="BCM_SWITCH_PORT_HEADER_TYPE_RAW"></map>
+                        <map name="CPU" value="BCM_SWITCH_PORT_HEADER_TYPE_CPU"></map>
+                        <map name="ENCAP_EXTERNAL_CPU" value="BCM_SWITCH_PORT_HEADER_TYPE_ENCAP_EXTERNAL_CPU"></map>
+                    <doc>
+                        Header type per outgoing port.
+                    </doc>
+                </property>
+                </value>
+                <value name="header_type" default="BCM_SWITCH_PORT_HEADER_TYPE_ETH">
+                <property name="tm_port_header_type" method="port_direct_map">
+                        <map name="ETH" value="BCM_SWITCH_PORT_HEADER_TYPE_ETH"></map>
+                        <map name="RAW" value="BCM_SWITCH_PORT_HEADER_TYPE_RAW"></map>
+                    <doc>
+                        Header type per port.
+                    </doc>
+                </property>
+                </value>
+            </table>
+
+            <table name="erp_exist">
+                <key name="core"  size="DATA(device, general, nof_cores)"></key>
+                <value name="exist" default="0"></value>
+                <property name="ucode_port" method="custom">
+                    <doc>
+                        Is ERP port defined in config file per core
+                    </doc>
+                </property>
+            </table>
+
+        </tables>
+
+        <numerics>
+            <numeric name="fabric_fw_load_method" value="phymodFirmwareLoadMethodExternal">
+                <property name="load_firmware_fabric" method="custom">
+                    <doc>
+                        0x&lt;verify FW&gt;&lt;load method&gt;
+                        The method of the firmware load.
+                        2 - fast; 1 - MDIO load; 0 - do not load firmware.
+                        Byte 0 of the SoC property value.
+                    </doc>
+                </property>
+            </numeric>
+
+            <numeric name="fabric_fw_crc_check" value="1">
+                <property name="load_firmware_fabric" method="custom">
+                    <doc>
+                        Enable firmware CRC check.
+                        Byte 1: bit 0 of the SoC property value.
+                    </doc>
+                </property>
+            </numeric>
+
+            <numeric name="fabric_fw_load_verify" value="0">
+                <property name="load_firmware_fabric" method="custom">
+                    <doc>
+                        Enable firmware verification, byte by byte (time consuming).
+                        Byte 1: bit 4 of the SoC property value.
+                    </doc>
+                </property>
+            </numeric>
+            
+            <numeric name="nif_fw_load_method" value="phymodFirmwareLoadMethodExternal">
+                <property name="load_firmware_nif" method="custom">
+                    <doc>
+                        0x&lt;verify FW&gt;&lt;load method&gt;
+                        The method of the firmware load (first hexadecimal charcter).
+                        2 - fast; 1 - MDIO load; 0 - do not load firmware
+                        Verify FW (first hexadecimal charcter).
+                        1 - enables firmware CRC verfication
+                        Setting relevant for NIF side
+                    </doc>
+                </property>
+            </numeric>
+
+            <numeric name="nif_fw_crc_check" value="1">
+                <property name="load_firmware_nif" method="custom">
+                    <doc>
+                        Enable firmware CRC check for NIF side.
+                        Byte 1: bit 0 of the SoC property value.
+                    </doc>
+                </property>
+            </numeric>
+
+            <numeric name="nif_fw_load_verify" value="0">
+                <property name="load_firmware_nif" method="custom">
+                    <doc>
+                        Enable firmware verification, byte by byte (time consuming) for NIF side.
+                        Byte 1: bit 4 of the SoC property value.
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+         
+    </sub_module>
+
+    <sub_module name="egress">
+        <defines>
+            <define name="nof_ifs" value="64"></define>
+        </defines>
+    </sub_module>
+       
+    <sub_module name="imb">
+        <tables>
+            <table name="imb_type_info" mode="map">
+                <key name="type"></key>
+                <value name="nof_pms" default="0"></value>
+                <value name="nof_lanes" default="0"></value>
+                <value name="nof_lanes_in_pm" default="0"></value>
+                <value name="nof_memory_entries" default="0"></value>
+                <value name="rate_per_rmc_bit" default="0"></value>
+                <entries>
+                    <entry type="imbDispatchTypeImb_cdu"  nof_pms="DATA(nif,eth,nof_pms_in_cdu)"  nof_lanes="DATA(nif,eth,nof_lanes_in_cdu)" nof_lanes_in_pm="DATA(nif,eth,nof_cdu_lanes_in_pm)" nof_memory_entries="DATA(nif,eth,cdu_memory_entries_nof)" rate_per_rmc_bit="DATA(nif,scheduler,rate_per_cdu_rmc_bit)"></entry>
+                    <entry type="imbDispatchTypeImb_clu"  nof_pms="DATA(nif,eth,nof_pms_in_clu)"  nof_lanes="DATA(nif,eth,nof_lanes_in_clu)" nof_lanes_in_pm="DATA(nif,eth,nof_clu_lanes_in_pm)" nof_memory_entries="DATA(nif,eth,clu_memory_entries_nof)" rate_per_rmc_bit="DATA(nif,scheduler,rate_per_clu_rmc_bit)"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+    
+</device_data>
+
+
+

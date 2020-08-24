@@ -1,0 +1,131 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="lif" bsl_flag="BSL_LS_BCMDNX_LIF">
+    <sub_module name="global_lif" doc="Global lif attributes">
+
+        <features>
+            <feature name="prevent_tunnel_update_rif" doc="if sys_inlif is null, then tunnel lif does not update inlif array"></feature>
+        </features>
+        
+        
+        <defines>
+            <define name="use_mdb_size" doc="Some lif sizes are not taken from dnx data, but from the mdb.
+Use this flag to indicate if it should be used, or just use default minimal value."></define>
+            <define name="nof_global_l2_gport_lifs" doc="The mpls and vlan ports don't have enough bits to support the full global lif address.
+Their number is limited by this value."></define>
+            <define name="glem_rif_optimization_enabled" doc="Amount of out RIFs one GLEM entry can hold for optimized GLEM usage is 4."></define>
+            <define name="wa_null_lif" doc="ERPP GLEM trap requires NULL LIF to be added to GLEM by default."></define> 
+        </defines>
+
+        <numerics>
+            <numeric name="nof_global_in_lifs" doc="Number of in global lifs in the device."></numeric>
+            <numeric name="nof_global_out_lifs" doc="Number of out global lifs in the device."></numeric>
+            <numeric name="egress_in_lif_null_value" doc="IN_LIF null value in egress stage."></numeric>
+        </numerics>
+
+        <tables>
+        </tables>
+        
+    </sub_module>
+
+    <sub_module name="in_lif" doc="In lif attributes">
+
+        <features>
+            <feature name="mapped_in_lif_profile" doc="defines the existence of mapped inlif profile"> </feature>
+            <feature name="in_lif_profile_iop_mode" doc="defines the existence of inlif profile in iop mode"> </feature>
+        </features>
+
+        <defines>
+            <define name="inlif_index_bit_size" doc="This is the size of a single index in the inlif table. Divide the entry 
+bit size by this to get its size in indexes."></define>
+            <define name="inlif_minimum_index_size" doc="The minimum size in indexes of an inlif entry"></define>
+            <define name="inlif_resource_tag_size" doc ="The size of the inlif resource's n-packs. The packs are used to 
+prevent fragmentation by assigning each pack a fixed entry size. The pack should be 
+the least common denominator of every possible entry side. See the SDD for full description."></define>
+            <define name="nof_in_lif_profiles" doc="Number of possible in_lif profiles."></define>
+            <define name="nof_used_in_lif_profile_bits" doc="Number of used in_lif_profile bits out of 8."></define>
+            <define name="nof_used_eth_rif_profile_bits" doc="Number of used eth_rif_profile bits."></define>
+            <define name="nof_in_lif_incoming_orientation" doc="Number of possible in_lif profile incoming orientation groups."></define>
+            <define name="nof_eth_rif_profiles" doc="Number of possible eth_rif profiles."></define>
+            <define name="nof_da_not_found_destination_profiles" doc="Number of da_not_found_destination profiles."></define>
+            <define name="default_da_not_found_destination_profile" doc="Default da_not_found_destination profile."></define>
+            <define name="drop_in_lif" doc="local in_lif id performing trap with drop action."></define>
+            <define name="mc_bridge_fallback_per_lif_profile" doc="Enable/Disable the MC bridge fallback functionality based on LIF profile"></define>
+        </defines > 
+
+
+        <numerics>
+            <numeric name="in_lif_profile_allocate_indexed_mode" doc="number of values needed for property indexed_mode in in_lif_profile"></numeric>
+            <numeric name="in_lif_profile_allocate_orientation" doc="number of values needed for egress property in_lif_orientation in in_lif_profile"></numeric>
+            <numeric name="in_lif_profile_allocate_policer_inner_dp" doc="number of values needed for egress property ive_inner_qos_dp_profile in in_lif_profile."></numeric>
+            <numeric name="in_lif_profile_allocate_policer_outer_dp" doc="number of values needed for egress property ive_outer_qos_dp_profile in in_lif_profile."></numeric>
+            <numeric name="in_lif_profile_allocate_same_interface_mode" doc="number of values needed for egress property in_lif_profile_allocate_same_interface_mode in in_lif_profile."></numeric>
+        </numerics>
+
+
+        <tables>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="out_lif" doc="Out lif attributes">
+
+        <features>
+        </features>
+        <defines>
+            <define name="nof_out_lif_profiles" doc="Number of possible out_lif profiles."></define>
+            <define name="nof_erpp_out_lif_profiles" doc="Number of possible erpp_out_lif profiles."></define>
+            <define name="nof_out_lif_outgoing_orientation" doc="Number of possible out_lif profile outgoing orientation groups."></define>
+            <define name="outrif_profile_width" doc="The number of bits in the outrif profile from GLEM."></define>
+            <define name="glem_result" doc="The number of bits in GLEM result."></define>
+            <define name="physical_bank_pointer_size" doc="How many bits from the outlif pointer are used to indicate the physical bank."></define>
+            <define name="nof_outlifs_in_eedb_banks" doc="The estimated number of entries that are stored in eedb banks."></define>
+            <define name="outlif_eedb_banks_pointer_size" doc="pointer size used to access eedb banks."></define>
+        </defines>
+
+        <numerics>
+            <numeric name="outlif_pointer_size" doc="The number of bits in the outlif profile from GLEM."></numeric>
+            <numeric name="allocation_bank_size" doc="Size of the outlif bank used by the outlif allocation algorithm."></numeric>
+            <numeric name="local_outlif_width" doc="Size of the outlif bank used by the outlif allocation algorithm."></numeric>
+            <numeric name="outlif_profile_width" doc="The number of bits in the outlif profile from GLEM."></numeric>
+            <numeric name="nof_local_out_lifs" doc="Number of potential local outlifs in the device. Derived from the pointer size."></numeric>
+            <numeric name="physical_bank_size" doc="Size of the outlif bank used by the phase map and mags. Derived from the outlif pointer size 
+and the physical bank pointer size."></numeric>
+        </numerics>
+
+
+        <tables>
+            <table name="logical_to_physical_phase_map" doc="Map outlif logical phase to physical phase. 
+The reverse mapping is implied from this.">
+                <key name="logical_phase" doc="Logical phase to map."></key>
+                <value name="physical_phase" type="int" doc="Mapped physical phase."></value>
+            </table>
+        </tables>
+        
+
+    </sub_module>
+
+    <sub_module name="lif_table_manager" doc="module for local lif allocation">
+
+        <features>
+        </features>
+        
+        
+        <defines>
+            <define name="max_nof_lif_tables" doc="Maximal number of logical lif tables (inlif + outlif)"></define>
+            <define name="max_nof_result_types" doc="Maximal number of result types in lif table"></define>
+            <define name="max_fields_per_result_type" doc="Maximal number of fields for one result types in lif table"></define>
+            <define name="max_fields_per_table" doc="Maximal number of fields in a lif table"></define>
+        </defines>
+
+        <tables>
+        </tables>
+        
+    </sub_module>
+    <sub_module name="hw_bug" doc="lif hw bugs" >
+        <features>
+            <feature name="iop_mode_outlif_selection" doc="IOP mode incorrect outlif selection"></feature>
+            <feature name="iop_mode_orientation_selection" doc="IOP mode incorrect lif profile key selection for orientation"></feature>
+        </features>
+
+    </sub_module>
+</device_data>

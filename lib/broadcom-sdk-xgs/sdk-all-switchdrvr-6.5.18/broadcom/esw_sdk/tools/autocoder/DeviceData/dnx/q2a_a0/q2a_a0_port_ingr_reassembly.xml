@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0"  module="ingr_reassembly">
+
+    <sub_module name="context">
+
+        <features>
+            <feature name="rcy_interleaving_between_priorities" value="1"></feature>
+        </features>
+
+         <defines>
+            <define name="nof_contexts" value="256"></define>
+        </defines>
+
+        <tables>                       
+           <table name="context_map">
+                <key name="port_type" size="DNX_ALGO_PORT_TYPE_NOF"></key>
+                <value name="start_index" default="SAL_UINT32_MAX"></value>
+                <entries>
+                    <!--  ILKN  -->
+                      <entry port_type="DNX_ALGO_PORT_TYPE_NIF_ILKN" start_index="0"></entry>
+                    <!--  NIF -->
+                    <entry port_type="DNX_ALGO_PORT_TYPE_NIF_ETH" start_index="0x1000"></entry>
+                    <!-- each NIF port takes 2 entries in Context Map Table  (2*52 = 2*0x34 = 0x68) -->
+
+                    <!--  FLEX-E MAC -->
+                    <entry port_type="DNX_ALGO_PORT_TYPE_FLEXE_MAC" start_index="0x1100"></entry>
+                    <!-- each FLEX-E MAC port takes 2 entries in Context Map Table  (2*82 = 2*0x54 = 0xa4) -->
+
+                    <!--  RCY  - needs 1 entries in Context Map per channel -->
+                    <entry port_type="DNX_ALGO_PORT_TYPE_RCY"        start_index="0x1200"></entry>
+                    <!--  RCY Mirror  - needs 3 entries in Context Map per channel -->
+                    <entry port_type="DNX_ALGO_PORT_TYPE_RCY_MIRROR" start_index="0x1300"></entry>
+
+                    <!--  CPU -->
+                    <entry port_type="DNX_ALGO_PORT_TYPE_CPU"        start_index="0x1600"></entry>
+                    <!--  SAT -->
+                    <entry port_type="DNX_ALGO_PORT_TYPE_SAT"        start_index="0x1700"></entry>
+
+                    <!-- OLP  after the end of Context Map Table in the HW -->
+                    <entry port_type="DNX_ALGO_PORT_TYPE_OLP"        start_index="DATA(ingr_reassembly, dbal, context_map_base_address_max) + 1"></entry>
+                    <!-- OAMP  -->
+                    <entry port_type="DNX_ALGO_PORT_TYPE_OAMP"       start_index="DATA(ingr_reassembly, dbal, context_map_base_address_max) + 2"></entry>
+                    <!-- EVENTOR  -->
+                    <entry port_type="DNX_ALGO_PORT_TYPE_EVENTOR"    start_index="DATA(ingr_reassembly, dbal, context_map_base_address_max) + 3"></entry>
+
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="ilkn" doc="Interlaken data">
+
+        <features>
+            <feature name="is_supported"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+
+    </sub_module>
+
+    <sub_module name="dbal">
+        
+         <defines>
+            <define name="reassembly_context_bits" value="8"></define>
+
+            <define name="interface_bits" value="8"></define>
+            <define name="interface_max" value="137"></define>
+
+            <define name="context_map_base_address_bits" value="13"></define>
+            <define name="context_map_base_address_max" value="6*1024-1"></define>
+
+            <define name="interleaved_interface_bits" value="4"></define>
+            <!-- FIXME SDK-146622: should use NIF definition of max ilkn interface ID -->
+            <define name="interleaved_interface_max" value="3"></define>
+        </defines>
+
+    </sub_module>
+
+</device_data>
+
+
+

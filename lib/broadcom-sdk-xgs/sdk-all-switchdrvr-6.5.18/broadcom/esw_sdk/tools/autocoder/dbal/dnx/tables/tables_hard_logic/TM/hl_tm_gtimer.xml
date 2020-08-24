@@ -1,0 +1,3739 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="BDM_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.bdm.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.bdm.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.bdm.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="BDM_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="BDM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="BDM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="BDM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="CDU_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.cdu.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.cdu.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.cdu.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="CDU_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="CDU_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="CDU_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="CDU_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="CDUM_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.cdum.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="1" Name="BLOCK_INDEX" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="CDUM_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="CDUM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="CDUM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="CDUM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ESB_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.esb.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.esb.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.esb.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="ESB_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="ESB_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="ESB_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="ESB_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="CLU_GTIMER_CONTROL" Valid="DNX_DATA.nif.eth.is_clu_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.nif.eth.clu_nof-1" Name="BLOCK_INDEX" Size="#log2_round_up(DNX_DATA.nif.eth.clu_nof)" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="CLU_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="CLU_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="CLU_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="CLU_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ILU_GTIMER_CONTROL" Valid="DNX_DATA.nif.ilkn.is_ilu_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.nif.ilkn.ilu_nof-1" Name="BLOCK_INDEX" Size="#log2_round_up(DNX_DATA.nif.ilkn.ilu_nof)" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="ILU_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="ILU_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="ILU_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="ILU_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="CFC_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.cfc.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.cfc.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.cfc.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="CFC_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="CFC_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="CFC_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="CFC_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="CGM_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.cgm.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.cgm.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.cgm.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="CGM_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="CGM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="CGM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="CGM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="CRPS_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.crps.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.crps.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.crps.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="CRPS_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="CRPS_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="CRPS_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="CRPS_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="DDHA_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.ddha.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.ddha.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.ddha.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="DDHA_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="DDHA_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="DDHA_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="DDHA_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="DDHB_GTIMER_CONTROL">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="3" Name="BLOCK_INDEX" Size="2" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="DDHB_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="DDHB_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="DDHB_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="DDHB_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="DDP_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.ddp.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.ddp.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.ddp.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="DDP_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="DDP_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="DDP_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="DDP_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="DHC_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.dhc.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="7" Name="BLOCK_INDEX" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="DHC_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="DHC_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="DHC_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="DHC_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="DQM_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.dqm.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.dqm.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.dqm.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="DQM_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="DQM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="DQM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="DQM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ECGM_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.ecgm.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.ecgm.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.ecgm.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="ECGM_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="ECGM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="ECGM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="ECGM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EDB_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.edb.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.edb.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.edb.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="EDB_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="EDB_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="EDB_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="EDB_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EPNI_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.epni.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.epni.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.epni.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="EPNI_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="EPNI_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="EPNI_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="EPNI_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EPRE_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.epre.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.epre.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.epre.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="EPRE_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="EPRE_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="EPRE_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="EPRE_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EPS_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.eps.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.eps.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.eps.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="EPS_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="EPS_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="EPS_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="EPS_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ERPP_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.erpp.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.erpp.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.erpp.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="ERPP_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="ERPP_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="ERPP_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="ERPP_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ETPPA_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.etppa.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.etppa.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.etppa.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="ETPPA_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="ETPPA_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="ETPPA_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="ETPPA_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ETPPB_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.etppb.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.etppb.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.etppb.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="ETPPB_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="ETPPB_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="ETPPB_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="ETPPB_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ETPPC_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.etppc.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.etppc.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.etppc.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="ETPPC_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="ETPPC_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="ETPPC_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="ETPPC_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EVNT_GTIMER_CONTROL">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="EVNT_GTIMER_CYCLEr">
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="EVNT_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="EVNT_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="EVNT_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ECI_GTIMER_CONTROL">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="ECI_GTIMER_CONFIGURATIONr">
+                            <HwField Name="GTIMER_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="ECI_GTIMER_CONFIGURATIONr">
+                            <HwField Name="GTIMER_RESET_ON_TRIGGERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="ECI_GTIMER_CYCLEr">
+                            <HwField Name="GTIMER_CYCLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="ECI_GTIMER_CONFIGURATIONr">
+                            <HwField Name="GTIMER_TRIGGERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FCR_GTIMER_CONTROL" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="FCR_GTIMER_CYCLEr">
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="FCR_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="FCR_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="FCR_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FCT_GTIMER_CONTROL" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="FCT_GTIMER_CYCLEr">
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="FCT_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="FCT_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="FCT_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FDA_GTIMER_CONTROL" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="FDA_GTIMER_CYCLEr">
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="FDA_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="FDA_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="FDA_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FDR_GTIMER_CONTROL" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="1" Name="BLOCK_INDEX" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="FDR_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="FDR_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="FDR_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="FDR_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FDT_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.fdt.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="FDT_GTIMER_CYCLEr">
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="FDT_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="FDT_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="FDT_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FDTL_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.fdtl.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="FDTL_GTIMER_CYCLEr">
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="FDTL_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="FDTL_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="FDTL_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FQP_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.fqp.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.fqp.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.fqp.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="FQP_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="FQP_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="FQP_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="FQP_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="HBC_GTIMER_CONTROL" Valid="DNX_DATA.dram.hbm.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <!-- JR2_A0 by default working with 1 HBM. this is due to HW issue  -->
+        <Maturity Jira="SDK-169672" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.hbc.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.hbc.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="HBC_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="HBC_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="HBC_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="HBC_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ILE_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.ile.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.ile.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.ile.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="ILE_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="ILE_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="ILE_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="ILE_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IPPA_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.ippa.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.ippa.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.ippa.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="IPPA_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="IPPA_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="IPPA_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="IPPA_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IPPB_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.ippb.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.ippb.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.ippb.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="IPPB_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="IPPB_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="IPPB_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="IPPB_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IPPC_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.ippc.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.ippc.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.ippc.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="IPPC_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="IPPC_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="IPPC_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="IPPC_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IPPD_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.ippd.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.ippd.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.ippd.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="IPPD_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="IPPD_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="IPPD_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="IPPD_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IPPE_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.ippe.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.ippe.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.ippe.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="IPPE_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="IPPE_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="IPPE_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="IPPE_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IPPF_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.ippf.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.ippf.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.ippf.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="IPPF_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="IPPF_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="IPPF_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="IPPF_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IPS_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.ips.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.ips.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.ips.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="IPS_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="IPS_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="IPS_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="IPS_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IPT_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.ipt.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.ipt.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.ipt.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="IPT_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="IPT_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="IPT_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="IPT_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IQM_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.iqm.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.iqm.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.iqm.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="IQM_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="IQM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="IQM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="IQM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IRE_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.ire.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.ire.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.ire.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="IRE_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="IRE_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="IRE_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="IRE_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ITPP_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.itpp.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.itpp.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.itpp.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="ITPP_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="ITPP_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="ITPP_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="ITPP_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ITPPD_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.itppd.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.itppd.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.itppd.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="ITPPD_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="ITPPD_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="ITPPD_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="ITPPD_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="KAPS_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.kaps.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.kaps.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.kaps.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="KAPS_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="KAPS_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="KAPS_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="KAPS_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="MACT_GTIMER_CONTROL">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="MACT_GTIMER_CYCLEr">
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="MACT_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="MACT_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="MACT_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="MCP_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.mcp.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.mcp.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.mcp.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="MCP_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="MCP_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="MCP_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="MCP_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="MDB_GTIMER_CONTROL">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="MDB_GTIMER_CYCLEr">
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="MDB_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="MDB_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="MDB_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="MESH_TOPOLOGY_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.mesh_topology.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_GTIMER_CYCLEr">
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="MESH_TOPOLOGY_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="MRPS_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.mrps.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.mrps.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.mrps.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="MRPS_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="MRPS_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="MRPS_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="MRPS_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="MTM_GTIMER_CONTROL">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="MTM_GTIMER_CYCLEr">
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="MTM_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="MTM_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="MTM_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="NMG_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.nmg.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.nmg.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.nmg.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="NMG_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="NMG_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="NMG_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="NMG_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OAMP_GTIMER_CONTROL">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="OAMP_GTIMER_CYCLEr">
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="OAMP_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="OAMP_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="OAMP_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OCB_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.ocb.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.ocb.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.ocb.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="OCB_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="OCB_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="OCB_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="OCB_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="OLP_GTIMER_CONTROL">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="OLP_GTIMER_CYCLEr">
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="OLP_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="OLP_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="OLP_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="PDM_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.pdm.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.pdm.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.pdm.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="PDM_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="PDM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="PDM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="PDM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="PEM_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.pem.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.pem.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.pem.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="PEM_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="PEM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="PEM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="PEM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="PQP_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.pqp.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.pqp.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.pqp.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="PQP_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="PQP_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="PQP_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="PQP_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="RQP_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.rqp.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.rqp.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.rqp.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="RQP_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="RQP_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="RQP_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="RQP_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="RTP_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.rtp.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="RTP_GTIMER_CYCLEr">
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="RTP_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="RTP_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="RTP_GTIMER_CONFIGURATIONr">
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SCH_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.sch.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.sch.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.sch.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="SCH_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="SCH_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="SCH_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="SCH_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SIF_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.sif.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.sif.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.sif.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="SIF_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="SIF_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="SIF_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="SIF_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SPB_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.spb.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.spb.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.spb.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="SPB_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="SPB_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="SPB_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="SPB_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SQM_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.sqm.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.sqm.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.sqm.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="SQM_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="SQM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="SQM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="SQM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="TCAM_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.tcam.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.tcam.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.tcam.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="TCAM_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="TCAM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="TCAM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="TCAM_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="TDU_GTIMER_CONTROL" Valid="DNX_DATA.gtimer.tdu.is_supported">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.tdu.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.tdu.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="TDU_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="TDU_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="TDU_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="TDU_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="DCC_GTIMER_CONTROL" Valid="DNX_DATA.dram.gddr6.is_supported*DNX_DATA.dram.general_info.dram_info.dram_bitmap">
+        <OneLineDescription>G timer control</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.gtimer.dcc.block_index_max_value" Name="BLOCK_INDEX" Size="DNX_DATA.gtimer.dcc.block_index_size" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Global timer period." Name="GTIMER_CYCLE"/>
+                <Field Description="All related counters are cleared when GTIMER_TRIGGER is set" Name="GTIMER_RESET_ON_TRIGGER"/>
+                <Field Description="Set all counters to work in global timer mode" Name="GTIMER_ENABLE"/>
+                <Field Description="Global counter trigger. When set, global counter start counting. Trigger is cleared when counter expires." Name="GTIMER_TRIGGER" Permission="TRIGGER"/>
+            </Result>
+            <TableLabels>J2P_NOTREV SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="GTIMER_CYCLE">
+                    <Access>
+                        <Register Name="DCC_GTIMER_CYCLEr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_31f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_RESET_ON_TRIGGER">
+                    <Access>
+                        <Register Name="DCC_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_1_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_ENABLE">
+                    <Access>
+                        <Register Name="DCC_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_0_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GTIMER_TRIGGER">
+                    <Access>
+                        <Register Name="DCC_GTIMER_CONFIGURATIONr">
+                            <BlockIndex Formula="#KEY_VALUE(BLOCK_INDEX)"/>
+                            <HwField Name="FIELD_2_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

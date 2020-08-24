@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- ****************************************************** DBAL Hard-Logic
+    Logical Tables: This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process ******************************************************
+    DB Rules: ********* --><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <!-- Ingress Protection Path Select -->
+    <AppDB Name="FAILOVER_INGRESS_PATH_SELECT">
+        <OneLineDescription>Ingress Protection Path Select - Used by Inlif Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PROTECTION_POINTER" Size="14"/>
+            </Key>
+            <Result>
+                <Field Name="PROTECTION_PATH"/>
+            </Result>
+            <TableLabels>FAILOVER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PROTECTION_PATH">
+                    <Access>
+                        <Memory Name="IPPA_VTT_PATH_SELECTm">
+                            <EntryOffset Formula="#KEY_VALUE(PROTECTION_POINTER)/4"/>
+                            <DataOffset Formula="#KEY_VALUE(PROTECTION_POINTER)%4"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <!-- Egress Protection Path Select -->
+    <AppDB Name="FAILOVER_EGRESS_PATH_SELECT">
+        <OneLineDescription>Egress Protection Path Select - Used by Outlif Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PROTECTION_POINTER" Size="18"/>
+            </Key>
+            <Result>
+                <Field Name="PROTECTION_PATH"/>
+            </Result>
+            <TableLabels>FAILOVER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PROTECTION_PATH">
+                    <Access>
+                        <Memory Name="ETPPC_PROTECTION_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PROTECTION_POINTER)/32"/>
+                            <DataOffset Formula="#KEY_VALUE(PROTECTION_POINTER)%32"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <!-- FEC Protection Path Select -->
+    <AppDB Name="FAILOVER_FEC_PATH_SELECT">
+        <OneLineDescription>FEC Protection Path Select - Used by FEC Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PROTECTION_POINTER" Size="18"/>
+            </Key>
+            <Result>
+                <Field Name="PROTECTION_PATH"/>
+            </Result>
+            <TableLabels>FAILOVER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PROTECTION_PATH">
+                    <Access>
+                        <!-- For RPF -->
+                        <Memory Name="IPPD_FEC_PATH_SELECTm">
+                            <ArrayOffset Formula="#KEY_VALUE(PROTECTION_POINTER)/16384"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROTECTION_POINTER)%16384/32"/>
+                            <DataOffset Formula="#KEY_VALUE(PROTECTION_POINTER)%32"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <!-- For forward -->
+                        <Memory Name="IPPD_FEC_PATH_SELECTm">
+                            <ArrayOffset Formula="#KEY_VALUE(PROTECTION_POINTER)/16384+dnx_data_failover.path_select.nof_fec_path_select_banks_get(unit)"/>
+                            <EntryOffset Formula="#KEY_VALUE(PROTECTION_POINTER)%16384/32"/>
+                            <DataOffset Formula="#KEY_VALUE(PROTECTION_POINTER)%32"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FAILOVER_FEC_PATH_SELECT_BANK_CONFIG">
+        <OneLineDescription>Per Bank configuration of FEC protection path select table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="bank ID in the table" Name="BANK_ID" Size="4" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="HIERARCHY_LEVEL"/>
+            </Result>
+            <TableLabels>FAILOVER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="HIERARCHY_LEVEL">
+                    <Access>
+                        <!-- For RPF -->
+                        <Register Name="IPPD_FER_POINTER_CONSRUCTIONr">
+                            <HwField Name="PROTECTION_TO_STAGE_MAP_RPFf"/>
+                            <DataOffset Formula="#KEY_VALUE(BANK_ID)*2"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <!-- For forward -->
+                        <Register Name="IPPD_FER_POINTER_CONSRUCTIONr">
+                            <HwField Name="PROTECTION_TO_STAGE_MAP_FWDf"/>
+                            <DataOffset Formula="#KEY_VALUE(BANK_ID)*2"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="FAILOVER_FEC_PATH_SELECT_CONFIG">
+        <OneLineDescription>Global configuration of FEC protection path select table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="NO_PROTECTION_PTR" Size="18" Type="PROTECTION_POINTER"/>
+                <Field Name="FACILITY_PROTECTION_PTR" Size="18" Type="PROTECTION_POINTER"/>
+                <Field Description="Enable/Disable Facility accelerated mode" Name="FACILITY_ACCELERATED_MODE_ENABLE" Type="BOOL"/>
+                <Field Description="Facility protection resolution logic" Name="FACILITY_LOGIC" Size="512" Type="ARRAY32"/> 
+                <Field Description="Facility trap protection resolution logic" Name="FACILITY_TRAP_LOGIC" Size="512" Type="ARRAY32"/>                                
+            </Result>
+            <TableLabels>FAILOVER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="NO_PROTECTION_PTR">
+                    <Access>
+                        <Register Name="IPPD_RESOLUTION_CFGr">
+                            <HwField Name="NOT_PROTECTED_CODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FACILITY_PROTECTION_PTR">
+                    <Access>
+                        <Register Name="IPPD_RESOLUTION_CFGr">
+                            <HwField Name="FACILITY_PROTECTED_CODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FACILITY_ACCELERATED_MODE_ENABLE">
+                    <Access>
+                        <Register Name="IPPD_RESOLUTION_CFGr">
+                            <HwField Name="ENABLE_PATH_AND_FACILITIY_PROTECTIONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FACILITY_LOGIC">
+                    <Access>
+                        <Register Name="IPPD_RESOLUTION_FACILITY_PROTECTION_LOGICr">
+                            <HwField Name="FACILITY_PROTECTION_LOGICf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FACILITY_TRAP_LOGIC">
+                    <Access>
+                        <Register Name="IPPD_RESOLUTION_FACILITY_TRAP_LOGICr">
+                            <HwField Name="FACILITY_TRAP_LOGICf"/>
+                        </Register>
+                    </Access>
+                </Field>                                                 
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FAILOVER_FACILITY_DESTINATION_STATUS">
+        <OneLineDescription>Per system port (physical system port/LAG) state table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="SYSTEM_PORT"/>
+            </Key>
+            <Result>
+                <Field Name="ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Memory Name="IPPD_DESTINATION_STATUSm">
+                            <EntryOffset Formula="#KEY_VALUE(SYSTEM_PORT)/8"/>
+                            <DataOffset Formula="#KEY_VALUE(SYSTEM_PORT)%8"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+</AppDbCatalog>

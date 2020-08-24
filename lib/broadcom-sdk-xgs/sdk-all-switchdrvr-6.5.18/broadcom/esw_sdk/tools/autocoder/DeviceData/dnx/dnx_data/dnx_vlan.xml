@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="vlan" bsl_flag="BSL_LS_BCMDNX_VLAN">
+    <sub_module name="vlan_translate" doc="VLAN translate data">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name = "nof_vlan_tag_formats" doc = "Number of supported VLAN tag formats"></define>
+            <define name = "nof_vlan_edit_action_ids" doc = "Number of supported VLAN edit action_ids"></define>
+            <define name = "nof_ingress_vlan_edit_profiles" doc = "Number of supported VLAN edit profiles on Ingress"></define>
+            <define name = "nof_egress_vlan_edit_profiles" doc = "Number of supported VLAN edit profiles on Egress"></define>
+            <define name = "nof_vlan_range_entries" doc = "Number of Ingress VLAN Compression range entry"></define>
+            <define name = "nof_vlan_ranges_per_entry" doc = "Number of Ingress VLAN Compression ranges per entry"></define>
+            <define name = "egress_tpid_outer_packet_index" doc = "EVE command - the TPID index indicating to use the packet's outer TPID"></define>
+            <define name = "egress_tpid_inner_packet_index" doc = "EVE command - the TPID index indicating to use the packet's inner TPID"></define>
+        </defines>
+
+        <numerics>
+        </numerics>        
+        
+        <tables>
+        </tables>
+    </sub_module>
+    <sub_module name="llvp" doc="Link Layer VLAN Processing">
+        
+        <features>
+        </features>
+        
+        <defines>
+        </defines>
+
+        <numerics>
+            <numeric name="ext_vcp_en" doc="Extended Vlan Classification enable"/>
+        </numerics>        
+        
+        <tables>
+        </tables>
+    </sub_module>
+
+</device_data>
+
+
+
+

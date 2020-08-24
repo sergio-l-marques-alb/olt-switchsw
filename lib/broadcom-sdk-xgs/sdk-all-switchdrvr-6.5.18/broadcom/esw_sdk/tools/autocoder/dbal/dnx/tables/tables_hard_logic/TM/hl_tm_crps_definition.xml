@@ -1,0 +1,2140 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="CRPS_ENGINE_CFG"> 
+        <OneLineDescription>This table reprsents the CRPS engine configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CRPS_ENGINE_ID"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="CRPS_ENGINE_COUNTER_FORMAT"/>
+                <Field Name="CRPS_ENGINE_WEIGHT_RATIO" Size="5" Type="UINT"/>
+                <Field Name="CRPS_ENGINE_SOURCE_SELECT" Size="5" Type="UINT"/>
+                <Field Name="CRPS_ENGINE_GROUP_SIZE" Size="6" Type="UINT"/>
+                <Field Name="CRPS_ENGINE_PTR_BASE_NORMALIZE" Size="20" Type="UINT"/>
+                <Field Name="CRPS_ENGINE_ADDRESS_BASE_NORMALIZE" Size="26" Type="UINT"/>
+                <Field Name="CRPS_ENGINE_ENABLE_CLEAR_ON_READ" Type="BOOL"/>
+                <Field Name="CRPS_ENGINE_PHY_ADDRRESS_EXCEED_MASK" Size="5" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CRPS_ENGINE_COUNTER_FORMAT">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="ENGINE_N_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_WEIGHT_RATIO">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="ENGINE_N_WEIGHT_SHIFT_RATIOf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_SOURCE_SELECT">
+                    <Access>
+                        <Register Name="CRPS_CRPS_MODULESRC_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="MODULESRC_N_MMUX_SOURCE_SELECTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_GROUP_SIZE">
+                    <Access>
+                        <Register Name="CRPS_CRPS_MODULESRC_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="MODULESRC_N_GROUP_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_PTR_BASE_NORMALIZE">
+                    <Access>
+                        <Register Name="CRPS_CRPS_MODULESRC_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="MODULESRC_N_PTR_BASE_NORMALIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_ADDRESS_BASE_NORMALIZE">
+                    <Access>
+                        <Register Name="CRPS_CRPS_MODULESRC_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="MODULESRC_N_ADDRESS_BASE_NORMALIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_ENABLE_CLEAR_ON_READ">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="ENGINE_N_ENABLE_CLEAR_ON_READf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_PHY_ADDRRESS_EXCEED_MASK">
+                    <Access>
+                        <Register Name="CRPS_CRPS_MODULESRC_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="MODULESRC_N_PHY_ADDRESS_EXCEED_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="CRPS_ENGINE_SCAN_CFG">
+        <OneLineDescription>This table reprsents the CRPS engine scan (eviction) configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="CRPS_ENGINE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="CRPS_ENGINE_ENABLE_CLEAR_ON_READ_RESET_VALUE" Type="BOOL"/>
+                <Field Name="CRPS_ENGINE_ENABLE_CLEAR_ON_READ" Type="BOOL"/>
+                <Field Name="CRPS_ENGINE_DMA_SELECT" Type="BOOL"/>
+                <Field Name="CRPS_ENGINE_SCAN_WAIT_TIME_BETWEEN_ALG_SCANS" Size="32" Type="UINT" Valid="DNX_DATA.crps.eviction.algorithmic_is_supported"/>
+                <Field Name="CRPS_ENGINE_SCAN_WAIT_TIME_BETWEEN_SEQ_SCANS" Size="32" Type="UINT"/>
+                <Field Name="CRPS_ENGINE_SCAN_SEQ_BASE_ADDRESS_START" Size="DNX_DATA.crps.eviction.seq_address_nof_bits" Type="UINT"/>
+                <Field Name="CRPS_ENGINE_SCAN_SEQ_BASE_ADDRESS_END" Size="DNX_DATA.crps.eviction.seq_address_nof_bits" Type="UINT"/>
+                <Field Name="CRPS_ENGINE_SCAN_MODE"/>
+                <Field Name="CRPS_ENGINE_SCAN_THRESHOLD" Size="8" Type="UINT" Valid="DNX_DATA.crps.eviction.algorithmic_is_supported"/>
+                <Field Name="CRPS_ENGINE_SCAN_PKT_THRESHOLD" Size="4" Type="UINT" Valid="DNX_DATA.crps.eviction.algorithmic_is_supported"/>
+                <Field Name="CRPS_ENGINE_SCAN_OBJECT_TYPE_FOR_DMA" Size="8" Type="UINT"/>
+                <Field Name="CRPS_ENGINE_SCAN_DMA_RECORD_LOGICAL_SEL" Type="BOOL"/>
+                <Field Name="CRPS_ENGINE_SCAN_BUBBLE_REQUEST_ENABLE" Type="BOOL"/>
+                <Field Name="CRPS_ENGINE_SCAN_BUBBLE_TIMEOUT_BEFORE_REQUEST" Size="16" Type="UINT"/>
+                <Field Name="CRPS_ENGINE_SCAN_BUBBLE_TIMEOUT_AFTER_REQUEST" Size="16" Type="UINT"/>
+                <Field Name="CRPS_ENGINE_SCAN_FORCE_BUBBLE" Type="BOOL"/>
+                <Field Name="CRPS_ENGINE_SCAN_PROBABILISTIC" Type="BOOL" Valid="DNX_DATA.crps.eviction.probabilistic_is_supported"/>
+            </Result>
+            <TableLabels>J2P_NOTREV CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CRPS_ENGINE_ENABLE_CLEAR_ON_READ_RESET_VALUE">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="ENGINE_N_CLEAR_ON_READ_RESET_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_ENABLE_CLEAR_ON_READ">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="ENGINE_N_SCAN_COR_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_DMA_SELECT">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINES_DMA_SELECTr">
+                            <HwField Name="ENGINES_DMA_SELECTf"/>
+                            <DataOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0" Name="CRPS_ENGINE_SCAN_WAIT_TIME_BETWEEN_ALG_SCANS">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="ENGINE_N_SCAN_WAIT_TIME_BETWEEN_ALG_SCANSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_SCAN_WAIT_TIME_BETWEEN_SEQ_SCANS">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="ENGINE_N_SCAN_WAIT_TIME_BETWEEN_SEQ_SCANSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_SCAN_SEQ_BASE_ADDRESS_START">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="ENGINE_N_SCAN_SEQ_SCAN_BASE_ADDRESS_STARTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_SCAN_SEQ_BASE_ADDRESS_END">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="ENGINE_N_SCAN_SEQ_SCAN_BASE_ADDRESS_ENDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_SCAN_MODE">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="ENGINE_N_SCAN_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0" Name="CRPS_ENGINE_SCAN_THRESHOLD">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="ENGINE_N_SCAN_THRESHOLD_CFGf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0" Name="CRPS_ENGINE_SCAN_PKT_THRESHOLD">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="ENGINE_N_SCAN_PKT_THRESHOLD_CFGf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_SCAN_OBJECT_TYPE_FOR_DMA">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="ENGINE_N_SCAN_OBJECT_TYPE_FOR_DMAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_SCAN_DMA_RECORD_LOGICAL_SEL">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="ENGINE_N_SCAN_DMA_RECORD_LOGICAL_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_SCAN_BUBBLE_REQUEST_ENABLE">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="ENGINE_N_SCAN_BUBBLE_REQUEST_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_SCAN_BUBBLE_TIMEOUT_BEFORE_REQUEST">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="ENGINE_N_SCAN_TIME_OUT_BEFORE_BUBBLE_REQf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_SCAN_BUBBLE_TIMEOUT_AFTER_REQUEST">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="ENGINE_N_SCAN_TIME_OUT_AFTER_BUBBLE_REQf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_SCAN_FORCE_BUBBLE">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="ENGINE_N_SCAN_FORCE_BUBBLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_SCAN_PROBABILISTIC">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="ENGINE_N_LFSR_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="CRPS_ENGINE_ENABLE">
+        <OneLineDescription>This table initiate and enable the engine activity</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CRPS_ENGINE_ID"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="CRPS_ENGINE_PIPE_ENABLE" Type="BOOL"/>
+                <Field Name="CRPS_ENGINE_INIT_REQUEST" Type="BOOL"/>
+                <Field Name="CRPS_ENGINE_SCAN_ENABLE" Type="BOOL"/>
+                <Field Name="CRPS_ENGINE_SOURCE_SELECT_ENABLE" Type="BOOL"/>
+                <Field Name="DONE_INDICATION" Permission="READONLY"/>
+            </Result>
+            <TableLabels>J2P_NOTREV CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CRPS_ENGINE_PIPE_ENABLE">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="ENGINE_N_PIPE_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_INIT_REQUEST">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_INIT_REQUESTr">
+                            <HwField Name="ENGINE_INIT_REQUESTf"/>
+                            <DataOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_SCAN_ENABLE">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_SCAN_ENABLEr">
+                            <HwField Name="ENGINE_SCAN_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_SOURCE_SELECT_ENABLE">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_MMUX_ENr">
+                            <HwField Name="ENGINE_MMUX_ENf"/>
+                            <DataOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DONE_INDICATION">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_INIT_DONEr">
+                            <HwField Name="ENGINE_INIT_DONEf"/>
+                            <DataOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="CRPS_ITM_INTERFACE_CFG">
+        <OneLineDescription>This table configure the crps interface adapter for CGM source</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="STAT_IF_OBJECT_ID" Size="1"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="CRPS_ITM_PKTSIZE_NOT_QSIZE_SEL" Type="BOOL"/>
+                <Field Name="CRPS_ITM_QUEUE_MAPPING_ENABLE" Type="BOOL"/>
+                <Field Name="CRPS_ITM_COUNTER_POINTER_SHIFT" Size="2" Type="UINT"/>
+                <Field Name="CRPS_ITM_QNUM_LOW" Type="VOQ"/>
+                <Field Name="CRPS_ITM_QNUM_HIGH" Type="VOQ"/>
+            </Result>
+            <TableLabels>J2P_NOTREV CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CRPS_ITM_PKTSIZE_NOT_QSIZE_SEL">
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CFGr">
+                            <HwField Name="CGM_TM_PKTSIZE_NOT_QSIZE_SEL_Af"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CFGr">
+                            <HwField Name="CGM_TM_PKTSIZE_NOT_QSIZE_SEL_Bf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ITM_QUEUE_MAPPING_ENABLE">
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CGM_INT_TM_STAT_SETTINGSr">
+                            <HwField Name="INT_TM_STAT_PTR_MAP_EN_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CGM_INT_TM_STAT_SETTINGSr">
+                            <HwField Name="INT_TM_STAT_PTR_MAP_EN_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ITM_COUNTER_POINTER_SHIFT">
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CGM_INT_TM_STAT_SETTINGSr">
+                            <HwField Name="INT_TM_STAT_PTR_SHIFT_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CGM_INT_TM_STAT_SETTINGSr">
+                            <HwField Name="INT_TM_STAT_PTR_SHIFT_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ITM_QNUM_LOW">
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CGM_INT_TM_STAT_SETTINGSr">
+                            <HwField Name="INT_TM_STAT_QNUM_LOW_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CGM_INT_TM_STAT_SETTINGSr">
+                            <HwField Name="INT_TM_STAT_QNUM_LOW_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ITM_QNUM_HIGH">
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CGM_INT_TM_STAT_SETTINGSr">
+                            <HwField Name="INT_TM_STAT_QNUM_HIGH_0f"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CGM_INT_TM_STAT_SETTINGSr">
+                            <HwField Name="INT_TM_STAT_QNUM_HIGH_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="CRPS_ITM_INT_STAT_PTR_MAP">
+        <OneLineDescription>This table configure the mapping from ingress voq to object stat id</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="DNX_DATA.ipq.queues.nof_queues/8-1" Name="BASE_OCTET_VOQ" Size="DNX_DATA.ipq.queues.queue_id_bits-3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="STAT_PTR" Size="DNX_DATA.ipq.queues.queue_id_bits-3" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="STAT_PTR">
+                    <Access>
+                        <Memory Name="CGM_INT_TM_STAT_PTR_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(BASE_OCTET_VOQ)/4"/>
+                            <HwField Name="INT_TM_STAT_PTR_MAP_DATAf"/>
+                            <DataOffset Formula="#KEY_VALUE(BASE_OCTET_VOQ)%4*dnx_data_ipq.queues.queue_id_bits_get(unit)-#KEY_VALUE(BASE_OCTET_VOQ)%4*3"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="CRPS_ETM_INTERFACE_CFG">
+        <OneLineDescription>This table enable/disable the counter pointer from Egress TM queues (EGQ)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PP_PORT"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="ENABLE_ETM_COUNTER_PTR" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0" Name="ENABLE_ETM_COUNTER_PTR">
+                    <Access>
+                        <Memory Name="ERPP_PER_PORT_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PP_PORT)"/>
+                            <HwField Name="ENABLE_TM_COUNTER_PTRf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="ENABLE_ETM_COUNTER_PTR">
+                    <Access>
+                        <Memory Name="ERPP_PER_PP_PORT_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(PP_PORT)"/>
+                            <HwField Name="ENABLE_TM_COUNTER_PTRf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="CRPS_ITPP_INTERFACE_CFG">
+        <OneLineDescription>This table configure the crps interface adapter for ITPP source</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="CRPS_ITPP_LTNCY_CTR_EXPANSION_SELECT" Size="16" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CRPS_ITPP_LTNCY_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CFGr">
+                            <HwField Name="ITPP_LTNCY_CTR_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="CRPS_ERPP_INTERFACE_CFG">
+        <OneLineDescription>This table configure the crps interface adapter for ERPP source</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="STAT_IF_OBJECT_ID" Size="1"/>
+                <Field Name="STAT_IF_TYPE_ID"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="CRPS_ERPP_CTR_EXPANSION_SELECT" Size="16" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CRPS_ERPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CFGr">
+                            <HwField Name="EGQ_ERPP_CTR_0_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CFGr">
+                            <HwField Name="EGQ_ERPP_CTR_0_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CFGr">
+                            <HwField Name="EGQ_ERPP_CTR_0_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CFGr">
+                            <HwField Name="EGQ_ERPP_CTR_0_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CFGr">
+                            <HwField Name="EGQ_ERPP_CTR_1_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CFGr">
+                            <HwField Name="EGQ_ERPP_CTR_1_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CFGr">
+                            <HwField Name="EGQ_ERPP_CTR_1_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CFGr">
+                            <HwField Name="EGQ_ERPP_CTR_1_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="CRPS_ETPP_INTERFACE_CFG">
+        <OneLineDescription>This table configure the crps interface adapter for ETPP source</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="5" Name="CRPS_IF_ETPP_OBJECT_ID" Size="3" Type="UINT"/>
+                <Field Name="STAT_IF_TYPE_ID"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="CRPS_ETPP_CTR_EXPANSION_SELECT" Size="24" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CRPS_ETPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_ETPP_OBJECT_ID" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_0_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_ETPP_OBJECT_ID" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_0_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_ETPP_OBJECT_ID" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_0_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_ETPP_OBJECT_ID" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_0_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_ETPP_OBJECT_ID" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_1_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_ETPP_OBJECT_ID" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_1_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_ETPP_OBJECT_ID" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_1_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_ETPP_OBJECT_ID" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_1_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_ETPP_OBJECT_ID" Type="EQUAL_TO" Value="2"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_2_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_ETPP_OBJECT_ID" Type="EQUAL_TO" Value="2"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_2_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_ETPP_OBJECT_ID" Type="EQUAL_TO" Value="2"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_2_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_ETPP_OBJECT_ID" Type="EQUAL_TO" Value="2"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_2_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_ETPP_OBJECT_ID" Type="EQUAL_TO" Value="3"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_3_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_ETPP_OBJECT_ID" Type="EQUAL_TO" Value="3"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_3_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_ETPP_OBJECT_ID" Type="EQUAL_TO" Value="3"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_3_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_ETPP_OBJECT_ID" Type="EQUAL_TO" Value="3"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_3_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_ETPP_OBJECT_ID" Type="EQUAL_TO" Value="4"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_4_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_ETPP_OBJECT_ID" Type="EQUAL_TO" Value="4"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_4_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_ETPP_OBJECT_ID" Type="EQUAL_TO" Value="4"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_4_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_ETPP_OBJECT_ID" Type="EQUAL_TO" Value="4"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_4_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_ETPP_OBJECT_ID" Type="EQUAL_TO" Value="5"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_5_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_ETPP_OBJECT_ID" Type="EQUAL_TO" Value="5"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_5_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_ETPP_OBJECT_ID" Type="EQUAL_TO" Value="5"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_5_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_ETPP_OBJECT_ID" Type="EQUAL_TO" Value="5"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_5_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="CRPS_ETPP_LATENCY_CTR_SELECT">
+        <OneLineDescription>The following table should select if to use etpp latency counter or packet size counter</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_LTNCY_CTR_SELECTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="CRPS_IRPP_INTERFACE_CFG">
+        <OneLineDescription>This table configure the crps interface adapter for IRPP source</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="9" Name="STAT_IF_OBJECT_ID"/>
+                <Field Name="STAT_IF_TYPE_ID"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT" Size="36" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>J2P_NOTREV CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_0_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_0_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_0_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_0_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_1_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_1_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_1_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_1_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="2"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_2_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="2"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_2_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="2"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_2_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="2"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_2_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="3"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_3_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="3"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_3_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="3"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_3_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="3"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_3_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="4"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_4_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="4"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_4_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="4"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_4_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="4"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_4_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="5"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_5_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="5"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_5_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="5"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_5_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="5"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_5_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="6"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_6_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="6"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_6_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="6"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_6_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="6"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_6_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="7"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_7_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="7"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_7_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="7"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_7_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="7"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_7_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="8"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_2_CFGr">
+                            <HwField Name="CGM_IRPP_8_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="8"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_2_CFGr">
+                            <HwField Name="CGM_IRPP_8_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="8"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_2_CFGr">
+                            <HwField Name="CGM_IRPP_8_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="8"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_2_CFGr">
+                            <HwField Name="CGM_IRPP_8_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="9"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_2_CFGr">
+                            <HwField Name="CGM_IRPP_9_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="9"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_2_CFGr">
+                            <HwField Name="CGM_IRPP_9_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="9"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_2_CFGr">
+                            <HwField Name="CGM_IRPP_9_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="STAT_IF_OBJECT_ID" Type="EQUAL_TO" Value="9"/>
+                        <KeyCondition Field="STAT_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_2_CFGr">
+                            <HwField Name="CGM_IRPP_9_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="CRPS_ENGINE_TYPE_CONFIG">
+        <OneLineDescription>This table configure the object-type-addmission and Object-Type-Offset of the engine. (per type)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CRPS_ENGINE_ID"/>
+                <Field Name="STAT_IF_TYPE_ID"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="CRPS_ENGINE_TYPE_ADMISSION" Type="BOOL"/>
+                <Field Name="CRPS_ENGINE_TYPE_MAP_OFFSET" Size="20" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CRPS_ENGINE_TYPE_ADMISSION">
+                    <Access>
+                        <Register Name="CRPS_CRPS_MODULESRC_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="MODULESRC_N_TYPE_ADMN_MAPf"/>
+                            <DataOffset Formula="#KEY_VALUE(STAT_IF_TYPE_ID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_TYPE_MAP_OFFSET">
+                    <Access>
+                        <Memory Name="CRPS_CRPS_TYPE_MAP_MEMm">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(STAT_IF_TYPE_ID)"/>
+                            <HwField Name="TYPE_MAP_BITSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="CRPS_EXPANSION_DATA_MAPPING">
+        <OneLineDescription>This table configure the expansion mapping per engine</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CRPS_ENGINE_ID"/>
+                <Field Name="CRPS_EXPANSION_INDEX" Size="10" Type="UINT"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="CRPS_EXPANSION_DATA_ADMISSION" Type="BOOL"/>
+                <Field Name="CRPS_EXPANSION_DATA_OFFSET" Size="5" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0" Name="CRPS_EXPANSION_DATA_ADMISSION">
+                    <Access>
+                        <KeyCondition Field="CRPS_ENGINE_ID" Type="LOWER_THAN" Value="DNX_DATA.crps.engine.nof_engines-DNX_DATA.crps.engine.nof_mid_engines-DNX_DATA.crps.engine.nof_big_engines"/>
+                        <Memory Name="CRPS_CRPS_EXPANSION_MAP_A_MEMm">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(CRPS_EXPANSION_INDEX)"/>
+                            <HwField Name="ITEM_5_5f"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_ENGINE_ID" Type="BIGGER_THAN" Value="DNX_DATA.crps.engine.nof_engines-DNX_DATA.crps.engine.nof_mid_engines-DNX_DATA.crps.engine.nof_big_engines-1"/>
+                        <KeyCondition Field="CRPS_ENGINE_ID" Type="LOWER_THAN" Value="DNX_DATA.crps.engine.nof_engines-DNX_DATA.crps.engine.nof_big_engines"/>
+                        <Memory Name="CRPS_CRPS_EXPANSION_MAP_B_MEMm">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)-dnx_data_crps.engine.nof_engines_get(unit)+dnx_data_crps.engine.nof_mid_engines_get(unit)+dnx_data_crps.engine.nof_big_engines_get(unit)"/>
+                            <EntryOffset Formula="#KEY_VALUE(CRPS_EXPANSION_INDEX)"/>
+                            <HwField Name="ITEM_5_5f"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_ENGINE_ID" Type="BIGGER_THAN" Value="DNX_DATA.crps.engine.nof_engines-DNX_DATA.crps.engine.nof_big_engines-1"/>
+                        <Memory Name="CRPS_CRPS_EXPANSION_MAP_C_MEMm">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)-dnx_data_crps.engine.nof_engines_get(unit)+dnx_data_crps.engine.nof_big_engines_get(unit)"/>
+                            <EntryOffset Formula="#KEY_VALUE(CRPS_EXPANSION_INDEX)"/>
+                            <HwField Name="ITEM_5_5f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="CRPS_EXPANSION_DATA_ADMISSION">
+                    <Access>
+                        <Memory Name="CRPS_CRPS_EXPANSION_MAP_MEMm">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(CRPS_EXPANSION_INDEX)"/>
+                            <HwField Name="ITEM_5_5f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 J2C_A0 Q2A_A0 Q2A_B0" Name="CRPS_EXPANSION_DATA_OFFSET">
+                    <Access>
+                        <KeyCondition Field="CRPS_ENGINE_ID" Type="LOWER_THAN" Value="DNX_DATA.crps.engine.nof_engines-DNX_DATA.crps.engine.nof_mid_engines-DNX_DATA.crps.engine.nof_big_engines"/>
+                        <Memory Name="CRPS_CRPS_EXPANSION_MAP_A_MEMm">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(CRPS_EXPANSION_INDEX)"/>
+                            <HwField Name="ITEM_0_4f"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_ENGINE_ID" Type="BIGGER_THAN" Value="DNX_DATA.crps.engine.nof_engines-DNX_DATA.crps.engine.nof_mid_engines-DNX_DATA.crps.engine.nof_big_engines-1"/>
+                        <KeyCondition Field="CRPS_ENGINE_ID" Type="LOWER_THAN" Value="DNX_DATA.crps.engine.nof_engines-DNX_DATA.crps.engine.nof_big_engines"/>
+                        <Memory Name="CRPS_CRPS_EXPANSION_MAP_B_MEMm">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)-dnx_data_crps.engine.nof_engines_get(unit)+dnx_data_crps.engine.nof_mid_engines_get(unit)+dnx_data_crps.engine.nof_big_engines_get(unit)"/>
+                            <EntryOffset Formula="#KEY_VALUE(CRPS_EXPANSION_INDEX)"/>
+                            <HwField Name="ITEM_0_4f"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_ENGINE_ID" Type="BIGGER_THAN" Value="DNX_DATA.crps.engine.nof_engines-DNX_DATA.crps.engine.nof_big_engines-1"/>
+                        <Memory Name="CRPS_CRPS_EXPANSION_MAP_C_MEMm">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)-dnx_data_crps.engine.nof_engines_get(unit)+dnx_data_crps.engine.nof_big_engines_get(unit)"/>
+                            <EntryOffset Formula="#KEY_VALUE(CRPS_EXPANSION_INDEX)"/>
+                            <HwField Name="ITEM_0_4f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="CRPS_EXPANSION_DATA_OFFSET">
+                    <Access>
+                        <Memory Name="CRPS_CRPS_EXPANSION_MAP_MEMm">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <EntryOffset Formula="#KEY_VALUE(CRPS_EXPANSION_INDEX)"/>
+                            <HwField Name="ITEM_0_4f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="CRPS_ETPP_COUNTER_DATA_SELECTION">
+        <OneLineDescription>This table configure the format of the 24 bits meta data that etpp generates </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CRPS_ETPP_COUNTER_DATA_TYPE"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="SHIFT_VALUE" Size="5" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="SHIFT_VALUE">
+                    <Access>
+                        <KeyCondition Enum="TYPE_DP" Field="CRPS_ETPP_COUNTER_DATA_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_CFG_TRAP_DP_INTERNAL_SHIFTr">
+                            <HwField Name="CFG_TRAP_DP_INTERNAL_SHIFTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TYPE_TC" Field="CRPS_ETPP_COUNTER_DATA_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_CFG_TRAP_TC_INTERNAL_SHIFTr">
+                            <HwField Name="CFG_TRAP_TC_INTERNAL_SHIFTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TYPE_ECN_CNI" Field="CRPS_ETPP_COUNTER_DATA_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_CFG_TRAP_ECN_INTERNAL_SHIFTr">
+                            <HwField Name="CFG_TRAP_ECN_INTERNAL_SHIFTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TYPE_PORT_DATA" Field="CRPS_ETPP_COUNTER_DATA_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_CFG_TRAP_PORT_INTERNAL_SHIFTr">
+                            <HwField Name="CFG_TRAP_PORT_INTERNAL_SHIFTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TYPE_PP_DROP_REASON" Field="CRPS_ETPP_COUNTER_DATA_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_CFG_TRAP_DROP_INTERNAL_SHIFTr">
+                            <HwField Name="CFG_TRAP_DROP_INTERNAL_SHIFTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TYPE_IS_MC" Field="CRPS_ETPP_COUNTER_DATA_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_CFG_TRAP_MC_INTERNAL_SHIFTr">
+                            <HwField Name="CFG_TRAP_MC_INTERNAL_SHIFTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TYPE_OBJ0_META_DATA" Field="CRPS_ETPP_COUNTER_DATA_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_CFG_TRAP_OBJ_0_SHIFTr">
+                            <HwField Name="CFG_TRAP_OBJ_0_SHIFTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TYPE_OBJ1_META_DATA" Field="CRPS_ETPP_COUNTER_DATA_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_CFG_TRAP_OBJ_1_SHIFTr">
+                            <HwField Name="CFG_TRAP_OBJ_1_SHIFTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TYPE_OBJ2_META_DATA" Field="CRPS_ETPP_COUNTER_DATA_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_CFG_TRAP_OBJ_2_SHIFTr">
+                            <HwField Name="CFG_TRAP_OBJ_2_SHIFTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TYPE_OBJ3_META_DATA" Field="CRPS_ETPP_COUNTER_DATA_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_CFG_TRAP_OBJ_3_SHIFTr">
+                            <HwField Name="CFG_TRAP_OBJ_3_SHIFTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TYPE_OBJ4_META_DATA" Field="CRPS_ETPP_COUNTER_DATA_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_CFG_TRAP_OBJ_4_SHIFTr">
+                            <HwField Name="CFG_TRAP_OBJ_4_SHIFTf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="TYPE_OBJ5_META_DATA" Field="CRPS_ETPP_COUNTER_DATA_TYPE" Type="EQUAL_TO"/>
+                        <Register Name="ETPPB_CFG_TRAP_OBJ_5_SHIFTr">
+                            <HwField Name="CFG_TRAP_OBJ_5_SHIFTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="CRPS_LAST_COMMAND">
+        <OneLineDescription>This table gives the last command sent into the counter processor</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CRPS_ENGINE_ID"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="ENGINE_LAST_ADDRESS_ADMITTED" Permission="READONLY" Size="DNX_DATA.crps.engine.last_address_nof_bits" Type="UINT"/>
+                <Field Name="ENGINE_LAST_DATA_ADMITTED" Permission="READONLY" Size="34" Type="ARRAY8"/>
+            </Result>
+            <TableLabels>J2P_NOTREV CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="ENGINE_LAST_ADDRESS_ADMITTED">
+                    <Access>
+                        <Register Name="CRPS_CRPS_DEBUG_LAST_COMMANDr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="ENGINE_N_LAST_ADDRESS_ADMITTEDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ENGINE_LAST_DATA_ADMITTED">
+                    <Access>
+                        <Register Name="CRPS_CRPS_DEBUG_LAST_COMMANDr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="ENGINE_N_LAST_DATA_ADMITTEDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="CRPS_INGRESS_COMPENSATION_MASKS">
+        <OneLineDescription>This table sets Ingress compensation masks</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="IRPP_STAT_HDR_CMP_MASK_0" Size="5" Type="UINT"/>
+                <Field Name="IRPP_STAT_HDR_CMP_MASK_1" Size="5" Type="UINT"/>
+                <Field Name="TM_STAT_HDR_CMP_MASK" Size="5" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="IRPP_STAT_HDR_CMP_MASK_0">
+                    <Access>
+                        <Register Name="CGM_INT_IRPP_STAT_SETTINGSr">
+                            <HwField Name="INT_IRPP_STAT_HDR_CMP_MASK_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IRPP_STAT_HDR_CMP_MASK_1">
+                    <Access>
+                        <Register Name="CGM_INT_IRPP_STAT_SETTINGSr">
+                            <HwField Name="INT_IRPP_STAT_HDR_CMP_MASK_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TM_STAT_HDR_CMP_MASK">
+                    <Access>
+                        <Register Name="CGM_INT_TM_STAT_SETTINGSr">
+                            <HwField Name="INT_TM_STAT_HDR_CMP_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="CRPS_IRPP_COMPENSATION_SELECT">
+        <OneLineDescription>This table sets Ingress compensation selected mask</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="9" Name="CRPS_COMMAND_ID" Size="4" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="PACKET_SIZE_SELECT" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="PACKET_SIZE_SELECT">
+                    <Access>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CFGr">
+                            <HwField Name="CGM_IRPP_PACKET_SIZE_SELECTf"/>
+                            <DataOffset Formula="#KEY_VALUE(CRPS_COMMAND_ID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="CRPS_OVERFLOW_COUNTER">
+        <OneLineDescription>This table gives the overflow counter mode</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CRPS_ENGINE_ID"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="CRPS_ENGINE_ENABLE_CLEAR_ON_OVF" Size="1" Type="UINT"/>
+                <Field Name="CRPS_ENGINE_OVF_RESET_VALUE"/>
+            </Result>
+            <TableLabels>J2P_NOTREV CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CRPS_ENGINE_ENABLE_CLEAR_ON_OVF">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="ENGINE_N_ENABLE_CLEAR_ON_OVFf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_OVF_RESET_VALUE">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="ENGINE_N_OVF_RESET_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="CRPS_IRPP_FILTER_MASK">
+        <OneLineDescription>This table gives the filter reject groups per command id for IRPP&gt;</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="9" Name="CRPS_COMMAND_ID" Size="4" Type="UINT"/>
+                <Field Description="Filter group id" Name="FILTER_GROUP_ID" Size="3" Type="UINT"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="FILTER_MASK_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="FILTER_MASK_ENABLE">
+                    <Access>
+                        <KeyCondition Field="CRPS_COMMAND_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CGM_INT_IRPP_STAT_SETTINGSr">
+                            <HwField Name="INT_IRPP_STAT_RJCT_FILTER_MASK_0f"/>
+                            <DataOffset Formula="#KEY_VALUE(FILTER_GROUP_ID)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_COMMAND_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CGM_INT_IRPP_STAT_SETTINGSr">
+                            <HwField Name="INT_IRPP_STAT_RJCT_FILTER_MASK_1f"/>
+                            <DataOffset Formula="#KEY_VALUE(FILTER_GROUP_ID)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_COMMAND_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="CGM_INT_IRPP_STAT_SETTINGSr">
+                            <HwField Name="INT_IRPP_STAT_RJCT_FILTER_MASK_2f"/>
+                            <DataOffset Formula="#KEY_VALUE(FILTER_GROUP_ID)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_COMMAND_ID" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="CGM_INT_IRPP_STAT_SETTINGSr">
+                            <HwField Name="INT_IRPP_STAT_RJCT_FILTER_MASK_3f"/>
+                            <DataOffset Formula="#KEY_VALUE(FILTER_GROUP_ID)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_COMMAND_ID" Type="EQUAL_TO" Value="4"/>
+                        <Register Name="CGM_INT_IRPP_STAT_SETTINGSr">
+                            <HwField Name="INT_IRPP_STAT_RJCT_FILTER_MASK_4f"/>
+                            <DataOffset Formula="#KEY_VALUE(FILTER_GROUP_ID)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_COMMAND_ID" Type="EQUAL_TO" Value="5"/>
+                        <Register Name="CGM_INT_IRPP_STAT_SETTINGSr">
+                            <HwField Name="INT_IRPP_STAT_RJCT_FILTER_MASK_5f"/>
+                            <DataOffset Formula="#KEY_VALUE(FILTER_GROUP_ID)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_COMMAND_ID" Type="EQUAL_TO" Value="6"/>
+                        <Register Name="CGM_INT_IRPP_STAT_SETTINGSr">
+                            <HwField Name="INT_IRPP_STAT_RJCT_FILTER_MASK_6f"/>
+                            <DataOffset Formula="#KEY_VALUE(FILTER_GROUP_ID)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_COMMAND_ID" Type="EQUAL_TO" Value="7"/>
+                        <Register Name="CGM_INT_IRPP_STAT_SETTINGSr">
+                            <HwField Name="INT_IRPP_STAT_RJCT_FILTER_MASK_7f"/>
+                            <DataOffset Formula="#KEY_VALUE(FILTER_GROUP_ID)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_COMMAND_ID" Type="EQUAL_TO" Value="8"/>
+                        <Register Name="CGM_INT_IRPP_STAT_SETTINGSr">
+                            <HwField Name="INT_IRPP_STAT_RJCT_FILTER_MASK_8f"/>
+                            <DataOffset Formula="#KEY_VALUE(FILTER_GROUP_ID)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_COMMAND_ID" Type="EQUAL_TO" Value="9"/>
+                        <Register Name="CGM_INT_IRPP_STAT_SETTINGSr">
+                            <HwField Name="INT_IRPP_STAT_RJCT_FILTER_MASK_9f"/>
+                            <DataOffset Formula="#KEY_VALUE(FILTER_GROUP_ID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="CRPS_TM_FILTER_MASK">
+        <OneLineDescription>This table gives the filter reject groups per command id for TM&gt;</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="1" Name="CRPS_COMMAND_ID" Size="4" Type="UINT"/>
+                <Field Description="Filter group id" Name="FILTER_GROUP_ID" Size="3" Type="UINT"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="FILTER_MASK_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="FILTER_MASK_ENABLE">
+                    <Access>
+                        <KeyCondition Field="CRPS_COMMAND_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CGM_INT_TM_STAT_SETTINGSr">
+                            <HwField Name="INT_TM_STAT_RJCT_FILTER_MASK_0f"/>
+                            <DataOffset Formula="#KEY_VALUE(FILTER_GROUP_ID)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CRPS_COMMAND_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CGM_INT_TM_STAT_SETTINGSr">
+                            <HwField Name="INT_TM_STAT_RJCT_FILTER_MASK_1f"/>
+                            <DataOffset Formula="#KEY_VALUE(FILTER_GROUP_ID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="CRPS_METER_SMALL_ENGINE_SHARED_MEM">
+        <OneLineDescription>The following table should describe the source of each memory in HW DB_A (small engines) bank in the shared memory.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="ENGINE_ID" Size="1" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="IS_SRC_METER" Size="1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="IS_SRC_METER">
+                    <Access>
+                        <KeyCondition Field="ENGINE_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_A_BANK_0_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="ENGINE_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_A_BANK_1_SOURCEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="CRPS_METER_BIG_ENGINE_SHARED_MEM">
+        <OneLineDescription>The following table should describe the source of each memory in HW DB_C (big engines) bank in the shared memory.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field MaxValue="DNX_DATA.crps.engine.nof_big_engines*2-1" Name="BANK_ID" Size="#log2_round_up(DNX_DATA.crps.engine.nof_big_engines*2)" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="METER_CRPS_SMEM_SRC_TYPES"/>
+            </Result>
+            <TableLabels>J2P_NOTREV METER</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="METER_CRPS_SMEM_SRC_TYPES">
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_0_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_1_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_2_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_3_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="4"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_4_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="5"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_5_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="6"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_6_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="7"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_7_SOURCEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0 J2C_A0 J2P_A0" Name="METER_CRPS_SMEM_SRC_TYPES">
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="8"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_8_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="9"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_9_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="10"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_10_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="11"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_11_SOURCEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 J2P_A0" Name="METER_CRPS_SMEM_SRC_TYPES">
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="12"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_12_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="13"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_13_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="14"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_14_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="15"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_15_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="16"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_16_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="17"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_17_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="18"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_18_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="19"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_19_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="20"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_20_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="21"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_21_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="22"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_22_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="23"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_23_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="24"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_24_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="25"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_25_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="26"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_26_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="27"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_27_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="28"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_28_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="29"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_29_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="30"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_30_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="31"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_31_SOURCEf"/>
+                        </Register>
+                    </Access>
+                     <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="32"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_32_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="33"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_33_SOURCEf"/>
+                        </Register>
+                    </Access>
+                     <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="34"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_34_SOURCEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="BANK_ID" Type="EQUAL_TO" Value="35"/>
+                        <Register Name="MCP_ENG_DB_BANK_SOURCEr">
+                            <HwField Name="ENG_DB_C_BANK_35_SOURCEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="CRPS_OAM_DUMMY_REPLY">
+        <OneLineDescription>This table configures the dummy reply sent from the counter processor to the OAM in case the OAM is stuck</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-123412" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Name="DUMMY_DATA" Size="32" Type="UINT"/>
+                <Field Name="DUMMY_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DUMMY_DATA">
+                    <Access>
+                        <Register Name="CRPS_CRPS_LM_DUMMY_REPLYr">
+                            <HwField Name="ILM_REPLY_DUMMY_DATAf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="CRPS_CRPS_LM_DUMMY_REPLYr">
+                            <HwField Name="ELM_REPLY_DUMMY_DATAf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="CRPS_CRPS_LM_DUMMY_REPLYr">
+                            <HwField Name="SLM_REPLY_DUMMY_DATAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DUMMY_ENABLE">
+                    <Access>
+                        <Register Name="CRPS_CRPS_LM_DUMMY_REPLYr">
+                            <HwField Name="ILM_REPLY_DUMMY_ENABLEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="CRPS_CRPS_LM_DUMMY_REPLYr">
+                            <HwField Name="ELM_REPLY_DUMMY_ENABLEf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="CRPS_CRPS_LM_DUMMY_REPLYr">
+                            <HwField Name="SLM_REPLY_DUMMY_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="CRPS_LAST_INPUT_COMMAND" Valid="DNX_DATA.crps.engine.last_input_command_is_supported">
+        <OneLineDescription>This table gives the last received command for a given source </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Enabling the last received command debug register" Name="ENABLE" Type="BOOL"/>
+                <Field Description="Configure the Interface to return the last received command" Name="INTERFACE_ID" Size="5" Type="UINT"/>
+                <Field Description="Last received command read (1 for read, 0 for write)" Name="READ_WRITE" Permission="READONLY" Type="BOOL"/>
+                <Field Description="Last received command incr" Name="INCR" Permission="READONLY" Type="BOOL"/>
+                <Field Description="Last received command type" Name="TYPE_ID" Permission="READONLY" Size="2" Type="UINT"/>
+                <Field Description="Last received command expansion" Name="EXPANSION" Permission="READONLY" Size="10" Type="UINT"/>
+                <Field Description="Last received command pointer" Name="COUNTER_POINTER" Permission="READONLY" Size="20" Type="UINT"/>
+                <Field Description="Last received command packet size or queue size" Name="PKT_OR_QUEUE_SIZE" Permission="READONLY" Size="34" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>J2P_NOTREV CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="CRPS_CRPS_LAST_INPUT_COMMANDr">
+                            <HwField Name="LAST_INPUT_COMMAND_ENABLEDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="INTERFACE_ID">
+                    <Access>
+                        <Register Name="CRPS_CRPS_LAST_INPUT_COMMANDr">
+                            <HwField Name="LAST_INPUT_COMMAND_INTERFACE_NUMBERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="READ_WRITE">
+                    <Access>
+                        <Register Name="CRPS_CRPS_LAST_INPUT_COMMANDr">
+                            <HwField Name="LAST_INPUT_COMMAND_RDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="INCR">
+                    <Access>
+                        <Register Name="CRPS_CRPS_LAST_INPUT_COMMANDr">
+                            <HwField Name="LAST_INPUT_COMMAND_INCRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TYPE_ID">
+                    <Access>
+                        <Register Name="CRPS_CRPS_LAST_INPUT_COMMANDr">
+                            <HwField Name="LAST_INPUT_COMMAND_TYPEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EXPANSION">
+                    <Access>
+                        <Register Name="CRPS_CRPS_LAST_INPUT_COMMANDr">
+                            <HwField Name="LAST_INPUT_COMMAND_EXPANSIONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COUNTER_POINTER">
+                    <Access>
+                        <Register Name="CRPS_CRPS_LAST_INPUT_COMMANDr">
+                            <HwField Name="LAST_INPUT_COMMAND_POINTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PKT_OR_QUEUE_SIZE">
+                    <Access>
+                        <Register Name="CRPS_CRPS_LAST_INPUT_COMMANDr">
+                            <HwField Name="LAST_INPUT_COMMAND_PKT_SIZE_OR_QUEUE_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="CRPS_CONDITIONAL_EVICTION_CFG" Valid="DNX_DATA.crps.eviction.conditional_action_is_supported"> 
+        <OneLineDescription>This table represents the CRPS condional eviction action configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CRPS_ENGINE_ID"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="ENABLE" Type="BOOL"/>
+                <Field Name="CFG_DATA_ENABLE" Type="BOOL"/>
+                <Field Name="CFG_DATA" Type="ARRAY32" Size="34"/>
+                <Field Name="COND_QUALIFIER" Type="CRPS_COND_EVICTION_QUAL_MODE"/>
+                <Field Name="ACTION_EVICT_COUNTER" Type="BOOL"/>
+                <Field Name="ACTION_RESET_COUNTER" Type="BOOL"/>
+                <Field Name="ACTION_EVICT_TIME" Type="BOOL"/>
+                <Field Name="ACTION_INTERRUPT" Type="BOOL"/>
+                <Field Name="ACTION_NO_EVICTION" Type="BOOL"/>              
+            </Result>
+            <TableLabels>J2P_NOTREV CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CONDITIONAL_TRIGGER_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="CRPS_ENGINE_N_CONDITIONAL_TRIGGER_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CFG_DATA_ENABLE">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CONDITIONAL_TRIGGER_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="CRPS_ENGINE_N_CONDITIONAL_TRIGGER_SOURCE_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CFG_DATA">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CONDITIONAL_TRIGGER_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="CRPS_ENGINE_N_CONDITIONAL_TRIGGER_SOURCEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COND_QUALIFIER">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CONDITIONAL_TRIGGER_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="CRPS_ENGINE_N_CONDITIONAL_TRIGGER_OPERATION_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ACTION_EVICT_COUNTER">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CONDITIONAL_TRIGGER_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="CRPS_ENGINE_N_CONDITIONAL_TRIGGER_ACTIONf"/>
+                            <DataOffset Formula="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ACTION_RESET_COUNTER">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CONDITIONAL_TRIGGER_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="CRPS_ENGINE_N_CONDITIONAL_TRIGGER_ACTIONf"/>
+                            <DataOffset Formula="1"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ACTION_EVICT_TIME">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CONDITIONAL_TRIGGER_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="CRPS_ENGINE_N_CONDITIONAL_TRIGGER_ACTIONf"/>
+                            <DataOffset Formula="2"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ACTION_INTERRUPT">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CONDITIONAL_TRIGGER_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="CRPS_ENGINE_N_CONDITIONAL_TRIGGER_ACTIONf"/>
+                            <DataOffset Formula="3"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ACTION_NO_EVICTION">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CONDITIONAL_TRIGGER_CFGr">
+                            <ArrayOffset Formula="#KEY_VALUE(CRPS_ENGINE_ID)"/>
+                            <HwField Name="CRPS_ENGINE_N_CONDITIONAL_TRIGGER_ACTIONf"/>
+                            <DataOffset Formula="4"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

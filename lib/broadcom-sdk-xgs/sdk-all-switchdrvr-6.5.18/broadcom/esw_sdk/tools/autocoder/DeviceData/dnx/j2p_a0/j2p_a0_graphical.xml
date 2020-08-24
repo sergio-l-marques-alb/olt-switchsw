@@ -1,0 +1,188 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2p_a0" module="graphical">
+    <sub_module name="diag">
+        <defines>
+            <!-- depend on max rows of left and right -->
+            <define name="num_of_rows" value="4"></define>
+            <define name="num_of_index" value="4"></define>
+            <define name="num_of_block_entries" value="10"></define>
+        </defines>
+        <tables>
+            <table name="blocks_left">
+                <key name="row" size="DATA(graphical, diag, num_of_rows)"></key>
+                <key name="index" size="DATA(graphical, diag, num_of_index)"></key>
+                <value name="block" default="dnx_graphical_block_count"></value>
+                <value name="name" default="INVALID"></value>
+                <value name="valid" default="0"></value>
+                <value name="per_core" default="1"></value>
+                <entries>
+                    <entry block="dnx_graphical_nif_rx" name="NIF_RX" valid="1" row="0" index="0"></entry>
+                    <entry block="dnx_graphical_ire" name="IRE" valid="1" row="1" index="0"></entry>
+                    <entry block="dnx_graphical_spb" name="SPB" valid="1" row="2" index="0"></entry>
+                    <entry block="dnx_graphical_ddp" name="DDP" valid="1" row="2" index="1"></entry>
+                    <entry block="dnx_graphical_cgm" name="CGM" valid="1" row="2" index="2"></entry>
+                    <entry block="dnx_graphical_ipt" name="IPT" valid="1" row="2" index="3"></entry>
+                    <entry block="dnx_graphical_fdt" name="FDT" valid="1" row="3" index="0" per_core="0"></entry>
+                </entries>
+            </table>
+
+            <table name="blocks_right">
+                <key name="row" size="4"></key>
+                <key name="index" size="4"></key>
+                <value name="block" default="dnx_graphical_block_count"></value>
+                <value name="name" default="INVALID"></value>
+                <value name="valid" default="0"></value>
+                <value name="per_core" default="1"></value>
+                <entries>
+                    <entry block="dnx_graphical_nif_tx" name="NIF_TX" valid="1" row="0" index="0"></entry>
+                    <entry block="dnx_graphical_esb" name="ESB" valid="1" row="1" index="0"></entry>
+                    <entry block="dnx_graphical_epni" name="EPNI" valid="1" row="1" index="1"></entry>
+                    <entry block="dnx_graphical_pqp" name="PQP" valid="1" row="2" index="0"></entry>
+                    <entry block="dnx_graphical_rqp" name="RQP" valid="1" row="2" index="1"></entry>
+                    <entry block="dnx_graphical_fda" name="FDA" valid="1" row="2" index="2" per_core="0"></entry>
+                    <entry block="dnx_graphical_fdr" name="FDR" valid="1" row="3" index="0"></entry>
+                </entries>
+            </table>
+
+            <table name="counters">
+                <key name="block" size="dnx_graphical_block_count"></key>
+                <key name="index" size="DATA(graphical, diag, num_of_block_entries)"></key>
+                <value name="name" default="INVALID"></value>
+                <value name="short_name" default="INVALID"></value>
+                <value name="regs" default="INVALIDr"></value>
+                <value name="flds" default="INVALIDf"></value>
+                <value name="overflow_field" default="INVALIDf"></value>
+                <value name="arr_i" default="0"></value>
+                <value name="fld_num" default="1"></value>
+                <value name="doc" default="INVALID"></value>
+                <value name="is_err" default="0"></value>
+                <!--
+                    - Each counter name expected to start with "IN_" or  "OUT_" in case it represents value sent into ot out from the block
+                    - Each counter should end with units. Typically: PACKETS, CELLS, BUNDLES, BUFFERS, etc.
+                    - Each error counter should be marked with is_err
+                    - The decision of how to split between cores shold be marked with attribute per core "per_core"
+                    - It will allow to read specific counter using API that gets the counter name
+                    - Error could be marked with red color
+                    - drop reason should be added with callback which convert it to string  
+                 -->
+                <entries>
+                    <!-- NIF BLOCK (RX)-->
+                    <entry block="dnx_graphical_nif_rx" index="0"      name="TOTAL_DROPPED_EOPS" short_name="DROPPED_PKTS" regs="CDB_RX_NUM_TOTAL_DROPPED_EOPSr, CDBM_RX_NUM_TOTAL_DROPPED_EOPSr" flds="RX_NUM_TOTAL_DROPPED_EOPSf, RX_NUM_TOTAL_DROPPED_EOPSf" fld_num="2" doc="Number of Packets (EOPs) dropped in all the RX NIF ports" is_err="1"></entry>
+                    <entry block="dnx_graphical_nif_rx" index="1"      name="RX_TOTAL_PACKTS" short_name="TTL_PKTS" regs="CDB_RX_TOTAL_PKT_COUNTERr, CDBM_RX_TOTAL_PKT_COUNTERr" flds="RX_TOTAL_PKT_COUNTERf, RX_TOTAL_PKT_COUNTERf" fld_num="2" doc="Number of total packets sent from NIF to IRE"></entry>
+                    <entry block="dnx_graphical_nif_rx" index="2"      name="RX_TOTAL_BYTES" short_name="TTL_BYTS" regs="CDB_RX_TOTAL_BYTE_COUNTERr, CDBM_RX_TOTAL_BYTE_COUNTERr" flds="RX_TOTAL_BYTE_COUNTERf, RX_TOTAL_BYTE_COUNTERf" fld_num="2" doc="Number of total bytes sent from NIF to IRE"></entry>
+
+                    <!-- IRE BLOCK -->
+                    <entry block="dnx_graphical_ire" index="0"         name="IN_FDT_CREDITS" short_name="FDT_CRDS" regs="IRE_FDT_INTERFACE_COUNTERr" flds="FDT_CREDITSf" doc="Number of received credit packets"></entry>
+                    <entry block="dnx_graphical_ire" index="1"         name="IN_CPU_PACKETS" short_name="CPU_PKTS" regs="IRE_CPU_PACKET_COUNTERr" flds="CPU_PACKET_COUNTERf" doc="Number of packets received from the CPU"></entry>
+                    <entry block="dnx_graphical_ire" index="2"         name="IN_OLP_PACKETS" short_name="OLP_PKTS" regs="IRE_OLP_PACKET_COUNTERr" flds="OLP_PACKET_COUNTERf" doc="Number of packets received from the OLP block (MAC TABLE MANAGMENT)"></entry>
+                    <entry block="dnx_graphical_ire" index="3"         name="IN_NIF_PACKETS" short_name="NIF_PKTS" regs="IRE_NIF_PACKET_COUNTERr" flds="NIF_PACKET_COUNTERf" doc="Number of packets received from the NIF block (FROM THE NETWORK)"></entry>
+                    <entry block="dnx_graphical_ire" index="4"         name="IN_OAMP_PACKETS" short_name="OAMP_PKTS" regs="IRE_OAMP_PACKET_COUNTERr" flds="OAMP_PACKET_COUNTERf" doc="Number of packets received from the OAMP block (FROM THE OAM ENGINE)"></entry>
+                    <entry block="dnx_graphical_ire" index="5"         name="IN_RCYH_PACKETS" short_name="RCYH_PKTS" regs="IRE_RCYH_PACKET_COUNTERr" flds="RCYH_PACKET_COUNTERf" doc="Number of packets received from the Recycle High interface"></entry>
+                    <entry block="dnx_graphical_ire" index="6"         name="IN_RCYL_PACKETS" short_name="RCYL_PKTS" regs="IRE_RCYL_PACKET_COUNTERr" flds="RCYL_PACKET_COUNTERf" doc="Number of packets received from the Recycle Low interface"></entry>
+                    <entry block="dnx_graphical_ire" index="7"         name="IN_SAT_PACKETS" short_name="SAT_PKTS" regs="IRE_SAT_PACKET_COUNTERr" flds="SAT_PACKET_COUNTERf" doc="Number of packets received from the SAT block (Service Activation)"></entry>
+                    <entry block="dnx_graphical_ire" index="8"         name="IN_EVENTOR_PACKETS" short_name="EVNTR_PKTS" regs="IRE_EVENTOR_PACKET_COUNTERr" flds="EVENTOR_PACKET_COUNTERf" doc="Number of packets (SOPs) received from eventor"></entry>
+
+                    <!-- SPB BLOCK -->
+                    <entry block="dnx_graphical_spb" index="0"         name="IN_IRE_PACKETS" short_name="IRE_PKTS" regs="SPB_PEC_DEBUG_2r" flds="IRE_PACKETSf" doc="Number of packets from IRE"></entry>
+                    <entry block="dnx_graphical_spb" index="1"         name="OUT_CGM_REPORTS" short_name="CGM_RPRTS" regs="SPB_BRC_DEBUGr" flds="CGM_REPORT_COUNTERf" doc="number of enq/deq reports sent to the CGM"></entry>
+                    <entry block="dnx_graphical_spb" index="2"         name="OUT_DDP_PACKETS" short_name="DDP_PKTS" regs="SPB_PTC_S_2D_DEBUGr" flds="DDP_PACKETSf" doc="Number of packets sent from the DRAM to the IPT"></entry>
+                    <entry block="dnx_graphical_spb" index="3"         name="OUT_IPT_PACKETS" short_name="IPT_PKTS" regs="SPB_PTC_S_2F_DEBUGr" flds="IPT_PACKETSf" doc="Number of packets sent from OCB to IPT"></entry> 
+                    <entry block="dnx_graphical_spb" index="4"         name="CRC_ERROR_PACKETS" short_name="CRC_ERRS" regs="SPB_PTC_S_2F_DEBUGr" flds="PACKET_CRC_ERRORf" doc="Number of packets with CRC error" is_err="1"></entry>
+                    <entry block="dnx_graphical_spb" index="5"         name="OUT_DDP_ERROR_PACKETS" short_name="DDP_ERR_PKTS" regs="SPB_PTC_S_2D_DEBUGr" flds="DDP_ERROR_PACKETSf" doc="Number of packets sent from SPB to DDP with error" is_err="1"></entry>
+                    <entry block="dnx_graphical_spb" index="6"         name="OUT_IPT_ERROR_PACKETS" short_name="IPT_ERR_PKTS" regs="SPB_PTC_S_2F_DEBUGr" flds="IPT_ERROR_PACKETSf" doc="Number of packets sent from SPB to IPT with error" is_err="1"></entry>
+                    <entry block="dnx_graphical_spb" index="7"         name="OUT_S2D_CRC_ERRORS" short_name="S2D_CRC_ERR_PKTS" regs="SPB_PTC_S_2D_DEBUGr" flds="PACKET_S_2D_CRC_ERRORf" doc="Number of packets with CRC error" is_err="1"></entry>
+
+                    <!-- DDP BLOCK -->
+                    <entry block="dnx_graphical_ddp" index="0"         name="IN_SPB_GOOD_PACKETS" short_name="SPB_OK_PKTS" regs="DDP_PACKET_COUNTERSr" flds="SPB_GOOD_PACKET_CNTf" doc="Number of packets without errors from OCB"></entry>
+                    <entry block="dnx_graphical_ddp" index="1"         name="IN_SPB_ERROR_PACKETS" short_name="SPB_ERR_PKTS" regs="DDP_PACKET_ERROR_COUNTERSr" flds="SPB_PACKET_ERROR_CNTf" doc="Number of packets with errors from SPB" is_err="1"></entry>
+                    <entry block="dnx_graphical_ddp" index="2"         name="CRC_ERROR_PACKETS" short_name="CRC_ERRS" regs="DDP_ITE_DEBUGr" flds="PACKET_ERRORf" doc="Number of packets with CRC error" is_err="1"></entry>
+                    <entry block="dnx_graphical_ddp" index="3"         name="DRAM_CRC_FLIPPED_ERROR_PACKETS" short_name="DRAM_CRC_FLPD_ERRS" regs="DDP_PACKET_ERROR_COUNTERSr" flds="DRAM_PACKET_CRC_FLIPPED_ERROR_CNTf" doc="Number of packets with CRC flipped from DRAM (might be error from SPB)" is_err="1"></entry>
+                    <entry block="dnx_graphical_ddp" index="4"         name="DRAM_CRC_ERROR_PACKETS" short_name="DRAM_CRC_ERRS" regs="DDP_PACKET_ERROR_COUNTERSr" flds="DRAM_PACKET_CRC_ERROR_CNTf" doc="Number of packets with CRC Error (not flipped)."></entry>
+                    <entry block="dnx_graphical_ddp" index="5"         name="DRAM_DUMMY_TO_DISCARD_PACKETS" short_name="DRAM_DMY_2_DSCRD" regs="DDP_PACKET_ERROR_COUNTERSr" flds="DRAM_PACKET_PKUP_DISCARD_CNTf" doc="Number of dummy packets generated by the PKUP" is_err="1"></entry>
+                    <entry block="dnx_graphical_ddp" index="6"         name="DRAM_GOOD_PACKETS" short_name="DRAM_OK_PKTS" regs="DDP_PACKET_COUNTERSr" flds="DRAM_GOOD_PACKET_CNTf" doc="Number of packets without errors."></entry>
+                    <entry block="dnx_graphical_ddp" index="7"         name="CPYDAT_ERROR_PACKETS" short_name="CPTDAT_CRC_PKTS" regs="DDP_PACKET_ERROR_COUNTERSr, DDP_PACKET_ERROR_COUNTERSr, DDP_PACKET_ERROR_COUNTERSr" flds="DRAM_PACKET_CPY_DAT_CRC_ERR_CNTf, DRAM_PACKET_CPY_DAT_ECC_1B_ERR_CNTf, DRAM_PACKET_CPY_DAT_ECC_2B_ERR_CNTf" fld_num="3" doc="Number of packets with pkt-copydat CRC or ECC 1/2B error" is_err="1"></entry>
+                    <entry block="dnx_graphical_ddp" index="8"         name="OUT_CGM_CPYDAT_REPORTS" short_name="CGM_CPTDAT_RPRTS" regs="DDP_PACKET_COUNTERSr" flds="PKUP_2_CGM_PKT_TX_RPRT_CNTf" doc="Number of packets report to Cgm"></entry>
+
+                    <!-- CGM BLOCK -->
+                    <entry block="dnx_graphical_cgm" index="0"         name="QNUM_NOT_VALID_PKTS(IRPP Drops)" short_name="Q_N_VALID_PKTS" regs="CGM_GLBL_RJCT_CTRr" flds="QNUM_NOT_VALID_PKT_CTRf" doc="Number of packets dropped due to invalid queue." is_err="1"></entry>
+                    <entry block="dnx_graphical_cgm" index="1"         name="SRAM_DELETED_PACKETS" short_name="SRAM_DEL_PKTS" regs="CGM_VOQ_SRAM_DEL_CTRr" flds="VOQ_SRAM_DEL_PKT_CTRf" doc="Number of packets stored in the OCB and dropped, drop reason can be seen at CGM_REJECT_STATUS_BITMAP register" is_err="1"></entry>
+                    <entry block="dnx_graphical_cgm" index="2"         name="SRAM_DEQUEUE_TO_DRAM_PACKETS" short_name="SRAM_DEQ_TO_DRAM_PKTS" regs="CGM_VOQ_SRAM_DEQ_CTRr" flds="VOQ_SRAM_DEQ_TO_DRAM_PKT_CTRf" doc="Number of packets stored in the OCB, and transfered later on to the DRAM"></entry>
+                    <entry block="dnx_graphical_cgm" index="3"         name="SRAM_DEQUEUE_TO_FABRIC_PACKETS" short_name="SRAM_DEQ_TO_FAB_PKTS" regs="CGM_VOQ_SRAM_DEQ_CTRr" flds="VOQ_SRAM_DEQ_TO_FABRIC_PKT_CTRf" doc="Number of OCB dequeued packets to the Fabric/Local. Note: according to the VOQ_PRG_CTR_QNUM_INDEX and VOQ_PRG_CTR_QNUM_INDEX"></entry>
+                    <entry block="dnx_graphical_cgm" index="4"         name="SRAM_ENQUEUE_PACKETS" short_name="SRAM_ENQ_PKTS" regs="CGM_VOQ_SRAM_ENQ_CTRr" flds="VOQ_SRAM_ENQ_PKT_CTRf" doc="Number of good packets stored in the OCB  (not including rejects). Note: according to the VOQ_PRG_CTR_QNUM_INDEX and VOQ_PRG_CTR_QNUM_INDEX_MASK"></entry>
+                    <entry block="dnx_graphical_cgm" index="5"         name="SRAM_ENQUEUE_REJECT_PACKETS" short_name="SRAM_ENQ_RJCT_PKTS" regs="CGM_VOQ_SRAM_ENQ_CTRr" flds="VOQ_SRAM_ENQ_RJCT_PKT_CTRf" doc="Number of packets sent to the OCB and dropped (rejected). Note: according to the VOQ_PRG_CTR_QNUM_INDEX and VOQ_PRG_CTR_QNUM_INDEX_MASK" is_err="1"></entry>
+                    <entry block="dnx_graphical_cgm" index="6"         name="DRAM_DELETED_BUNDLES" short_name="DRAM_DEL_BNDLS" regs="CGM_VOQ_DRAM_DEL_CTRr" flds="VOQ_DRAM_DEL_BUNDLE_CTRf" doc="Number of DRAM deleted packet bundles. Note: according to the VoqPrgCtrQnumIndex and VoqPrgCtrQnumIndexMask" is_err="1"></entry>
+                    <entry block="dnx_graphical_cgm" index="7"         name="DRAM_DEQUEUE_TO_FABRIC_BUNDLES" short_name="DRAM_DEQ_TO_FAB_BNDLS" regs="CGM_VOQ_DRAM_DEQ_CTRr" flds="VOQ_DRAM_DEQ_TO_FABRIC_BUNDLE_CTRf" doc="Number of DRAM dequeued bundles to the Fabric/Local. Note: according to the VoqPrgCtrQnumIndex and VoqPrgCtrQnumIndexMask"></entry>
+
+                    <!-- IPT BLOCK -->
+                    <entry block="dnx_graphical_ipt" index="0"         name="IN_CGM_COMMANDS" short_name="IN_CGM_CMDS" regs="IPT_PDQ_DEBUGr" flds="CGM_RXI_PACKET_COUNTf" doc="Number of SRAM-packets (TX commands) and DRAM-bundle (SOB) from Cgm, includes SRAM-DEL"></entry>
+                    <entry block="dnx_graphical_ipt" index="1"         name="IN_SPB_PACKETS" short_name="IN_SPB_PKTS" regs="IPT_SRAM_RRF_GLB_DEBUGr" flds="SPB_PACKET_COUNTf" doc="Number of packet request from SPB"></entry>
+                    <entry block="dnx_graphical_ipt" index="2"         name="IN_DDP_BUFFERS" short_name="IN_DDP_BFRS" regs="IPT_SRAM_RRF_GLB_DEBUGr" flds="DDP_TX_BUFFER_COUNTERf" doc="Number DRAM buffer read to DDP"></entry>                    
+                    <entry block="dnx_graphical_ipt" index="3"         name="IN_ITPP_DISCARD_PACKETS" short_name="IN_ITPP_DSCRD_PKTS" regs="IPT_ITE_DEBUGr" flds="PACKET_DISCARDf" doc="Number of packets with discard request from ITPP" is_err="1"></entry>
+
+                    <!-- FDT BLOCK -->
+                    <entry block="dnx_graphical_fdt" index="0"         name="UNREACH_DEST_CELLS" short_name="UNREACH_DEST_CELLS" regs="FDT_UNREACHABLE_DESTINATION_DISCARDED_CELLS_COUNTERr" flds="UNRCH_DEST_CNT_Nf" doc="Counts unreachable cell events for each of the 2 Cores" is_err="1"></entry>
+                    <entry block="dnx_graphical_fdt" index="1"         name="OUT_FABRIC_CELLS" short_name="OUT_FAB_CELLS" regs="FDT_FABRIC_CELLS_CNTr, FDT_FABRIC_CELLS_CNTr, FDT_FABRIC_CELLS_CNTr" flds="FABRIC_CELL_CORE_N_CELL_CNTf, MESH_DEST_1_CORE_N_CELL_CNTf, MESH_DEST_2_CORE_N_CELL_CNTf" fld_num="3" doc="fabric cells or mesh dest0/1/2 cells count"></entry>  
+
+                    <!-- FDR BLOCK -->
+                    <entry block="dnx_graphical_fdr" index="0"         name="IN_TOTAL_CELLS" short_name="IN_TTL_CELLS" regs="FDR_CELL_IN_CNT_TOTALr" flds="CELL_IN_CNTf" doc="total number of cells"></entry>
+                    <entry block="dnx_graphical_fdr" index="1"         name="IN_PIPE0_CELLS" short_name="IN_P0_CELLS" regs="FDR_P_CELL_IN_CNTr" flds="P_N_CELL_IN_CNTf" arr_i="1" doc="FDR total incoming cell counter at the pipe"></entry>
+                    <entry block="dnx_graphical_fdr" index="2"         name="IN_PIPE1_CELLS" short_name="IN_P1_CELLS" regs="FDR_P_CELL_IN_CNTr" flds="P_N_CELL_IN_CNTf" arr_i="2" doc="FDR total incoming cell counter at the pipe"></entry>
+
+                    <!-- FDA BLOCK -->
+                    <entry block="dnx_graphical_fda" index="0"         name="FABRIC_CELLS" short_name="OUT_RQP_CELLS" regs="FDA_EGQ_CELLS_OUT_CNT_FAB_PIPE_0r, FDA_EGQ_CELLS_OUT_CNT_FAB_PIPE_1r, FDA_EGQ_CELLS_OUT_CNT_FAB_PIPE_2r" flds="EGQ_N_CELLS_OUT_CNT_FAB_PIPE_0f, EGQ_N_CELLS_OUT_CNT_FAB_PIPE_1f, EGQ_N_CELLS_OUT_CNT_FAB_PIPE_2f" fld_num="3" doc="Cells output counters"></entry>
+                    <entry block="dnx_graphical_fda" index="1"         name="LOCAL_UNICAST_CELLS" short_name="LOCAL_UC_CELLS" regs="FDA_EGQ_CELLS_OUT_CNT_IPT_0r, FDA_EGQ_CELLS_OUT_CNT_IPT_1r" flds="EGQ_N_CELLS_OUT_CNT_IPT_0f, EGQ_N_CELLS_OUT_CNT_IPT_1f" fld_num="2" doc="Local UC output cells"></entry>
+                    <entry block="dnx_graphical_fda" index="2"         name="LOCAL_MULTICAST_CELLS" short_name="LOCAL_MC_CELLS" regs="FDA_EGQ_CELLS_OUT_CNT_MESHMC_0r, FDA_EGQ_CELLS_OUT_CNT_MESHMC_1r" flds="EGQ_N_CELLS_OUT_CNT_MESHMC_0f, EGQ_N_CELLS_OUT_CNT_MESHMC_1f" fld_num="2" doc="Mesh MC output cells"></entry>
+
+                    <!-- RQP BLOCK -->
+                    <entry block="dnx_graphical_rqp" index="0"         name="CDC_FABRIC_PACKET_CNT" short_name="CDC_FAB_PKTS" regs="RQP_CELL_DECODER_DEBUG_COUNTERSr" flds="CDC_FABRIC_PACKET_CNTf" doc="Counts the number of fabric packets reach the cell decoder"></entry>
+                    <entry block="dnx_graphical_rqp" index="1"         name="CDC_IPT_PACKET_CNT" short_name="CDC_IPT_PKTS" regs="RQP_CELL_DECODER_DEBUG_COUNTERSr" flds="CDC_IPT_PACKET_CNTf" doc="Counts the number of fabric packets reach the cell decoder"></entry>
+                    <entry block="dnx_graphical_rqp" index="2"         name="CDC_MC_MESH_PACKET_CNT" short_name="CDC_MESH_PKTS" regs="RQP_CELL_DECODER_DEBUG_COUNTERSr" flds="CDC_MC_MESH_PACKET_CNTf" doc="Counts the number of multicast MESH packets reach the cell decoder"></entry>
+                    <entry block="dnx_graphical_rqp" index="3"         name="CELL_DECODER_ERROR_CELLS" short_name="CDC_ERR_CELLS" regs="RQP_CELL_DECODER_DEBUG_COUNTERSr" flds="CDC_ERR_CELL_CNTf" doc="Counts the number of cells reach the cell decoder, and Cell decoder decide that it has an error, and the error is not masked (disabled) in the DbgCdcErrMaskDis, and the Source is not masked (disabled) in the DbgSourceMaskDis" is_err="1"></entry>
+                    <entry block="dnx_graphical_rqp" index="4"         name="EMR_DISCARD_PACKETS" short_name="EMR_DSCRD_PKTS" regs="RQP_EMR_DISCARDS_PACKET_COUNTERr" flds="EMR_DISCARDS_PACKET_COUNTERf" doc="EMR2ERPP discarded packet counter. Counts the number of discarded packets due to reassembly errors or MCDB discard. If bit 32 is set, counter overflowed. If CheckBwToOfp is set, counts OfpToCheckBw packets; otherwise, counts all packets." is_err="1"></entry>
+                    <entry block="dnx_graphical_rqp" index="5"         name="EMR_MULTICAST_HIGH" short_name="EMR_HMC" regs="RQP_EMR_MC_HIGH_PACKET_COUNTERr" flds="EMR_MC_HIGH_PACKET_COUNTERf" doc="This counter counts number of multicast high packets discarded because multicast FIFO is full. If bit 32 is set, counter overflowed."></entry>
+                    <entry block="dnx_graphical_rqp" index="6"         name="EMR_MULTICAST_LOW" short_name="EMR_LMC" regs="RQP_EMR_MC_LOW_PACKET_COUNTERr" flds="EMR_MC_LOW_PACKET_COUNTERf" doc="This counter counts number of multicast low packets discarded because multicast FIFO is full. If bit 32 is set, counter overflowed."></entry>
+                    <entry block="dnx_graphical_rqp" index="7"         name="EMR_UNICAST" short_name="EMR_UC" regs="RQP_EMR_UNICAST_PACKET_COUNTERr" flds="EMR_UNICAST_PACKET_COUNTERf" doc="EHP2PQP Unicast packet counter. If bit 32 is set, counter overflowed. If CheckBwToOfp is set, counts OfpToCheckBw packets; otherwise, counts all packets."></entry>
+                    <entry block="dnx_graphical_rqp" index="8"         name="PRP_MC_DISCARD_PACKETS" short_name="PRP_MC_DSCRD_PKTS" regs="RQP_PRP_DEBUG_COUNTERSr" flds="PRP_SOP_DISCARD_MC_CNTf" doc="Counts the number of multicast SOP discarded (not forward to EHP) in the PRP, mask per reasong is DbgPrpSopDiscardMaskDisCnt." is_err="1"></entry>
+                    <entry block="dnx_graphical_rqp" index="9"         name="PRP_UC_DISCARD_PACKETS" short_name="PRP_UC_DSCRD_PKTS" regs="RQP_PRP_DEBUG_COUNTERSr" flds="PRP_SOP_DISCARD_UC_CNTf" doc="Counts the number of unicast SOP discarded (not forward to EHP) in the PRP, mask per reasong is DbgPrpSopDiscardMaskDisCnt." is_err="1"></entry>
+
+                    <!-- PQP BLOCK -->
+                    <entry block="dnx_graphical_pqp" index="0"         name="VISIBILITY_PACKETS" short_name="VIS_PKTS" regs="PQP_VISIBILITY_PACKET_COUNTERr" flds="VISIBILITY_PACKET_COUNTERf" doc="PQP visibility packets counter.  If bit 32 is set, counter overflowed."></entry>
+                    <entry block="dnx_graphical_pqp" index="1"         name="MULTICAST_PACKETS" short_name="MC_PKTS" regs="PQP_PQP_MULTICAST_PACKET_COUNTERr" flds="PQP_MULTICAST_PACKET_COUNTERf" doc="PQP2FQP Multicast  packet counter. If bit 32 is set, counter overflowed. If CheckBwToOfp is set, counts OfpToCheckBw packets; otherwise, counts all packets."></entry>
+                    <entry block="dnx_graphical_pqp" index="2"         name="UNICAST_PACKETS" short_name="UC_PKTS" regs="PQP_PQP_UNICAST_PACKET_COUNTERr" flds="PQP_UNICAST_PACKET_COUNTERf" doc="PQP2FQP Unicast  packet counter. If bit 32 is set, counter overflowed. If CheckBwToOfp is set, counts OfpToCheckBw packets; otherwise, counts all packets."></entry>
+                    <entry block="dnx_graphical_pqp" index="3"         name="MULTICAST_DISCARD_PACKETS" short_name="MC_DSCRD_PKTS" regs="PQP_PQP_DISCARD_MULTICAST_PACKET_COUNTERr" flds="PQP_DISCARD_MULTICAST_PACKET_COUNTERf" doc="PQP discarded Multicast packet counter. If bit 32 is set, counter overflowed." is_err="1"></entry>
+                    <entry block="dnx_graphical_pqp" index="4"         name="UNICAST_DISCARD_PACKETS" short_name="UC_DSCRD_PKTS" regs="PQP_PQP_DISCARD_UNICAST_PACKET_COUNTERr" flds="PQP_DISCARD_UNICAST_PACKET_COUNTERf" doc="PQP discarded Unicast packet counter. If bit 32 is set, counter overflowed." is_err="1"></entry>
+
+                    <!-- ESB BLOCK -->
+                    <entry block="dnx_graphical_esb" index="0"         name="ESB_Q_CNT" short_name="ESB_Q_CNT" regs="ESB_ESB_Q_CNTr" flds="ESB_Q_CNTf" doc="counts Q that reached ESB."></entry>
+
+                    <!-- EPNI BLOCK - Need to check if transactions == packet and if so change it to packets-->
+                    <entry block="dnx_graphical_epni" index="0"        name="DISCARD_CNT(ETPP Drops)" short_name="DSCRD_TRNS" regs="EPNI_EPNI_DISC_CNTr" flds="EPNI_DISC_CNTf" doc="counts packets that were discarded by the ETPP, and dropped in the aligner."></entry>
+                    <entry block="dnx_graphical_epni" index="1"        name="IFC_TRANSACTIONS" short_name="IFC_TRNS" regs="EPNI_EPNI_IFC_CNTr" flds="EPNI_IFC_CNTf" doc="Counts transactions in EGQ interfaces, according to configuration in EPNI_EPNI_CNT_CFG:If MASK_IFC_TO_CHECK_BW = 0x3f, counting traffic in all queues;If MASK_IFC_TO_CHECK_BW = 0x0, counting traffic according to IFC_TO_CHECK_BW."></entry>
+                    <entry block="dnx_graphical_epni" index="2"        name="MIRROR_TRANSACTIONS" short_name="MIRROR_TRNS" regs="EPNI_EPNI_MIRR_CNTr" flds="EPNI_MIRR_CNTf" doc="Counts transactions in egress queues, according to configuration in EPNI_EPNI_CNT_CFG:If MASK_MIRR_PRIO_TO_CHECK_BW = 0x3, counting traffic for both priorities;If MASK_MIRR_PRIO _TO_CHECK_BW = 0x0, counting traffic according to MIRR_PRIO_TO_CHECK_BW."></entry>
+                    <entry block="dnx_graphical_epni" index="3"        name="QUEUE_TRANSACTIONS" short_name="Q_TRNS" regs="EPNI_EPNI_Q_CNTr" flds="EPNI_Q_CNTf" doc="Counts transactions in egress queues, according to configuration in EPNI_EPNI_CNT_CFG:If MASK_Q_TO_CHECK_BW = 0x3ff, counting traffic in all queues;If MASK_Q_TO_CHECK_BW = 0x0, counting traffic according to Q_TO_CHECK_BW."></entry>
+
+                    <!-- NIF BLOCK (TX) -->
+                    <entry block="dnx_graphical_nif_tx" index="0"      name="TX_TOTAL_PACKTS" short_name="TTL_PKTS" regs="CDB_TX_TOTAL_PKT_COUNTERr, CDBM_TX_TOTAL_PKT_COUNTERr" flds="TX_TOTAL_PKT_COUNTERf, TX_TOTAL_PKT_COUNTERf" fld_num="2" doc="Counter for total packets sent from EGQ to NIF"></entry>
+                    <entry block="dnx_graphical_nif_tx" index="1"      name="TX_TOTAL_BYTES" short_name="TTL_BYTS" regs="CDB_TX_TOTAL_BYTE_COUNTERr, CDBM_TX_TOTAL_BYTE_COUNTERr" flds="TX_TOTAL_BYTE_COUNTERf, TX_TOTAL_BYTE_COUNTERf" fld_num="2" doc="Counter for total bytes sent from EGQ to NIF"></entry>
+               </entries>
+            </table>
+            <table name="drop_reason">
+                <key name="index" size="3"></key>
+                <value name="regs" default="INVALIDr"></value>
+                <value name="flds" default="INVALIDf"></value>
+                <value name="drop_reason_cb" default="NULL"></value>
+                <entries>
+                    <!-- CGM BLOCK -->
+                    <entry index="0" regs="CGM_REJECT_STATUS_BITMAPr" flds="INVALIDf" drop_reason_cb="dnx_cgm_drop_reason_to_str"></entry>
+                    <!-- RQP BLOCK -->
+                    <entry index="1" regs="ECGM_RQP_DISCARD_REASONSr" flds="RQP_DISCARD_REASONSf" drop_reason_cb="dnx_rqp_drop_reason_to_str"></entry>
+                    <!-- PQP BLOCK -->
+                    <entry index="2" regs="ECGM_PQP_DISCARD_REASONSr" flds="PQP_DISCARD_REASONSf" drop_reason_cb="dnx_pqp_drop_reason_to_str"></entry>
+               </entries>
+            </table>
+        </tables>
+    </sub_module>
+</device_data>
+
+
+

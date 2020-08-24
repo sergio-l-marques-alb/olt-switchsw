@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="stack" bsl_flag="BSL_LS_BCMDNX_STK">
+    <sub_module name="general" doc="stack module general attributes">
+
+        <features>
+        </features>
+
+        <defines>
+            <define labels="j2p_notrev" name="nof_tm_domains_max" doc="Max number of TM domains in the device"></define>
+            <define labels="j2p_notrev" name="dest_port_base_queue_min" doc="Min base queue value for stacking destination system port"></define>
+            <define labels="j2p_notrev" name="dest_port_base_queue_max" doc="Max base queue value for stacking destination system port"></define>
+            <define labels="j2p_notrev" name="lag_stack_trunk_resolve_entry_min" doc="Min entry for stack trunk resolve on stack lag"></define>
+            <define labels="j2p_notrev" name="lag_stack_trunk_resolve_entry_max" doc="Max entry for stack trunk resolve on stack lag"></define>
+            <define labels="j2p_notrev" name="lag_stack_trunk_resolve_entry_all" doc="All entries for stack trunk resolve on stack lag"></define>
+            <define labels="j2p_notrev" name="lag_stack_fec_resolve_entry_min" doc="Min entry for stack fec resolve on stack lag"></define>
+            <define labels="j2p_notrev" name="lag_stack_fec_resolve_entry_max" doc="Max entry for stack fec resolve on stack lag"></define>
+            <define labels="j2p_notrev" name="lag_stack_fec_resolve_entry_all" doc="All entries for stack fec resolve on stack lag"></define>
+            <define labels="j2p_notrev" name="lag_domain_min" doc="Min value for stack lag tm-domain"></define>
+            <define labels="j2p_notrev" name="lag_domain_max" doc="Max value for stack lag tm-domain"></define>
+            <define labels="j2p_notrev" name="trunk_entry_per_tmd_bit_num" doc="trunk entry per tmd bit number on stack lag"></define>
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="stacking_enable" doc="is stacking enabled on this device"></numeric>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>
+
+
+
+

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../../sw_state_schema.xsd">
+
+    <AppDB Name="VLAN_PORT_GENERAL_INFO_SW">
+        <OneLineDescription>sw state table - VLAN PORT General DB</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="INITIAL_BRIDGE_VLAN_PORT_IN_LIF" Type="IN_LIF"  Description="The initial bridge (local) in_lif value"/>
+                <Field Name="INITIAL_DEFAULT_VLAN_PORT_IN_LIF" Type="IN_LIF"  Description="The initial default (local) in_lif value"/>
+                <Field Name="INITIAL_DEFAULT_RECYCLE_PORT_VLAN_PORT_IN_LIF" Type="IN_LIF"  Description="The initial default (local) in_lif value for recycle port"/>
+                <Field Name="INITIAL_MPLS_NATIVE_VIRTUAL_IN_LIF" Type="IN_LIF"  Description="The initial (local) in_lif value for MPLS Native"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="VLAN_PORT_MATCH_KEY_SW">
+        <OneLineDescription>sw state table - VLAN PORT match key info added by port_match_add</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="CRITERIA" Size="6" Type="USHORT"/>
+                <Field Name="MATCH_PORT" Type="GPORT"/>
+                <Field Name="ETH_TYPE" Size="16" Type="UINT"/>
+                <Field Name="PCP_DEI_OUTER_VLAN" Size="4" Type="PCP_DEI"/>
+                <Field Name="VID_OUTER_VLAN" Size="12" Type="VLAN_ID"/>
+                <Field Name="VID_INNER_VLAN" Size="12" Type="VLAN_ID"/>
+            </Key>
+            <Result>
+                <Field Name="GPORT"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <TableProperties Size="PHYDB.INLIF1/DNX_DATA.lif.in_lif.inlif_minimum_index_size+DNX_DATA.Device.general.nof_cores*PHYDB.INLIF2/DNX_DATA.lif.in_lif.inlif_minimum_index_size"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>
+

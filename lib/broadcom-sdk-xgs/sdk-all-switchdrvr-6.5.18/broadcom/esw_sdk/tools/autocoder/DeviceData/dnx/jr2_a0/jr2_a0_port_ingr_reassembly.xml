@@ -1,0 +1,115 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="ingr_reassembly">
+    <includes>
+        <include>shared/utilex/utilex_integer_arithmetic.h</include>
+    </includes>
+
+    <sub_module name="context">
+        
+        <features>
+            <feature name="rcy_interleaving_between_priorities" value="0"></feature>
+        </features>
+        
+        <defines>
+            <define name="nof_contexts" value="256"></define>
+            <define name="invalid_context" value="DATA(ingr_reassembly, context, nof_contexts) - 1"></define>
+        </defines>
+
+        <tables>                       
+           <table name="context_map">
+                <key name="port_type" size="DNX_ALGO_PORT_TYPE_NOF"></key>
+                <value name="start_index" default="SAL_UINT32_MAX"></value>
+                <entries>
+                    <!--  ILKN does not exist in Jr2
+                      <entry port_type="DNX_ALGO_PORT_TYPE_NIF_ILKN" start_index="0"></entry>
+                    -->
+                    <!--  NIF -->
+                    <entry port_type="DNX_ALGO_PORT_TYPE_NIF_ETH" start_index="0x0"></entry>
+
+                    <!-- each NIF port takes 2 entries in Context Map Table  (2*256 = 2*0x100 = 0x200) -->
+
+                    <!--  RCY  - needs 1 entries in Context Map per channel -->
+                    <entry port_type="DNX_ALGO_PORT_TYPE_RCY"        start_index="0x200"></entry>
+                    <!--  RCY Mirror  - needs 3 entries in Context Map per channel -->
+                    <entry port_type="DNX_ALGO_PORT_TYPE_RCY_MIRROR" start_index="0x300"></entry>
+
+                    <!--  CPU -->
+                    <entry port_type="DNX_ALGO_PORT_TYPE_CPU"        start_index="0x600"></entry>
+                    <!--  SAT -->
+                    <entry port_type="DNX_ALGO_PORT_TYPE_SAT"        start_index="0x700"></entry>
+
+                    <!-- OLP  after the end of Context Map Table in the HW -->
+                    <entry port_type="DNX_ALGO_PORT_TYPE_OLP"        start_index="0x1000"></entry>
+                    <!-- OAMP  -->
+                    <entry port_type="DNX_ALGO_PORT_TYPE_OAMP"       start_index="0x1001"></entry>
+                    <!-- EVENTOR  -->
+                    <entry port_type="DNX_ALGO_PORT_TYPE_EVENTOR"    start_index="0x1002"></entry>
+
+                </entries>
+            </table>
+        </tables>
+         
+    </sub_module>
+    <sub_module name="ilkn" doc="Interlaken data">
+        <features>
+        </features>
+        
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>        
+        
+    </sub_module>
+
+    <sub_module name="rcy" doc="Recycle data">
+
+        <defines>
+        <define name="nof_interfaces" value="2"></define>    
+        </defines>      
+      
+    </sub_module>
+
+    <sub_module name="priority" doc="information about priorities">
+        <features>
+        </features>
+        
+        <defines>
+            <define name="nif_eth_priorities_nof" value="2" ></define>
+            <define name="mirror_priorities_nof"  value="2" ></define>
+            <define name="rcy_priorities_nof"     value="2" ></define>
+            <define name="priorities_nof" 
+            value="UTILEX_MAX(DATA(ingr_reassembly, priority, nif_eth_priorities_nof), DATA(ingr_reassembly, priority, mirror_priorities_nof))"></define>
+            <define name="cgm_priorities_nof" 
+            value="UTILEX_MAX(DATA(ingr_reassembly, priority, priorities_nof), DATA(ingr_reassembly, priority, rcy_priorities_nof))"></define>
+        </defines>
+
+        <numerics>
+        </numerics>        
+        
+        <tables>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="dbal">
+        
+         <defines>
+            <define name="reassembly_context_bits" value="8"></define>
+
+            <define name="interface_bits" value="6"></define>
+            <define name="interface_max" value="63"></define>
+
+            <define name="context_map_base_address_bits" value="12"></define>
+            <define name="context_map_base_address_max" value="4*1024-1"></define>
+
+            <define name="interleaved_interface_bits" value="3"></define>
+            <define name="interleaved_interface_max" value="5"></define>
+        </defines>
+
+    </sub_module>
+
+</device_data>
+
+
+

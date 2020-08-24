@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+           elementFormDefault="qualified">
+    <xs:include schemaLocation="../table_schema.xsd" />
+    <xs:include schemaLocation="../../dbal_types_definition.xsd" />
+
+    <xs:element name="AppDbCatalog">
+    <xs:complexType>
+    <xs:sequence>
+        <xs:element name="GeneralInfo" type="GeneralInfoType" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="AppDB" maxOccurs="unbounded">
+        <xs:complexType>
+        <xs:complexContent>
+        <xs:extension base="AppDBCommon">
+        <xs:sequence>
+            <!-- Physical Mapping -->
+            <xs:element name="AppToPhyDbMapping" type="SwStateAppToPhyDbMapping" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+        </xs:extension>
+        </xs:complexContent>
+        </xs:complexType>
+        </xs:element>
+    </xs:sequence>
+    </xs:complexType>
+    </xs:element>
+
+    <!-- app to phy db mapping for sw state logic tables  -->
+    <xs:complexType name="SwStateAppToPhyDbMapping">
+    <xs:complexContent>
+    <xs:extension base="AppToPhyDBMappingCommon">
+    <xs:sequence>
+        <xs:element name="TableProperties" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+            <xs:attribute name="Size" type="IntegerOrDnxDataPattern"/>
+        </xs:complexType>
+        </xs:element>
+        <!--
+        <xs:element name="MultipleResultsMapping" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+        <xs:sequence>
+            <xs:element name="Result" minOccurs="1" maxOccurs="unbounded">
+            <xs:complexType>
+                <xs:attributeGroup ref="ResultIndicatorMappingAttr" />
+            </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        </xs:complexType>
+        </xs:element>
+        -->
+    </xs:sequence>
+    </xs:extension>
+    </xs:complexContent>
+    </xs:complexType>
+
+
+
+</xs:schema>

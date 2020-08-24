@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_b0"  module="crps">
+
+    <sub_module name="engine">
+        <features>
+            <feature name="valid_address_admission_is_supported" value="0"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+    <sub_module name="expansion">
+        <features>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+            <table name="itm_types">
+                <value name="valid_types" 
+                default="bcmStatExpansionTypeTmDropReason, bcmStatExpansionTypeDispositionIsDrop, bcmStatExpansionTypeTrafficClass, 
+                bcmStatExpansionTypeDropPrecedenceMeterResolved, bcmStatExpansionTypeTmLastCopy, bcmStatExpansionTypeMax"></value>
+                <value name="total_nof_bits" default="10"></value>               
+                <value name="drop_reason_offset" default="0"></value>
+                <value name="disposition_offset" default="3"></value>
+                <value name="tc_offset" default="4"></value>
+                <value name="final_dp_offset" default="7"></value>
+                <value name="last_copy_offset" default="9"></value>
+            </table>        
+        </tables>
+    </sub_module>   
+</device_data>

@@ -1,0 +1,191 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_b0" module="dev_init">
+
+    <includes>
+        <include>bcm_int/dnx/init/init.h</include>
+        <include>appl/reference/dnx/appl_ref_init_deinit.h</include>
+    </includes>
+
+    <sub_module name="time" doc="time relevant for init">
+        <defines>
+            <define name="init_total_thresh" value="18034800"></define>
+            <define name="appl_init_total_thresh" value="19550400"></define>
+        </defines>  
+        <tables>
+            <table name="step_thresh">
+                <key name="step_id" size="DNX_INIT_STEP_COUNT"></key>
+                <value name="value" default="BCM_INIT_STEP_TIME_THRESH_DEFAULT"></value>
+                <entries>
+                    <entry step_id="DNX_INIT_STEP_DBAL" value="1112400"></entry>
+                    <entry step_id="DNX_INIT_STEP_TUNE" value="596400"></entry>
+                    <entry step_id="DNX_INIT_STEP_TM_MODULES" value="6356400"></entry>
+                    <entry step_id="DNX_INIT_STEP_PP_GENERAL" value="1188000"></entry>
+                    <entry step_id="DNX_INIT_MDB" value="801600"></entry>
+                    <entry step_id="DNX_INIT_STEP_PEMLA" value="768000"></entry>
+                    <entry step_id="DNX_INIT_STEP_FABRIC_MODULE" value="5458800"></entry>
+                    <entry step_id="DNX_INIT_STEP_MEM_DEFAULTS" value="1068000"></entry>
+                    <entry step_id="DNX_INIT_STEP_ALGO" value="118800"></entry>
+                    <entry step_id="DNX_INIT_STEP_SOFT_RESET" value="226800"></entry>
+                    <entry step_id="DNX_INIT_STEP_DBAL_ACCESS_MDB" value="673200"></entry>
+                    <entry step_id="DNX_INIT_STEP_DBAL_TABLES" value="367200"></entry>
+                    <entry step_id="DNX_INIT_STEP_PP_MODULES" value="1532400"></entry>
+                    <entry step_id="DNX_INIT_STEP_SW_STATE" value="936000"></entry>
+                    <entry step_id="DNX_INIT_STEP_AUX_ACCESS" value="1905600"></entry>
+                    <entry step_id="DNX_INIT_STEP_SOFT_INIT" value="330000"></entry>
+                    <entry step_id="DNX_INIT_STEP_DYN_PORT_PROP_SET" value="476400"></entry>
+                    <entry step_id="DNX_INIT_STEP_ACCESS" value="249600"></entry>
+                    <entry step_id="DNX_INIT_STEP_DRAM" value="456000"></entry>
+                    <entry step_id="DNX_INIT_STEP_PRE_SOFT_INIT" value="1130400"></entry>
+                    <entry step_id="DNX_INIT_STEP_APPL_PROPERTIES" value="1702800"></entry>
+                    <entry step_id="DNX_INIT_STEP_COMMON_MODULES" value="2616000"></entry>
+                    <entry step_id="DNX_INIT_STEP_DNX_DATA" value="690000"></entry>
+                    <entry step_id="DNX_INIT_STEP_DYN_PORT_ADD" value="1143600"></entry>
+                    <entry step_id="DNX_INIT_STEP_FIELD" value="346800"></entry>
+                    <entry step_id="DNX_INIT_STEP_FLD_SWSTATE" value="280800"></entry>
+                    <entry step_id="DNX_INIT_STEP_ALGO_LIF" value="450000"></entry>
+                </entries>
+            </table>
+            <table name="appl_step_thresh">
+                <key name="step_id" size="APPL_DNX_INIT_STEP_COUNT"></key>
+                <value name="value" default="APPL_DNX_INIT_STEP_TIME_THRESH_DEFAULT"></value>
+                <entries>
+                    <entry step_id="APPL_DNX_STEP_QOS" value="218400"></entry>
+                    <entry step_id="APPL_DNX_STEP_SRV6" value="144000"></entry>
+                    <entry step_id="APPL_DNX_STEP_SYS_PORTS" value="177600"></entry>
+                    <entry step_id="APPL_DNX_STEP_VLAN" value="225600"></entry>
+                    <entry step_id="APPL_DNX_STEP_SDK" value="18105600"></entry>
+                    <entry step_id="APPL_DNX_STEP_E2E_SCHEME" value="145200"></entry>
+                    <entry step_id="APPL_DNX_STEP_LINKSCAN" value="224400"></entry>
+                    <entry step_id="APPL_DNX_STEP_APPS" value="1444800"></entry>
+                    <entry step_id="APPL_DNX_STEP_ITMH_PPH" value="147600"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+    <sub_module name="shadow">
+        <tables>
+            <table name="uncacheable_mem" mode="sequential">
+                <!-- key size must change if entries changed -->
+                <key name="index"></key>
+                <value name="mem" default="INVALIDm"></value>
+                <entries>
+                    <!-- Below memory not real memory Below-->
+                    <entry mem="CDPORT_TSC_UCMEM_DATAm"></entry>
+                    <entry mem="ILE_PORT_0_CPU_ACCESSm"></entry>
+                    <entry mem="ILE_PORT_1_CPU_ACCESSm"></entry>
+                    <entry mem="IPPF_LEARN_PAYLOAD_CONTEXT_MAPPINGm"></entry>
+                    <entry mem="SCH_SCHEDULER_INITm"></entry>
+                    <!-- ErppDebugUnit and IppfDebugUnit memory -->
+                    <entry mem="ERPP_MEM_F000000m"></entry>
+                    <entry mem="IPPF_MEM_F000000m"></entry>
+
+                    <!-- CDPORT block execluded -->
+                    <entry mem="RX_LKUP_1588_MEM_400Gm"></entry>
+                    <entry mem="RX_LKUP_1588_MEM_MPP0m"></entry>
+                    <entry mem="RX_LKUP_1588_MEM_MPP1m"></entry>
+                    <entry mem="SPEED_ID_TABLEm"></entry>
+                    <entry mem="SPEED_PRIORITY_MAP_TBLm"></entry>
+                    <entry mem="TX_LKUP_1588_MEM_400Gm"></entry>
+                    <entry mem="TX_LKUP_1588_MEM_MPP0m"></entry>
+                    <entry mem="TX_LKUP_1588_MEM_MPP1m"></entry>
+                    <entry mem="UM_TABLEm"></entry>
+                    <!-- memory which entries length < 64, need check -->
+
+                    <!-- memory with TCAM_BANK is not real memory -->
+                    <entry mem="MDB_ARM_KAPS_TCMm"></entry>
+
+                    <!-- TCAM bank related memory not real memory, those tables provide access to the TCAM banks through read/write commands -->
+                    <entry mem="ERPP_EPMFCS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPA_VTDCS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPA_VTECS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPB_FLPACS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPB_FLPBCS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPC_PMFACSA_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPC_PMFACSB_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPD_PMFBCS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPE_LLRCS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPE_PRTCAM_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPF_VTACS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPF_VTBCS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="IPPF_VTCCS_TCAM_BANK_COMMANDm"></entry>
+                    <entry mem="TCAM_TCAM_BANK_COMMANDm"></entry>
+
+                    <entry mem="ERPP_EPMFCS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPA_VTDCS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPA_VTECS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPB_FLPACS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPB_FLPBCS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPC_PMFACSA_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPC_PMFACSB_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPD_PMFBCS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPE_LLRCS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPE_PRTCAM_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPF_VTACS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPF_VTBCS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="IPPF_VTCCS_TCAM_BANK_REPLYm"></entry>
+                    <entry mem="TCAM_TCAM_BANK_REPLYm"></entry>
+
+                    <entry mem="ERPP_EPMFCS_TCAM_BANKm"></entry>
+                    <entry mem="IPPA_VTDCS_TCAM_BANKm"></entry>
+                    <entry mem="IPPA_VTECS_TCAM_BANKm"></entry>
+                    <entry mem="IPPB_FLPACS_TCAM_BANKm"></entry>
+                    <entry mem="IPPB_FLPBCS_TCAM_BANKm"></entry>
+                    <entry mem="IPPC_PMFACSA_TCAM_BANKm"></entry>
+                    <entry mem="IPPC_PMFACSB_TCAM_BANKm"></entry>
+                    <entry mem="IPPD_PMFBCS_TCAM_BANKm"></entry>
+                    <entry mem="IPPE_LLRCS_TCAM_BANKm"></entry>
+                    <entry mem="IPPE_PRTCAM_TCAM_BANKm"></entry>
+                    <entry mem="IPPF_VTACS_TCAM_BANKm"></entry>
+                    <entry mem="IPPF_VTBCS_TCAM_BANKm"></entry>
+                    <entry mem="IPPF_VTCCS_TCAM_BANKm"></entry>
+                    <entry mem="TCAM_TCAM_BANKm"></entry>
+                    <entry mem="AM_TABLEm"></entry>
+                    <entry mem="SCH_TOKEN_MEMORY_CONTROLLER_TMCm"></entry>
+                    <entry mem="MDB_ARM_MEM_0m"></entry>
+                    <entry mem="MDB_ISEM_1m"></entry>
+                    <entry mem="MDB_ISEM_2m"></entry>
+                    <entry mem="MDB_ISEM_3m"></entry>
+                    <entry mem="MDB_IOEM_0m"></entry>
+                    <entry mem="MDB_IOEM_1m"></entry>
+                    <entry mem="MDB_MC_IDm"></entry>
+                    <entry mem="MDB_GLEM_0m"></entry>
+                    <entry mem="MDB_GLEM_1m"></entry>
+                    <entry mem="MDB_EOEM_0m"></entry>
+                    <entry mem="MDB_EOEM_1m"></entry>
+                    <entry mem="EVNT_ASSIGNED_CMIC_ENGINE_TABLEm"></entry>
+                    <entry mem="EVNT_SPACE_REGIONSm"></entry>
+                    <entry mem="EVNT_CMIC_ENG_PROPERTIESm"></entry>
+
+                    <!-- some field represent OAMP status, dynamic -->
+                    <entry mem="OAMP_MEP_DBm"></entry>
+                    <entry mem="OAMP_RMEP_DBm"></entry>
+                    <entry mem="MDB_ESEMm"></entry>
+                    <entry mem="MDB_EXEM_1m"></entry>
+                    <entry mem="MDB_EXEM_2m"></entry>
+                    <entry mem="MDB_RMEPm"></entry>
+                    <!-- port statistics -->
+                    <entry mem="IPPC_PER_PORT_STATISTICSm"></entry>
+                    <!-- others -->
+                    <entry mem="ETPPA_MEM_F000000m"></entry>
+                    <entry mem="ETPPA_PARSING_START_TYPE_MAPPING_TABLEm"></entry>
+                    <entry mem="ETPPB_MEM_F000000m"></entry>
+                    <entry mem="ETPPB_MTU_MAP_TABLEm"></entry>
+                    <entry mem="ETPPC_MEM_F000000m"></entry>
+                    <entry mem="ETPPC_MTU_MAP_TABLEm"></entry>
+                    <entry mem="IPPA_MEM_F000000m"></entry>
+                    <entry mem="IPPB_MEM_F000000m"></entry>
+                    <entry mem="IPPB_MPLS_LABEL_TYPES_CAM_0m"></entry>
+                    <entry mem="IPPB_MPLS_LABEL_TYPES_CAM_1m"></entry>
+                    <entry mem="IPPC_MEM_F000000m"></entry>
+                    <entry mem="IPPD_MEM_F000000m"></entry>
+                    <entry mem="IPPD_MIRROR_CODE_TO_CMDm"></entry>
+                    <entry mem="IPPE_MEM_B900000m"></entry>
+                    <entry mem="IPPE_MEM_F0000m"></entry>
+                    <entry mem="SCH_RESERVED_37m"></entry>
+                    <entry mem="SCH_RESERVED_54m"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+
+</device_data>

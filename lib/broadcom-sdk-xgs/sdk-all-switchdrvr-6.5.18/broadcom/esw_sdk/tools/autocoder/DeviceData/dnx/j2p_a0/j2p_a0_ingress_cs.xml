@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2p_a0"  module="ingress_cs">
+    <sub_module name="parser">
+        <features>
+            <feature name="parsing_context_map_enable" value="1"></feature>
+        </features>
+    </sub_module>    
+    
+</device_data>

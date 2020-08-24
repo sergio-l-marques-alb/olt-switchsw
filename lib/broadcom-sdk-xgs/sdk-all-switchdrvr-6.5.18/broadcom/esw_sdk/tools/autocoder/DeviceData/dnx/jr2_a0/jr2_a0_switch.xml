@@ -1,0 +1,110 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="switch">
+    <includes>
+        <include>bcm/switch.h</include>
+    </includes>
+
+    <sub_module name="load_balancing">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="nof_lb_clients"  value="5"></define>
+            <define name="nof_lb_crc_sel_tcam_entries"  value="32"></define>
+            <define name="nof_crc_functions" value="8"></define>
+
+            <!-- definitions related to 'reserved MPLS labels'. Start  -->
+            <define name="initial_reserved_label" value="0"></define>
+            <define name="initial_reserved_label_force" value="0"></define>
+            <define name="initial_reserved_next_label" value="0xFFFF"></define>
+            <define name="initial_reserved_next_label_valid" value="0xFFFF"></define>
+            <define name="reserved_next_label_valid" value="1"></define>
+            <!-- definitions related to 'reserved MPLS labels'. End  -->
+
+            <!-- definitions related to 'identification of MPLS protocols'. Start  -->
+            <define name="num_valid_mpls_protocols" value="3"></define>
+            <!-- definitions related to 'identification of MPLS protocols'. End  -->
+
+            <!-- definitions related to 'ls/ms crc_32_bits_selection_bitmap'. Start  -->
+            <define name="nof_layer_records_from_parser" value="8"></define>
+            <!-- definitions related to 'ls/ms crc_32_bits_selection_bitmap'. End  -->
+
+            <!-- definitions related to 'crc seed setting, per crc function'. Start  -->
+            <define name="nof_seeds_per_crc_function" value="0x10000"></define>
+            <!-- definitions related to 'crc seed setting, per crc function'. End  -->
+            <define name="hashing_selection_per_layer" value="0"></define>
+            <define name="mpls_stack_split_hashing" value="0"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+            <table name="lb_clients">
+                <key name="client_hw_id" size="DATA(switch, load_balancing, nof_lb_clients)"/>
+                <value name="client_logical_id" default="SAL_UINT32_MAX"/>
+                <!-- List of logical clients of load balancing -->
+                <entries>
+                    <!-- First ECMP hierarchy -->
+                    <entry client_hw_id="2" client_logical_id="bcmSwitchECMPHashConfig"/>
+                    <!-- Second ECMP hierarchy -->
+                    <entry client_hw_id="3" client_logical_id="bcmSwitchECMPSecondHierHashConfig"/>
+                    <!-- Third ECMP hierarchy -->
+                    <entry client_hw_id="4" client_logical_id="bcmSwitchECMPThirdHierHashConfig"/>
+                    <!-- LAG -->
+                    <entry client_hw_id="1" client_logical_id="bcmSwitchTrunkHashConfig"/>
+                    <!-- NWK -->
+                    <entry client_hw_id="0" client_logical_id="bcmSwitchNwkHashConfig"/>
+                 </entries>
+            </table>
+            <table name="lb_client_crc">
+                <key name="client_hw_id" size="DATA(switch, load_balancing, nof_lb_clients)"></key>
+                <value name="crc_hash_func" default="SAL_UINT32_MAX"></value>
+                <entries>
+                    <entry client_hw_id="0" crc_hash_func="BCM_HASH_CONFIG_CRC16_0x10039"></entry>
+                    <entry client_hw_id="1" crc_hash_func="BCM_HASH_CONFIG_CRC16_0x100d7"></entry>
+                    <entry client_hw_id="2" crc_hash_func="BCM_HASH_CONFIG_CRC16_0x1015d"></entry>
+                    <entry client_hw_id="3" crc_hash_func="BCM_HASH_CONFIG_CRC16_0x10939"></entry>
+                    <entry client_hw_id="4" crc_hash_func="BCM_HASH_CONFIG_CRC16_0x109e7"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="svtag" doc="Definitions related to the SVTAG.">
+        <features>
+        </features>
+
+        <defines>
+            <define name="supported" value="0"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+    
+    
+    <sub_module name="hw_bug" doc="switch related hw bug">
+
+        <features>
+            <feature name="mpls_labels_included_in_hash" value="1"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+    
+</device_data>
+
+
+

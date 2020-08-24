@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+
+<device_data lib="dnx_data" module="consistent_hashing" bsl_flag="BSL_LS_BCMDNX_UTILS">
+    <sub_module name="calendar" doc="consistent hashing calendar parameters">
+        <numerics>
+        </numerics>
+        <defines>
+            <define labels="j2p_notrev" name="max_nof_entries_in_calendar" doc="the maximal number of entries in the consistent hashing calendar"></define>
+        </defines>
+    </sub_module>
+</device_data>
+
+
+
+
+

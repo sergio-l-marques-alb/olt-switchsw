@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="NIF_RX_FIFO_STATUS">
+        <OneLineDescription>Table used for Rx FIFO status</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="ETHU" Type="ETHU_ID"/>
+                <Field Name="RMC" Size="4" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Description="Indicates the corresponding lane MLF MAX fullness level of the FIFO" Name="MAX_OCCUPANCY" Permission="READONLY" Size="15" Type="UINT"/>
+                <Field Description="Indicates the corresponding lane MLF fullness level of the FIFO" Name="FIFO_LEVEL" Permission="READONLY" Size="15" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV NIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="MAX_OCCUPANCY">
+                    <Access>
+                        <KeyCondition Field="ETHU" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CDUM_RX_MLF_MAX_OCCUPANCYr">
+                            <BlockIndex Formula="#KEY_VALUE(CORE_ID)"/>
+                            <DataOffset Formula="#KEY_VALUE(RMC)*15"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="ETHU" Type="BIGGER_THAN" Value="0"/>
+                        <Register Name="CDU_RX_MLF_MAX_OCCUPANCYr">
+                            <!--BlockIndex calculation: 12 CDUs in JR2, 2 are named CDUMs, 10 are CDUs. 
+                            CDU0=>CDUM0, CDU1..5=>CDU0..4, CDU6=>CDUM1 CDU7..11=>CDU5..9 -->
+                            <BlockIndex Formula="#KEY_VALUE(CORE_ID)*5+#KEY_VALUE(ETHU)-1"/>
+                            <DataOffset Formula="#KEY_VALUE(RMC)*15"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIFO_LEVEL">
+                    <Access>
+                        <KeyCondition Field="ETHU" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CDUM_RX_MLF_LEVELr">
+                            <ArrayOffset Formula="#KEY_VALUE(RMC)"/>
+                            <BlockIndex Formula="#KEY_VALUE(CORE_ID)"/>
+                            <HwField Name="RX_MLF_LEVEL_MLF_Nf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="ETHU" Type="BIGGER_THAN" Value="0"/>
+                        <Register Name="CDU_RX_MLF_LEVELr">
+                            <ArrayOffset Formula="#KEY_VALUE(RMC)"/>
+                            <BlockIndex Formula="#KEY_VALUE(CORE_ID)*5+#KEY_VALUE(ETHU)-1"/>
+                            <HwField Name="RX_MLF_LEVEL_MLF_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0 Q2A_A0 Q2A_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="MAX_OCCUPANCY">
+                    <Access>
+                        <KeyCondition Field="ETHU" Type="LOWER_THAN" Value="DNX_DATA.nif.eth.cdu_nof"/>
+                        <Register Name="CDU_RX_MLF_MAX_OCCUPANCYr">
+                            <BlockIndex Formula="#KEY_VALUE(ETHU)"/>
+                            <DataOffset Formula="#KEY_VALUE(RMC)*15"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="ETHU" Type="BIGGER_THAN" Value="DNX_DATA.nif.eth.cdu_nof-1"/>
+                        <Register Name="CLU_RX_MLF_MAX_OCCUPANCYr">
+                            <BlockIndex Formula="#KEY_VALUE(ETHU)-dnx_data_nif.eth.cdu_nof_get(unit)"/>
+                            <DataOffset Formula="#KEY_VALUE(RMC)*15"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIFO_LEVEL">
+                    <Access>
+                        <KeyCondition Field="ETHU" Type="LOWER_THAN" Value="DNX_DATA.nif.eth.cdu_nof"/>
+                        <Register Name="CDU_RX_MLF_LEVELr">
+                            <ArrayOffset Formula="#KEY_VALUE(RMC)"/>
+                            <BlockIndex Formula="#KEY_VALUE(ETHU)"/>
+                            <HwField Name="RX_MLF_LEVEL_MLF_Nf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="ETHU" Type="BIGGER_THAN" Value="DNX_DATA.nif.eth.cdu_nof-1"/>
+                        <Register Name="CLU_RX_MLF_LEVELr">
+                            <ArrayOffset Formula="#KEY_VALUE(RMC)"/>
+                            <BlockIndex Formula="#KEY_VALUE(ETHU)-dnx_data_nif.eth.cdu_nof_get(unit)"/>
+                            <HwField Name="RX_MLF_LEVEL_MLF_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="NIF_CDU_TX_FIFO_STATUS">
+        <OneLineDescription>Table used for CDU TX FIFO status.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-150969" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Description="CDU block id" Name="CDU" Type="CDU_ID"/>
+                <Field Name="INTERNAL_LANE" Type="NIF_INTERNAL_LANE"/>
+            </Key>
+            <Result>
+                <Field Description="Indicates the corresponding lane MLF MAX fullness level of the FIFO" Name="MAX_OCCUPANCY" Permission="READONLY" Size="DNX_DATA.nif.dbal.cdu_lane_fifo_level_and_occupancy_entry_size" Type="UINT"/>
+                <Field Description="Indicates the corresponding lane MLF fullness level of the FIFO" Name="FIFO_LEVEL" Permission="READONLY" Size="DNX_DATA.nif.dbal.cdu_lane_fifo_level_and_occupancy_entry_size" Type="UINT"/>
+                <Field Description="the number of credits received from the port-macro Tx buffer" Name="PM_CREDITS" Permission="READONLY" Size="6" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV NIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="MAX_OCCUPANCY">
+                    <Access>
+                        <KeyCondition Field="CDU" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CDUM_TX_MLF_MAX_OCCUPANCYr">
+                            <BlockIndex Formula="#KEY_VALUE(CORE_ID)"/>
+                            <DataOffset Formula="#KEY_VALUE(INTERNAL_LANE)*14"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CDU" Type="BIGGER_THAN" Value="0"/>
+                        <Register Name="CDU_TX_MLF_MAX_OCCUPANCYr">
+                            <BlockIndex Formula="#KEY_VALUE(CORE_ID)*5+#KEY_VALUE(CDU)-1"/>
+                            <DataOffset Formula="#KEY_VALUE(INTERNAL_LANE)*14"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIFO_LEVEL">
+                    <Access>
+                        <KeyCondition Field="CDU" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CDUM_TX_MLF_LEVEL_PMr">
+                            <BlockIndex Formula="#KEY_VALUE(CORE_ID)"/>
+                            <DataOffset Formula="#KEY_VALUE(INTERNAL_LANE)*dnx_data_nif.dbal.cdu_lane_fifo_level_and_occupancy_entry_size_get(unit)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CDU" Type="BIGGER_THAN" Value="0"/>
+                        <Register Name="CDU_TX_MLF_LEVEL_PMr">
+                            <BlockIndex Formula="#KEY_VALUE(CORE_ID)*5+#KEY_VALUE(CDU)-1"/>
+                            <DataOffset Formula="#KEY_VALUE(INTERNAL_LANE)*dnx_data_nif.dbal.cdu_lane_fifo_level_and_occupancy_entry_size_get(unit)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PM_CREDITS">
+                    <Access>
+                        <KeyCondition Field="CDU" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CDUM_TX_MLF_NUM_CREDITS_FROM_PMr">
+                            <BlockIndex Formula="#KEY_VALUE(CORE_ID)"/>
+                            <DataOffset Formula="#KEY_VALUE(INTERNAL_LANE)*6"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="CDU" Type="BIGGER_THAN" Value="0"/>
+                        <Register Name="CDU_TX_MLF_NUM_CREDITS_FROM_PMr">
+                            <BlockIndex Formula="#KEY_VALUE(CORE_ID)*5+#KEY_VALUE(CDU)-1"/>
+                            <DataOffset Formula="#KEY_VALUE(INTERNAL_LANE)*6"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0 Q2A_A0 Q2A_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="MAX_OCCUPANCY">
+                    <Access>
+                        <KeyCondition Field="CDU" Type="LOWER_THAN" Value="DNX_DATA.nif.eth.cdu_nof"/>
+                        <Register Name="CDU_TX_MLF_MAX_OCCUPANCYr">
+                            <BlockIndex Formula="#KEY_VALUE(CDU)"/>
+                            <DataOffset Formula="#KEY_VALUE(INTERNAL_LANE)*14"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIFO_LEVEL">
+                    <Access>
+                        <KeyCondition Field="CDU" Type="LOWER_THAN" Value="DNX_DATA.nif.eth.cdu_nof"/>
+                        <Register Name="CDU_TX_MLF_LEVEL_PMr">
+                            <BlockIndex Formula="#KEY_VALUE(CDU)"/>
+                            <DataOffset Formula="#KEY_VALUE(INTERNAL_LANE)*dnx_data_nif.dbal.cdu_lane_fifo_level_and_occupancy_entry_size_get(unit)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PM_CREDITS">
+                    <Access>
+                        <KeyCondition Field="CDU" Type="LOWER_THAN" Value="DNX_DATA.nif.eth.cdu_nof"/>
+                        <Register Name="CDU_TX_MLF_NUM_CREDITS_FROM_PMr">
+                            <BlockIndex Formula="#KEY_VALUE(CDU)"/>
+                            <DataOffset Formula="#KEY_VALUE(INTERNAL_LANE)*6"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="NIF_CLU_TX_FIFO_STATUS" Valid="DNX_DATA.nif.eth.is_clu_supported">
+        <OneLineDescription>Table used for TX FIFO status.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-150969" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Description="CLU block id" Name="CLU" Type="CLU_ID"/>
+                <Field Name="INTERNAL_LANE" Type="NIF_INTERNAL_LANE"/>
+            </Key>
+            <Result>
+                <Field Description="Indicates the corresponding lane MLF MAX fullness level of the FIFO" Name="MAX_OCCUPANCY" Permission="READONLY" Size="DNX_DATA.nif.dbal.clu_lane_fifo_level_and_occupancy_entry_size" Type="UINT"/>
+                <Field Description="Indicates the corresponding lane MLF fullness level of the FIFO" Name="FIFO_LEVEL" Permission="READONLY" Size="DNX_DATA.nif.dbal.clu_lane_fifo_level_and_occupancy_entry_size" Type="UINT"/>
+                <Field Description="the number of credits received from the port-macro Tx buffer" Name="PM_CREDITS" Permission="READONLY" Size="6" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV NIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="MAX_OCCUPANCY">
+                    <Access>
+                        <Register Name="CLU_TX_MLF_MAX_OCCUPANCYr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU)"/>
+                            <DataOffset Formula="#KEY_VALUE(INTERNAL_LANE)*dnx_data_nif.dbal.clu_lane_fifo_level_and_occupancy_entry_size_get(unit)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIFO_LEVEL">
+                    <Access>
+                        <Register Name="CLU_TX_MLF_LEVEL_PMr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU)"/>
+                            <DataOffset Formula="#KEY_VALUE(INTERNAL_LANE)*dnx_data_nif.dbal.clu_lane_fifo_level_and_occupancy_entry_size_get(unit)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PM_CREDITS">
+                    <Access>
+                        <Register Name="CLU_TX_MLF_NUM_CREDITS_FROM_PMr">
+                            <BlockIndex Formula="#KEY_VALUE(CLU)"/>
+                            <DataOffset Formula="#KEY_VALUE(INTERNAL_LANE)*6"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="NIF_ILU_HRF_RX_FIFO_STATUS" Valid="DNX_DATA.nif.ilkn.is_ilu_supported">
+        <OneLineDescription>Rx FIFO status for HRF</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ILKN_CORE_ID"/>
+                <Field Name="ILKN_PORT_ID"/>
+                <Field Name="ILKN_HRF_TYPE"/>
+            </Key>
+            <Result>
+                <Field Description="Indicates the corresponding HRF MAX fullness level of the FIFO" Name="MAX_OCCUPANCY" Permission="READONLY" Size="13" Type="UINT"/>
+                <Field Description="Indicates the corresponding HRF fullness level of the FIFO" Name="FIFO_LEVEL" Permission="READONLY" Size="13" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV NIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MAX_OCCUPANCY">
+                    <Access>
+                        <Register Name="ILU_HRF_RX_CONTROLLER_MAX_OCCUPANCYr">
+                            <ArrayOffset Formula="#KEY_VALUE(ILKN_HRF_TYPE)*dnx_data_nif.ilkn.ilkn_unit_if_nof_get(unit)+#KEY_VALUE(ILKN_PORT_ID)"/>
+                            <BlockIndex Formula="#KEY_VALUE(ILKN_CORE_ID)"/>
+                            <HwField Name="HRF_RX_MAX_OCCUPANCY_HRF_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIFO_LEVEL">
+                    <Access>
+                        <Register Name="ILU_HRF_RX_CONTROLLER_DEBUGr">
+                            <ArrayOffset Formula="#KEY_VALUE(ILKN_HRF_TYPE)*dnx_data_nif.ilkn.ilkn_unit_if_nof_get(unit)+#KEY_VALUE(ILKN_PORT_ID)"/>
+                            <BlockIndex Formula="#KEY_VALUE(ILKN_CORE_ID)"/>
+                            <HwField Name="HRF_RX_LEVEL_HRF_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="NIF_ILU_HRF_TX_FIFO_STATUS" Valid="DNX_DATA.nif.ilkn.is_ilu_supported">
+        <OneLineDescription>Tx FIFO status for HRF</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ILKN_CORE_ID"/>
+                <Field Name="ILKN_PORT_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Indicates the corresponding HRF MAX fullness level of the FIFO" Name="MAX_OCCUPANCY" Size="9" Permission="READONLY" Type="UINT"/>
+                <Field Description="Indicates the corresponding HRF fullness level of the FIFO" Name="FIFO_LEVEL" Size="9" Permission="READONLY" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV NIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MAX_OCCUPANCY">
+                    <Access>
+                        <Register Name="ILU_HRF_TX_CONTROLLER_DEBUGr">
+                            <ArrayOffset Formula="#KEY_VALUE(ILKN_PORT_ID)"/>
+                            <BlockIndex Formula="#KEY_VALUE(ILKN_CORE_ID)"/>
+                            <HwField Name="HRF_TX_MAX_OCCUPANCY_HRF_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIFO_LEVEL">
+                    <Access>
+                        <Register Name="ILU_HRF_TX_CONTROLLER_DEBUGr">
+                            <ArrayOffset Formula="#KEY_VALUE(ILKN_PORT_ID)"/>
+                            <BlockIndex Formula="#KEY_VALUE(ILKN_CORE_ID)"/>
+                            <HwField Name="HRF_TX_LEVEL_HRF_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

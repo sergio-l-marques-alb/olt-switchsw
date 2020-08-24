@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="esem">
+
+    <sub_module name="access_cmd">
+        <defines>
+            <define name="nof_esem_accesses"      value="3"/>
+            <define name="app_di_id_size_in_bits" value="3"/>
+            <!-- access commands options -->
+            <define name="no_action"       value="0"/>
+            <define name="default_native"  value="1"/>
+            <define name="default_ac"      value="8"/>
+            <define name="ip_tunnel_no_action"      value="60"/>
+            <define name="nof_cmds"        value="64"/>
+        </defines>
+    </sub_module>
+
+    <sub_module name="default_result_profile">
+        <defines>
+            <define name="default_native"  value="0"/>
+            <define name="default_ac"      value="1"/>
+            <define name="default_dual_homing" value="15"/>
+            <define name="nof_profiles"    value="16"/>
+        </defines>
+    </sub_module>
+    
+    <sub_module name="hw_bug" doc="ESEM related Hw bugs">
+
+        <features>
+            <feature name="etps_properties_assignment"></feature>
+            <feature name="key_with_sspa_contains_member_id"/>
+        </features>
+
+    </sub_module>
+</device_data>

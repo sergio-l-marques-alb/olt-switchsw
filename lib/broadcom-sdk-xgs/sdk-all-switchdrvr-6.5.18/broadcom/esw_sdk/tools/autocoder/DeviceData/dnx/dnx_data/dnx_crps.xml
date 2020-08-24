@@ -1,0 +1,203 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="crps" bsl_flag="BSL_LS_BCMDNX_CNT">
+    <includes>
+        <include>bcm/stat.h</include>
+    </includes>
+    <sub_module name="engine" doc="counters engine data">
+        
+        <features>
+            <feature labels="j2p_notrev"  name="valid_address_admission_is_supported" doc="Is correct address admission supported for both double mode and not double mode?"></feature>
+            <feature labels="j2p_notrev"  name="last_input_command_is_supported" doc="Is diagnostic presenting last input command towards crps supported?"></feature>
+        </features>
+        
+        <defines>
+            <define labels="j2p_notrev"  name="nof_engines" doc="Number of counter engines per core"></define>
+            <define labels="j2p_notrev"  name="nof_mid_engines" doc="Number of mid counter engines per core"></define>
+            <define labels="j2p_notrev"  name="nof_big_engines" doc="Number of big counter engines per core"></define>
+            <define labels="j2p_notrev"  name="nof_databases" doc="Number of counter databases per core"></define>
+            <define labels="j2p_notrev"  name="data_mapping_table_size" doc="Number of entries in data mappnig table"></define>
+            <define labels="j2p_notrev"  name="max_counter_set_size" doc="max size of the counter set"></define>
+            <define labels="j2p_notrev"  name="oam_counter_set_size" doc="size of the counter set for OAM sources"></define>
+            <define labels="j2p_notrev"  name="last_address_nof_bits" doc="number of bits of last address admitted per engine"></define>
+        </defines>
+
+        <numerics>
+        </numerics>        
+       
+        <tables>    
+            <table labels="j2p_notrev"  name="engines_info" doc="size of each counter engine and indication if it is shared with meter">
+                <key name="engine_id" doc="engine id {0..(nof_counter_engines-1)}"></key>
+                <value name="nof_counters" type="int" doc="number of counters per engine"></value>
+                <value name="meter_shared" type="int" doc="is engine is memory shared with meter"></value>                
+            </table>        
+            <table labels="j2p_notrev"  name="source_base" doc="defines the base value for the source which is connected to the engine">
+                <key name="source" doc="source id {according to API enum}"></key>
+                <value name="base_val" type="int" doc="the base value for the input source, in order to configure CRPS_ENGINE_SOURCE_SELECT field"></value>
+            </table>            
+        </tables>
+    </sub_module>
+    <sub_module name="eviction" doc="counters eviction parameters">
+        
+        <features>
+            <feature labels="j2p_notrev" name="algorithmic_is_supported" doc="Is algorithmic scan mode supported?"></feature>
+            <feature labels="j2p_notrev" name="probabilistic_is_supported" doc="Is probabilistic scan mode supported?"></feature>
+            <feature labels="j2p_notrev" name="conditional_action_is_supported" doc="Is conditional action scan is supported"></feature>
+        </features>
+        
+        <defines>
+            <define labels="j2p_notrev"  name="counters_fifo_depth" doc="Indicates the FIFO depth in the host"></define>
+            <define labels="j2p_notrev"  name="nof_counters_fifo" doc="Indicates the number of FIFOs available for CRPS (for each core)"></define>
+            <define labels="j2p_notrev"  name="dma_record_entry_nof_bits" doc="size (in bits) of one record that is copied by the DMA-FIFO"></define>
+            <define labels="j2p_notrev"  name="packet_and_bytes_packet_size" doc="size (in bits) of the packets, if format is packet and bytes"></define>
+            <define labels="j2p_notrev"  name="bubble_before_request_timeout" doc="The waiting period in clocks until requesting bubble, if EnginenScanBubbleRequestEnable=1"></define>
+            <define labels="j2p_notrev"  name="bubble_after_request_timeout" doc="The waiting period, after bubble reuest before forcing bubble (if force enable)"></define>
+            <define labels="j2p_notrev"  name="seq_address_nof_bits" doc="nof bit for sequential address (start/end)"></define>     
+        </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev"  name="bg_thread_enable" doc="enable/disable counters bg thread operation"></numeric>
+        </numerics>        
+        
+        <tables>
+            <table labels="j2p_notrev"  name="phy_record_format" doc="holds the format of the physical record that is copied by the DMA from CRPS FIFO">
+                <value name="obj_type_size" type="uint32" doc="size 'obj_type' field base on its size"></value>
+                <value name="obj_type_offset" type="uint32" doc="offset in the record for obj_type field"></value>
+                <value name="reserved0_size" type="uint32" doc="size 'reserved0' field base on its size"></value>
+                <value name="reserved0_offset" type="uint32" doc="offset in the record for 'reserved0' field"></value>
+                <value name="opcode_size" type="uint32" doc="'opcode' type field base on its size"></value>
+                <value name="opcode_offset" type="uint32" doc="offset in the record for 'opcode' field"></value>            
+                <value name="err_ind_size" type="uint32" doc="size 'error indication' field base on its size"></value>
+                <value name="err_ind_offset" type="uint32" doc="offset in the record for 'error indication' field"></value>
+                <value name="reserved1_size" type="uint32" doc="size 'reserved1' field base on its size"></value>
+                <value name="reserved1_offset" type="uint32" doc="offset in the record for 'reserved1' field"></value>              
+                <value name="core_id_size" type="uint32" doc="size 'core id' field base on its size"></value>
+                <value name="core_id_offset" type="uint32" doc="offset in the record for 'core id' field"></value>
+                <value name="engine_id_size" type="uint32" doc="size 'engine id' field base on its size"></value>
+                <value name="engine_id_offset" type="uint32" doc="offset in the record for 'engine id' field"></value>
+                <value name="local_ctr_id_size" type="uint32" doc="size 'local counter id' field base on its size"></value>
+                <value name="local_ctr_id_offset" type="uint32" doc="offset in the record for 'local counter id' field"></value>
+                <value name="ctr_value_size" type="uint32" doc="size 'counter value' field base on its size"></value>
+                <value name="ctr_value_offset" type="uint32" doc="offset in the record for 'counter value' field"></value>
+            </table>    
+            <table labels="j2p_notrev"  name="condional_action_valid" doc="holds which action is valid">
+                <key name="action_idx" doc="action idx flag {according to API flags}"></key>
+                <value name="valid" type="uint32" doc="condional action valid"></value>
+            </table>            
+        </tables>
+    </sub_module>   
+    <sub_module name="expansion" doc="counters expansion parameters">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define labels="j2p_notrev"  name="expansion_size" doc="define the size of the expansion (in bits)"></define>
+        </defines>
+
+        <numerics>
+        </numerics>        
+        
+        <tables>  
+            <table labels="j2p_notrev"  name="irpp_types" doc="gather all the field types that construct the irpp metadata">
+                <value name="valid_types" type="bcm_stat_expansion_types_t[12]" doc="valid field types that construct the irpp metadata"></value>
+                <value name="total_nof_bits" type="uint32" doc="total size of bits for all fields"></value>             
+                <value name="drop_reason_offset" type="uint32" doc="field offset in the data sent from the source"></value>
+                <value name="disposition_offset" type="uint32" doc="field offset in the data sent from the source"></value>
+                <value name="tc_offset" type="uint32" doc="field offset in the data sent from the source"></value>              
+                <value name="dp0_valid_offset" type="uint32" doc="field offset in the data sent from the source"></value>
+                <value name="dp0_value_offset" type="uint32" doc="field offset in the data sent from the source"></value>
+                <value name="dp1_valid_offset" type="uint32" doc="field offset in the data sent from the source"></value>
+                <value name="dp1_value_offset" type="uint32" doc="field offset in the data sent from the source"></value>
+                <value name="dp2_valid_offset" type="uint32" doc="field offset in the data sent from the source"></value>
+                <value name="dp2_value_offset" type="uint32" doc="field offset in the data sent from the source"></value>
+                <value name="final_dp_offset" type="uint32" doc="field offset in the data sent from the source"></value>
+                <value name="reject_all_copies_offset" type="uint32" doc="field offset in the data sent from the source"></value>
+                <value name="metadata_offset" type="uint32" doc="field offset in the data sent from the source"></value>
+            </table>        
+            <table labels="j2p_notrev"  name="itm_types" doc="gather all the field types that construct the itm metadata">
+                <value name="valid_types" type="bcm_stat_expansion_types_t[6]" doc="valid field types that construct the itm metadata"></value>
+                <value name="total_nof_bits" type="uint32" doc="total size of bits for all fields"></value>             
+                <value name="drop_reason_offset" type="uint32" doc="field offset in the data sent from the source"></value>
+                <value name="disposition_offset" type="uint32" doc="field offset in the data sent from the source"></value>
+                <value name="tc_offset" type="uint32" doc="field offset in the data sent from the source"></value>              
+                <value name="final_dp_offset" type="uint32" doc="field offset in the data sent from the source"></value>                
+                <value name="last_copy_offset" type="uint32" doc="field offset in the data sent from the source"></value>                
+            </table>    
+            <table labels="j2p_notrev"  name="itpp_types" doc="gather all the field types that construct the itpp metadata">
+                <value name="valid_types" type="bcm_stat_expansion_types_t[6]" doc="valid field types that construct the itpp metadata"></value>
+                <value name="total_nof_bits" type="uint32" doc="total size of bits for all fields"></value>                             
+                <value name="latency_bin_offset" type="uint32" doc="field offset in the data sent from the source"></value>
+                <value name="tc_offset" type="uint32" doc="field offset in the data sent from the source"></value>
+                <value name="latency_profile_offset" type="uint32" doc="field offset in the data sent from the source"></value>
+                <value name="mc_offset" type="uint32" doc="field offset in the data sent from the source"></value>                               
+            </table>    
+            <table labels="j2p_notrev"  name="erpp_types" doc="gather all the field types that construct the erpp metadata">
+                <value name="valid_types" type="bcm_stat_expansion_types_t[7]" doc="valid field types that construct the erpp metadata"></value>
+                <value name="total_nof_bits" type="uint32" doc="total size of bits for all fields"></value>         
+                <value name="metadata_offset" type="uint32" doc="field offset in the data sent from the source"></value>
+                <value name="dp_offset" type="uint32" doc="field offset in the data sent from the source"></value>
+                <value name="tc_offset" type="uint32" doc="field offset in the data sent from the source"></value>              
+                <value name="mc_offset" type="uint32" doc="field offset in the data sent from the source"></value>              
+                <value name="tm_action_type_offset" type="uint32" doc="field offset in the data sent from the source"></value>              
+                <value name="pp_drop_reason_offset" type="uint32" doc="field offset in the data sent from the source"></value>              
+            </table>    
+            <table labels="j2p_notrev"  name="etm_types" doc="gather all the field types that construct the etm metadata">
+                <value name="valid_types" type="bcm_stat_expansion_types_t[7]" doc="valid field types that construct the etm metadata"></value>
+                <value name="total_nof_bits" type="uint32" doc="total size of bits for all fields"></value>                         
+                <value name="drop_reason_offset" type="uint32" doc="field offset in the data sent from the source"></value>
+                <value name="tm_discard_offset" type="uint32" doc="field offset in the data sent from the source"></value>
+                <value name="pp_discard_offset" type="uint32" doc="field offset in the data sent from the source"></value>               
+                <value name="tc_offset" type="uint32" doc="field offset in the data sent from the source"></value>      
+                <value name="dp_offset" type="uint32" doc="field offset in the data sent from the source"></value>
+            </table>    
+            <table labels="j2p_notrev"  name="etpp_types" doc="gather all the field types that construct the etpp metadata">
+                <value name="valid_types" type="bcm_stat_expansion_types_t[8]" doc="valid field types that construct the etpp metadata"></value>
+                <value name="total_nof_bits" type="uint32" doc="total size of bits for all fields"></value>
+            </table>                
+        </tables>
+    </sub_module>
+        <sub_module name="src_interface" doc="source interface">
+        <defines>
+        </defines>
+     
+        <numerics>
+        </numerics>
+     
+        <features>
+        </features>
+     
+        <tables>
+            <table labels="j2p_notrev"  name="command_id" doc="command_id data - possible values per source">
+                <key name="source" doc="interface source"></key>
+                <value name="size" type="uint32" doc="maximum possible value for command_id for this source"></value>
+                <value name="base" type="uint32" doc="the base value - minimum value of the command_id" ></value>
+            </table>
+
+        </tables>
+    </sub_module> 
+    <sub_module name="latency" doc="latency stat id definitions">
+        <defines>
+            <define labels="j2p_notrev"  name="etpp_command_id" doc="etpp command id that can be used for latency"></define>     
+            <define labels="j2p_notrev"  name="stat_id_port_offset" doc="offset of the port in the latency stat (flow) id  encoding"></define>
+            <define labels="j2p_notrev"  name="stat_id_tc_offset" doc="offset of the traffic class in the latency stat (flow) id  encoding"></define>
+            <define labels="j2p_notrev"  name="stat_id_multicast_offset" doc="offset of the multicast in the latency stat (flow) id  encoding"></define>
+        </defines>
+     
+        <numerics>
+        </numerics>
+     
+        <features>
+            <feature labels="j2p_notrev" name="valid_flow_profile" doc="can latency be measured per pp flow profile"></feature>
+            <feature labels="j2p_notrev" name="valid_end_to_end_aqm_profile" doc="can end to end aqm profile be created "></feature>
+            <feature labels="j2p_notrev" name="probabilistic_drop_mechanism_support" doc="is the probibalistic mark cni/drop mechanism supported (ingress deqeue latency marking)"></feature>
+        </features>
+     
+        <tables>
+        </tables>
+    </sub_module>    
+</device_data>
+
+
+
+
+

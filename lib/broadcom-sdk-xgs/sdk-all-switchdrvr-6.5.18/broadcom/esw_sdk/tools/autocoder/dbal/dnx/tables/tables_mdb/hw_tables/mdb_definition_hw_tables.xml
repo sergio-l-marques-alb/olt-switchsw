@@ -1,0 +1,510 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../mdb_schema.xsd">
+
+
+<AppDB Name="OAM_TCAM_IDENTIFICATION_DB">
+    <OneLineDescription>OAM TCAM assisted identification</OneLineDescription>
+    <AccessMethod>MDB</AccessMethod>
+    <Maturity Level="HIGH"/>
+    <AppDbInterface Type="TCAM">
+        <Key>
+            <Field Name="LAYER_TYPE_CURRENT_LAYER_MINUS_1" Size="5" Type="LAYER_TYPES"/>
+            <Field Name="LAYER_TYPE_CURRENT_LAYER" Size="5" Type="LAYER_TYPES"/>
+            <Field Name="IN_LIF_PROFILE" Size="8"/>
+            <Field Name="NOF_VALID_OAM_LIFS" Size="2" Type="UINT"/>
+            <Field Name="PKT_DATA_AT_FWD_HEADER" Size="300" Type="ARRAY32"/>
+        </Key>
+        <Result>
+            <Field Name="PACKET_IS_OAM" Size="1"/>
+            <Field Name="OAM_IS_BFD" Size="1" Type="BOOL"/>
+            <Field Name="OAM_OPCODE" Size="4"/>
+            <Field Name="OAM_MD_LEVEL" Size="3" Type="UINT"/>
+            <Field Name="OAM_YOUR_DISCR" Size="1"/>
+            <Field Name="OAM_LIF_TCAM_INSTRUCTION" Size="23" Type="UINT"/>
+            <Field Name="MY_CFM_MAC" Size="1"/>
+            <Field Name="OAM_OFFSET" Size="8"/>
+            <Field Name="OAM_STAMP_OFFSET" Size="8"/>
+            <Field Name="OAM_PCP" Size="3" Type="UINT"/>
+        </Result>
+        <TableLabels>L2 L3 MPLS</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+        <CoreMode Mode="SBC"/>
+        <PhyDb>TCAM</PhyDb>
+        <Stage>FWD1</Stage>
+        <AppDbId Size="0" Value="0"/>
+    </AppToPhyDbMapping>
+</AppDB>
+
+    <AppDB Name="EEDB_DATA_ENTRY">
+        <OneLineDescription>Empty</OneLineDescription>
+        <AccessMethod>MDB</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OUT_LIF" Size="20"/>
+            </Key>
+            <MultipleResults>
+                <Result>
+                    <Field Name="RESULT_TYPE"         Size="4"    Value="DIP6"    Description="Empty"/>
+                    <Field Name="DATA_ENTRY_RESERVED" />
+                    <Field Name="DIP6" Type="IPV6"/>
+                    <Field Name="NEXT_OUTLIF_POINTER" Type="EEDB_LL_NEXT_POINTER"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE"         Size="4"    Value="SFLOW_RAW_DATA"    Description="Empty"/>
+                    <Field Name="DATA_ENTRY_RESERVED" />
+                    <Field Name="SFLOW_DATA_EMPTY" Size="128" Type="ARRAY32"/>
+                    <Field Name="NEXT_OUTLIF_POINTER" Type="EEDB_LL_NEXT_POINTER"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE"         Size="4"    Value="SRV6_SID"    Description="Empty"/>
+                    <Field Name="DATA_ENTRY_RESERVED" />
+                    <Field Name="SID" Type="IPV6"/>
+                    <Field Name="NEXT_OUTLIF_POINTER" Type="EEDB_LL_NEXT_POINTER"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE"         Size="4"    Value="LI_VAR_SIZE"    Description="Empty"/>
+                    <Field Name="HW_ENTRY_TYPE" Type="ETPP_ETPS_FORMATS" ConstValue="ETPS_DATA_VAR_SIZE_DATA"/>
+                    <Field Name="LI_CONTENT_ID" />
+                    <Field Name="RAW_DATA_SIZE" />
+                    <Field Name="STAT_OBJECT_ID" Size="17"/>
+                    <Field Name="STAT_OBJECT_CMD" Size="5"/>
+                    <Field Name="EEDB_LL_EXTRA_DATA" Size="10"/>
+                    <Field Name="NEXT_OUTLIF_POINTER" Type="EEDB_LL_NEXT_POINTER"/>
+                </Result>
+            </MultipleResults>
+            <TableLabels>L3 SFLOW</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>EEDB2</PhyDb>
+            <MultipleResultsMapping SwState="1">
+                <Result LogicalValue="DIP6" Value="1"/>
+                <Result LogicalValue="SFLOW_RAW_DATA" Value="2"/>
+                <Result LogicalValue="SRV6_SID" Value="3"/>
+                <Result LogicalValue="LI_VAR_SIZE" Value="4"/>
+            </MultipleResultsMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+<AppDB Name="OAMP_MEP_STATIC_DATA_DB">
+    <OneLineDescription>Accessed from the OAMP in order to retrieve MEP static data</OneLineDescription>
+    <AccessMethod>MDB</AccessMethod>
+    <Maturity Level="HIGH"/>
+    <AppDbInterface Type="EM">
+        <Key>
+            <Field Name="OAM_ID" Size="16"/>
+            <Field Name="ACCESS_INDEX" Size="3"/>
+        </Key>
+        <MultipleResults>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="4" Value="MEP_DB_CCM_ETH_LM_DM_OFFLOAD_MDB_FORMAT_PART_2"/>
+                <Field Name="DA_UC_MC_TYPE" Size="1"/>
+                <Field Name="SA_GEN_PROFILE" Size="1"/>
+                <Field Name="SA_MAC_LSB" Size="15" Type="L2_MAC"/>
+                <Field Name="LMM_DA_LSB_PROFILE" Size="7"/>
+                <Field Name="COUNTER_INTERFACE" Size="2"/>
+                <Field Name="COUNTER_BASE" Size="20"/>
+            </Result>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="4" Value="MEP_DB_BFD_ON_MPLS_SHORT_STATIC_MDB_FORMAT"/>
+                <Field Name="TX_RATE_LSB" Description="LSB (out of 3) for Tx rate profile - B0 and above" Valid="DNX_DATA.oam.oamp.mdb_tx_rate_lsb_field_present" Size="1" Type="UINT"/>
+                <Field Name="CRPS_CORE_SELECT" Size="1" Type="BOOL"/>
+                <Field Name="IP_TTL_TOS_PROFILE" Size="4"/>
+                <Field Name="YOUR_DISC_MSB" Size="6" Type="UINT"/>
+                <Field Name="MPLS_LABEL" Size="20"/>
+                <Field Name="MEP_PROFILE" Size="7"/>
+                <Field Name="RESERVED" Size="3-DNX_DATA.oam.oamp.mdb_tx_rate_lsb_field_present" Type="UINT"/>
+                <Field Name="BFD_STATE" Size="2"/>
+                <Field Name="BFD_FLAGS_PROFILE" Size="4"/>
+                <Field Name="MPLS_PUSH_PROFILE" Size="4"/>
+                <Field Name="BFD_DIAG_PROFILE" Size="4"/>
+                <Field Name="FEC_ID_OR_GLOB_OUT_LIF" Size="23"/>
+                <Field Name="MIN_RX_INTERVAL_PROFILE" Size="3" Type="MIN_INTERVAL_PROFILE"/>
+                <Field Name="MIN_TX_INTERVAL_PROFILE" Size="3" Type="MIN_INTERVAL_PROFILE"/>
+                <Field Name="DETECT_MULT" Size="8"/>
+                <Field Name="BFD_SRC_IP_PROFILE" Size="8"/>
+            </Result>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="4" Value="MEP_DB_EXTRA_DATA_IN_MDB_HEADER"/>
+                <Field Name="VALUE" Size="63" Type="ARRAY32"/>
+                <Field Name="CHECK_CRC_VALUE_2" Size="16" Type="CRC16"/>
+                <Field Name="CHECK_CRC_VALUE_1" Size="16" Type="CRC16"/>
+                <Field Name="OPCODES_TO_PREPEND" Size="14"/>
+            </Result>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="4" Value="MEP_DB_EXTRA_DATA_IN_MDB_PAYLOAD"/>
+                <Field Name="VALUE" Size="109" Type="ARRAY32"/>
+            </Result>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="4" Value="MEP_DB_BFD_IPV4_M_HOP_SHORT_STATIC_MDB_FORMAT"/>
+                <Field Name="TX_RATE_LSB" Description="LSB (out of 3) for Tx rate profile - B0 and above" Valid="DNX_DATA.oam.oamp.mdb_tx_rate_lsb_field_present" Size="1" Type="UINT"/>
+                <Field Name="CRPS_CORE_SELECT" Size="1" Type="BOOL"/>
+                <Field Name="YOUR_DISC_MSB" Size="6" Type="UINT"/>
+                <Field Name="IPV4_DIP" Size="32" Type="IPV4"/>
+                <Field Name="MEP_PROFILE" Size="7"/>
+                <Field Name="RESERVED" Size="3-DNX_DATA.oam.oamp.mdb_tx_rate_lsb_field_present" Type="UINT"/>
+                <Field Name="BFD_STATE" Size="2"/>
+                <Field Name="BFD_FLAGS_PROFILE" Size="4"/>
+                <Field Name="IP_TTL_TOS_PROFILE" Size="4"/>
+                <Field Name="BFD_DIAG_PROFILE" Size="4"/>
+                <Field Name="FEC_ID_OR_GLOB_OUT_LIF" Size="23"/>
+                <Field Name="MIN_RX_INTERVAL_PROFILE" Size="3" Type="MIN_INTERVAL_PROFILE"/>
+                <Field Name="MIN_TX_INTERVAL_PROFILE" Size="3" Type="MIN_INTERVAL_PROFILE"/>
+                <Field Name="DETECT_MULT" Size="8"/>
+                <Field Name="BFD_SRC_IP_PROFILE" Size="8"/>
+            </Result>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="4" Value="MEP_DB_MPLSTP_PWE_SHORT_STATIC_MDB_FORMAT"/>
+                <Field Name="CCM_INTERVAL_LSB" Description="LSB (out of 3) for Tx rate profile - B0 and above" Valid="DNX_DATA.oam.oamp.modified_mep_db_structure" Size="1" Type="UINT"/>
+                <Field Name="RESERVED" Description="Here only in B0 and up" Size="21" Valid="DNX_DATA.oam.oamp.modified_mep_db_structure" Type="UINT"/>
+                <Field Name="COUNTER_INTERFACE" Description="Here only in A0" Size="2" Valid="!DNX_DATA.oam.oamp.modified_mep_db_structure"/>
+                <Field Name="COUNTER_BASE" Description="Here only in A0" Size="20" Valid="!DNX_DATA.oam.oamp.modified_mep_db_structure"/>
+                <Field Name="INTERFACE_STATUS_TLV_CODE" Size="3"/>
+                <Field Name="PORT_STATUS_TLV_VAL" Size="1"/>
+                <Field Name="PORT_STATUS_TLV_EN" Size="1"/>
+                <Field Name="MPLS_PUSH_PROFILE" Size="4"/>
+                <Field Name="MPLS_LABEL" Size="20"/>
+                <Field Name="FEC_ID_OR_GLOB_OUT_LIF" Size="23"/>
+                <Field Name="MAID" Size="16"/>
+                <Field Name="MDL" Size="3"/>
+                <Field Name="SYSTEM_PORT" Size="16"/>
+            </Result>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="4" Value="MEP_DB_BFD_ON_PWE_SHORT_STATIC_MDB_FORMAT"/>
+                <Field Name="TX_RATE_LSB" Description="LSB (out of 3) for Tx rate profile - B0 and above" Valid="DNX_DATA.oam.oamp.mdb_tx_rate_lsb_field_present" Size="1" Type="UINT"/>
+                <Field Name="CRPS_CORE_SELECT" Size="1" Type="BOOL"/>
+                <Field Name="SYSTEM_PORT" Size="16"/>
+                <Field Name="ACH_SEL" Size="2"/>
+                <Field Name="GAL" Size="1" Type="BOOL"/>
+                <Field Name="ACH" Size="1" Type="BOOL"/>
+                <Field Name="YOUR_DISC_MSB" Size="6" Type="UINT"/>
+                <Field Name="MPLS_LABEL" Size="20"/>
+                <Field Name="MEP_PROFILE" Size="7"/>
+                <Field Name="RESERVED" Size="2-DNX_DATA.oam.oamp.mdb_tx_rate_lsb_field_present" Type="UINT"/>
+                <Field Name="BFD_STATE" Size="2"/>
+                <Field Name="BFD_FLAGS_PROFILE" Size="4"/>
+                <Field Name="MPLS_PUSH_PROFILE" Size="4"/>
+                <Field Name="BFD_DIAG_PROFILE" Size="4"/>
+                <Field Name="FEC_ID_OR_GLOB_OUT_LIF" Size="23"/>
+                <Field Name="MIN_RX_INTERVAL_PROFILE" Size="3" Type="MIN_INTERVAL_PROFILE"/>
+                <Field Name="MIN_TX_INTERVAL_PROFILE" Size="3" Type="MIN_INTERVAL_PROFILE"/>
+                <Field Name="DETECT_MULT" Size="8"/>
+                <Field Name="ROUTER_ALERT" Size="1" Type="BOOL"/>
+            </Result>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="4" Value="MEP_DB_CCM_ETH_SHORT_STATIC_MDB_FORMAT"/>
+                <Field Name="DA_UC_MC_TYPE" Size="1"/>
+                <Field Name="SA_GEN_PROFILE" Size="1"/>
+                <Field Name="SA_MAC_LSB" Size="15" Type="L2_MAC"/>
+                <Field Name="LMM_DA_LSB_PROFILE" Size="7"/>
+                <Field Name="CCM_INTERVAL_LSB" Description="LSB (out of 3) for Tx rate profile - B0 and above" Valid="DNX_DATA.oam.oamp.modified_mep_db_structure" Size="1" Type="UINT"/>
+                <Field Name="RESERVED" Description="Here only in B0 and up" Size="21" Valid="DNX_DATA.oam.oamp.modified_mep_db_structure" Type="UINT"/>
+                <Field Name="COUNTER_INTERFACE" Description="Here only in A0" Size="2" Valid="!DNX_DATA.oam.oamp.modified_mep_db_structure"/>
+                <Field Name="COUNTER_BASE" Description="Here only in A0" Size="20" Valid="!DNX_DATA.oam.oamp.modified_mep_db_structure"/>
+                <Field Name="INTERFACE_STATUS_TLV_CODE" Size="3"/>
+                <Field Name="PORT_STATUS_TLV_VAL" Size="1"/>
+                <Field Name="PORT_STATUS_TLV_EN" Size="1"/>
+                <Field Name="UP_PTCH_OPAQUE_PT_ATTR_PROFILE" Size="1"/>
+                <Field Name="NOF_VLAN_TAGS" Size="2"/>
+                <Field Name="OUTER_DEI_PCP" Size="4" Type="UINT"/>
+                <Field Name="OUTER_VID" Size="12" Type="VLAN_ID"/>
+                <Field Name="OUTER_TPID_INDEX" Size="2" Type="TPID_INDEX"/>
+                <Field Name="INNER_DEI_PCP" Size="4" Type="UINT"/>
+                <Field Name="INNER_VID" Size="12" Type="VLAN_ID"/>
+                <Field Name="INNER_TPID_INDEX" Size="2" Type="TPID_INDEX"/>
+                <Field Name="MAID" Size="16"/>
+                <Field Name="MDL" Size="3"/>
+            </Result>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="4" Value="MEP_DB_CCM_ETH_LM_DM_OFFLOAD_MDB_FORMAT_PART_1_DOWNMEP"/>
+                <Field Name="RESERVED" Size="15-DNX_DATA.oam.oamp.local_port_2_system_port_bits-DNX_DATA.oam.oamp.mdb_reserved_field_size_calculation" Type="UINT"/>
+                <Field Name="MEP_PROFILE" Size="7"/>
+                <Field Name="INTERFACE_STATUS_TLV_CODE" Size="3"/>
+                <Field Name="PORT_STATUS_TLV_VAL" Size="1"/>
+                <Field Name="PORT_STATUS_TLV_EN" Size="1"/>
+                <Field Name="UP_PTCH_OPAQUE_PT_ATTR_PROFILE" Size="1"/>
+                <Field Name="NOF_VLAN_TAGS" Size="2"/>
+                <Field Name="OUTER_DEI_PCP" Size="4" Type="UINT"/>
+                <Field Name="OUTER_VID" Size="12" Type="VLAN_ID"/>
+                <Field Name="OUTER_TPID_INDEX" Size="2" Type="TPID_INDEX"/>
+                <Field Name="INNER_DEI_PCP" Size="4" Type="UINT"/>
+                <Field Name="INNER_VID" Size="12" Type="VLAN_ID"/>
+                <Field Name="INNER_TPID_INDEX" Size="2" Type="TPID_INDEX"/>
+                <Field Name="UP_1_DOWN_0" Size="1" Type="BOOL"/>
+                <Field Name="MEP_ID" Size="13"/>
+                <Field Name="ICC_MAP_INDEX" Size="4"/>
+                <Field Name="MAID" Size="16"/>
+                <Field Name="MDL" Size="3"/>
+                <Field Name="LOCAL_PORT_2_SYSTEM_PORT_PROFILE"/>
+                <Field Name="ITMH_TC_DP_PROFILE" Size="3"/>
+                <Field Name="CCM_INTERVAL" Size="3"/>
+            </Result>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="4" Value="MEP_DB_CCM_ETH_LM_DM_OFFLOAD_MDB_FORMAT_PART_1_UPMEP"/>
+                <Field Name="RESERVED" Size="15-DNX_DATA.oam.oamp.local_port_2_system_port_bits-DNX_DATA.oam.oamp.mdb_reserved_field_size_calculation" Type="UINT"/>
+                <Field Name="MEP_PROFILE" Size="7"/>
+                <Field Name="INTERFACE_STATUS_TLV_CODE" Size="3"/>
+                <Field Name="PORT_STATUS_TLV_VAL" Size="1"/>
+                <Field Name="PORT_STATUS_TLV_EN" Size="1"/>
+                <Field Name="UP_PTCH_OPAQUE_PT_ATTR_PROFILE" Size="1"/>
+                <Field Name="NOF_VLAN_TAGS" Size="2"/>
+                <Field Name="OUTER_DEI_PCP" Size="4" Type="UINT"/>
+                <Field Name="OUTER_VID" Size="12" Type="VLAN_ID"/>
+                <Field Name="OUTER_TPID_INDEX" Size="2" Type="TPID_INDEX"/>
+                <Field Name="INNER_DEI_PCP" Size="4" Type="UINT"/>
+                <Field Name="INNER_VID" Size="12" Type="VLAN_ID"/>
+                <Field Name="INNER_TPID_INDEX" Size="2" Type="TPID_INDEX"/>
+                <Field Name="UP_1_DOWN_0" Size="1" Type="BOOL"/>
+                <Field Name="MEP_ID" Size="13"/>
+                <Field Name="ICC_MAP_INDEX" Size="4"/>
+                <Field Name="MAID" Size="16"/>
+                <Field Name="MDL" Size="3"/>
+                <Field Name="LOCAL_PORT_TO_OAMP_PE" Size="DNX_DATA.oam.oamp.local_port_2_system_port_bits" Type="UINT"/>
+                <Field Name="ITMH_TC_DP_PROFILE" Size="3"/>
+                <Field Name="CCM_INTERVAL" Size="3"/>
+            </Result>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="4" Value="MEP_DB_BFD_IPV4_1_HOP_SHORT_STATIC_MDB_FORMAT"/>
+                <Field Name="TX_RATE_LSB" Description="LSB (out of 3) for Tx rate profile - B0 and above" Valid="DNX_DATA.oam.oamp.mdb_tx_rate_lsb_field_present" Size="1" Type="UINT"/>
+                <Field Name="CRPS_CORE_SELECT" Size="1" Type="BOOL"/>
+                <Field Name="BFD_TUNNEL_MPLS_ENABLE" Size="1" Type="BOOL"/>
+                <Field Name="YOUR_DISC_MSB" Size="6" Type="UINT"/>
+                <Field Name="IPV4_DIP" Size="32" Type="IPV4"/>
+                <Field Name="MEP_PROFILE" Size="7"/>
+                <Field Name="RESERVED" Size="2-DNX_DATA.oam.oamp.mdb_tx_rate_lsb_field_present" Type="UINT"/>
+                <Field Name="BFD_STATE" Size="2"/>
+                <Field Name="BFD_FLAGS_PROFILE" Size="4"/>
+                <Field Name="IP_SUBNET_LEN" Size="5"/>
+                <Field Name="BFD_DIAG_PROFILE" Size="4"/>
+                <Field Name="FEC_ID_OR_GLOB_OUT_LIF" Size="23"/>
+                <Field Name="MIN_RX_INTERVAL_PROFILE" Size="3" Type="MIN_INTERVAL_PROFILE"/>
+                <Field Name="MIN_TX_INTERVAL_PROFILE" Size="3" Type="MIN_INTERVAL_PROFILE"/>
+                <Field Name="DETECT_MULT" Size="8"/>
+                <Field Name="BFD_SRC_IP_PROFILE" Size="8"/>
+            </Result>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="4" Value="MEP_DB_MPLSTP_PWE_LM_DM_OFFLOAD_MDB_FORMAT_PART_2"/>
+                <Field Name="LOCAL_PORT_TO_OAMP_PE" Size="DNX_DATA.oam.oamp.local_port_2_system_port_bits" Type="UINT"/>
+                <Field Name="RESERVED" Size="15-DNX_DATA.oam.oamp.local_port_2_system_port_bits-DNX_DATA.oam.oamp.mdb_reserved_field_size_calculation" Type="UINT"/>
+                <Field Name="COUNTER_INTERFACE" Size="2"/>
+                <Field Name="COUNTER_BASE" Size="20"/>
+                <Field Name="MEP_PROFILE" Size="7"/>
+                <Field Name="INTERFACE_STATUS_TLV_CODE" Size="3"/>
+            </Result>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="4" Value="MEP_DB_MPLSTP_PWE_LM_DM_OFFLOAD_MDB_FORMAT_PART_1"/>
+                <Field Name="PORT_STATUS_TLV_VAL" Size="1"/>
+                <Field Name="PORT_STATUS_TLV_EN" Size="1"/>
+                <Field Name="MPLS_PUSH_PROFILE" Size="4"/>
+                <Field Name="MPLS_LABEL" Size="20"/>
+                <Field Name="FEC_ID_OR_GLOB_OUT_LIF" Size="23"/>
+                <Field Name="MEP_ID" Size="13"/>
+                <Field Name="ICC_MAP_INDEX" Size="4"/>
+                <Field Name="MAID" Size="16"/>
+                <Field Name="MDL" Size="3"/>
+                <Field Name="SYSTEM_PORT" Size="16"/>
+                <Field Name="ITMH_TC_DP_PROFILE" Size="3"/>
+                <Field Name="CCM_INTERVAL" Size="3"/>
+            </Result>
+        </MultipleResults>
+        <TableLabels>L2 L3 MPLS</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+        <CoreMode Mode="SBC"/>
+        <PhyDb>RMEP_EM</PhyDb>
+        <AppDbId Size="2" Value="3"/>
+        <MultipleResultsMapping SwState="1">
+            <Result LogicalValue="MEP_DB_BFD_IPV4_M_HOP_SHORT_STATIC_MDB_FORMAT" Value="1"/>
+            <Result LogicalValue="MEP_DB_BFD_IPV4_1_HOP_SHORT_STATIC_MDB_FORMAT" Value="2"/>
+            <Result LogicalValue="MEP_DB_BFD_ON_MPLS_SHORT_STATIC_MDB_FORMAT" Value="3"/>
+            <Result LogicalValue="MEP_DB_BFD_ON_PWE_SHORT_STATIC_MDB_FORMAT" Value="4"/>
+            <Result LogicalValue="MEP_DB_CCM_ETH_SHORT_STATIC_MDB_FORMAT" Value="5"/>
+            <Result LogicalValue="MEP_DB_CCM_ETH_LM_DM_OFFLOAD_MDB_FORMAT_PART_1_DOWNMEP" Value="6"/>
+            <Result LogicalValue="MEP_DB_CCM_ETH_LM_DM_OFFLOAD_MDB_FORMAT_PART_1_UPMEP" Value="7"/>
+            <Result LogicalValue="MEP_DB_CCM_ETH_LM_DM_OFFLOAD_MDB_FORMAT_PART_2" Value="8"/>
+            <Result LogicalValue="MEP_DB_EXTRA_DATA_IN_MDB_HEADER" Value="9"/>
+            <Result LogicalValue="MEP_DB_EXTRA_DATA_IN_MDB_PAYLOAD" Value="10"/>
+            <Result LogicalValue="MEP_DB_MPLSTP_PWE_SHORT_STATIC_MDB_FORMAT" Value="11"/>
+            <Result LogicalValue="MEP_DB_MPLSTP_PWE_LM_DM_OFFLOAD_MDB_FORMAT_PART_1" Value="12"/>
+            <Result LogicalValue="MEP_DB_MPLSTP_PWE_LM_DM_OFFLOAD_MDB_FORMAT_PART_2" Value="13"/>
+        </MultipleResultsMapping>
+    </AppToPhyDbMapping>
+</AppDB>
+
+<AppDB Name="GLOBAL_LIF_EM">
+    <OneLineDescription>Mapping Global-Out-LIF into Local-Out-LIF. Global_LIF_Exact_Match</OneLineDescription>
+    <AccessMethod>MDB</AccessMethod>
+    <Maturity Level="HIGH"/>
+    <AppDbInterface Type="EM">
+        <Key>
+            <Field Name="GLOB_OUT_LIF" Size="22" MinValue="DNX_DATA.l3.rif.nof_rifs"/>
+            <Field Name="CORE_ID" Size="1"/>
+        </Key>
+            <Result>
+                <Field Name="OUT_LIF" Size="DNX_DATA.lif.out_lif.outlif_pointer_size"/>
+                <Field Name="ERPP_OUT_LIF_PROFILE" Size="DNX_DATA.lif.out_lif.outlif_profile_width" Type="OUT_LIF_PROFILE" Valid="DNX_DATA.lif.out_lif.outlif_profile_width"/>
+            </Result>
+        <TableLabels>L2 L3 MPLS</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+        <CoreMode Mode="DPC"/>
+        <PhyDb>GLEM1</PhyDb>
+        <AppDbId Size="0" Value="0"/>
+    </AppToPhyDbMapping>
+</AppDB>
+
+<AppDB Name="GLOBAL_RIF_EM">
+    <OneLineDescription>Mapping Global-Out-RIF into Local-Out-RIF. 
+    The tabe should have the same key size and AppToPhyDbMapping as GLOBAL_LIF_EM </OneLineDescription>
+    <AccessMethod>MDB</AccessMethod>
+    <Maturity Level="HIGH"/>
+    <AppDbInterface Type="EM">
+        <Key>
+            <Field Name="GLOB_OUT_RIF" Type="UINT" Size="22" MaxValue="DNX_DATA.l3.rif.nof_rifs-1"/>
+            <Field Name="CORE_ID" Size="1"/>
+        </Key>
+            <Result>
+                <Field Name="ERPP_OUT_LIF_PROFILE" Size="4" NofInstances="4" Type="OUT_LIF_PROFILE"/>
+		<Field Name="ZERO_PADDING" Size="DNX_DATA.lif.out_lif.outlif_profile_width+DNX_DATA.lif.out_lif.outlif_pointer_size-16" Description="temp W.A to make the payload size equal to GLOBAL_LIF_EM"/>
+            </Result>
+        <TableLabels>L2 L3 MPLS</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+        <CoreMode Mode="DPC"/>
+        <PhyDb>GLEM1</PhyDb>
+        <AppDbId Size="0" Value="0"/>
+    </AppToPhyDbMapping>
+</AppDB>
+
+<AppDB Name="SUPER_FEC_1ST_HIERARCHY">
+    <OneLineDescription> SUPER FORWARD EQUIVALENT CLASS table, facilitates forwarding DBs indirection protection and ECMP. </OneLineDescription>
+    <AccessMethod>MDB</AccessMethod>
+    <Maturity Level="HIGH"/>
+    <AppDbInterface Type="DIRECT">
+        <Key>
+            <Field Name="SUPER_FEC_ID" Size="19"/>
+        </Key>
+        <MultipleResults>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="4" Value="SUPER_FEC_NO_PROTECTION"/>
+                <Field Name="FEC_ENTRY_NO_PROTECTION_NO_STATS" NofInstances="2" Size="73"/>
+            </Result>
+            <Result>
+                <Field Description="This FEC format is used for protected FECs (Has Protection_PTR)
+                         Expectation is that Protected FECs can allocate sequential counters" Name="RESULT_TYPE" Size="4" Value="SUPER_FEC_W_PROTECTION_W_1_STAT"/>
+                <Field Name="STAT_OBJECT_ID" Size="17"/>
+                <Field Name="STAT_OBJECT_CMD" Size="5"/>
+                <Field Name="PROTECTION_POINTER" Size="18"/>
+                <Field Name="FEC_ENTRY_W_PROTECTION_W_1_STATS" NofInstances="2" Size="51"/>
+            </Result>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="4" Value="SUPER_FEC_W_PROTECTION"/>
+                <Field Name="PROTECTION_POINTER" Size="18"/>
+                <Field Name="FEC_ENTRY_W_PROTECTION_NO_STATS" NofInstances="2" Size="64"/>
+            </Result>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="4" Value="SUPER_FEC_NO_PROTECTION_W_2_STAT"/>
+                <Field Name="STAT_OBJECT_ID" NofInstances="2" Size="17"/>
+                <Field Name="STAT_OBJECT_CMD" NofInstances="2" Size="5"/>
+                <Field Name="FEC_ENTRY_NO_PROTECTION_W_2_STATS" NofInstances="2" Size="48"/>
+            </Result>
+        </MultipleResults>
+        <TableLabels>L2 L3 MPLS</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+        <CoreMode Mode="SBC"/>
+        <PhyDb>FEC1</PhyDb>
+        <ReferenceField Name="IRPP_FEC_SUPER_ENTRY_FORMAT"/>
+    </AppToPhyDbMapping>
+</AppDB>
+
+
+<AppDB Name="SUPER_FEC_2ND_HIERARCHY">
+    <OneLineDescription> SUPER FORWARD EQUIVALENT CLASS table, facilitates forwarding DBs indirection protection and ECMP. </OneLineDescription>
+    <AccessMethod>MDB</AccessMethod>
+    <Maturity Level="HIGH"/>
+    <AppDbInterface Type="DIRECT">
+        <Key>
+            <Field Name="SUPER_FEC_ID" Size="19"/>
+        </Key>
+        <MultipleResults>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="4" Value="SUPER_FEC_NO_PROTECTION"/>
+                <Field Name="FEC_ENTRY_NO_PROTECTION_NO_STATS" NofInstances="2" Size="73"/>
+            </Result>
+            <Result>
+                <Field Description="This FEC format is used for protected FECs (Has Protection_PTR)
+                         Expectation is that Protected FECs can allocate sequential counters" Name="RESULT_TYPE" Size="4" Value="SUPER_FEC_W_PROTECTION_W_1_STAT"/>
+                <Field Name="STAT_OBJECT_ID" Size="17"/>
+                <Field Name="STAT_OBJECT_CMD" Size="5"/>
+                <Field Name="PROTECTION_POINTER" Size="18"/>
+                <Field Name="FEC_ENTRY_W_PROTECTION_W_1_STATS" NofInstances="2" Size="51"/>
+            </Result>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="4" Value="SUPER_FEC_W_PROTECTION"/>
+                <Field Name="PROTECTION_POINTER" Size="18"/>
+                <Field Name="FEC_ENTRY_W_PROTECTION_NO_STATS" NofInstances="2" Size="64"/>
+            </Result>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="4" Value="SUPER_FEC_NO_PROTECTION_W_2_STAT"/>
+                <Field Name="STAT_OBJECT_ID" NofInstances="2" Size="17"/>
+                <Field Name="STAT_OBJECT_CMD" NofInstances="2" Size="5"/>
+                <Field Name="FEC_ENTRY_NO_PROTECTION_W_2_STATS" NofInstances="2" Size="48"/>
+            </Result>
+        </MultipleResults>
+        <TableLabels>L2 L3 MPLS</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+        <CoreMode Mode="SBC"/>
+        <PhyDb>FEC2</PhyDb>
+        <ReferenceField Name="IRPP_FEC_SUPER_ENTRY_FORMAT"/>
+    </AppToPhyDbMapping>
+</AppDB>
+
+
+<AppDB Name="SUPER_FEC_3RD_HIERARCHY">
+    <OneLineDescription> SUPER FORWARD EQUIVALENT CLASS table, facilitates forwarding DBs indirection protection and ECMP. </OneLineDescription>
+    <AccessMethod>MDB</AccessMethod>
+    <Maturity Level="HIGH"/>
+    <AppDbInterface Type="DIRECT">
+        <Key>
+            <Field Name="SUPER_FEC_ID" Size="19"/>
+        </Key>
+        <MultipleResults>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="4" Value="SUPER_FEC_NO_PROTECTION"/>
+                <Field Name="FEC_ENTRY_NO_PROTECTION_NO_STATS" NofInstances="2" Size="73"/>
+            </Result>
+            <Result>
+                <Field Description="This FEC format is used for protected FECs (Has Protection_PTR)
+                         Expectation is that Protected FECs can allocate sequential counters" Name="RESULT_TYPE" Size="4" Value="SUPER_FEC_W_PROTECTION_W_1_STAT"/>
+                <Field Name="STAT_OBJECT_ID" Size="17"/>
+                <Field Name="STAT_OBJECT_CMD" Size="5"/>
+                <Field Name="PROTECTION_POINTER" Size="18"/>
+                <Field Name="FEC_ENTRY_W_PROTECTION_W_1_STATS" NofInstances="2" Size="51"/>
+            </Result>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="4" Value="SUPER_FEC_W_PROTECTION"/>
+                <Field Name="PROTECTION_POINTER" Size="18"/>
+                <Field Name="FEC_ENTRY_W_PROTECTION_NO_STATS" NofInstances="2" Size="64"/>
+            </Result>
+            <Result>
+                <Field Description="Empty" Name="RESULT_TYPE" Size="4" Value="SUPER_FEC_NO_PROTECTION_W_2_STAT"/>
+                <Field Name="STAT_OBJECT_ID" NofInstances="2" Size="17"/>
+                <Field Name="STAT_OBJECT_CMD" NofInstances="2" Size="5"/>
+                <Field Name="FEC_ENTRY_NO_PROTECTION_W_2_STATS" NofInstances="2" Size="48"/>
+            </Result>
+        </MultipleResults>
+        <TableLabels>L2 L3 MPLS</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+        <CoreMode Mode="SBC"/>
+        <PhyDb>FEC3</PhyDb>
+        <ReferenceField Name="IRPP_FEC_SUPER_ENTRY_FORMAT"/>
+    </AppToPhyDbMapping>
+</AppDB>
+
+</AppDbCatalog>

@@ -1,0 +1,160 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0"  module="egr_queuing">
+    <includes>
+        <include>bcm_int/dnx/cosq/egress/egr_queuing.h</include>
+        <include>bcm/port.h</include>
+        <include>soc/mcm/allenum.h</include>
+        <include>shared/utilex/utilex_integer_arithmetic.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_port.h</include>
+    </includes>  
+    <sub_module name="params" doc="default values for egr_queuing module">
+        <tables>           
+            <table name="if_speed_params">
+                <key name="idx" size="17"></key>
+                <key name="clock_rate_idx" size="2"></key>    <!-- clock_rate_idx=0 is used for 450Mhz, clock_rate_idx=1 is used for 600Mhz -->            
+                <value name="speed" default="-1"></value>
+                <value name="if_id" default="-1"></value>
+                <value name="crdt_size" default="-1"></value>
+                <value name="irdy_thr" default="-1"></value>
+                <value name="txq_max_bytes" default="-1"></value>
+                <value name="min_gap_hp" default="-1"></value>
+                <value name="fqp_min_gap" default="-1"></value>
+                <entries>                    
+                    <entry idx="0" clock_rate_idx="0" if_id="DATA(egr_queuing,params,egr_if_cpu)" crdt_size="468" irdy_thr="320" txq_max_bytes="800" min_gap_hp="0" fqp_min_gap="3"></entry>
+                    <entry idx="1" clock_rate_idx="0" if_id="DATA(egr_queuing,params,egr_if_sat)" crdt_size="2400" irdy_thr="1377" txq_max_bytes="800" min_gap_hp="0" fqp_min_gap="0"></entry>
+                    <entry idx="2" clock_rate_idx="0" if_id="DATA(egr_queuing,params,egr_if_oam)" crdt_size="468" irdy_thr="320" txq_max_bytes="800" min_gap_hp="0" fqp_min_gap="3"></entry>
+                    <entry idx="3" clock_rate_idx="0" if_id="DATA(egr_queuing,params,egr_if_olp)" crdt_size="168" irdy_thr="116" txq_max_bytes="800" min_gap_hp="0" fqp_min_gap="4"></entry>
+                    <entry idx="4" clock_rate_idx="0" if_id="DATA(egr_queuing,params,egr_if_rcy)" crdt_size="3000" irdy_thr="1377" txq_max_bytes="800" min_gap_hp="0" fqp_min_gap="0"></entry>
+                    <entry idx="5" clock_rate_idx="0" if_id="DATA(egr_queuing,params,egr_if_eventor)" crdt_size="192" irdy_thr="132" txq_max_bytes="800" min_gap_hp="0" fqp_min_gap="4"></entry>
+                    <entry idx="6" clock_rate_idx="0" speed="1000" crdt_size="36" irdy_thr="30" txq_max_bytes="32" min_gap_hp="6" fqp_min_gap="3"></entry>
+                    <entry idx="7" clock_rate_idx="0" speed="5000" crdt_size="108" irdy_thr="78" txq_max_bytes="32" min_gap_hp="6" fqp_min_gap="3"></entry>                    
+                    <entry idx="8" clock_rate_idx="0" speed="10000" crdt_size="192" irdy_thr="114" txq_max_bytes="32" min_gap_hp="6" fqp_min_gap="3"></entry>
+                    <entry idx="9" clock_rate_idx="0" speed="25000" crdt_size="348" irdy_thr="238" txq_max_bytes="96" min_gap_hp="6" fqp_min_gap="3"></entry>
+                    <entry idx="10" clock_rate_idx="0" speed="40000" crdt_size="540" irdy_thr="366" txq_max_bytes="96" min_gap_hp="6" fqp_min_gap="2"></entry>
+                    <entry idx="11" clock_rate_idx="0" speed="50000" crdt_size="672" irdy_thr="456" txq_max_bytes="256" min_gap_hp="4" fqp_min_gap="2"></entry>
+                    <entry idx="12" clock_rate_idx="0" speed="100000" crdt_size="1332" irdy_thr="910" txq_max_bytes="256" min_gap_hp="1" fqp_min_gap="0"></entry>
+                    <entry idx="13" clock_rate_idx="0" speed="200000" crdt_size="2200" irdy_thr="1341" txq_max_bytes="400" min_gap_hp="0" fqp_min_gap="0"></entry>
+                    <entry idx="14" clock_rate_idx="0" speed="300000" crdt_size="3900" irdy_thr="1365" txq_max_bytes="400" min_gap_hp="0" fqp_min_gap="0"></entry>
+                    <entry idx="15" clock_rate_idx="0" speed="400000" crdt_size="3900" irdy_thr="1365" txq_max_bytes="400" min_gap_hp="0" fqp_min_gap="0"></entry>
+                    <entry idx="16" clock_rate_idx="0" speed="600000" crdt_size="3900" irdy_thr="1365" txq_max_bytes="400" min_gap_hp="0" fqp_min_gap="0"></entry>
+                    <entry idx="0" clock_rate_idx="1" if_id="DATA(egr_queuing,params,egr_if_cpu)" crdt_size="468" irdy_thr="320"  txq_max_bytes="800" min_gap_hp="0" fqp_min_gap="3"></entry>
+                    <entry idx="1" clock_rate_idx="1" if_id="DATA(egr_queuing,params,egr_if_sat)" crdt_size="2400" irdy_thr="1377" txq_max_bytes="800" min_gap_hp="0" fqp_min_gap="0"></entry>
+                    <entry idx="2" clock_rate_idx="1" if_id="DATA(egr_queuing,params,egr_if_oam)" crdt_size="468" irdy_thr="320"  txq_max_bytes="800" min_gap_hp="0" fqp_min_gap="3"></entry>
+                    <entry idx="3" clock_rate_idx="1" if_id="DATA(egr_queuing,params,egr_if_olp)" crdt_size="168" irdy_thr="116" txq_max_bytes="800" min_gap_hp="0" fqp_min_gap="4"></entry>
+                    <entry idx="4" clock_rate_idx="1" if_id="DATA(egr_queuing,params,egr_if_rcy)" crdt_size="3000" irdy_thr="1377" txq_max_bytes="800" min_gap_hp="0" fqp_min_gap="0"></entry>
+                    <entry idx="5" clock_rate_idx="1" if_id="DATA(egr_queuing,params,egr_if_eventor)" crdt_size="192" irdy_thr="132" txq_max_bytes="800" min_gap_hp="0" fqp_min_gap="4"></entry>
+                    <entry idx="6" clock_rate_idx="1" speed="1000" crdt_size="24" irdy_thr="18" txq_max_bytes="32" min_gap_hp="6" fqp_min_gap="3"></entry>
+                    <entry idx="7" clock_rate_idx="1" speed="5000" crdt_size="78" irdy_thr="56" txq_max_bytes="32" min_gap_hp="6" fqp_min_gap="3"></entry>                    
+                    <entry idx="8" clock_rate_idx="1" speed="10000" crdt_size="132" irdy_thr="92" txq_max_bytes="32" min_gap_hp="6" fqp_min_gap="3"></entry>
+                    <entry idx="9" clock_rate_idx="1" speed="25000" crdt_size="264" irdy_thr="180" txq_max_bytes="96" min_gap_hp="6" fqp_min_gap="3"></entry>
+                    <entry idx="10" clock_rate_idx="1" speed="40000" crdt_size="426" irdy_thr="288" txq_max_bytes="96" min_gap_hp="6" fqp_min_gap="2"></entry>
+                    <entry idx="11" clock_rate_idx="1" speed="50000" crdt_size="498" irdy_thr="336" txq_max_bytes="256" min_gap_hp="4" fqp_min_gap="2"></entry>
+                    <entry idx="12" clock_rate_idx="1" speed="100000" crdt_size="1020" irdy_thr="688" txq_max_bytes="256" min_gap_hp="1" fqp_min_gap="0"></entry>
+                    <entry idx="13" clock_rate_idx="1" speed="200000" crdt_size="2004" irdy_thr="1341" txq_max_bytes="400" min_gap_hp="0" fqp_min_gap="0"></entry>
+                    <entry idx="14" clock_rate_idx="1" speed="300000" crdt_size="3900" irdy_thr="1377" txq_max_bytes="400" min_gap_hp="0" fqp_min_gap="0"></entry>
+                    <entry idx="15" clock_rate_idx="1" speed="400000" crdt_size="3900" irdy_thr="1377" txq_max_bytes="400" min_gap_hp="0" fqp_min_gap="0"></entry>
+                    <entry idx="16" clock_rate_idx="1" speed="600000" crdt_size="3900" irdy_thr="1377" txq_max_bytes="400" min_gap_hp="0" fqp_min_gap="0"></entry>
+                </entries>
+            </table>      
+            <table name="emr_fifo">
+                <key name="idx" size="DNX_EGR_EMR_FIFO_MAX"></key>
+                <key name="tdm" size="2"></key>
+                <value name="depth" default="-1"></value>
+                <value name="almost_full" default="-1"></value>
+                <value name="full" default="-1"></value>
+                <entries>
+                    <entry idx="DNX_EGR_EMR_FIFO_TDM"         tdm="0" depth="1"     almost_full="0"  full="0"></entry>
+                    <entry idx="DNX_EGR_EMR_FIFO_UC"         tdm="0" depth="0"     almost_full="20" full="20"></entry>
+                    <entry idx="DNX_EGR_EMR_FIFO_MC_HIGH"     tdm="0" depth="256" almost_full="10" full="3"></entry>
+                    <entry idx="DNX_EGR_EMR_FIFO_MC_LOW"     tdm="0" depth="255" almost_full="10" full="3"></entry>
+                    <entry idx="DNX_EGR_EMR_FIFO_TDM"         tdm="1" depth="128"     almost_full="20" full="3"></entry>
+                    <entry idx="DNX_EGR_EMR_FIFO_UC"         tdm="1" depth="0"     almost_full="20" full="20"></entry>
+                    <entry idx="DNX_EGR_EMR_FIFO_MC_HIGH"     tdm="1" depth="192" almost_full="10" full="3"></entry>
+                    <entry idx="DNX_EGR_EMR_FIFO_MC_LOW"     tdm="1" depth="192" almost_full="10" full="3"></entry>
+                </entries>
+            </table>    
+            <table name="if_speed_params_clk_th" mode="sequential">
+                <key name="idx"></key>
+                <value name="max_clock_rate_th" default="-1"></value>
+                <entries>
+                    <entry max_clock_rate_th="450000"></entry>
+                    <entry max_clock_rate_th="600000"></entry>                    
+                </entries>                
+            </table>            
+        </tables>            
+        <defines>
+            <define name="nof_calendars" value="33"></define>
+            <define name="nof_bits_in_egr_ch_interface" value="5"></define>
+            <!--
+                This 4 letters combination '& l t ;' stands for the 'less than' sign which may not be used as is
+                because it is a basic XML character. When two consequent such combinations are used, it
+                results in 'shift left' sign.
+            -->
+            <define name="nof_bits_in_egr_interface" value="8"></define>
+            <define name="nof_egr_interfaces" value="136"></define>
+            <define name="nof_egr_ch_interfaces" value="1 &lt;&lt; DATA(egr_queuing,params, nof_bits_in_egr_ch_interface)"></define>
+            <define name="reserved_if" value="255"></define>
+            <define name="egr_if_nif_base" value="8"></define>
+            <define name="sub_calendar_ifc" value="192"></define>
+            <define name="txq_max_credits" value="24576"></define> <!-- ESB contain 4K buffers. each buffer is equal to 6 credits -->
+            <define name="nof_bits_in_q_pair" value="9"></define>                        
+            <define name="pqp_ifc_almost_empty_th" value="22"></define>
+            <define name="pqp_port_almost_empty_th" value="22"></define>
+            <define name="pqp_queue_almost_empty_th" value="14"></define>    
+            <define name="if_min_gap_priority_size" value="6"></define>            
+        </defines> 
+        <features>
+            <!--
+                For J2A0, it is required to invoke dnx_ofp_rates_if_port_read_enable_set() with 'read_en'
+                set to FALSE before accessing DBAL_TABLE_EGQ_SHAPER_OTM_CALENDAR_CRDT_TABLE.
+                When finished, invoke it with 'read_en' set to TRUE.
+                Not required from J2B0/J2C on.
+            -->
+            <feature name="conditional_crdt_table_access" value="0"></feature>
+            <feature name="if_attributes_profile_exist" value="1"></feature>
+            <feature name="cos_map_is_per_pp_port" value="1"></feature>       
+            <feature name="almost_empty_delay" value="0"></feature>
+            <feature name="fqp_calender_set_select" value="0"></feature>
+            <feature name="sub_calendar" value="1"></feature>
+            <feature name="txq_tdm_irdy_sel_exist" value="0"></feature>            
+        </features>
+        <defines>
+            <define name="nof_bits_in_cal_cal_len" value="8"></define>
+            <define name="cal_cal_len" value="1 &lt;&lt; DATA(egr_queuing,params, nof_bits_in_cal_cal_len)"></define>
+            <define name="nof_bits_in_nif_cal_len_pqp" value="8"></define>
+            <define name="nof_bits_in_nif_cal_len_fqp" value="8"></define>
+        </defines>
+    </sub_module>    
+    
+    <sub_module name="common_max_val" doc="Common max values over all calendar types">
+        <defines>
+            <define name="slow_port_speed" value="12500"></define>
+            <define name="mux_calendar_resolution" value="5000"></define>
+        </defines>
+    </sub_module>    
+    <sub_module name="rate_measurement">
+        <features>
+            <feature name="is_supported" value="1"></feature>     
+        </features>
+    
+        <defines>
+            <define name="max_interval" value="0x1ffff"></define>
+            <define name="promile_factor" value="8*1000"></define>
+            <define name="max_granularity" value="7"></define>
+            <define name="min_bytes_for_granularity" value="700"></define>
+        </defines>
+    </sub_module>
+    
+    <sub_module name="phantom_queues">
+        <defines>
+            <define name="nof_threshold_profiles" value="4"></define>
+            <define name="max_threshold" value="1000"></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="reassembly" doc="egress reassembly">
+        <features>
+            <feature name="prs" value="0"></feature>
+        </features>
+    </sub_module>
+</device_data>

@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="esb">
+    <sub_module name="general" doc="General parameters of Egress Shared Buffers">
+        <features>
+            <feature name="esb_support" value="0"></feature>
+        </features>
+        <defines>
+            <define name="nof_fpc" value="0"></define>
+            <define name="fpc_ptr_size" value="0"></define>
+            <define name="nof_buffers_per_fpc" value="1 &lt;&lt; DATA(esb,general, fpc_ptr_size)"></define>
+            <define name="total_nof_buffers" value="DATA(esb,general, nof_fpc)*DATA(esb,general, nof_buffers_per_fpc)"></define>
+    </defines>
+    </sub_module>
+</device_data>

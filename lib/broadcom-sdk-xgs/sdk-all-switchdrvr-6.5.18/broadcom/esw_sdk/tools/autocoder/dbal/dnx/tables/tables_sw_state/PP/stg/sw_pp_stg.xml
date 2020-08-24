@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../../sw_state_schema.xsd">
+
+    <AppDB Name="STG_GENERAL_INFO_SW">
+        <OneLineDescription>sw state table - stg basic information table</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="STG_MIN_ID" Size="16" Type="BCM_STG_ID" Description="The minimum stg-id that can be used."/>
+                <Field Name="STG_MAX_ID" Size="16" Type="BCM_STG_ID" Description="The maximum stg-id that can be used."/>
+                <Field Name="STG_DEFAULT_ID" Size="16" Type="BCM_STG_ID" Description="The default stg-id in the system."/>
+                <Field Name="STG_COUNT" Size="16" Type="UINT" Description="Number of allocated stg-id."/>
+            </Result>
+            <TableLabels>STG</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="STP_STATE_SW">
+        <OneLineDescription>sw state table - stp state per {port, topology_id} from application where 5 states exist versus 3 states in hardware. </OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="PP_PORT"/>
+                <Field Name="STP_TOPOLOGY_ID"/>
+            </Key>
+            <Result>
+                <Field Name="BCM_STG_STP_STATE" Description="STP state on the {port, stg-id}."/>
+            </Result>
+            <TableLabels>STG</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="VSI_STG_INFO_SW">
+        <OneLineDescription>sw state table - STG group that the VSI belongs to - for traversing conveniently.</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VSI"/>
+            </Key>
+            <Result>
+                <Field Name="STP_TOPOLOGY_ID" Description="STG group that the VSI belongs to."/>
+            </Result>
+            <TableLabels>STG</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>
+

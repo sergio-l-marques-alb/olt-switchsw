@@ -1,0 +1,2375 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+
+  
+    <AppDB Name="FIELD_IPMF1_IPMF2_ACTION_DISABLE">
+        <OneLineDescription>Holds PMF Disables - If reset then the coresponding action may update the field otherwise, it remains unchanged.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="FIELD_ACTION_DISABLE" Size="119" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FIELD_ACTION_DISABLE">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="FIELD_IPMF3_ACTION_DISABLE">
+        <OneLineDescription>Holds PMF Disables - If reset then the coresponding action may update the field otherwise, it remains unchanged.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="FIELD_ACTION_DISABLE" Size="106" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FIELD_ACTION_DISABLE">
+                    <Access>
+                        <Register Name="IPPD_ACTION_DISABLEr">
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="FIELD_EPMF_ACTION_DISABLE">
+        <OneLineDescription>Holds PMF Disables - If reset then the coresponding action may update the field otherwise, it remains unchanged.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="FIELD_ACTION_DISABLE" Size="21" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FIELD_ACTION_DISABLE">
+                    <Access>
+                        <Register Name="ERPP_ACTION_DISABLEr">
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="FIELD_ACE_ACTION_DISABLE">
+        <OneLineDescription>Holds PMF Disables - If reset then the coresponding action may update the field otherwise, it remains unchanged.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="FIELD_ACTION_DISABLE" Size="33" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FIELD_ACTION_DISABLE">
+                    <Access>
+                        <Register Name="ETPPA_PMF_ACR_ACTION_DISABLEr">
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="FIELD_IPMF1_IPMF2_GENERAL">
+        <OneLineDescription>This register holds the ingress PMF_1_2 unit enablers.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="FORCE_PROGRAM" Type="BOOL"/>
+                <Field Name="FORCE_PROGRAM_NUM" Size="6" Type="UINT"/>
+                <Field Name="IPMF1_MAP_KEY_SELECT" Size="2" Type="UINT"/>
+                <Field Name="IPMF1_EXEM_KEY_SELECT" Size="3" Type="UINT" Valid="DNX_DATA.field.exem.large_ipmf1_key_configurable"/>
+                <Field Name="IPMF2_MAP_KEY_SELECT" Size="2" Type="UINT"/>
+                <Field Name="IPMF2_EXEM_KEY_SELECT" Size="DNX_DATA.field.exem.small_ipmf2_key_hw_bits" Type="UINT"/>
+                <Field Name="IPMF1_CMP_SELECTION" Size="4" Type="UINT"/>
+                <Field Name="SWITCH_TO_ACL_CONTEXT" Type="BOOL" Valid="DNX_DATA.field.features.switch_to_acl_context"/>
+                <Field Name="ENABLE_DESTINATION_ACTION_TRAP_ENCODING" Type="BOOL"/>
+                <Field Name="CORE"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="FORCE_PROGRAM">
+                    <Access>
+                        <Register Name="IPPC_PMF_GENERALr">
+                            <HwField Name="FORCE_PROGRAMf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FORCE_PROGRAM_NUM">
+                    <Access>
+                        <Register Name="IPPC_PMF_GENERALr">
+                            <HwField Name="FORCE_PROGRAM_NUMf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IPMF1_MAP_KEY_SELECT">
+                    <Access>
+                        <Register Name="IPPC_PMF_GENERALr">
+                            <HwField Name="KGN_MAP_KEY_SELECTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="IPMF1_EXEM_KEY_SELECT">
+                    <Access>
+                        <Register Name="IPPC_PMF_GENERALr">
+                            <HwField Name="KGN_EXEM_KEY_SELECTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IPMF2_MAP_KEY_SELECT">
+                    <Access>
+                        <Register Name="IPPC_PMF_GENERALr">
+                            <HwField Name="KYU_MAP_KEY_SELECTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IPMF2_EXEM_KEY_SELECT">
+                    <Access>
+                        <Register Name="IPPC_PMF_GENERALr">
+                            <HwField Name="KYU_EXEM_KEY_SELECTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IPMF1_CMP_SELECTION">
+                    <Access>
+                        <Register Name="IPPC_PMF_GENERALr">
+                            <HwField Name="CMP_SELECTIONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_A0 JR2_B0" Name="SWITCH_TO_ACL_CONTEXT">
+                    <Access>
+                        <Register Name="IPPC_PMF_GENERALr">
+                            <HwField Name="SWITCH_TO_ACL_CONTEXTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ENABLE_DESTINATION_ACTION_TRAP_ENCODING">
+                    <Access>
+                        <Register Name="IPPC_PMF_GENERALr">
+                            <HwField Name="ENABLE_DESTINATION_ACTION_TRAP_ENCODINGf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CORE">
+                    <Access>
+                        <Register Name="IPPC_PMF_GENERALr">
+                            <HwField Name="CORE_IDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FIELD_PMF_A_DEFAULT_TCAM_ACTION">
+        <OneLineDescription>If the TCAM returns "no-match", then the TCAM action will be replaced with Default Tcam Action.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="FIELD_DEFAULT_TCAM_ACTION" Size="64" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FIELD_DEFAULT_TCAM_ACTION">
+                    <Access>
+                        <Register Name="IPPC_DEFAULT_TCAM_ACTIONr">
+                            <HwField Name="DEFAULT_TCAM_ACTIONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="FIELD_PMF_A_DEFAULT_MAPS_ACTION">
+        <OneLineDescription>If the TCAM returns "no-match", then the TCAM action will be replaced with Default MAPS Action.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="FIELD_DEFAULT_MAPS_ACTION" Size="60" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FIELD_DEFAULT_MAPS_ACTION">
+                    <Access>
+                        <Register Name="IPPC_DEFAULT_MAPS_ACTIONr">
+                            <HwField Name="DEFAULT_MAPS_ACTIONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="FIELD_PMF_A_DEFAULT_EXEM_ACTION">
+        <OneLineDescription>If the TCAM returns "no-match", then the TCAM action will be replaced with Default EXEM Action.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="FIELD_DEFAULT_EXEM_ACTION" Size="64" Type="ARRAY32"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FIELD_DEFAULT_EXEM_ACTION">
+                    <Access>
+                        <Register Name="IPPC_DEFAULT_EXEM_ACTIONr">
+                            <HwField Name="DEFAULT_EXEM_ACTIONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="FIELD_PMF_A_ACTION_DISABLE">
+        <OneLineDescription>Holds PMF Disables - If reset then the coresponding action may update the field otherwise, it remains unchanged.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-119838" Level="LOW"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="FIELD_ACR_ACL_CONTEXT" Type="BOOL"/>
+                <Field Name="FIELD_ACR_ADMT_PROFILE" Type="BOOL"/>
+                <Field Name="FIELD_ACR_BIER_STRING_OFFSET" Type="BOOL"/>
+                <Field Name="FIELD_ACR_BIER_STRING_SIZE" Type="BOOL"/>
+                <Field Name="FIELD_ACR_CONGESTION_INFO" Type="BOOL"/>
+                <Field Name="FIELD_ACR_DESTINATION" Type="BOOL"/>
+                <Field Name="FIELD_ACR_DP" Type="BOOL"/>
+                <Field Name="FIELD_ACR_DP_METER_COMMAND" Type="BOOL"/>
+                <Field Name="FIELD_ACR_EEI" Type="BOOL"/>
+                <Field Name="FIELD_ACR_EGRESS_LEARN_ENABLE" Type="BOOL"/>
+                <Field Name="FIELD_ACR_ELEPHANT_PAYLOAD" Type="BOOL"/>
+                <Field Name="FIELD_ACR_TRACE_PACKET_ACT" Type="BOOL"/>
+                <Field Name="FIELD_ACR_END_OF_PACKET_EDITING" Type="BOOL"/>
+                <Field Name="FIELD_ACR_EXT_STATISTICS_0" Type="BOOL"/>
+                <Field Name="FIELD_ACR_EXT_STATISTICS_1" Type="BOOL"/>
+                <Field Name="FIELD_ACR_EXT_STATISTICS_2" Type="BOOL"/>
+                <Field Name="FIELD_ACR_EXT_STATISTICS_3" Type="BOOL"/>
+                <Field Name="FIELD_ACR_FORWARD" Type="BOOL"/>
+                <Field Name="FIELD_ACR_FORWARDING_DOMAIN" Type="BOOL"/>
+                <Field Name="FIELD_ACR_FWD_LAYER_ADDITIONAL_INFO" Type="BOOL"/>
+                <Field Name="FIELD_ACR_CONTEXT" Type="BOOL"/>
+                <Field Name="FIELD_ACR_LAYER_INDEX" Type="BOOL"/>
+                <Field Name="FIELD_ACR_IEEE1588" Type="BOOL"/>
+                <Field Name="FIELD_ACR_INGRESS_LEARN_ENABLE" Type="BOOL"/>
+                <Field Name="FIELD_ACR_IN_LIF_0" Type="BOOL"/>
+                <Field Name="FIELD_ACR_IN_LIF_1" Type="BOOL"/>
+                <Field Name="FIELD_ACR_IN_LIF_PROFILE_0" Type="BOOL"/>
+                <Field Name="FIELD_ACR_IN_LIF_PROFILE_1" Type="BOOL"/>
+                <Field Name="FIELD_ACR_IN_PORT" Type="BOOL"/>
+                <Field Name="FIELD_ACR_IN_TTL" Type="BOOL"/>
+                <Field Name="FIELD_ACR_ITPP_DELTA" Type="BOOL"/>
+                <Field Name="FIELD_ACR_LATENCY_FLOW" Type="BOOL"/>
+                <Field Name="FIELD_ACR_LEARN_INFO" NofInstances="5" Type="BOOL"/>
+                <Field Name="FIELD_ACR_LEARN_OR_TRANSPLANT" Type="BOOL"/>
+                <Field Name="FIELD_ACR_MIRROR" Type="BOOL"/>
+                <Field Name="FIELD_ACR_NETWORK_QOS" Type="BOOL"/>
+                <Field Name="FIELD_ACR_OAM" Type="BOOL"/>
+                <Field Name="FIELD_ACR_OAM_ID" Type="BOOL"/>
+                <Field Name="FIELD_ACR_OUT_LIF" NofInstances="4" Type="BOOL"/>
+                <Field Name="FIELD_ACR_OUT_LIF_PUSH" Type="BOOL"/>
+                <Field Name="FIELD_ACR_PACKET_IS_COMPATIBLE_MC" Type="BOOL"/>
+                <Field Name="FIELD_ACR_PACKET_IS_BIER" Type="BOOL"/>
+                <Field Name="FIELD_ACR_EGRESS_PARSING_INDEX" Type="BOOL"/>
+                <Field Name="FIELD_ACR_PEM_GENERAL_DATA" NofInstances="4" Type="BOOL"/>
+                <Field Name="FIELD_ACR_PPH_RESERVED" Type="BOOL"/>
+                <Field Name="FIELD_ACR_PPH_TYPE" Type="BOOL"/>
+                <Field Name="FIELD_ACR_RPF_DESTINATION" Type="BOOL"/>
+                <Field Name="FIELD_ACR_RPF_DESTINATION_VALID" Type="BOOL"/>
+                <Field Name="FIELD_ACR_RPF_OUT_LIF" Type="BOOL"/>
+                <Field Name="FIELD_ACR_PTC" Type="BOOL"/>
+                <Field Name="FIELD_ACR_STATISTICAL_SAMPLING" Type="BOOL"/>
+                <Field Name="FIELD_ACR_SNOOP" Type="BOOL"/>
+                <Field Name="FIELD_ACR_SRC_SYS_PORT_ID" Type="BOOL"/>
+                <Field Name="FIELD_ACR_STACKING_ROUTE_HISTORY_BITMAP" Type="BOOL"/>
+                <Field Name="FIELD_ACR_SLB_PAYLOAD_0" Type="BOOL"/>
+                <Field Name="FIELD_ACR_SLB_PAYLOAD_1" Type="BOOL"/>
+                <Field Name="FIELD_ACR_SLB_KEY" NofInstances="3" Type="BOOL"/>
+                <Field Name="FIELD_ACR_SLB_FOUND" Type="BOOL"/>
+                <Field Name="FIELD_ACR_STATE_ADDRESS" Type="BOOL"/>
+                <Field Name="FIELD_ACR_STATE_ADDRESS_DATA" Type="BOOL"/>
+                <Field Name="FIELD_ACR_STATISTICS_META_DATA" Type="BOOL"/>
+                <Field Name="FIELD_ACR_STATISTICS_OBJECT" NofInstances="11" Type="BOOL"/>
+                <Field Name="FIELD_ACR_STATISTICS_OBJECT_ATR" NofInstances="10" Type="BOOL"/>
+                <Field Name="FIELD_ACR_ST_VSQ_PTR" Type="BOOL"/>
+                <Field Name="FIELD_ACR_SYSTEM_HEADER_PROFILE_INDEX" Type="BOOL"/>
+                <Field Name="FIELD_ACR_TC" Type="BOOL"/>
+                <Field Name="FIELD_ACR_TM_PROFILE" Type="BOOL"/>
+                <Field Name="FIELD_ACR_USER_HEADER_1" Type="BOOL"/>
+                <Field Name="FIELD_ACR_USER_HEADER_1_TYPE" Type="BOOL"/>
+                <Field Name="FIELD_ACR_USER_HEADER_2" Type="BOOL"/>
+                <Field Name="FIELD_ACR_USER_HEADER_2_TYPE" Type="BOOL"/>
+                <Field Name="FIELD_ACR_USER_HEADER_3" Type="BOOL"/>
+                <Field Name="FIELD_ACR_USER_HEADER_3_TYPE" Type="BOOL"/>
+                <Field Name="FIELD_ACR_USER_HEADER_4" Type="BOOL"/>
+                <Field Name="FIELD_ACR_USER_HEADER_4_TYPE" Type="BOOL"/>
+                <Field Name="FIELD_ACR_VLAN_EDIT_COMMAND" Type="BOOL"/>
+                <Field Name="FIELD_ACR_VLAN_EDIT_PCP_DEI_1" Type="BOOL"/>
+                <Field Name="FIELD_ACR_VLAN_EDIT_PCP_DEI_2" Type="BOOL"/>
+                <Field Name="FIELD_ACR_VLAN_EDIT_VID_1" Type="BOOL"/>
+                <Field Name="FIELD_ACR_VLAN_EDIT_VID_2" Type="BOOL"/>
+                <Field Name="FIELD_ACR_INGRESS_TIME_STAMP" Type="BOOL"/>
+                <Field Name="FIELD_ACR_INT_DATA" Type="BOOL"/>
+                <Field Name="FIELD_ACR_INGRESS_TIME_STAMP_OVERRIDE" Type="BOOL"/>
+                <Field Name="FIELD_ACR_EVENTOR_ACTION" Type="BOOL"/>
+                <Field Name="FIELD_ACR_STAT_OBJ_LM_READ_INDEX" Type="BOOL"/>
+                <Field Name="FIELD_ACR_VISIBILITY_CLEAR" Type="BOOL"/>
+                <Field Name="FIELD_ACR_VISIBILITY" Type="BOOL"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FIELD_ACR_ACL_CONTEXT">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_ACL_CONTEXTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_ADMT_PROFILE">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_ADMT_PROFILEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_BIER_STRING_OFFSET">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_BIER_STRING_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_BIER_STRING_SIZE">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_BIER_STRING_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_CONGESTION_INFO">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_CONGESTION_INFOf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_DESTINATION">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_DESTINATIONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_DP">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_DPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_DP_METER_COMMAND">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_DP_METER_COMMANDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_EEI">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_EEIf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_EGRESS_LEARN_ENABLE">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_EGRESS_LEARN_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_ELEPHANT_PAYLOAD">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_ELEPHANT_PAYLOADf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_TRACE_PACKET_ACT">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_TRACE_PACKETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_END_OF_PACKET_EDITING">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_END_OF_PACKET_EDITINGf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_EXT_STATISTICS_0">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_EXT_STATISTICS_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_EXT_STATISTICS_1">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_EXT_STATISTICS_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_EXT_STATISTICS_2">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_EXT_STATISTICS_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_EXT_STATISTICS_3">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_EXT_STATISTICS_3f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_FORWARD">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_FORWARDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_FORWARDING_DOMAIN">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_FORWARDING_DOMAINf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_FWD_LAYER_ADDITIONAL_INFO">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_FWD_LAYER_ADDITIONAL_INFOf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_CONTEXT">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_FWD_CONTEXTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_LAYER_INDEX">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_FWD_LAYER_INDEXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_IEEE1588">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_IEEE_1588f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_INGRESS_LEARN_ENABLE">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_INGRESS_LEARN_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_IN_LIF_0">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_IN_LIF_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_IN_LIF_1">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_IN_LIF_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_IN_LIF_PROFILE_0">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_IN_LIF_PROFILE_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_IN_LIF_PROFILE_1">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_IN_LIF_PROFILE_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_IN_PORT">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_IN_PORTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_IN_TTL">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_IN_TTLf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_ITPP_DELTA">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_ITPP_DELTAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_LATENCY_FLOW">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_LATENCY_FLOWf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_LEARN_INFO">
+                    <Access instanceIndex="0">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_LEARN_INFO_0f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_LEARN_INFO_1f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_LEARN_INFO_2f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_LEARN_INFO_3f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_LEARN_INFO_4f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_LEARN_OR_TRANSPLANT">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_LEARN_OR_TRANSPLANTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_MIRROR">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_MIRRORf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_NETWORK_QOS">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_NETWORK_QOSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_OAM">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_OAMf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_OAM_ID">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_OAM_IDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_OUT_LIF">
+                    <Access instanceIndex="0">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_OUT_LIF_0f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_OUT_LIF_1f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_OUT_LIF_2f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_OUT_LIF_3f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_OUT_LIF_PUSH">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_OUT_LIF_PUSHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_PACKET_IS_COMPATIBLE_MC">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_PACKET_IS_COMPATIBLE_MCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_PACKET_IS_BIER">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_PACKET_IS_BIERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_EGRESS_PARSING_INDEX">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_EGRESS_PARSING_INDEXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_PEM_GENERAL_DATA">
+                    <Access instanceIndex="0">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_PEM_GENERAL_DATA_0f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_PEM_GENERAL_DATA_1f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_PEM_GENERAL_DATA_2f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_PEM_GENERAL_DATA_3f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                    
+                <Field Name="FIELD_ACR_PPH_RESERVED">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_PPH_RESERVEDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_PPH_TYPE">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_PPH_TYPEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_RPF_DESTINATION">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_RPF_DESTINATIONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_RPF_DESTINATION_VALID">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_RPF_DESTINATION_VALIDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_RPF_OUT_LIF">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_RPF_OUT_LIFf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_PTC">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_PTCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_STATISTICAL_SAMPLING">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_STATISTICAL_SAMPLINGf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_SNOOP">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_SNOOPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_SRC_SYS_PORT_ID">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_SRC_SYSTEM_PORT_IDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_STACKING_ROUTE_HISTORY_BITMAP">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_STACKING_ROUTE_HISTORY_BITMAPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_SLB_PAYLOAD_0">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_SLB_PAYLOAD_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_SLB_PAYLOAD_1">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_SLB_PAYLOAD_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_SLB_KEY">
+                    <Access instanceIndex="0">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_SLB_KEY_0f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_SLB_KEY_1f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_SLB_KEY_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_SLB_FOUND">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_SLB_FOUNDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_STATE_ADDRESS">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_STATE_ADDRESSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_STATE_ADDRESS_DATA">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_STATE_ADDRESS_DATAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_STATISTICS_META_DATA">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_STATISTICS_META_DATAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_STATISTICS_OBJECT">
+                    <Access instanceIndex="0">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_STATISTICS_OBJECT_0f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_STATISTICS_OBJECT_1f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_STATISTICS_OBJECT_2f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_STATISTICS_OBJECT_3f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_STATISTICS_OBJECT_4f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_STATISTICS_OBJECT_5f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_STATISTICS_OBJECT_6f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="7">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_STATISTICS_OBJECT_7f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="8">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_STATISTICS_OBJECT_8f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="9">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_STATISTICS_OBJECT_9f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="10">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_STATISTICS_OBJECT_10f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_STATISTICS_OBJECT_ATR">
+                    <Access instanceIndex="0">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_STATISTICS_OBJECT_ATR_0f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_STATISTICS_OBJECT_ATR_1f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_STATISTICS_OBJECT_ATR_2f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_STATISTICS_OBJECT_ATR_3f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_STATISTICS_OBJECT_ATR_4f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_STATISTICS_OBJECT_ATR_5f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_STATISTICS_OBJECT_ATR_6f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="7">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_STATISTICS_OBJECT_ATR_7f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="8">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_STATISTICS_OBJECT_ATR_8f"/>
+                        </Register>
+                    </Access>
+                    <Access instanceIndex="9">
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_STATISTICS_OBJECT_ATR_9f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_ST_VSQ_PTR">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_ST_VSQ_POINTERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_SYSTEM_HEADER_PROFILE_INDEX">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_SYSTEM_HEADER_PROFILE_INDEXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_TC">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_TCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_TM_PROFILE">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_TM_PROFILEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_USER_HEADER_1">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_USER_HEADER_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_USER_HEADER_1_TYPE">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_USER_HEADER_1_TYPEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_USER_HEADER_2">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_USER_HEADER_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_USER_HEADER_2_TYPE">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_USER_HEADER_2_TYPEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_USER_HEADER_3">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_USER_HEADER_3f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_USER_HEADER_3_TYPE">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_USER_HEADER_3_TYPEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_USER_HEADER_4">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_USER_HEADER_4f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_USER_HEADER_4_TYPE">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_USER_HEADER_4_TYPEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_VLAN_EDIT_COMMAND">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_VLAN_EDIT_COMMANDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_VLAN_EDIT_PCP_DEI_1">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_VLAN_EDIT_PCP_DEI_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_VLAN_EDIT_PCP_DEI_2">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_VLAN_EDIT_PCP_DEI_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_VLAN_EDIT_VID_1">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_VLAN_EDIT_VID_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_VLAN_EDIT_VID_2">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_VLAN_EDIT_VID_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_INGRESS_TIME_STAMP">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_INGRESS_TIME_STAMPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_INT_DATA">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_INT_DATAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_INGRESS_TIME_STAMP_OVERRIDE">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_INGRESS_TIME_STAMP_OVERRIDEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_EVENTOR_ACTION">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_EVENTOR_ACTIONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_STAT_OBJ_LM_READ_INDEX">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_STAT_OBJ_LM_READ_INDEXf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_VISIBILITY_CLEAR">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_VISIBILITY_CLEARf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FIELD_ACR_VISIBILITY">
+                    <Access>
+                        <Register Name="IPPC_ACTION_DISABLEr">
+                            <HwField Name="ACR_VISIBILITYf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FIELD_PMF_A_CPU_TRAP_CODE_PROFILE">
+        <OneLineDescription>This is a table that maps an 9-bit CPU trap code to a forwarding action profile, used for the default key construction.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="FIELD_PMF_A_CPU_TRAP_CODE_PROFILE" Size="512" Type="BITMAP"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FIELD_PMF_A_CPU_TRAP_CODE_PROFILE">
+                    <Access>
+                        <Register Name="IPPC_CPU_TRAP_CODE_PROFILEr">
+                            <HwField Name="CPU_TRAP_CODE_PROFILEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FIELD_IPMF3_GENERAL">
+        <OneLineDescription>This register holds the PMF_3 unit enablers.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="FORCE_PROGRAM" Type="BOOL"/>
+                <Field Name="FORCE_PROGRAM_NUM" Size="6" Type="UINT"/>
+                <Field Name="MAP_KEY_SELECT" Size="2" Type="UINT"/>
+                <Field Name="CORE"/>
+                <Field Name="ENABLE_DESTINATION_ACTION_TRAP_ENCODING" Type="BOOL"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="FORCE_PROGRAM">
+                    <Access>
+                        <Register Name="IPPD_PMF_GENERALr">
+                            <HwField Name="FORCE_PROGRAMf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FORCE_PROGRAM_NUM">
+                    <Access>
+                        <Register Name="IPPD_PMF_GENERALr">
+                            <HwField Name="FORCE_PROGRAM_NUMf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MAP_KEY_SELECT">
+                    <Access>
+                        <Register Name="IPPD_PMF_GENERALr">
+                            <HwField Name="MAP_KEY_SELECTf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                 <Field Device="JR2_A0" Name="CORE">
+                    <Access>
+                        <Register Name="IPPD_PMF_GENERALr">
+                            <HwField Name="FIELD_41_41f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                 <Field Device="JR2_B0 J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="CORE">
+                    <Access>
+                        <Register Name="IPPD_PMF_GENERALr">
+                            <HwField Name="CORE_IDf"/>
+                        </Register>
+                    </Access>
+                </Field>                
+                <Field Name="ENABLE_DESTINATION_ACTION_TRAP_ENCODING">
+                    <Access>
+                        <Register Name="IPPD_PMF_GENERALr">
+                            <HwField Name="ENABLE_DESTINATION_ACTION_TRAP_ENCODINGf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FIELD_INGRESS_HEADER_PROFILE">
+      <OneLineDescription>Maps each of 16 possible Header profile</OneLineDescription>
+          <AccessMethod>HARD_LOGIC</AccessMethod>
+          <Maturity Level="HIGH"/>
+      <AppDbInterface Type="DIRECT">
+        <Key>
+          <Field Name="HEADER_PROFILE"/>
+        </Key>
+        <Result>
+          <Field Name="ST_VSQ_PTR_TC_MODE"/>
+          <Field Description="If set, packets with this header-profile will generate FTMH" Name="BUILD_FTMH" Type="BOOL"/>
+          <Field Description="If set, packets with this header-profile will generate PPH" Name="BUILD_PPH" Type="BOOL"/>
+          <Field Description="If set, packets with this header-profile will generate UDH" Name="BUILD_UDH" Type="BOOL"/>
+          <Field Description="If set, then a PPH learn extension is always added to the PPH" Name="ALWAYS_ADD_PPH_LEARN_EXT" Type="BOOL"/>
+          <Field Description="If reset and learn data is not null, add learn extention" Name="NEVER_ADD_PPH_LEARN_EXT" Type="BOOL"/>
+          <Field Description="If system is uc and this bit is set add DSP EXT to the headers" Name="ENABLE_STACKING_UC" Type="BOOL"/>
+          <Field Description="If system is mc and this bit is set add DSP EXT to the headers" Name="ENABLE_STACKING_MC" Type="BOOL"/>
+          <Field Description="If set then FTMH MCID is taken from user header 218:0" Name="MC_ID_IN_USER_HEADER_2" Type="BOOL"/>
+          <Field Description="If set then FTMH Out Lif is taken from user header 218:0" Name="OUT_LIF_IN_USER_HEADER_2" Type="BOOL"/>
+          <Field Description="Reserved values for ftmh" Name="FTMH_RESERVED_VALUE" Type="BOOL"/>
+          <Field Description="For Packet Latency messurement" Name="BUILD_OAM_TS_HEADER" Type="BOOL"/>
+        </Result>
+        <TableLabels>L3</TableLabels>
+      </AppDbInterface>
+      <AppToPhyDbMapping>
+        <CoreMode Mode="SBC"/>
+        <FieldMapping>
+          <Field Name="ST_VSQ_PTR_TC_MODE">
+            <Access>
+              <Memory Name="IPPD_HEADER_PROFILEm">
+                <HwField Name="ST_VSQ_PTR_TC_MODEf"/>
+              </Memory>
+            </Access>
+          </Field>
+          <Field Name="BUILD_FTMH">
+            <Access>
+              <Memory Name="IPPD_HEADER_PROFILEm">
+                <HwField Name="BUILD_FTMHf"/>
+              </Memory>
+            </Access>
+          </Field>
+          <Field Name="BUILD_PPH">
+            <Access>
+              <Memory Name="IPPD_HEADER_PROFILEm">
+                <HwField Name="BUILD_PPHf"/>
+              </Memory>
+            </Access>
+          </Field>
+          <Field Name="BUILD_UDH">
+            <Access>
+              <Memory Name="IPPD_HEADER_PROFILEm">
+                <HwField Name="BUILD_UDHf"/>
+              </Memory>
+            </Access>
+          </Field>
+          <Field Name="ALWAYS_ADD_PPH_LEARN_EXT">
+            <Access>
+              <Memory Name="IPPD_HEADER_PROFILEm">
+                <HwField Name="ALWAYS_ADD_PPH_LEARN_EXTf"/>
+              </Memory>
+            </Access>
+          </Field>
+          <Field Name="NEVER_ADD_PPH_LEARN_EXT">
+            <Access>
+              <Memory Name="IPPD_HEADER_PROFILEm">
+                <HwField Name="NEVER_ADD_PPH_LEARN_EXTf"/>
+              </Memory>
+            </Access>
+          </Field>
+          <Field Name="ENABLE_STACKING_UC">
+            <Access>
+              <Memory Name="IPPD_HEADER_PROFILEm">
+                <HwField Name="ENABLE_STACKING_UCf"/>
+              </Memory>
+            </Access>
+          </Field>
+          <Field Name="ENABLE_STACKING_MC">
+            <Access>
+              <Memory Name="IPPD_HEADER_PROFILEm">
+                <HwField Name="ENABLE_STACKING_MCf"/>
+              </Memory>
+            </Access>
+          </Field>
+          <Field Name="MC_ID_IN_USER_HEADER_2">
+            <Access>
+              <Memory Name="IPPD_HEADER_PROFILEm">
+                <HwField Name="MC_ID_IN_USER_HEADER_2f"/>
+              </Memory>
+            </Access>
+          </Field>
+          <Field Name="OUT_LIF_IN_USER_HEADER_2">
+            <Access>
+              <Memory Name="IPPD_HEADER_PROFILEm">
+                <HwField Name="OUT_LIF_IN_USER_HEADER_2f"/>
+              </Memory>
+            </Access>
+          </Field>
+          <Field Name="FTMH_RESERVED_VALUE">
+            <Access>
+              <Memory Name="IPPD_HEADER_PROFILEm">
+                <HwField Name="FTMH_RESERVED_VALUEf"/>
+              </Memory>
+            </Access>
+          </Field>
+          <Field Name="BUILD_OAM_TS_HEADER">
+            <Access>
+              <Memory Name="IPPD_HEADER_PROFILEm">
+                <HwField Name="BUILD_OAM_TS_HEADERf"/>
+              </Memory>
+            </Access>
+          </Field>
+        </FieldMapping>
+      </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="FIELD_PMF_B_CPU_TRAP_CODE_PROFILE">
+        <OneLineDescription>This is a table that maps an 9-bit CPU trap code to a forwarding action profile, used for the default key construction.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="FIELD_PMF_B_CPU_TRAP_CODE_PROFILE" Size="512" Type="BITMAP"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FIELD_PMF_B_CPU_TRAP_CODE_PROFILE">
+                    <Access>
+                        <Register Name="IPPD_CPU_TRAP_CODE_PROFILEr">
+                            <HwField Name="CPU_TRAP_CODE_PROFILEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="FIELD_STATE_TABLE">
+        <OneLineDescription>This table provides access to IPPC_STATE_TABLE to allow static values set to the memory</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="STATE_TABLE_ADDRESS"/>
+            </Key>
+            <Result>
+                <Field Name="STATE_TABLE_DATA"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="STATE_TABLE_DATA">
+                    <Access>
+                        <Memory Name="IPPC_STATE_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(STATE_TABLE_ADDRESS)"/>
+                            <HwField Name="DATAf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="FIELD_IPMF1_L4_PROTOCOL">
+        <OneLineDescription>This table checks the mapping protocol type to is L4.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="IPMF1_PROTOCOL_IS_L_4" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IPMF1_PROTOCOL_IS_L_4">
+                    <Access>
+                         <Register Name="IPPC_PMF_PRTOCOL_IS_L_4r">
+                            <HwField Name="PMF_PROTOCOL_IS_L_4f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="FIELD_EPMF_L4_PROTOCOL">
+        <OneLineDescription>This table checks the mapping protocol type to is L4.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="EPMF_PROTOCOL_IS_L_4" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="EPMF_PROTOCOL_IS_L_4">
+                    <Access>
+                        <Register Name="ERPP_PMF_PRTOCOL_IS_L_4r">
+                            <HwField Name="PMF_PROTOCOL_IS_L_4f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="FIELD_IPMF1_L4_OPS_RANGES">
+        <OneLineDescription>This table provides access to L4 Ops ranges. Each range is set by minimum and maximum value. </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="DNX_DATA.field.l4_ops.nof_range_entries-1" Name="FIELD_PMF_RANGE_ID"/>
+            </Key>
+            <Result>
+                <!-- Minimum value of the range for L4 Source Port/Field 0 -->
+                <Field Name="MIN_SRC_L4_PORT" Size="16" Type="UINT"/>
+                <!-- Maximum value of the range for L4 Source Port/Field 0 -->
+                <Field Name="MAX_SRC_L4_PORT" Size="16" Type="UINT"/>
+                <!-- Minimum value of the range for L4 Destination Port/Field 1 -->
+                <Field Name="MIN_DEST_L4_PORT" Size="16" Type="UINT"/>
+                <!-- Maximum value of the range for L4 Destination Port/Field 1 -->
+                <Field Name="MAX_DEST_L4_PORT" Size="16" Type="UINT"/>
+                <!-- Minimum value of the range for Field 2 -->
+                <Field Name="MIN_FIELD_2" Size="16" Type="UINT" Valid="DNX_DATA.field.features.extended_l4_ops"/>
+                <!-- Maximum value of the range for Field 2 -->
+                <Field Name="MAX_FIELD_2" Size="16" Type="UINT" Valid="DNX_DATA.field.features.extended_l4_ops"/>
+                <!-- Minimum value of the range for Field 3 -->
+                <Field Name="MIN_FIELD_3" Size="16" Type="UINT" Valid="DNX_DATA.field.features.extended_l4_ops"/>
+                <!-- Maximum value of the range for Field 3 -->
+                <Field Name="MAX_FIELD_3" Size="16" Type="UINT" Valid="DNX_DATA.field.features.extended_l4_ops"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MIN_SRC_L4_PORT">
+                    <Access>
+                        <Memory Name="IPPC_L_4_OPSm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_RANGE_ID)"/>
+                            <HwField Name="SOURCE_PORT_MINf"/>
+                        </Memory>
+                   </Access>
+                </Field>
+                <Field Name="MAX_SRC_L4_PORT">
+                    <Access>
+                        <Memory Name="IPPC_L_4_OPSm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_RANGE_ID)"/>
+                            <HwField Name="SOURCE_PORT_MAXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MIN_DEST_L4_PORT">
+                    <Access>
+                        <Memory Name="IPPC_L_4_OPSm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_RANGE_ID)"/>
+                            <HwField Name="DESTINATION_PORT_MINf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAX_DEST_L4_PORT">
+                    <Access>
+                        <Memory Name="IPPC_L_4_OPSm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_RANGE_ID)"/>
+                            <HwField Name="DESTINATION_PORT_MAXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="MIN_FIELD_2">
+                    <Access>
+                        <Memory Name="IPPC_L_4_OPSm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_RANGE_ID)"/>
+                            <HwField Name="FIELD_2_MINf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="MAX_FIELD_2">
+                    <Access>
+                        <Memory Name="IPPC_L_4_OPSm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_RANGE_ID)"/>
+                            <HwField Name="FIELD_2_MAXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="MIN_FIELD_3">
+                    <Access>
+                        <Memory Name="IPPC_L_4_OPSm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_RANGE_ID)"/>
+                            <HwField Name="FIELD_3_MINf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="MAX_FIELD_3">
+                    <Access>
+                        <Memory Name="IPPC_L_4_OPSm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_RANGE_ID)"/>
+                            <HwField Name="FIELD_3_MAXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="FIELD_IPMF1_L4_OPS_RANGES_CFG_FIELD_SELECT">
+        <OneLineDescription>This table controls the configuration of the range field select Extended L4 OPs in J2P</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="3" Name="L4_OPS_RANGE_ID" Valid="DNX_DATA.field.features.extended_l4_ops"/>
+            </Key>
+            <Result>
+                <!-- Field type select for in_fields -->
+                <Field Name="L4_OPS_FIELD_TYPE_SELECT" Type="L4_OPS_EXTND_RANGES_TYPE" Valid="DNX_DATA.field.features.extended_l4_ops"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="J2P_A0" Name="L4_OPS_FIELD_TYPE_SELECT">
+                    <Access>
+                        <Register Name="IPPC_L_4_OPS_CFGr">
+                            <HwField Name="CFG_RANGE_FIELD_SELECTf"/>
+                            <DataOffset Formula="#KEY_VALUE(L4_OPS_RANGE_ID)*3"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="FIELD_IPMF1_L4_OPS_ENCODE_CFG">
+        <OneLineDescription>This table controls the configuration of the encoder of Extended L4 OPs in J2P</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="3" Name="L4_OPS_ENCODE_IDX" Valid="DNX_DATA.field.features.extended_l4_ops"/>
+            </Key>
+            <Result>
+                <!-- Field type select for in_fields -->
+                <Field Name="L4_OPS_ENCODE_MAP" Size="4" Type="UINT" Valid="DNX_DATA.field.features.extended_l4_ops"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="J2P_A0" Name="L4_OPS_ENCODE_MAP">
+                    <Access>
+                        <Register Name="IPPC_L_4_OPS_CFGr">
+                            <HwField Name="CFG_ENCODE_MAPf"/>
+                            <DataOffset Formula="#KEY_VALUE(L4_OPS_ENCODE_IDX)*4"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="FIELD_IPMF1_L4_OPS_RANGES_FFC_CFG">
+        <OneLineDescription>This table controls the configuration for Extended L4 OPs in J2P</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="1" Name="L4_OPS_FFC_IDX" Valid="DNX_DATA.field.features.extended_l4_ops"/>
+            </Key>
+            <Result>
+                <!-- L4OPS FFC Instruction-->
+                <Field Name="L4OPS_FFC_INSTRUCTION" Valid="DNX_DATA.field.features.extended_l4_ops"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="J2P_A0" Name="L4OPS_FFC_INSTRUCTION">
+                    <Access>
+                        <KeyCondition Field="L4_OPS_FFC_IDX" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="IPPC_L_4_OPS_CFGr">
+                            <HwField Name="CFG_FFC_1_INSTRUCTIONf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="L4_OPS_FFC_IDX" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="IPPC_L_4_OPS_CFGr">
+                            <HwField Name="CFG_FFC_2_INSTRUCTIONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FIELD_IPMF1_L4_OPS_RANGES_OPERATOR_CFG">
+        <OneLineDescription>This table controls the configuration for Extended L4 OPs in J2P</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <!-- Bitmap operator type selection -->
+                <Field Name="L4_OPS_BITMAP_OPERATOR_TYPE" Type="L4_OPS_EXTND_RANGES_OP_TYPE" Valid="DNX_DATA.field.features.extended_l4_ops"/>
+                <!-- Bitmap operator width selection -->
+                <Field Name="L4_OPS_BITMAP_OPERATOR_WIDTH" Type="L4_OPS_EXTND_RANGES_OP_WIDTH" Valid="DNX_DATA.field.features.extended_l4_ops"/>
+                <!-- Bitmap operator pair selection -->
+                <Field Name="L4_OPS_BITMAP_OPERATOR_PAIR" Type="L4_OPS_EXTND_RANGES_OP_PAIR" Valid="DNX_DATA.field.features.extended_l4_ops"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="J2P_A0" Name="L4_OPS_BITMAP_OPERATOR_TYPE">
+                    <Access>
+                        <Register Name="IPPC_L_4_OPS_CFGr">
+                            <HwField Name="CFG_BITMAP_OPERATOR_TYPE_SELECTIONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="L4_OPS_BITMAP_OPERATOR_WIDTH">
+                    <Access>
+                        <Register Name="IPPC_L_4_OPS_CFGr">
+                            <HwField Name="CFG_BITMAP_OPERATOR_WIDTH_SELECTIONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="L4_OPS_BITMAP_OPERATOR_PAIR">
+                    <Access>
+                        <Register Name="IPPC_L_4_OPS_CFGr">
+                            <HwField Name="CFG_BITMAP_OPERATOR_PAIR_SELECTIONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="FIELD_EPMF_L4_OPS_RANGES">
+        <OneLineDescription>This table provides access to L4 Ops ranges. Each range is set by minimum and maximum value. </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="23" Name="FIELD_PMF_RANGE_ID"/>
+            </Key>
+            <Result>
+                <!-- Minimum value of the range for L4 Source Port -->
+                <Field Name="MIN_SRC_L4_PORT" Size="16" Type="UINT"/>
+                <!-- Maximum value of the range for L4 Source Port -->
+                <Field Name="MAX_SRC_L4_PORT" Size="16" Type="UINT"/>
+                <!-- Minimum value of the range for L4 Destination Port -->
+                <Field Name="MIN_DEST_L4_PORT" Size="16" Type="UINT"/>
+                <!-- Maximum value of the range for L4 Destination Port -->
+                <Field Name="MAX_DEST_L4_PORT" Size="16" Type="UINT"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MIN_SRC_L4_PORT">
+                    <Access>
+                        <Memory Name="ERPP_L_4_OPSm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_RANGE_ID)"/>
+                            <HwField Name="SOURCE_PORT_MINf"/>
+                        </Memory>
+                   </Access>
+               </Field>
+               <Field Name="MAX_SRC_L4_PORT">
+                    <Access>
+                        <Memory Name="ERPP_L_4_OPSm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_RANGE_ID)"/>
+                            <HwField Name="SOURCE_PORT_MAXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MIN_DEST_L4_PORT">
+                    <Access>
+                        <Memory Name="ERPP_L_4_OPSm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_RANGE_ID)"/>
+                            <HwField Name="DESTINATION_PORT_MINf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAX_DEST_L4_PORT">
+                    <Access>
+                        <Memory Name="ERPP_L_4_OPSm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_RANGE_ID)"/>
+                            <HwField Name="DESTINATION_PORT_MAXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="FIELD_IPMF1_OUT_LIF_RANGES">
+        <OneLineDescription>This table contains registers that defines the Out-LIF ranges for program selection. Each range is set by minimum and maximum value.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="2" Name="FIELD_PMF_RANGE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="OUT_LIF_RANGE_MIN_N" Size="22" Type="UINT"/>
+                <Field Name="OUT_LIF_RANGE_MAX_N" Size="22" Type="UINT"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="OUT_LIF_RANGE_MIN_N">
+                    <Access>
+                        <Register Name="IPPC_OUT_LIF_RANGEr">
+                            <ArrayOffset Formula="#KEY_VALUE(FIELD_PMF_RANGE_ID)"/>
+                            <HwField Name="OUT_LIF_RANGE_MIN_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OUT_LIF_RANGE_MAX_N">
+                    <Access>
+                        <Register Name="IPPC_OUT_LIF_RANGEr">
+                            <ArrayOffset Formula="#KEY_VALUE(FIELD_PMF_RANGE_ID)"/>
+                            <HwField Name="OUT_LIF_RANGE_MAX_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="FIELD_IPMF3_OUT_LIF_RANGES">
+        <OneLineDescription>This table contains registers that defines the Out-LIF ranges for program selection. Each range is set by minimum and maximum value.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="6" Name="FIELD_PMF_RANGE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="OUT_LIF_RANGE_MIN_N" Size="22" Type="UINT"/>
+                <Field Name="OUT_LIF_RANGE_MAX_N" Size="22" Type="UINT"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="OUT_LIF_RANGE_MIN_N">
+                    <Access>
+                        <Register Name="IPPD_OUT_LIF_RANGEr">
+                            <ArrayOffset Formula="#KEY_VALUE(FIELD_PMF_RANGE_ID)"/>
+                            <HwField Name="OUT_LIF_RANGE_MIN_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OUT_LIF_RANGE_MAX_N">
+                    <Access>
+                        <Register Name="IPPD_OUT_LIF_RANGEr">
+                            <ArrayOffset Formula="#KEY_VALUE(FIELD_PMF_RANGE_ID)"/>
+                            <HwField Name="OUT_LIF_RANGE_MAX_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="FIELD_IPMF1_PKT_HDR_SIZE_RANGE">
+        <OneLineDescription>Set of 3 registers used to define three packet headers size ranges. Each range is set by minimum and maximum value.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="2" Name="FIELD_PMF_RANGE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="PKT_HDR_SIZE_RANGE_MIN" Size="8" Type="UINT"/>
+                <Field Name="PKT_HDR_SIZE_RANGE_MAX" Size="8" Type="UINT"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PKT_HDR_SIZE_RANGE_MIN">
+                    <Access>
+                        <Register Name="IPPC_PACKET_HEADER_SIZE_RANGEr">
+                            <ArrayOffset Formula="#KEY_VALUE(FIELD_PMF_RANGE_ID)"/>
+                            <HwField Name="PKT_HDR_SIZE_RANGE_LOW_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PKT_HDR_SIZE_RANGE_MAX">
+                    <Access>
+                        <Register Name="IPPC_PACKET_HEADER_SIZE_RANGEr">
+                            <ArrayOffset Formula="#KEY_VALUE(FIELD_PMF_RANGE_ID)"/>
+                            <HwField Name="PKT_HDR_SIZE_RANGE_HIGH_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="FIELD_PMF_MUX_MDB_INTERFACES">
+        <OneLineDescription>This table holds selections for MUX for MDB interfaces, such as MAPS and EXEM.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="MUX_MAPS_INTERFACE" Type="BOOL"/>
+                <Field Name="MUX_LEXEM_INTERFACE" Type="BOOL"/>
+                <Field Name="MUX_SEXEM_INTERFACE" Type="BOOL"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MUX_MAPS_INTERFACE">
+                    <Access>
+                        <Register Name="IPPC_MDB_INTERFACES_MUXr">
+                            <HwField Name="MUX_MAPS_INTERFACEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MUX_LEXEM_INTERFACE">
+                    <Access>
+                        <Register Name="IPPC_MDB_INTERFACES_MUXr">
+                            <HwField Name="MUX_EXEM_INTERFACEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                 <Field Name="MUX_SEXEM_INTERFACE">
+                    <Access>
+                        <Register Name="IPPD_MUX_EXEM_INTERFACEr">
+                            <HwField Name="MUX_EXEM_INTERFACEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FIELD_PMF_PP_PORT_INFO_IFWD">
+        <OneLineDescription>This table holds configurations to be made per in_port in stage iFWD.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="PP_PORT"/>
+            </Key>
+            <Result>
+                <Field Name="PP_PORT_CS_PROFILE" Size="5" Type="UINT"/>
+                <Field Name="IN_PORT_PMF_DATA" Size="16"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="PP_PORT_CS_PROFILE">
+                    <Access>
+                        <Memory Name="IPPB_FLP_PORT_PROFILE_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(PP_PORT)"/>
+                            <HwField Name="PORT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IN_PORT_PMF_DATA">
+                    <Access>
+                        <Memory Name="IPPB_PINFO_FLP_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(PP_PORT)"/>
+                            <HwField Name="KEY_GEN_VARf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FIELD_PMF_PP_PORT_INFO_IPMF1">
+        <OneLineDescription>This table holds configurations to be made per in_port in iPMF1.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="PP_PORT"/>
+            </Key>
+            <Result>
+                <Field Name="PP_PORT_CS_PROFILE" Size="3" Type="UINT"/>
+                <Field Name="IN_PORT_PMF_DATA"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="PP_PORT_CS_PROFILE">
+                    <Access>
+                        <Memory Name="IPPC_PINFO_PMFm">
+                            <EntryOffset Formula="#KEY_VALUE(PP_PORT)"/>
+                            <HwField Name="PROGRAM_SELECTION_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IN_PORT_PMF_DATA">
+                    <Access>
+                        <Memory Name="IPPC_PINFO_PMFm">
+                            <EntryOffset Formula="#KEY_VALUE(PP_PORT)"/>
+                            <HwField Name="KEY_GEN_VARf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FIELD_PMF_PP_PORT_INFO_IPMF3">
+        <OneLineDescription>This table holds configurations to be made per in_port in iPMF3.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="PP_PORT"/>
+            </Key>
+            <Result>
+                <Field Name="PP_PORT_CS_PROFILE" Size="3" Type="UINT"/>
+                <Field Name="IN_PORT_PMF_DATA"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="PP_PORT_CS_PROFILE">
+                    <Access>
+                        <Memory Name="IPPD_PINFO_PMFm">
+                            <EntryOffset Formula="#KEY_VALUE(PP_PORT)"/>
+                            <HwField Name="PROGRAM_SELECTION_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IN_PORT_PMF_DATA">
+                    <Access>
+                        <Memory Name="IPPD_PINFO_PMFm">
+                            <EntryOffset Formula="#KEY_VALUE(PP_PORT)"/>
+                            <HwField Name="KEY_GEN_VARf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FIELD_PMF_TM_PORT_INFO_IFWD">
+        <OneLineDescription>This table holds configurations to be made per PTC in stage iFWD.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="TM_PORT"/>
+            </Key>
+            <Result>
+                <Field Name="TM_PORT_CS_PROFILE" Size="4" Type="UINT"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="TM_PORT_CS_PROFILE">
+                    <Access>
+                        <Memory Name="IPPB_FLP_PTC_PROFILE_MAPm">
+                            <EntryOffset Formula="#KEY_VALUE(TM_PORT)"/>
+                            <HwField Name="PTC_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FIELD_PMF_TM_PORT_INFO_IPMF1">
+        <OneLineDescription>This table holds configurations to be made per PTC in stage iPMF1.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="TM_PORT"/>
+            </Key>
+            <Result>
+                <Field Name="TM_PORT_CS_PROFILE" Size="3" Type="UINT"/>
+                <Field Name="TM_PORT_PMF_DATA"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="TM_PORT_CS_PROFILE">
+                    <Access>
+                        <Memory Name="IPPC_PTC_INFO_PMFm">
+                            <EntryOffset Formula="#KEY_VALUE(TM_PORT)"/>
+                            <HwField Name="PROGRAM_SELECTION_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TM_PORT_PMF_DATA">
+                    <Access>
+                        <Memory Name="IPPC_PTC_INFO_PMFm">
+                            <EntryOffset Formula="#KEY_VALUE(TM_PORT)"/>
+                            <HwField Name="PTC_KEY_GEN_VARf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FIELD_PMF_TM_PORT_INFO_IPMF3">
+        <OneLineDescription>This table holds configurations to be made per PTC in stage iPMF3.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field Name="TM_PORT" Size="8"/>
+            </Key>
+            <Result>
+                <Field Name="TM_PORT_CS_PROFILE" Size="3" Type="UINT"/>
+                <Field Name="TM_PORT_PMF_DATA"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="TM_PORT_CS_PROFILE">
+                    <Access>
+                        <Memory Name="IPPD_PTC_INFO_PMFm">
+                            <EntryOffset Formula="#KEY_VALUE(TM_PORT)"/>
+                            <HwField Name="PROGRAM_SELECTION_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TM_PORT_PMF_DATA">
+                    <Access>
+                        <Memory Name="IPPD_PTC_INFO_PMFm">
+                            <EntryOffset Formula="#KEY_VALUE(TM_PORT)"/>
+                            <HwField Name="PTC_KEY_GEN_VARf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FIELD_PMF_TM_PORT_INFO_EPMF">
+        <OneLineDescription>This table holds configurations to be made per out TM port in stage ePMF.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field Name="TM_PORT"/>
+            </Key>
+            <Result>
+                <Field Name="TM_PORT_PMF_DATA"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0" Name="TM_PORT_PMF_DATA">
+                    <Access>
+                        <Memory Name="ERPP_PER_PORT_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(TM_PORT)"/>
+                            <HwField Name="TM_PMF_DATAf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="TM_PORT_PMF_DATA">
+                    <Access>
+                        <Memory Name="ERPP_PER_TM_PORT_TABLEm">
+                            <EntryOffset Formula="#KEY_VALUE(TM_PORT)"/>
+                            <HwField Name="TM_PMF_DATAf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="FIELD_IPMF1_CS_INLIF_PROFILE_MAP">
+        <OneLineDescription>This table holds mapping of iPMF1 CS inlif profile mapping.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CS_INLIF_PROFILE_ENTRY" Size="8" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="INLIF_0_PROFILE" Size="4" Type="UINT"/>
+                <Field Name="INLIF_1_PROFILE" Size="4" Type="UINT"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+               <Field Name="INLIF_0_PROFILE">
+                    <Access>
+                        <Memory Name="IPPC_CS_INLIF_PROFILE_MAP_0m">
+                            <EntryOffset Formula="#KEY_VALUE(CS_INLIF_PROFILE_ENTRY)"/>
+                            <HwField Name="CS_INLIF_PROFILE_MAPf"/>
+                        </Memory>
+                   </Access>
+                </Field>
+               <Field Name="INLIF_1_PROFILE">
+                    <Access>
+                        <Memory Name="IPPC_CS_INLIF_PROFILE_MAP_1m">
+                            <EntryOffset Formula="#KEY_VALUE(CS_INLIF_PROFILE_ENTRY)"/>
+                            <HwField Name="CS_INLIF_PROFILE_MAPf"/>
+                        </Memory>
+                   </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <!-- In JR2, the table IPPC_ENABLE_DYNAMIC_MEMORY_ACCESS has a single enabler for all dynamic tables, ENABLE_DYNAMIC_MEMORY_ACCESS.
+         For Q2A and above, we have separate enablers for different dynamic tables, presented in the table below. -->
+    <AppDB Name="FIELD_ENABLE_DYNAMIC_MEMORY_ACCESS">
+        <OneLineDescription>This table holds the enablers for Dynamic Memory Access memories. State table, CS hit indication, TCAM entry protection.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="STATE_TABLE_ENABLE" Type="BOOL" Valid="DNX_DATA.field.features.multiple_dynamic_mem_enablers"/>
+                <Field Name="ACCESS_EVENTOR_FIFO_ENABLE" Type="BOOL" Valid="DNX_DATA.field.features.multiple_dynamic_mem_enablers"/>
+                <Field Name="PMFACSA_TCAM_ENTRY_PROTECTION_ENABLE" Type="BOOL" Valid="DNX_DATA.field.features.multiple_dynamic_mem_enablers"/>
+                <Field Name="PMFACSA_TCAM_HIT_INDICATION_ENABLE" Type="BOOL" Valid="DNX_DATA.field.features.multiple_dynamic_mem_enablers"/>
+                <Field Name="PMFACSB_TCAM_ENTRY_PROTECTION_ENABLE" Type="BOOL" Valid="DNX_DATA.field.features.multiple_dynamic_mem_enablers"/>
+                <Field Name="PMFACSB_TCAM_HIT_INDICATION_ENABLE" Type="BOOL" Valid="DNX_DATA.field.features.multiple_dynamic_mem_enablers"/>
+                <!-- Used for J2C and below devices. -->
+                <Field Name="DYNAMIC_MEMORY_ACCESS_ENABLE" Type="BOOL" Valid="!DNX_DATA.field.features.multiple_dynamic_mem_enablers"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="STATE_TABLE_ENABLE">
+                    <Access>
+                        <Register Name="IPPC_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_STATE_TABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ACCESS_EVENTOR_FIFO_ENABLE">
+                    <Access>
+                        <Register Name="IPPC_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_EVENTOR_FIFOf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PMFACSA_TCAM_ENTRY_PROTECTION_ENABLE">
+                    <Access>
+                        <Register Name="IPPC_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_PMFACSA_TCAM_ENTRY_PROTECTIONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PMFACSA_TCAM_HIT_INDICATION_ENABLE">
+                    <Access>
+                        <Register Name="IPPC_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_PMFACSA_TCAM_HIT_INDICATIONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PMFACSB_TCAM_ENTRY_PROTECTION_ENABLE">
+                    <Access>
+                        <Register Name="IPPC_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_PMFACSB_TCAM_ENTRY_PROTECTIONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PMFACSB_TCAM_HIT_INDICATION_ENABLE">
+                    <Access>
+                        <Register Name="IPPC_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESS_PMFACSB_TCAM_HIT_INDICATIONf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DYNAMIC_MEMORY_ACCESS_ENABLE">
+                    <Access>
+                        <Register Name="IPPC_ENABLE_DYNAMIC_MEMORY_ACCESSr">
+                            <HwField Name="ENABLE_DYNAMIC_MEMORY_ACCESSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="FIELD_ALGO_ACL_SUPER_GROUP_HANDLER">
+        <OneLineDescription>This Table configures the ALGO ACL Super Group Handler</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <!-- ALGO ACL Super Group Handler Enable-->
+                <Field Name="ALGO_ACL_SUPER_GROUP_EN" Size="1" Type="UINT" Valid="DNX_DATA.field.features.aacl_super_group_handler_enable"/>
+                <!-- ALGO ACL Super Group Handler SIP Mask-->
+                <Field Name="ALGO_ACL_SUPER_GROUP_SIP_MASK" Size="21" Type="UINT" Valid="DNX_DATA.field.features.aacl_super_group_handler_enable"/>
+                <!-- ALGO ACL Super Group Handler DIP Mask-->
+                <Field Name="ALGO_ACL_SUPER_GROUP_DIP_MASK" Size="21" Type="UINT" Valid="DNX_DATA.field.features.aacl_super_group_handler_enable"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="J2P_A0" Name="ALGO_ACL_SUPER_GROUP_EN">
+                    <Access>
+                        <Register Name="IPPC_ALG_ACL_SUPER_GROUP_HANDLERr">
+                            <HwField Name="CFG_SUPER_TERM_ENABLEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="ALGO_ACL_SUPER_GROUP_SIP_MASK">
+                    <Access>
+                        <Register Name="IPPC_ALG_ACL_SUPER_GROUP_HANDLERr">
+                            <HwField Name="CFG_SUPER_TERM_SIP_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="ALGO_ACL_SUPER_GROUP_DIP_MASK">
+                    <Access>
+                        <Register Name="IPPC_ALG_ACL_SUPER_GROUP_HANDLERr">
+                            <HwField Name="CFG_SUPER_TERM_DIP_MASKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="FIELD_ALGO_ACL_TCAM_FG_PRIORITY">
+        <OneLineDescription>This Table configures ALGO ACL memory that resolves priority between TCAM A/C or B/D FGs</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="TCAM_PRIO_PAIR_1_EN" Size="1" Type="UINT" Valid="DNX_DATA.field.features.aacl_tcam_swap_enable"/>
+                <Field Name="TCAM_PRIO_PAIR_2_EN" Size="1" Type="UINT" Valid="DNX_DATA.field.features.aacl_tcam_swap_enable"/>
+                <Field Name="TCAM_PRIO_PAIR_1_MASK" Size="32" Type="UINT" Valid="DNX_DATA.field.features.aacl_tcam_swap_enable"/>
+                <Field Name="TCAM_PRIO_PAIR_2_MASK" Size="32" Type="UINT" Valid="DNX_DATA.field.features.aacl_tcam_swap_enable"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="J2P_A0" Name="TCAM_PRIO_PAIR_1_EN">
+                    <Access>
+                        <Register Name="IPPC_ALGO_ACL_TCAM_LOOKUP_RESULT_RESOLVERr">
+                            <HwField Name="CFG_ENABLE_PAIR_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="TCAM_PRIO_PAIR_2_EN">
+                    <Access>
+                        <Register Name="IPPC_ALGO_ACL_TCAM_LOOKUP_RESULT_RESOLVERr">
+                            <HwField Name="CFG_ENABLE_PAIR_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="TCAM_PRIO_PAIR_1_MASK">
+                    <Access>
+                        <Register Name="IPPC_ALGO_ACL_TCAM_LOOKUP_RESULT_RESOLVERr">
+                            <HwField Name="CFG_STRENGTH_MASK_PAIR_1f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2P_A0" Name="TCAM_PRIO_PAIR_2_MASK">
+                    <Access>
+                        <Register Name="IPPC_ALGO_ACL_TCAM_LOOKUP_RESULT_RESOLVERr">
+                            <HwField Name="CFG_STRENGTH_MASK_PAIR_2f"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

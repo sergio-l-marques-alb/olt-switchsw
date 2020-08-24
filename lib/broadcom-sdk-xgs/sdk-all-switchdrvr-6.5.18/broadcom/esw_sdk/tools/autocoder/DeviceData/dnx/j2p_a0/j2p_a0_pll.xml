@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2p_a0"  module="pll">
+    <includes>
+        <include>soc/dnx/pll/pll.h</include>
+    </includes>
+    <sub_module name="general" doc="PLL general configurations">
+        <features>
+            <feature name="ts_freq_lock" value="1">
+                <property name="phy_1588_dpll_frequency_lock" method="enable">
+                    <doc>
+                        IEEE1588 DPLL mode
+                        Supported values: 0 - phase lock, 1 - frequency lock
+                    </doc>
+                </property>
+            </feature>
+            <feature name="bs_enable" value="0">
+                <property name="broadsync_enable_clk" method="enable">
+                    <doc>
+                        Broadsync clock enable.
+                        Supported values: 0,1 (disable/enable)
+                    </doc>
+                </property>
+            </feature>
+        </features>
+    </sub_module>
+    <sub_module name="pll1"  doc="PLL1 configurations">
+        <defines>
+            <define name="nof_pll1" value="0"></define>
+        </defines>
+    </sub_module>
+        <sub_module name="pll3"  doc="PLL3 configurations">
+        <defines>
+            <define name="nof_pll3" value="0"></define>
+        </defines>
+    </sub_module>
+        <sub_module name="pll4"  doc="PLL4 configurations">
+        <defines>
+            <define name="nof_pll4" value="4"></define>
+        </defines>
+        <tables>
+            <table name="config" doc="PLL4 configuration parameters">
+                <key name="pll4_type" size="DNX_PLL4_TYPE_COUNT"></key>
+                <value name="pll4_id" default="-1"></value>
+                <value name="valid" default="-1"></value>
+                <value name="ref_clk_src_sel" default="-1"></value>
+                <value name="ref_clk" default="-1"></value>
+                <value name="dll_ref_pdiv" default="-1"></value>
+                <value name="dll_post_en" default="-1"></value>
+                <value name="aux_post_en" default="-1"></value>
+                <value name="pdiv" default="-1"></value>
+                <value name="ndiv_int" default="-1"></value>
+                <value name="d2c_en" default="-1"></value>
+                <value name="ch0_mdiv" default="-1"></value>
+                <value name="ch1_mdiv" default="-1"></value>
+                <value name="ch2_mdiv" default="-1"></value>
+                <value name="ch3_mdiv" default="-1"></value>
+                <value name="ch6_mdiv" default="-1"></value>
+                <entries>
+                    <entry pll4_type="DNX_PLL4_TYPE_TS" pll4_id="0" valid="1" ref_clk_src_sel="1" ref_clk="25" dll_ref_pdiv="1" dll_post_en="15" aux_post_en="15" pdiv="1" ndiv_int="240" d2c_en="1" ch0_mdiv="6" ch6_mdiv="3"></entry>
+                    <entry pll4_type="DNX_PLL4_TYPE_BS" pll4_id="1" valid="1" ref_clk_src_sel="0" ref_clk="25" dll_ref_pdiv="1" dll_post_en="15" aux_post_en="15" pdiv="1" ndiv_int="240" d2c_en="0" ch0_mdiv="200" ch6_mdiv="60"></entry>
+                    <entry pll4_type="DNX_PLL4_TYPE_NIF" pll4_id="2" valid="1" ref_clk_src_sel="1" ref_clk="156" dll_ref_pdiv="1" dll_post_en="15" aux_post_en="15" pdiv="1" ndiv_int="32" d2c_en="1" ch0_mdiv="50" ch1_mdiv="10" ch2_mdiv="25"  ch3_mdiv="3"></entry>
+                    <entry pll4_type="DNX_PLL4_TYPE_FAB" pll4_id="3" valid="1" ref_clk_src_sel="1" ref_clk="156" dll_ref_pdiv="1" dll_post_en="15" aux_post_en="15" pdiv="1" ndiv_int="29" d2c_en="1" ch0_mdiv="5" ch1_mdiv="29"></entry>
+                </entries>
+            </table>
+        </tables>
+        <numerics>
+            <numeric name="ts_pll4_id" value="DATA(pll,pll4,config,pll4_id,DNX_PLL4_TYPE_TS)"></numeric>
+            <numeric name="bs_pll4_id" value="DATA(pll,pll4,config,pll4_id,DNX_PLL4_TYPE_BS)"></numeric> 
+            <numeric name="nif_pll4_id" value="DATA(pll,pll4,config,pll4_id,DNX_PLL4_TYPE_NIF)"></numeric>
+            <numeric name="fab_pll4_id" value="DATA(pll,pll4,config,pll4_id,DNX_PLL4_TYPE_FAB)"></numeric>
+        </numerics>
+    </sub_module>
+    <sub_module name="synce_pll" doc="SyncE PLL general configurations">
+        <features>
+            <feature name="present" value="0"></feature>
+        </features>
+    </sub_module>
+</device_data>

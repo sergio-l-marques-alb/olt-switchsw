@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0" module="consistent_hashing">
+    <includes>
+    </includes>
+
+    <sub_module name="calendar" doc="consistent hashing calendar parameters">
+        <defines>
+            <define name="max_nof_entries_in_calendar" value="512"></define>
+        </defines>
+    </sub_module>
+</device_data>
+

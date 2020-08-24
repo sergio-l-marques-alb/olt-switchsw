@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="ecgm" bsl_flag="BSL_LS_BCMDNX_COSQ">
+    <includes>
+    </includes>
+    
+    <sub_module name="core_resources" doc="ecgm resources info per core">
+        <defines>
+            <define labels="j2p_notrev" name="nof_sp" doc="number of service pools"></define>
+            <define labels="j2p_notrev" name="nof_interface_profiles" doc="total interface profiles per core"></define>
+            <define labels="j2p_notrev" name="nof_port_profiles" doc="total port profiles per core"></define>
+            <define labels="j2p_notrev" name="total_pds" doc="total packet descriptors per core"></define>
+            <define labels="j2p_notrev" name="total_pds_nof_bits" doc="number of bits for total packet descriptors"></define>            
+            <define labels="j2p_notrev" name="total_dbs" doc="total data buffers per core"></define>
+            <define labels="j2p_notrev" name="total_dbs_nof_bits" doc="number of bits for total data buffers"></define>            
+            <define labels="j2p_notrev" name="max_alpha_value" doc="max value for FADT alpha"></define>
+            <define labels="j2p_notrev" name="min_alpha_value" doc="min value for FADT alpha"></define>
+            <define labels="j2p_notrev" name="max_core_bandwidth_Mbps" doc="maximum bandwidth pec core in Mbps for ecgm calculation"></define>            
+        </defines>
+        <numerics>
+        </numerics>
+    </sub_module>
+
+    <sub_module name="port_resources" doc="ecgm resources info per port">
+        <defines>
+            <define labels="j2p_notrev" name="max_nof_ports" doc="maximum num of ports per core for ecgm calculation"></define>
+        </defines>
+        <numerics>
+        </numerics>
+        <tables>  
+        </tables>   
+    </sub_module>
+        
+    <sub_module name="delete_fifo" doc="default values for ECGM delete FIFOs">
+        <tables>
+            <table labels="j2p_notrev" name="thresholds" doc="Delete FIFO thresholds">
+                <key name="fifo_type" type="ecgm_delete_fifo_type_e" doc="fifo type to get thresholds to."></key>
+
+                <value name="fqp_high_priority" type="uint32" doc="threshold for higher priority in FQP"></value>
+                <value name="stop_mc_low" type="uint32" doc="threshold for stop reading multicast low priority FIFO"></value>
+                <value name="stop_mc_high" type="uint32" doc="threshold for stop reading multicast high priority FIFO"></value>
+                <value name="stop_all" type="uint32" doc="threshold for stop reading unicast FIFO and stop send packets to ERPP"></value>
+            </table>
+        </tables>
+
+        <defines>
+        </defines>
+    </sub_module>
+
+    <sub_module name="info" doc="Egress congestion info">
+        <defines>
+            <define labels="j2p_notrev" name="nof_dropped_reasons_rqp" doc="number of reasons for the dropped packets in RQP"></define>
+            <define labels="j2p_notrev" name="nof_dropped_reasons_pqp" doc="number of reasons for the dropped packets in PQP"></define>
+            <define labels="j2p_notrev" name="nof_bits_in_pd_count" doc="number of bits in PD COUNT"></define>
+        </defines>
+
+        <numerics>
+        </numerics>        
+
+        <tables>
+            <table labels="j2p_notrev" name="dropped_reason_rqp" doc="reasons for the dropped and rejected packets in RQP">
+                <key name="index" doc="this index mapped to the bit in RQP_DISCARD_REASONS"></key>
+                <value name="reason" type="char *" doc="reason string"></value>
+            </table>
+            <table labels="j2p_notrev" name="dropped_reason_pqp" doc="reasons for the dropped and rejected packets in PQP">
+                <key name="index" doc="this index mapped to the bit in PQP_DISCARD_REASONS"></key>
+                <value name="reason" type="char *" doc="reason string"></value>
+            </table>
+        </tables>
+    </sub_module>
+</device_data>
+
+
+
+

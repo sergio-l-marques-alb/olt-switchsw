@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0"  module="ipq">
+
+    <includes>
+    </includes>
+
+    <sub_module name="queues">
+    
+        <features>
+            <feature name="voq_resolution_per_dp"></feature>
+            <feature name="tc_profile_from_tm_command"></feature>
+        </features>
+
+        <defines>
+            <define name="nof_queues" value="32*1024"></define>
+            <define name="queue_id_bits" value="15"></define>
+            <define name="voq_offset_bits" value="4"></define>
+            <define name="tc_profile_from_tm_command_nof_bits" value="1"></define>
+        </defines>
+    </sub_module>
+    <sub_module name="regions">
+
+        <defines>
+            <define name="nof_queues" value="1024"></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="tc_map" doc="TC map info">
+
+        <features>
+        </features>
+        
+        <defines>
+            <define name="nof_voq_flow_profiles" value="16"></define>
+            <define name="voq_flow_profiles_bits" value="4"></define>
+            <define name="voq_resolution_type_max_value" value="20"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+        
+        <tables>
+        </tables>
+        
+    </sub_module>
+</device_data>

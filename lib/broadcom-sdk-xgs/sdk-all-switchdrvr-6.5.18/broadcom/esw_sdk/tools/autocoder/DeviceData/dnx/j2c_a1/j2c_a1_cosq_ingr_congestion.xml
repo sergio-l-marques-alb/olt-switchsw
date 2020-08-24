@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2c_a1"  module="ingr_congestion">
+
+    <sub_module name="config" doc="Ingress congestion configuration">
+        <features>
+             <feature name="inband_telemetry_ftmh_extension_eco_fix"></feature>
+        </features>
+    </sub_module>
+    
+</device_data>
+
+
+

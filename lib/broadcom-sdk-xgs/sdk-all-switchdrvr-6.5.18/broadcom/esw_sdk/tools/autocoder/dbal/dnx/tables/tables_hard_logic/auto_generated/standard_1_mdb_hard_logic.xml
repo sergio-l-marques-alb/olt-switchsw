@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Auto-Generted - DO NOT EDIT!!!!
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+    <GeneralInfo image="standard_1" dynamic_loading="0" />
+    <AppDB Name="ESEM_DEFAULT_RESULT_TABLE">
+        <OneLineDescription>Default results used in case of no match in esem for AC and so on.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ESEM_DEFAULT_RESULT_PROFILE" Size="4"/>
+            </Key>
+            <MultipleResults>
+                <Result>
+                    <Field Description="ESEM Optimized (use as ESEM default)" Name="RESULT_TYPE" Size="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___0" Valid="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___0___valid" Value="ETPS_AC"/>
+                    <Field Name="VLAN_EDIT_VID_1" Size="12"/>
+                    <Field Name="ACTION_PROFILE" Size="2"/>
+                    <Field Name="VLAN_EDIT_PROFILE" Size="6"/>
+                    <Field Name="REMARK_PROFILE" Size="5"/>
+                    <Field Name="ENCAP_QOS_MODEL" Size="2"/>
+                    <Field Name="OUT_LIF_PROFILE" Size="6"/>
+                    <Field Name="EGRESS_LAST_LAYER" Size="1"/>
+                    <Field Name="ZERO_PADDING_ARRAY" Size="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___1"/>
+                </Result>
+                <Result>
+                    <Field Description="ESEM Optimized (use as ESEM default)" Name="RESULT_TYPE" Size="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___2" Valid="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___2___valid" Value="ETPS_DUAL_HOMING"/>
+                    <Field Name="DUAL_HOMING" Size="32"/>
+                    <Field Name="ZERO_PADDING_ARRAY" Size="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___3"/>
+                </Result>
+                <Result>
+                    <Field Description="Indicating non-existing entry; not to be added into EEDB/ESEM" Name="RESULT_TYPE" Size="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___5" Valid="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___5___valid" Value="ETPS_NULL"/>
+                    <Field Name="ZERO_PADDING_ARRAY" Size="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___6"/>
+                </Result>
+            </MultipleResults>
+            <TableLabels>VLAN</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <ReferenceField Name="ETPP_ETPS_FORMATS"/>
+            <FieldMapping ResultType="ETPS_AC">
+                <PackedFields>
+                    <Access>
+                        <Memory Name="ETPPC_ESEM_DEFAULT_RESULT_TABLEm"/>
+                    </Access>
+                </PackedFields>
+            </FieldMapping>
+            <FieldMapping ResultType="ETPS_DUAL_HOMING">
+                <PackedFields>
+                    <Access>
+                        <Memory Name="ETPPC_ESEM_DEFAULT_RESULT_TABLEm"/>
+                    </Access>
+                </PackedFields>
+            </FieldMapping>
+            <FieldMapping ResultType="ETPS_NULL">
+                <PackedFields>
+                    <Access>
+                        <Memory Name="ETPPC_ESEM_DEFAULT_RESULT_TABLEm"/>
+                    </Access>
+                </PackedFields>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="JR1_MPLS_PUSH_COMMAND">
+        <OneLineDescription>MPLS PUSH command table, used for JR1 Inter-op mode</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PUSH_PROFILE" Size="3" Type="UINT"/>
+            </Key>
+            <MultipleResults>
+                <Result>
+                    <Field Description="This entry can be used for Application Labels [L3VPN,PWE] and Tunnels [BGP, RSVP_TE] under the following assumptions:
+                           1. No Counter/Meter
+                           2. No Protection
+                           3. When used as PWE:
+                                A. No LLVP_Profile, uses LLVP_Profile 0x0 (missing ESEM_NAME_SPACE LLVP_Profile is ESEM_NAME_SPACE[11:9])
+                           4. When used in TTL_MODEL &quot;Pipe&quot; TTL is limited to 1 of 8 values (TTL_IDX (3bit))
+                           5. When used in QoS_MODEL &quot;Pipe&quot;    NWK_QoS is limited to 1 of 32 values (NWK_QOS_IDX (5bit))
+                           6. No Next_Pointer" Name="RESULT_TYPE" Size="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___4" Valid="DNX_DATA.mdb_app_db.fields.numeric_mdb_field___4___valid" Value="ETPS_MPLS_1"/>
+                    <Field Name="OUT_LIF_PROFILE" Size="6"/>
+                    <Field Name="OAM_LIF_SET" Size="1"/>
+                    <Field ArrPrefixValue="DNX_DATA.arr.prefix.ETPP_ETPS_FORMATS___prefix_5" ArrPrefixWidth="8" Name="LIF_AHP_MPLS" Size="3"/>
+                    <Field Name="TTL_PIPE_PROFILE" Size="3"/>
+                    <Field Name="NWK_QOS_IDX" Size="5"/>
+                    <Field Name="REMARK_PROFILE" Size="5"/>
+                    <Field Name="ENCAP_QOS_MODEL" Size="2"/>
+                    <Field ArrPrefixValue="DNX_DATA.arr.prefix.ETPP_ETPS_FORMATS___prefix_14" ArrPrefixWidth="8" Name="FORWARD_QOS_MODEL" Size="1"/>
+                    <Field Name="TTL_DECREMENT_DISABLE" Size="1"/>
+                    <Field Name="TTL_MODE" Size="1"/>
+                    <Field Name="MTU_PROFILE" Size="2"/>
+                    <Field Name="ACTION_PROFILE" Size="2"/>
+                    <Field ArrPrefixValue="DNX_DATA.arr.prefix.ETPP_ETPS_FORMATS___prefix_15" ArrPrefixWidth="8" Name="ESEM_COMMAND" Size="2"/>
+                </Result>
+            </MultipleResults>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <ReferenceField Name="ETPP_ETPS_FORMATS"/>
+            <FieldMapping ResultType="ETPS_MPLS_1">
+                <Field Name="RESULT_TYPE">
+                    <Access>
+                        <Memory Name="ETPPA_EEI_MPLS_PUSH_2_EES_MAPm">
+                            <HwField Name="EEI_TYPEf"/>
+                            <DataOffset Formula="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUT_LIF_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPA_EEI_MPLS_PUSH_2_EES_MAPm">
+                            <HwField Name="EEI_DATAf"/>
+                            <DataOffset Formula="88"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_LIF_SET">
+                    <Access>
+                        <Memory Name="ETPPA_EEI_MPLS_PUSH_2_EES_MAPm">
+                            <HwField Name="EEI_DATAf"/>
+                            <DataOffset Formula="87"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_AHP_MPLS">
+                    <Access>
+                        <Memory Name="ETPPA_EEI_MPLS_PUSH_2_EES_MAPm">
+                            <HwField Name="EEI_DATAf"/>
+                            <DataOffset Formula="84"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_PIPE_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPA_EEI_MPLS_PUSH_2_EES_MAPm">
+                            <HwField Name="EEI_DATAf"/>
+                            <DataOffset Formula="81"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NWK_QOS_IDX">
+                    <Access>
+                        <Memory Name="ETPPA_EEI_MPLS_PUSH_2_EES_MAPm">
+                            <HwField Name="EEI_DATAf"/>
+                            <DataOffset Formula="76"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REMARK_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPA_EEI_MPLS_PUSH_2_EES_MAPm">
+                            <HwField Name="EEI_DATAf"/>
+                            <DataOffset Formula="71"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ENCAP_QOS_MODEL">
+                    <Access>
+                        <Memory Name="ETPPA_EEI_MPLS_PUSH_2_EES_MAPm">
+                            <HwField Name="EEI_DATAf"/>
+                            <DataOffset Formula="69"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FORWARD_QOS_MODEL">
+                    <Access>
+                        <Memory Name="ETPPA_EEI_MPLS_PUSH_2_EES_MAPm">
+                            <HwField Name="EEI_DATAf"/>
+                            <DataOffset Formula="68"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_DECREMENT_DISABLE">
+                    <Access>
+                        <Memory Name="ETPPA_EEI_MPLS_PUSH_2_EES_MAPm">
+                            <HwField Name="EEI_DATAf"/>
+                            <DataOffset Formula="67"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TTL_MODE">
+                    <Access>
+                        <Memory Name="ETPPA_EEI_MPLS_PUSH_2_EES_MAPm">
+                            <HwField Name="EEI_DATAf"/>
+                            <DataOffset Formula="66"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MTU_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPA_EEI_MPLS_PUSH_2_EES_MAPm">
+                            <HwField Name="EEI_DATAf"/>
+                            <DataOffset Formula="64"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ACTION_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPA_EEI_MPLS_PUSH_2_EES_MAPm">
+                            <HwField Name="EEI_DATAf"/>
+                            <DataOffset Formula="62"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ESEM_COMMAND">
+                    <Access>
+                        <Memory Name="ETPPA_EEI_MPLS_PUSH_2_EES_MAPm">
+                            <HwField Name="EEI_DATAf"/>
+                            <DataOffset Formula="60"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

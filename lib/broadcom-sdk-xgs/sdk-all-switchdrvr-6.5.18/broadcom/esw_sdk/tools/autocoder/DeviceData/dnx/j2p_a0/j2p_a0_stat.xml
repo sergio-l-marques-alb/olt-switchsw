@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2p_a0"  module="stat">
+
+    <sub_module name="stat_pp">    
+        <features>
+        </features>
+        
+        <defines>
+            <define name="etpp_reversed_stat_cmd" value="0"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>

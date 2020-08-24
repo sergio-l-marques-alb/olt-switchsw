@@ -1,0 +1,404 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    $Id$
+    $Copyright: (c) 2016 Broadcom Corp.
+    All Rights Reserved.$*
+    
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="SYSTEM_RED_SCH_CONFIG">
+        <OneLineDescription>This table contains the Acheduler configuration for system RED, which is mainly the aging period configuration.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="ENABLE" Type="BOOL"/>
+                <Field Name="AGING_PERIOD" Size="21" Type="UINT"/>
+                <Field Name="AGING_MODE" Type="SYSTEM_RED_AGING_MODE"/>
+                <Field Name="ONLY_AGING_CAN_DECREMENT" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="SCH_SYSTEM_RED_CONFIGURATIONr">
+                            <HwField Name="ENABLE_SYS_REDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="AGING_PERIOD">
+                    <Access>
+                        <Register Name="SCH_SYSTEM_RED_CONFIGURATIONr">
+                            <HwField Name="AGING_TIMER_CFGf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="AGING_MODE">
+                    <Access>
+                        <Register Name="SCH_SYSTEM_RED_CONFIGURATIONr">
+                            <HwField Name="RESET_XPIRED_QSZf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ONLY_AGING_CAN_DECREMENT">
+                    <Access>
+                        <Register Name="SCH_SYSTEM_RED_CONFIGURATIONr">
+                            <HwField Name="AGING_ONLY_DEC_PQSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="SYSTEM_RED_ING_CONFIG">
+        <OneLineDescription>This table contains the ingress side configuration for system RED.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="AGING_PERIOD" Size="14" Type="UINT"/>
+                <Field Name="SYS_RED_ENABLE" Type="BOOL_INV" Valid="DNX_DATA.ingr_congestion.info.latency_based_admission*DNX_DATA.system_red.info.is_share_res_with_latency_based_admission"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="AGING_PERIOD">
+                    <Access>
+                        <Register Name="CGM_SYS_RED_SETTINGSr">
+                            <HwField Name="SYS_RED_AGE_PERIODf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="JR2_B0" Name="SYS_RED_ENABLE">
+                    <Access>
+                        <Register Name="CGM_ENABLERSr">
+                            <HwField Name="VOQ_LATENCY_DROP_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0" Name="SYS_RED_ENABLE">
+                    <Access>
+                        <Register Name="CGM_ENABLERSr">
+                            <HwField Name="MPS_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="SYSTEM_RED_Q_SIZE_TO_VOQ_SIZE_RANGE_MAP">
+        <OneLineDescription>This table contains the mapping from VOQ size range to RED-Q-Size.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VOQ_RATE_CLASS"/>
+                <Field MaxValue="14" Name="RED_Q_SIZE_INDEX" Type="SYSTEM_RED_Q_SIZE"/>
+            </Key>
+            <Result>
+                <Field Name="VOQ_SIZE_RANGE_MAX" Size="24" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="VOQ_SIZE_RANGE_MAX">
+                    <Access>
+                        <Memory Name="CGM_SYS_RED_QSIZE_RANGESm">
+                            <EntryOffset Formula="#KEY_VALUE(VOQ_RATE_CLASS)"/>
+                            <DataOffset Formula="#KEY_VALUE(RED_Q_SIZE_INDEX)*24"/>
+                        </Memory>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="SYSTEM_RED_FREE_RES_THR_PDBS">
+        <OneLineDescription>This table contains the free PDBs thresholds for system RED.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="2" Name="THR_INDEX" Size="2" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field MaxValue="DNX_DATA.system_red.info.resource.max(0)+1" Name="THR_VALUE" Size="DNX_DATA.system_red.info.resource.hw_resolution_nof_bits(0)+1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="THR_VALUE">
+                    <Access>
+                        <Register Name="CGM_SYSTEM_RED_RANGE_FR_RSRC_THr">
+                            <DataOffset Formula="dnx_data_system_red.info.dbal_get(unit, 0)-&gt;offset+#KEY_VALUE(THR_INDEX)*dnx_data_system_red.info.resource_get(unit, 0)-&gt;hw_resolution_nof_bits+#KEY_VALUE(THR_INDEX)"/>
+                        </Register>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="SYSTEM_RED_FREE_RES_THR_SRAM_BUFFERS">
+        <OneLineDescription>This table contains the free SRAM Buffers thresholds for system RED.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="2" Name="THR_INDEX" Size="2" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field MaxValue="DNX_DATA.system_red.info.resource.max(1)+1" Name="THR_VALUE" Size="DNX_DATA.system_red.info.resource.hw_resolution_nof_bits(1)+1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="THR_VALUE">
+                    <Access>
+                        <Register Name="CGM_SYSTEM_RED_RANGE_FR_RSRC_THr">
+                            <DataOffset Formula="dnx_data_system_red.info.dbal_get(unit, 1)-&gt;offset+#KEY_VALUE(THR_INDEX)*dnx_data_system_red.info.resource_get(unit, 1)-&gt;hw_resolution_nof_bits+#KEY_VALUE(THR_INDEX)"/>
+                        </Register>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="SYSTEM_RED_FREE_RES_THR_DRAM_BDBS">
+        <OneLineDescription>This table contains the free DRAM BDBs thresholds for system RED.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="2" Name="THR_INDEX" Size="2" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field MaxValue="DNX_DATA.dram.buffers.nof_bdbs" Name="THR_VALUE" Size="DNX_DATA.system_red.info.resource.hw_resolution_nof_bits(2)+1" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="THR_VALUE">
+                    <Access>
+                        <Register Name="CGM_SYSTEM_RED_RANGE_FR_RSRC_THr">
+                            <DataOffset Formula="dnx_data_system_red.info.dbal_get(unit, 2)-&gt;offset+#KEY_VALUE(THR_INDEX)*dnx_data_system_red.info.resource_get(unit, 2)-&gt;hw_resolution_nof_bits+#KEY_VALUE(THR_INDEX)"/>
+                        </Register>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="SYSTEM_RED_FREE_RES_Q_SIZE_INDEX">
+        <OneLineDescription>This table contains mapping from free-res thresholds to RED-Q-Size. Each resource has 3 thresholds to create 4 ranges. Each range is mapped to a RED-Q-Size</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="RES_TYPE" Type="SYSTEM_RED_RESOURCE_TYPE"/>
+                <Field Name="RANGE_INDEX" Size="2" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="RED_Q_SIZE_INDEX" Type="SYSTEM_RED_Q_SIZE"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="RED_Q_SIZE_INDEX">
+                    <Access>
+                        <Register Name="CGM_SYSTEM_RED_QSIZE_FR_RSRC_THr">
+                            <DataOffset Formula="#KEY_VALUE(RES_TYPE)*16+#KEY_VALUE(RANGE_INDEX)*4"/>
+                        </Register>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="SYSTEM_RED_Q_SIZE_DISCARD_PARAMS">
+        <OneLineDescription>This table contains mapping from free-res thresholds to RED-Q-Size.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DP"/>
+                <Field Name="VOQ_RATE_CLASS"/>
+            </Key>
+            <Result>
+                <Field Name="ENABLE" Type="BOOL"/>
+                <Field Name="ADMIT_THR" Type="SYSTEM_RED_Q_SIZE"/>
+                <Field Name="PROB_THR" Type="SYSTEM_RED_Q_SIZE"/>
+                <Field Name="REJECT_THR" Type="SYSTEM_RED_Q_SIZE"/>
+                <Field Name="DROP_PROB_LOW" Size="16" Type="UINT"/>
+                <Field Name="DROP_PROB_HIGH" Size="16" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Memory Name="CGM_SYS_RED_RJCT_PRMSm">
+                            <HwField Name="SYS_RED_ENf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ADMIT_THR">
+                    <Access>
+                        <Memory Name="CGM_SYS_RED_RJCT_PRMSm">
+                            <HwField Name="ADMT_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PROB_THR">
+                    <Access>
+                        <Memory Name="CGM_SYS_RED_RJCT_PRMSm">
+                            <HwField Name="PROB_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REJECT_THR">
+                    <Access>
+                        <Memory Name="CGM_SYS_RED_RJCT_PRMSm">
+                            <HwField Name="RJCT_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DROP_PROB_LOW">
+                    <Access>
+                        <Memory Name="CGM_SYS_RED_RJCT_PRMSm">
+                            <HwField Name="RJCT_PROB_1_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DROP_PROB_HIGH">
+                    <Access>
+                        <Memory Name="CGM_SYS_RED_RJCT_PRMSm">
+                            <HwField Name="RJCT_PROB_2_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="SYSTEM_RED_MAX_RED_Q_SIZE_PER_SYSPORT">
+        <OneLineDescription>This table contains the max RED-Q-Size per system port</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="SYS_PORT" Type="PORT_ID"/>
+            </Key>
+            <Result>
+                <Field Name="MAX_RED_INDEX" Permission="READONLY" Type="SYSTEM_RED_Q_SIZE"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="MAX_RED_INDEX">
+                    <Access>
+                        <Memory Name="CGM_SYS_RED_QSIZEm">
+                            <EntryOffset Formula="#KEY_VALUE(SYS_PORT)/16"/>
+                            <DataOffset Formula="#KEY_VALUE(SYS_PORT)%16*6"/>
+                        </Memory>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0">
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="MAX_RED_INDEX">
+                    <Access>
+                        <Memory Name="CGM_MPSm">
+                            <EntryOffset Formula="#KEY_VALUE(SYS_PORT)/16"/>
+                            <DataOffset Formula="#KEY_VALUE(SYS_PORT)%16*6"/>
+                        </Memory>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="MAX_RED_INDEX">
+                    <Access>
+                        <Memory Name="CGM_SYSTEM_RED_STATEm">
+                            <EntryOffset Formula="#KEY_VALUE(SYS_PORT)/16"/>
+                            <DataOffset Formula="#KEY_VALUE(SYS_PORT)%16*6"/>
+                        </Memory>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="SYSTEM_RED_GLOBAL_STATUS">
+        <OneLineDescription>This table contains the max RED-Q-Size and the current RED-Q-Size in the device</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="CURRENT_RED_INDEX" Permission="READONLY" Type="SYSTEM_RED_Q_SIZE"/>
+                <Field Name="MAX_RED_INDEX" Permission="READONLY" Type="SYSTEM_RED_Q_SIZE"/>
+            </Result>
+            <TableLabels>J2P_NOTREV ITM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CURRENT_RED_INDEX">
+                    <Access>
+                        <Register Name="CGM_SYSTEM_RED_QSIZE_STATUSr">
+                            <HwField Name="SYSTEM_RED_QSIZE_STATUSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MAX_RED_INDEX">
+                    <Access>
+                        <Register Name="CGM_SYSTEM_RED_QSIZE_MAX_STATUSr">
+                            <HwField Name="SYSTEM_RED_QSIZE_MAX_STATUSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+             </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+</AppDbCatalog>

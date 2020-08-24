@@ -1,0 +1,18 @@
+#
+# $Id: Makefile 2018/06/07 16:09:06 Exp $
+# $Copyright: (c) 2019 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+# Note: This file is auto-generated. Manual edits
+#       to it will be lost when it is auto-regenerated.
+#
+
+LOCALDIR = src/appl/diag/esw/techsupport/alpm
+
+include ${SDK}/make/Make.config
+
+lib = libtsalpm
+
+include ${SDK}/make/Make.lib
+
+include ${SDK}/make/Make.depend

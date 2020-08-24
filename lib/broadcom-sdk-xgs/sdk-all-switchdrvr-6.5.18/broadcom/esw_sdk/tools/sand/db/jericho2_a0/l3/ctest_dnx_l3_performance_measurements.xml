@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CtestL3PerformanceMeasurementsRoot xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+<!-- These performance measures show expected entries per second using BCM APIs. -->
+<SLK>
+    <Internal>
+        <IPv4>
+            <Host>
+                <JR2_A0 Add="23500" Update="22000" Delete="23500"></JR2_A0>
+                <JR2_B1 Add="35000" Update="31500" Delete="34500"></JR2_B1>
+                <Q2A_A0 Add="35000" Update="31500" Delete="34500"></Q2A_A0>
+                <Q2A_B0 Add="35000" Update="31500" Delete="34500"></Q2A_B0>
+                <J2C_A0 Add="35000" Update="31500" Delete="34500"></J2C_A0>
+            </Host>
+            <Route Add="30500" Update="58000" Delete="33500"></Route>
+            <IPMC_LPM Add="18000" Update="27000" Delete="22500"></IPMC_LPM>
+            <IPMC_EM>
+                <JR2_A0 Add="18000" Update="17000" Delete="19000"></JR2_A0>
+                <JR2_B1 Add="23500" Update="22000" Delete="26000"></JR2_B1>
+                <Q2A_A0 Add="23500" Update="22000" Delete="26000"></Q2A_A0>
+                <Q2A_B0 Add="23500" Update="22000" Delete="26000"></Q2A_B0>
+                <J2C_A0 Add="23500" Update="22000" Delete="26000"></J2C_A0>
+            </IPMC_EM>
+            <IPMC_TCAM>
+                <JR2_A0 Add="8000" Update="10000" Delete="8500"></JR2_A0>
+                <JR2_B1 Add="8000" Update="10000" Delete="8500"></JR2_B1>
+                <Q2A_A0 Add="10000" Update="14500" Delete="12500"></Q2A_A0>
+                <Q2A_B0 Add="10000" Update="14500" Delete="12500"></Q2A_B0>
+                <J2C_A0 Add="8000" Update="10000" Delete="8500"></J2C_A0>
+            </IPMC_TCAM>
+        </IPv4>
+        
+        <IPv6>
+            <Host>
+                <JR2_A0 Add="22000" Update="20500" Delete="22000"></JR2_A0>
+                <JR2_B1 Add="31500" Update="28500" Delete="31500"></JR2_B1>
+                <Q2A_A0 Add="31500" Update="28500" Delete="31500"></Q2A_A0>
+                <Q2A_B0 Add="31500" Update="28500" Delete="31500"></Q2A_B0>
+                <J2C_A0 Add="31500" Update="28500" Delete="31500"></J2C_A0>
+            </Host>
+            <Route Add="19000" Update="47000" Delete="23500"></Route>
+            <IPMC_LPM Add="15000" Update="25500" Delete="19500"></IPMC_LPM>
+            <IPMC_EM>
+                <JR2_A0 Add="17000" Update="16500" Delete="18500"></JR2_A0>
+                <JR2_B1 Add="22500" Update="21000" Delete="25000"></JR2_B1>
+                <Q2A_A0 Add="22500" Update="21000" Delete="25000"></Q2A_A0>
+                <Q2A_B0 Add="22500" Update="21000" Delete="25000"></Q2A_B0>
+                <J2C_A0 Add="22500" Update="21000" Delete="25000"></J2C_A0>
+            </IPMC_EM>
+            <IPMC_TCAM>
+                <JR2_A0 Add="6000" Update="7000" Delete="6000"></JR2_A0>
+                <JR2_B1 Add="6000" Update="7000" Delete="6000"></JR2_B1>
+                <Q2A_A0 Add="8500" Update="11000" Delete="9500"></Q2A_A0>
+                <Q2A_B0 Add="8500" Update="11000" Delete="9500"></Q2A_B0>
+                <J2C_A0 Add="6000" Update="7000" Delete="6000"></J2C_A0>
+            </IPMC_TCAM>
+        </IPv6>
+    </Internal>
+    
+    <External>
+        <IPv4>
+            <Host Add="43500" Update="64000" Delete="50000"></Host>
+            <Route Add="30500" Update="39500" Delete="32500"></Route>
+            <Route_RPF Add="30500" Update="39000" Delete="33500"></Route_RPF>
+            <IPMC_TCAM Add="23000" Update="17500" Delete="29000"></IPMC_TCAM>
+        </IPv4>
+        
+        <IPv6>
+            <Host Add="32500" Update="52500" Delete="38500"></Host>
+            <Route Add="24000" Update="34500" Delete="27500"></Route>
+            <Route_RPF Add="24000" Update="34500" Delete="28000"></Route_RPF>
+            <IPMC_TCAM Add="20500" Update="16500" Delete="26500"></IPMC_TCAM>
+        </IPv6>
+    </External>
+</SLK>
+
+<Intel>
+    <Internal>
+        <IPv4>
+            <Host>
+                <JR2_A0 Add="38000" Update="34500" Delete="37000"></JR2_A0>
+                <JR2_B1 Add="61000" Update="51500" Delete="58000"></JR2_B1>
+                <Q2A_A0 Add="61000" Update="51500" Delete="58000"></Q2A_A0>
+                <Q2A_B0 Add="61000" Update="51500" Delete="58000"></Q2A_B0>
+                <J2C_A0 Add="61000" Update="51500" Delete="58000"></J2C_A0>
+            </Host>
+            <Route Add="51500" Update="93000" Delete="44500"></Route>
+            <IPMC_LPM Add="26000" Update="39500" Delete="30500"></IPMC_LPM>
+            <IPMC_EM>
+                <JR2_A0 Add="27500" Update="26000" Delete="29000"></JR2_A0>
+                <JR2_B1 Add="38000" Update="36000" Delete="42500"></JR2_B1>
+                <Q2A_A0 Add="38000" Update="36000" Delete="42500"></Q2A_A0>
+                <Q2A_B0 Add="38000" Update="36000" Delete="42500"></Q2A_B0>
+                <J2C_A0 Add="38000" Update="36000" Delete="42500"></J2C_A0>
+            </IPMC_EM>
+            <IPMC_TCAM>
+                <JR2_A0 Add="15000" Update="17500" Delete="15500"></JR2_A0>
+                <JR2_B1 Add="15000" Update="17500" Delete="15500"></JR2_B1>
+                <Q2A_A0 Add="18000" Update="25500" Delete="23500"></Q2A_A0>
+                <Q2A_B0 Add="18000" Update="25500" Delete="23500"></Q2A_B0>
+                <J2C_A0 Add="15000" Update="17500" Delete="15500"></J2C_A0>
+            </IPMC_TCAM>
+        </IPv4>
+        
+        <IPv6>
+            <Host>
+                <JR2_A0 Add="36000" Update="33000" Delete="35000"></JR2_A0>
+                <JR2_B1 Add="56500" Update="49000" Delete="53000"></JR2_B1>
+                <Q2A_A0 Add="56500" Update="49000" Delete="53000"></Q2A_A0>
+                <Q2A_B0 Add="56500" Update="49000" Delete="53000"></Q2A_B0>
+                <J2C_A0 Add="56500" Update="49000" Delete="53000"></J2C_A0>
+            </Host>
+            <Route Add="30500" Update="81000" Delete="33500"></Route>
+            <IPMC_LPM Add="21000" Update="38000" Delete="27000"></IPMC_LPM>
+            <IPMC_EM>
+                <JR2_A0 Add="26500" Update="25500" Delete="28000"></JR2_A0>
+                <JR2_B1 Add="36500" Update="34500" Delete="40500"></JR2_B1>
+                <Q2A_A0 Add="36500" Update="34500" Delete="40500"></Q2A_A0>
+                <Q2A_B0 Add="36500" Update="34500" Delete="40500"></Q2A_B0>
+                <J2C_A0 Add="36500" Update="34500" Delete="40500"></J2C_A0>
+            </IPMC_EM>
+            <IPMC_TCAM>
+                <JR2_A0 Add="10500" Update="12000" Delete="11000"></JR2_A0>
+                <JR2_B1 Add="10500" Update="12000" Delete="11000"></JR2_B1>
+                <Q2A_A0 Add="14000" Update="18000" Delete="17000"></Q2A_A0>
+                <Q2A_B0 Add="14000" Update="18000" Delete="17000"></Q2A_B0>
+                <J2C_A0 Add="10500" Update="12000" Delete="11000"></J2C_A0>
+            </IPMC_TCAM>
+        </IPv6>
+    </Internal>
+    
+    <External>
+        <IPv4>
+            <Host Add="89500" Update="126500" Delete="82000"></Host>
+            <Route Add="55500" Update="68500" Delete="49500"></Route>
+            <Route_RPF Add="55000" Update="69000" Delete="51000"></Route_RPF>
+            <IPMC_TCAM Add="41000" Update="33500" Delete="47500"></IPMC_TCAM>
+        </IPv4>
+        
+        <IPv6>
+            <Host Add="62500" Update="105000" Delete="64000"></Host>
+            <Route Add="42000" Update="61000" Delete="43000"></Route>
+            <Route_RPF Add="40500" Update="61500" Delete="44500"></Route_RPF>
+            <IPMC_TCAM Add="36000" Update="30500" Delete="43000"></IPMC_TCAM>
+        </IPv6>
+    </External>
+</Intel>
+
+</CtestL3PerformanceMeasurementsRoot>

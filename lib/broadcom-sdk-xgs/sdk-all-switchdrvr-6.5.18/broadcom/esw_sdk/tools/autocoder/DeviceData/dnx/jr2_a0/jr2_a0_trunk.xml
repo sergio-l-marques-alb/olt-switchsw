@@ -1,0 +1,108 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0" module="trunk">
+    <includes>
+    </includes>
+    
+    <sub_module name="parameters" doc="Trunk parameters and defines">
+        <numerics>
+        </numerics>
+        <defines>
+            <define name="nof_pools" value="2"></define>
+            <define name="max_nof_members_in_pool" value="16384"></define>
+            <define name="max_nof_groups_in_pool" value="8192"></define>
+            <define name="spa_pool_shift" value="14"></define>
+            <define name="spa_type_shift" value="15"></define>
+        </defines>  
+        <tables>
+            <table name="pool_info">
+                <key name="pool_index" size="2"></key>
+                <value name="max_nof_members_in_group" default="64">
+                    <property name="trunk_group_max_members" method="suffix_direct_map" suffix="pool">
+                        <map name="2" value="2"></map>
+                        <map name="4" value="4"></map>
+                        <map name="8" value="8"></map>
+                        <map name="16" value="16"></map>
+                        <map name="32" value="32"></map>
+                        <map name="64" value="64"></map>
+                        <map name="128" value="128"></map>
+                        <map name="256" value="256"></map>
+                        <doc>SOC property to configure the max amount of members in each trunk in bank. This also determines the amount of trunk IDs in bank</doc>
+                    </property>
+                </value>
+                <value name="max_nof_groups_in_pool" default="256">
+                    <property name="trunk_group_max_members" method="suffix_direct_map" suffix="pool">
+                        <map name="2" value="8192"></map> <!-- FIXME SDK-121142 - change those values to max/members_in_group -->
+                        <map name="4" value="4096"></map>
+                        <map name="8" value="2048"></map>
+                        <map name="16" value="1024"></map>
+                        <map name="32" value="512"></map>
+                        <map name="64" value="256"></map>
+                        <map name="128" value="128"></map>
+                        <map name="256" value="64"></map>
+                        <doc>NULL</doc><!--  not required - soc property already defined by a different data -->
+                    </property>
+                </value>
+                <value name="pool_hw_mode" default="0x5">
+                    <property name="trunk_group_max_members" method="suffix_direct_map" suffix="pool">
+                        <map name="2" value="0"></map>
+                        <map name="4" value="1"></map>
+                        <map name="8" value="2"></map>
+                        <map name="16" value="3"></map>
+                        <map name="32" value="4"></map>
+                        <map name="64" value="5"></map>
+                        <map name="128" value="6"></map>
+                        <map name="256" value="7"></map>
+                        <doc>NULL</doc><!--  not required - soc property already defined by a different data -->
+                    </property>
+                </value>
+            </table>
+        </tables>
+    </sub_module>
+    <sub_module name="psc" doc="Trunk Port Selection Criteria (PSC) Data">
+        <numerics>
+        </numerics>
+        <defines>
+            <define name="consistant_hashing_small_group_size_in_bits" value="4"></define>
+            <define name="smooth_division_max_nof_member" value="16"></define>
+            <define name="smooth_division_entries_per_profile" value="256"></define>
+        </defines>
+        <features>
+            <feature name="multiply_and_divide"></feature>
+            <feature name="smooth_division"></feature>
+            <feature name="consistant_hashing"></feature>
+        </features>
+        <tables>
+        </tables>
+    </sub_module>
+    <sub_module name="egress_trunk" doc="Egress Trunks - for egress MC">
+        <numerics>
+            <numeric name="nof" value="64"></numeric>
+            <numeric name="nof_lb_keys_per_profile" value="256"></numeric>
+            <numeric name="dbal_egress_trunk_index_multiplier" value="32"></numeric>
+            <numeric name="dbal_entry_index_divider" value="4"></numeric>
+            <numeric name="dbal_entry_index_msb_multiplier" value="2048"></numeric>
+            <numeric name="invalid_pp_dsp" value="255"></numeric>
+        </numerics>
+    </sub_module>
+    <sub_module name="graceful" doc="data regarding graceful modification of trunks">
+        <features>
+            <feature name="allow" value="0">
+                <property name="graceful_lag_modification_enable" method="enable">
+                    <doc>
+                        Enable/Disable Graceful Lag Modification:
+                        when enabled, lag have 2 different configurations.
+                        one current and another stand-by, user configures the
+                        stand-by configuration and can trigger a switch between
+                        the two.
+                    </doc>
+                </property>
+            </feature>
+        </features>
+        <defines>
+            <define name="first_hw_configuration" value="0"></define>
+            <define name="second_hw_configuration" value="1"></define>
+        </defines>
+    </sub_module>    
+
+</device_data>
+

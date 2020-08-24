@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="srv6" bsl_flag="BSL_LS_BCMDNX_SRV6">
+    
+    <sub_module name="termination" doc="SRv6 tunnel termination in Egress node">
+        <defines>
+            <define name = "max_nof_terminated_sids_psp"         doc = "Max number of SIDs that can be termianted in SRv6 PSP Egress node"></define>
+        </defines>
+    </sub_module>    
+    
+</device_data>
+
+
+
+

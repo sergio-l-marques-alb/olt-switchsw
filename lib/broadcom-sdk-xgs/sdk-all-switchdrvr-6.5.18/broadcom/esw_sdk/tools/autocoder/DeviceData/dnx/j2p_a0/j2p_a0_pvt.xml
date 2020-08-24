@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2p_a0" module="pvt">
+    <sub_module name="general">
+        <features>
+        </features>
+
+        <defines>
+            <define name="nof_pvt_monitors" value="7"></define>
+            <define name="pvt_base" value="43410000"></define>
+            <define name="pvt_factor" value="53504"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>

@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="ipq" bsl_flag="BSL_LS_BCMDNX_COSQ">
+    <sub_module name="queues" doc="queues data">
+
+        <features>
+            <feature labels="j2p_notrev" name="voq_resolution_per_dp" doc="support mapping TC to VOQ offset per DP"></feature>
+            <feature labels="j2p_notrev" name="tc_profile_from_tm_command" doc="support getting TC profile from TM command (when mapping packet TC to VOQ offset)"></feature>
+        </features>
+        
+        <defines>
+            <define labels="j2p_notrev" name="nof_queues" doc="Number of queues per core."></define>
+            <define labels="j2p_notrev" name="min_bundle_size" doc="Minimum number of queues in a queue bundle."></define>
+            <define labels="j2p_notrev" name="fmq_bundle_size" doc="Bundle size of the single FMQ when working with FMQ simple scheduling mode."></define>
+            
+            <define labels="j2p_notrev" name="queue_id_bits" doc="Number of bits in queue id"></define>
+            <define labels="j2p_notrev" name="voq_offset_bits" doc="Number of bits in VOQ offset- used when mapping packet TC (and possible other parameters) to VOQ offset"></define>
+            <define labels="j2p_notrev" name="min_bundle_size_bits" doc="number of bits in min_bundle_size"></define>
+            <define labels="j2p_notrev" name="tc_profile_from_tm_command_nof_bits" doc="number of bits in tc_profile_from_tm_command"></define>
+            <define labels="j2p_notrev" name="flow_quartet_nof_bits" doc="number of bits of flow quartet"></define>
+         </defines>
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="invalid_queue" doc="invalid queue id"></numeric>
+        </numerics>
+        
+        <tables>
+        </tables>
+        
+    </sub_module>
+
+    <!-- We devide the queues into several regions. -->
+    <!-- The size of the region is decided according to interdigitated region size. -->
+    <!-- The number of regions is nof_regions = nof_queues / nof_queue_in_region. -->
+    <sub_module name="regions" doc="regions data">
+
+        <features>
+        </features>
+        
+        <defines>
+            <define labels="j2p_notrev" name="nof_queues" doc="Number of queues in a region."></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+        
+        <tables>
+        </tables>
+        
+    </sub_module>
+    <sub_module name="tc_map" doc="TC map info">
+
+        <features>
+        </features>
+        
+        <defines>
+            <define labels="j2p_notrev" name="nof_voq_flow_profiles" doc="Number of TC mapping profiles for flow based forwarding (used in template manager)."></define>
+            <define labels="j2p_notrev" name="voq_flow_profiles_bits" doc="Number of bits to express TC mapping profiles for flow based forwarding."></define>
+            <define labels="j2p_notrev" name="default_voq_flow_profile_idx" doc="Default TC mapping profile index for flow based forwarding."></define>
+            <define labels="j2p_notrev" name="nof_sysport_profiles" doc="Number of TC mapping profiles for sysport forwarding (used in template manager)."></define>
+            <define labels="j2p_notrev" name="default_sysport_profile_idx" doc="Default TC mapping profile index for sysport forwarding."></define>
+            <define labels="j2p_notrev" name="voq_resolution_type_max_value" doc="Maximal value of VOQ_RESOLUTION_TYPE_ENCODING dbal field"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+        
+        <tables>
+        </tables>
+        
+    </sub_module>
+</device_data>

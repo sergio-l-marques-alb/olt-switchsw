@@ -1,0 +1,645 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="FABRIC_IF_PIPES" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Number of fabric pipes</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Link id" Name="FABRIC_LINK" Type="FABRIC_LINK_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Maximum fabric pipe id" Name="MAX_PIPE_ID" Type="FABRIC_PIPE_ID"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MAX_PIPE_ID">
+                    <Access>
+                        <Register Name="FMAC_FMAL_GENERAL_CONFIGURATIONr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_LINK)%dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_LINK)/dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <HwField Name="FMAL_N_PARALLEL_DATA_PATHf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_IF_PCP_ENABLE" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Enable/Disable packet cell packing</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Link id" Name="FABRIC_LINK" Type="FABRIC_LINK_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Enable PCP" Name="ENABLE" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="FMAC_FMAL_GENERAL_CONFIGURATIONr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_LINK)%dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_LINK)/dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <HwField Name="FMAL_N_PCP_ENABLEDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_IF_LEAKY_BUCKET" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>MAC leaky bucket params</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Link id" Name="FABRIC_LINK" Type="FABRIC_LINK_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Number of good cells that add a to ken to the bucket" Name="BUCKET_FILL_RATE" Size="4" Type="UINT"/>
+                <Field Description="When the link is down and the leaky bucket reaches this threshold, the link status is changed to up" Name="BUCKET_LINK_UP_TH" Size="6" Type="UINT"/>
+                <Field Description="Bucket link down threshold" Name="BUCKET_LINK_DOWN_TH" Size="6" Type="UINT"/>
+                <Field Description="Is signal from the SerDes can cause the leaky bucket counter to reset" Name="BUCKET_PHY_RESET_ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="Is leaky bucket counter will be reset when the sync status is reset" Name="BUCKET_MAC_RESET_ENABLE" Size="1" Type="BOOL"/>
+                <Field Description="Is cells are pumped from FDT and dropped in MACT when leaky bucket is down" Name="IS_LINK_PUMP" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="BUCKET_FILL_RATE">
+                    <Access>
+                        <Register Name="FMAC_LEAKY_BUCKET_CONTROL_REGISTERr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_LINK)%dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_LINK)/dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <HwField Name="BKT_FILL_RATE_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BUCKET_LINK_UP_TH">
+                    <Access>
+                        <Register Name="FMAC_LEAKY_BUCKET_CONTROL_REGISTERr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_LINK)%dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_LINK)/dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <HwField Name="BKT_LINK_UP_TH_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BUCKET_LINK_DOWN_TH">
+                    <Access>
+                        <Register Name="FMAC_LEAKY_BUCKET_CONTROL_REGISTERr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_LINK)%dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_LINK)/dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <HwField Name="BKT_LINK_DN_TH_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BUCKET_PHY_RESET_ENABLE">
+                    <Access>
+                        <Register Name="FMAC_LEAKY_BUCKET_CONTROL_REGISTERr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_LINK)%dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_LINK)/dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <HwField Name="SIG_DET_BKT_RST_ENA_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="BUCKET_MAC_RESET_ENABLE">
+                    <Access>
+                        <Register Name="FMAC_LEAKY_BUCKET_CONTROL_REGISTERr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_LINK)%dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_LINK)/dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <HwField Name="ALIGN_LCK_BKT_RST_ENA_Nf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IS_LINK_PUMP">
+                    <Access>
+                        <Register Name="FMAC_FMAL_TX_GENERAL_CONFIGURATIONr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_LINK)%dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_LINK)/dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <HwField Name="FMAL_N_TX_PUMP_WHEN_LB_DNf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_IF_COMMA_BURST" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Lane comma burst configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Link id" Name="FABRIC_LINK" Type="FABRIC_LINK_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Is comma period calculated in bytes or cells" Name="IS_COMMA_PERIOD_BYTES" Size="1" Type="BOOL"/>
+                <Field Description="Burst size" Name="COMMA_BURST_SIZE" Size="8" Type="UINT"/>
+                <Field Description="Period (in cells or bytes, according to IS_COMMA_PERIOD_BYTES)" Name="COMMA_PERIOD" Size="5" Type="UINT"/>
+                <Field Description="Burst size, active at link level flow control state" Name="COMMA_BURST_SIZE_LLFC" Size="8" Type="UINT"/>
+                <Field Description="Period, active at link level flow control state" Name="COMMA_PERIOD_LLFC" Size="5" Type="UINT"/>
+                <Field Description="Is LLFC config active at link level flow control state" Name="COMMA_BURST_LLFC_ENABLE" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IS_COMMA_PERIOD_BYTES">
+                    <Access>
+                        <Register Name="FMAC_FMAL_TX_COMMA_BURST_CONFIGURATIONr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_LINK)%dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_LINK)/dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <HwField Name="FMAL_N_CM_TX_BYTE_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COMMA_BURST_SIZE">
+                    <Access>
+                        <Register Name="FMAC_FMAL_TX_COMMA_BURST_CONFIGURATIONr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_LINK)%dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_LINK)/dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <HwField Name="FMAL_N_CM_BRST_SIZEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COMMA_PERIOD">
+                    <Access>
+                        <Register Name="FMAC_FMAL_TX_COMMA_BURST_CONFIGURATIONr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_LINK)%dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_LINK)/dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <HwField Name="FMAL_N_CM_TX_PERIODf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COMMA_BURST_SIZE_LLFC">
+                    <Access>
+                        <Register Name="FMAC_FMAL_TX_COMMA_BURST_CONFIGURATIONr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_LINK)%dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_LINK)/dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <HwField Name="FMAL_N_CM_BRST_SIZE_LLFCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COMMA_PERIOD_LLFC">
+                    <Access>
+                        <Register Name="FMAC_FMAL_TX_COMMA_BURST_CONFIGURATIONr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_LINK)%dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_LINK)/dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <HwField Name="FMAL_N_CM_TX_PERIOD_LLFCf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COMMA_BURST_LLFC_ENABLE">
+                    <Access>
+                        <Register Name="FMAC_FMAL_TX_COMMA_BURST_CONFIGURATIONr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_LINK)%dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_LINK)/dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <HwField Name="FMAL_N_CM_BRST_LLFC_ENABLERf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_IF_RX_SYNC_CONFIG" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Rx Sync configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Link id" Name="FABRIC_LINK" Type="FABRIC_LINK_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Is rx sync is forced" Name="IS_FORCE_SYNC" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IS_FORCE_SYNC">
+                    <Access>
+                        <Register Name="FMAC_FPS_CONFIGURATION_RX_SYNCr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_LINK)%dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_LINK)/dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <HwField Name="FPS_N_RX_SYNC_FORCE_LCK_ENf"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register Name="FMAC_FPS_CONFIGURATION_RX_SYNCr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_LINK)%dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_LINK)/dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <HwField Name="FPS_N_RX_SYNC_FORCE_SLP_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_IF_MAC_CONFIG" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>MAC general configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="MAC id" Name="MAC" Type="FMAC_BLK_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Is FAP mode" MaxValue="1" Name="IS_FAP" Size="4" Type="UINT"/>
+                <Field Description="Disable the creation of link level flow control cells at the transmission side" Name="TX_LLFC_DISABLE" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IS_FAP">
+                    <Access Size="1">
+                        <Register Name="FMAC_GENERAL_CONFIGURATION_REGISTERr">
+                            <BlockIndex Formula="#KEY_VALUE(MAC)"/>
+                            <HwField Name="FAP_MODEf"/>
+                        </Register>
+                    </Access>
+                    <Access EncodeType="MULTIPLY" EncodeValue="7">
+                        <Register Name="FMAC_GENERAL_CONFIGURATION_REGISTERr">
+                            <BlockIndex Formula="#KEY_VALUE(MAC)"/>
+                            <HwField Name="GENERAL_CONFIGURATION_REGISTER_FIELD_0f"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TX_LLFC_DISABLE">
+                    <Access>
+                        <Register Name="FMAC_GENERAL_CONFIGURATION_REGISTERr">
+                            <BlockIndex Formula="#KEY_VALUE(MAC)"/>
+                            <HwField Name="ENABLE_SERIAL_LINKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_IF_LINK_ENABLE" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Fabric link enable</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Link id" Name="FABRIC_LINK" Type="FABRIC_LINK_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Configure before enabling link" Name="PRE_ENABLE" Type="BOOL"/>
+                <Field Description="Configure after enabling link" Name="POST_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PRE_ENABLE">
+                    <Access EncodeType="BITWISE_NOT">
+                        <Register Name="FDTL_LINK_RESETr">
+                            <HwField Name="LINK_RESETf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_LINK)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="POST_ENABLE">
+                    <Access EncodeType="BITWISE_NOT">
+                        <Register Name="FDT_LINK_RESETr">
+                            <HwField Name="LINK_RESETf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_LINK)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_IF_LINK_FORCE_SIGNAL" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Fabric link force signal</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Link id" Name="FABRIC_LINK" Type="FABRIC_LINK_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Force signal" Name="ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="FCT_AUTO_DOC_NAME_10r">
+                            <HwField Name="FORCE_MACT_READY_FIELD_4f"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_LINK)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_IF_BLOCKS_POWER_DOWN" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Power down fabric blocks</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="FSRD id" Name="FSRD" Type="FSRD_BLK_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Enable power down of FSRD block" Name="ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="ECI_BLOCKS_POWER_DOWNr">
+                            <DataOffset Formula="#KEY_VALUE(FSRD)*#RESULT_SIZE(ENABLE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_IF_FSRD_CLOCKS_POWER_DOWN" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Power down FSRD clocks</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="FSRD id" Name="FSRD" Type="FSRD_BLK_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Enable power down of FSRD block" Name="ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="FSRD_SRD_CTRLr">
+                            <BlockIndex Formula="#KEY_VALUE(FSRD)"/>
+                            <HwField Name="SRD_N_IDDQf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_IF_FSRD_SBUS_LAST_IN_CHAIN" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Last FSRD in the SBUS chain</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="FSRD id" Name="FSRD" Type="FSRD_BLK_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Is this FSRD last in SBUS chain" Name="IS_LAST_IN_CHAIN" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IS_LAST_IN_CHAIN">
+                    <Access>
+                        <Register Name="FSRD_SBUS_LAST_IN_CHAINr">
+                            <BlockIndex Formula="#KEY_VALUE(FSRD)"/>
+                            <HwField Name="SBUS_LAST_IN_CHAINf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_IF_FMAC_SBUS_LAST_IN_CHAIN" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Last FMAC in the SBUS chain</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="MAC id" Name="MAC" Type="FMAC_BLK_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Is this FMAC last in SBUS chain" Name="IS_LAST_IN_CHAIN" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IS_LAST_IN_CHAIN">
+                    <Access>
+                        <Register Name="FMAC_SBUS_LAST_IN_CHAINr">
+                            <BlockIndex Formula="#KEY_VALUE(MAC)"/>
+                            <HwField Name="SBUS_LAST_IN_CHAINf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_IF_FORCE" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Force traffic through fabric or local cores</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Force traffic" Name="FABRIC_FORCE"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FABRIC_FORCE">
+                    <Access Offset="0" Size="1">
+                        <Register Name="FCT_FCT_ENABLER_REGISTERr">
+                            <HwField Name="DIS_LCLRTf"/>
+                        </Register>
+                    </Access>
+                    <Access Offset="0" Size="1">
+                        <Register Name="IPS_FORCE_FABRICr">
+                            <HwField Name="FORCE_FABRICf"/>
+                        </Register>
+                    </Access>
+                    <Access Offset="1" Size="2">
+                        <Register Name="IPS_FORCE_LOCALr">
+                            <HwField Name="FORCE_LOCALf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FABRIC_FORCE">
+                    <Access Offset="0" Size="1">
+                        <Register Name="FCT_FCT_ENABLER_REGISTERr">
+                            <HwField Name="DIS_LCLRTf"/>
+                        </Register>
+                    </Access>
+                    <Access Offset="0" Size="1">
+                        <Register Name="IPS_FORCE_LOCAL_OR_FABRICr">
+                            <HwField Name="FORCE_FABRICf"/>
+                        </Register>
+                    </Access>
+                    <Access Offset="1" Size="1">
+                        <Register Name="IPS_FORCE_LOCAL_OR_FABRICr">
+                            <HwField Name="FORCE_LOCALf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_IF_FORCE_TDM" Valid="DNX_DATA.fabric.general.is_supported*DNX_DATA.tdm.params.is_supported">
+        <OneLineDescription>Force TDM traffic through fabric or local cores</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Description="Force traffic through fabric" Name="FORCE_FABRIC" Type="BOOL"/>
+                <Field Description="Force traffic to local core" Name="FORCE_LOCAL" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FORCE_FABRIC">
+                    <Access EncodeType="BITWISE_NOT">
+                        <Register Name="FDT_FDT_ENABLER_REGISTERr">
+                            <HwField Name="TDM_LOCAL_UC_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FORCE_LOCAL">
+                    <Access>
+                        <Register Name="FDT_FDT_ENABLER_REGISTERr">
+                            <HwField Name="FORCE_ALL_LOCALf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FABRIC_IF_LINK_STATUS" Valid="DNX_DATA.fabric.general.is_supported">
+        <OneLineDescription>Fabric link status</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Description="Link id" Name="FABRIC_LINK" Type="FABRIC_LINK_ID"/>
+            </Key>
+            <Result>
+                <Field Description="Number of errored tokens" Name="NOF_ERRORED_TOKENS" Permission="READONLY" Size="6" Type="UINT"/>
+                <Field Description="A cell with CRC error was received on this link" Name="CRC_ERROR" Permission="TRIGGER" Type="BOOL"/>
+                <Field Description="A cell with size error was received on this link" Name="SIZE_ERROR" Permission="TRIGGER" Type="BOOL"/>
+                <Field Description="Lose of sync us detected on this link" Name="MISALIGN" Permission="TRIGGER" Type="BOOL"/>
+                <Field Description="FEC uncorrectable error" Name="CODE_GROUP_ERROR" Permission="TRIGGER" Type="BOOL"/>
+            </Result>
+            <TableLabels>J2P_NOTREV FABRIC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="NOF_ERRORED_TOKENS">
+                    <Access>
+                        <Register Name="FMAC_LEAKY_BUCKETr">
+                            <ArrayOffset Formula="#KEY_VALUE(FABRIC_LINK)%dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_LINK)/dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <HwField Name="MACR_N_LKY_BKT_VALUEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRC_ERROR">
+                    <Access>
+                        <Register Name="FMAC_FMAC_INTERRUPT_REGISTER_1r">
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_LINK)/dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <HwField Name="RX_CRC_ERR_N_INTf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_LINK)%dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SIZE_ERROR">
+                    <Access>
+                        <Register Name="FMAC_FMAC_INTERRUPT_REGISTER_1r">
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_LINK)/dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <HwField Name="WRONG_SIZE_INTf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_LINK)%dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="MISALIGN">
+                    <Access>
+                        <Register Name="FMAC_FMAC_INTERRUPT_REGISTER_2r">
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_LINK)/dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <HwField Name="RX_LOST_OF_SYNCf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_LINK)%dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CODE_GROUP_ERROR">
+                    <Access>
+                        <Register Name="FMAC_FMAC_INTERRUPT_REGISTER_4r">
+                            <BlockIndex Formula="#KEY_VALUE(FABRIC_LINK)/dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                            <HwField Name="DEC_ERR_INTf"/>
+                            <DataOffset Formula="#KEY_VALUE(FABRIC_LINK)%dnx_data_fabric.blocks.nof_links_in_fmac_get(unit)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_b0" module="dram">
+
+    <sub_module name="gddr6" doc="gddr6 definition">
+        <features>
+            <feature name="allow_disable_read_crc" value="1"></feature>
+            <feature name="interleaved_refresh_cycles" value="1"></feature>
+            <feature name="refresh_pend_switch" value="1"></feature>
+        </features>
+    </sub_module>
+
+</device_data>

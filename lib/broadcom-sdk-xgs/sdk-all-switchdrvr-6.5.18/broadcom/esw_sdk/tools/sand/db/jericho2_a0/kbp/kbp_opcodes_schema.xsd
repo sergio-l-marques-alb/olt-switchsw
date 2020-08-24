@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified">
+
+    <xs:include schemaLocation="../../../../autocoder/dbal/dnx/dbal_types_definition.xsd"/>
+
+    <xs:simpleType name="ResultLocationPattern">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="(FWD|RPF)"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="TrueOrFalsePattern">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="(TRUE|FALSE)"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+
+    <xs:simpleType name="SearchSegmentsPattern">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]([,][\s]*[0-9]){0,9}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:attributeGroup name="OpcodeTypeDefinitionAttr">
+        <xs:attribute name="Name" use="required" type="ShortNamePattern"/>
+        <xs:attribute name="OpCode" use="required">
+            <xs:simpleType>
+                <xs:restriction base="xs:integer">
+                    <xs:minInclusive value="0"/>
+                    <xs:maxInclusive value="63"/>
+                    <xs:pattern value="([0-9]+)"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:attributeGroup>
+
+    <xs:attributeGroup name="OpcodeFieldDefinitionAttr">
+        <xs:attribute name="Name" use="required" type="ShortNamePattern"/>
+        <xs:attribute name="BitSize" use="required">
+            <xs:simpleType>
+                <xs:restriction base="xs:integer">
+                    <xs:minInclusive value="8"/>
+                    <xs:maxInclusive value="128"/>
+                    <xs:pattern value="([0-9]+)"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="Segment" use="required">
+            <xs:simpleType>
+                <xs:restriction base="xs:integer">
+                    <xs:minInclusive value="0"/>
+                    <xs:maxInclusive value="9"/>
+                    <xs:pattern value="([0-9])"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:attributeGroup>
+
+	<xs:attributeGroup name="ContextFieldDefinitionAttr">
+        <xs:attribute name="Name" use="required" type="ShortNamePattern"/>
+    </xs:attributeGroup>
+
+    <xs:attributeGroup name="OpcodeAppDBDefinitionAttr">
+        <xs:attribute name="Name" use="required" type="ShortNamePattern"/>
+        <xs:attribute name="Segments" use="required" type="SearchSegmentsPattern"/>
+        <xs:attribute name="ResultLocation" use="required" type="ResultLocationPattern"/>        
+    </xs:attributeGroup>
+
+    <xs:element name="KbpOpcodesDbCatalogue">
+    <xs:complexType>
+    <xs:sequence>
+        <xs:element name="Opcode" maxOccurs="64">
+        <xs:complexType>
+        <xs:sequence>
+            <xs:element name="OneLineDescription" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="Description" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="AppDB" minOccurs="0" maxOccurs="8">
+            <xs:complexType>
+                <xs:attributeGroup ref="OpcodeAppDBDefinitionAttr"/>
+            </xs:complexType>
+            </xs:element>
+            <xs:element name="MasterKey" minOccurs="1" maxOccurs="1">
+            <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Field" minOccurs="0" maxOccurs="10">
+                <xs:complexType>
+                <xs:sequence>
+                    <xs:element name="Description" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                </xs:sequence>
+                    <xs:attributeGroup ref="OpcodeFieldDefinitionAttr"/>
+                </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+            </xs:complexType>
+            <xs:unique name="UniqueSegmentIDPerMasterKey">
+                <xs:selector xpath="Field"/>
+                <xs:field xpath="@Segment"/>
+            </xs:unique>
+            </xs:element>
+
+			<xs:element name="FwdContexts" minOccurs="0" maxOccurs="1">
+			<xs:complexType>
+				<xs:sequence>
+					<xs:element name="Context" minOccurs="0" maxOccurs="5">
+					<xs:complexType>               
+					<xs:attributeGroup ref="ContextFieldDefinitionAttr"/>
+					</xs:complexType>
+					</xs:element>
+				</xs:sequence>
+				</xs:complexType>
+				        </xs:element>
+        </xs:sequence>
+            <xs:attributeGroup ref="OpcodeTypeDefinitionAttr"/>
+        </xs:complexType>
+        </xs:element>
+    </xs:sequence>
+    </xs:complexType>
+    <xs:unique name="UniqueOpcodeID">
+        <xs:selector xpath="Opcode" />
+        <xs:field xpath="@OpCode" />
+    </xs:unique>
+    <xs:unique name="UniqueOpcodeName">
+        <xs:selector xpath="Opcode" />
+        <xs:field xpath="@Name" />
+    </xs:unique>
+    </xs:element>
+
+</xs:schema>

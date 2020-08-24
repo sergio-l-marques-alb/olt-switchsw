@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    $Copyright: (c) 2018 Broadcom Corporation All Rights Reserved.$
+    DBAL GPM SW state:
+    This xml contains the sw state logical DB for the DBAL.
+    ******************************************************
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../sw_state_schema.xsd">
+
+    <AppDB Name="L2_LEARNING_GENERAL_INFO_SW">
+        <OneLineDescription>SW State table - l2 learning basic information table</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="LEARNING_MODE" Size="32" Type="UINT" Description="Parameter that stores the current l2 learning mode flags (BCM_L2_XXX)"/>
+                <Field Name="ROUTED_LEARNING" Size="32" Type="UINT" Description="Routed learning flags (BCM_SWITCH_CONTROL_L3_LEARN_XXX)"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="L2_DMA_DSP_COMMAND">
+        <OneLineDescription>OLP events format used in DMA learning</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="EXCEED_LIMIT" Type="UINT" Size="2"/>
+                <Field Name="LEM_APP_DB" Size="6" Description="AppDB ID"/>
+                <Field Name="KEY" Type="ARRAY8" Size="80" Description="Key of the MAC entry"/>
+                <Field Name="OLP_COMMAND" Description="Type of OLP event"/>
+                <Field Name="ACK_INFO"  Type="UINT" Size="13" Description="Information in case of ACK event"/>
+                <Field Name="AGE"  Type="UINT" Size="4" Description="Age of the MAC entry"/>
+                <Field Name="PAYLOAD" Type="ARRAY8" Size="64" Description="Destination for the MAC entry"/>
+                <Field Name="VMV"  Type="UINT" Size="6" Description="Represents size of MACT entry"/>
+                <Field Name="VALID" Type="BOOL" Description="Valid bit for the event"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="VSI_TYPE_SW">
+        <OneLineDescription>SW State table - VSI usage information table</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            <Field Name="VSI" Description="Parameter that point to the VSI"/>
+            </Key>
+            <Result>
+                <Field Name="VSI_TYPE_MPLS" Type="UINT" Size="1" Description="VSI usage bit 0 used for MPLS"/>
+                <Field Name="VSI_TYPE_VSWITCH" Type="UINT" Size="1" Description="VSI usage bit 1 used for VSWITCH"/>
+                <Field Name="VSI_TYPE_MIM" Type="UINT" Size="1" Description="VSI usage bit 2 used for MIM"/>
+                <Field Name="VSI_TYPE_L2GRE" Type="UINT" Size="1" Description="VSI usage bit 3 used for L2GRE"/>
+                <Field Name="VSI_TYPE_VxLAN" Type="UINT" Size="1" Description="VSI usage bit 4 used for VxLAN"/>
+                <Field Name="VSI_TYPE_RES0" Type="UINT" Size="1" Description="VSI usage bit 5 used for Reserved"/>
+                <Field Name="VSI_TYPE_RES1" Type="UINT" Size="1" Description="VSI usage bit 6 used for Reserved"/>
+                <Field Name="VSI_TYPE_RES2" Type="UINT" Size="1" Description="VSI usage bit 7 used for Reserved"/>
+                <Field Name="VXLAN_VPN_CREATE_TYPE" Type="UINT" Size="1" Description="VSI2VNI mapping was created from bcm_vxlan_vpn_create API"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

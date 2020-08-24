@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<top device="jericho2_a0" version="1.1">
+    <signal-structures>
+        <structure name="FTMH_Base_J1" size="72">
+            <field name="Exclude_source" bits="0:0" />
+            <field name="ENC_enable" bits="1:1" />
+            <field name="CNI" bits="2:2" />
+            <field name="DSP_Extension_Present" bits="3:3" />
+            <field name="Multicast_ID_or_OutLIF" bits="22:4" />
+            <field name="TM_Action_is_MC" bits="23:23" />
+            <field name="Outbound_Mirror_Disable" bits="24:24" />
+            <field name="PPH_Type" bits="26:25" resolution="PPH_Type" />
+            <field name="TM_Action_Type" bits="28:27" />
+            <field name="Drop_Precedence" bits="30:29" />
+            <field name="PP_DSP" bits="38:31" />
+            <field name="Source_System_Port_Aggregate" bits="54:39" />
+            <field name="Traffic_Class" bits="57:55" />
+            <field name="Packet_Size" bits="71:58" />
+        </structure>
+        <structure name="LB_Key_Ext_J1" size="8">
+            <field name="LB_Key" bits="7:0" />
+        </structure>
+        <structure name="DSP_Extension_J1" size="16">
+            <field name="DSP" bits="15:0" />
+        </structure>
+        <structure name="Stacking_Extension_J1" size="16">
+            <field name="Stacking-Route-History-Bitmap" bits="15:0" />
+        </structure>
+        <structure name="OAM_Header_J1" size="48" perm="1">
+            <field name="Offset" bits="7:0" />
+            <field name="OAM_TS_Data" bits="41:8" />
+            <field name="MEP_Type" bits="42:42" />
+            <field name="OAM_Sub_Type" bits="45:43" />
+            <field name="OTSH_Type" bits="47:46" />
+        </structure>
+        <structure name="IEEE1588v2_Header_J1" size="48" perm="1">
+            <field name="Offset" bits="7:0" />
+            <field name="OAM_TS_Data" bits="41:8" />
+            <field name="TS_Enc" bits="42:42" />
+            <field name="TP_Cmd" bits="45:43" />
+            <field name="OTSH_Type" bits="47:46" />
+        </structure>
+        <structure name="Latency_Measurement_Header_J1" size="48"
+            perm="1">
+            <field name="Latency_Flow_ID" bits="18:0" />
+            <field name="Time_Stamp" bits="45:19" />
+            <field name="OTSH_Type" bits="47:46" />
+        </structure>
+        <structure name="OTSH_J1" size="48" expansion="Dynamic"
+            perm="1">
+            <option expansion="OAM_Header_J1" OTSH_Type="OAM" />
+            <option expansion="IEEE1588v2_Header_J1" OTSH_Type="IEEE1588v2" />
+            <option expansion="Latency_Measurement_Header_J1"
+                OTSH_Type="Latency_Measurement" />
+            <field name="OTSH_Type" bits="47:46" />
+        </structure>
+        <structure name="ITMH_Base_J1" size="32">
+            <field name="PPH_Type" bits="31:30" />
+            <field name="IN_MIRR_DISABLE" bits="29:29" />
+            <field name="FWD_DP" bits="28:27" />
+            <field name="FWD_DEST_INFO" bits="26:8" />
+            <field name="SNOOP_CMD" bits="7:4" />
+            <field name="FWD_TRAFFIC_CLASS" bits="3:1" />
+            <field name="Base_Ext_Exists" bits="0:0" />
+        </structure>
+        <structure name="ITMH_Base_Ext_J1" size="24">
+            <field name="Type" bits="23:21" />
+            <field name="Value1" bits="19:0" />
+        </structure>
+        <structure name="ITMH_ISQ_Flow_ID_J1" size="24">
+            <field name="Flow_ID" bits="16:0" />
+        </structure>
+    </signal-structures>
+</top>

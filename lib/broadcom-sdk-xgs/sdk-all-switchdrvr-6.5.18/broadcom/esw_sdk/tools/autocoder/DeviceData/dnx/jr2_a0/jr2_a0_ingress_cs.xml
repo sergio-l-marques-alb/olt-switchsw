@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="ingress_cs">
+    
+    <includes>
+        <include>soc/dnx/dbal/dbal_structures.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_dram.h</include>
+    </includes>
+    
+    <sub_module name="properties" doc="Information about ingress CS TCAM, plus PRT TCAM and  ePMF CS TCAM.">
+        <features>
+        </features>
+        <defines>
+            <define name="cs_buffer_nof_bits_max" value="200"></define>
+            <define name="nof_bits_entry_size_prefix" value="1"></define>
+        </defines>
+        <numerics>
+        </numerics>
+        <tables>
+            <table name="per_stage">
+                <key name="stage"  size="DBAL_NOF_STAGES"></key>
+                <value name="valid" default="FALSE" ></value>
+                <value name="supports_half_entries" default="FALSE" doc="Whether TCAM supports half entries. must be 0 or 1"></value>
+                <entries>
+                    <entry stage="DBAL_STAGE_PRT"    valid="TRUE" supports_half_entries="TRUE"/>
+                    <entry stage="DBAL_STAGE_LLR"    valid="TRUE" supports_half_entries="FALSE"/>
+                    <entry stage="DBAL_STAGE_VT1"    valid="TRUE" supports_half_entries="FALSE"/>
+                    <entry stage="DBAL_STAGE_VT2"    valid="TRUE" supports_half_entries="FALSE"/>
+                    <entry stage="DBAL_STAGE_VT3"    valid="TRUE" supports_half_entries="FALSE"/>
+                    <entry stage="DBAL_STAGE_VT4"    valid="TRUE" supports_half_entries="FALSE"/>
+                    <entry stage="DBAL_STAGE_VT5"    valid="TRUE" supports_half_entries="FALSE"/>
+                    <entry stage="DBAL_STAGE_FWD1"   valid="TRUE" supports_half_entries="FALSE"/>
+                    <entry stage="DBAL_STAGE_FWD2"   valid="TRUE" supports_half_entries="FALSE"/>
+                    <entry stage="DBAL_STAGE_IPMF1"  valid="TRUE" supports_half_entries="FALSE"/>
+                    <entry stage="DBAL_STAGE_IPMF2"  valid="TRUE" supports_half_entries="FALSE"/>
+                    <entry stage="DBAL_STAGE_IPMF3"  valid="TRUE" supports_half_entries="FALSE"/>
+                    <entry stage="DBAL_STAGE_EPMF"   valid="TRUE" supports_half_entries="FALSE"/>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="hw_workarounds">
+        <features>
+            <feature name="disable_ecc_fix_en_before_read_write" value="1"></feature>
+        </features>
+    </sub_module>
+
+    <sub_module name="parser">
+        <features>
+            <feature name="parsing_context_map_enable" value="0"></feature>
+        </features>
+    </sub_module> 
+</device_data>

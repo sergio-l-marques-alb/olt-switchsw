@@ -1,0 +1,120 @@
+<?xml version="1.0"?>
+
+<!-- This XML file is an example of SKU Dynamic DNX DATA -->
+<device_data>
+    <module name="device">
+        <sub_module name="general">
+            <features>
+            </features>
+            
+            <defines>
+                <define name="max_nof_system_ports" value="32768"></define>
+                <define name="invalid_system_port" value="32767"></define>
+            </defines > 
+        
+            <numerics>
+                <!-- Working in a single core mode is not supported -->
+                <numeric name="nof_cores" value="2"></numeric>
+                <numeric name="nof_faps" value="14"></numeric>
+                <numeric name="core_clock_khz" value="2000000">
+                    <property name="core_clock_speed" method="suffix_range" suffix="khz" range_min="400000" range_max="2500000">
+                        <doc>
+                            Device core clock frequency in KHZ
+                            Synopsis: core_clock_speed_khz=#freq#
+                        </doc>
+                    </property>
+                </numeric>
+                <numeric name="device_id" value="0x8690"></numeric> 
+            </numerics>
+
+            <tables>
+            </tables>
+        </sub_module>
+    </module>
+
+    <module name="trunk">
+        <sub_module name="psc">
+            <features>
+                <feature name="multiply_and_divide" value="0"></feature>
+                <feature name="smooth_division"></feature>
+            </features>
+            
+            <defines>
+            </defines > 
+        
+            <numerics>
+            </numerics>
+
+            <tables>
+            </tables>
+        </sub_module>
+    </module>
+
+
+    <module name="fabric">
+        <sub_module name="general">
+            <numerics>
+                <numeric name="connect_mode" value="SOC_DNX_FABRIC_NOF_CONNECT_MODES">
+                    <property name="fabric_connect_mode" method="direct_map">
+                        <map name="FE" value="SOC_DNX_FABRIC_CONNECT_MODE_FE"></map>
+                        <map name="SINGLE_FAP" value="SOC_DNX_FABRIC_CONNECT_MODE_SINGLE_FAP"></map> 
+                        <!-- <map name="MESH" value="SOC_DNX_FABRIC_CONNECT_MODE_MESH"></map> -->
+                        <doc>
+                            Set the connect mode of the Fabric:
+                                FE - fabric is connected to FE device.
+                                SINGLE_FAP - stand-alone device.
+                                MESH - fabric is connected to other FAPs directly.
+                        </doc>
+                    </property>
+                </numeric>
+            </numerics>
+
+            <tables>
+                <table name="pll_phys">
+                    <key name="lcpll"></key>
+                    <value name="min_phy_id" default="1"></value>
+                    <value name="max_phy_id" default="20"></value>
+                    <entries>
+                        <entry lcpll="0" min_phy_id="11"></entry>
+                        <entry lcpll="1" max_phy_id="13"></entry>
+                    </entries>
+            </table>
+            </tables>
+        </sub_module>
+
+        <sub_module name="links">
+            <defines>
+                <define name="nof_links" value="100"></define>
+            </defines>
+        </sub_module>
+    </module>
+    
+    <module name="nif">
+        <sub_module name="phys">
+            <tables>
+                <table name="general">
+                    <!-- FIXME: SDK-115221 temporary number - until NIF SDD -->
+                    <value name="supported_phys" default="0xffffffff, 0xffffffff, 0x0"></value>
+                </table>
+            </tables>
+        </sub_module>
+    
+        <sub_module name="ilkn">
+            <tables>
+                <table name="phys">
+                    <key name="ilkn_id" size="2"></key>
+                    <value name="bitmap" default="0x5">
+                        <property name="ilkn_lanes" method="suffix_pbmp" suffix="">
+                            <doc>
+                                ilkn_lanes_#ilkn_id#=#bitmap#
+                                The bitmap parameter is up to 24 bits. 
+                                When a bit is set, the equivalent lane (PHY) is used for the corresponding port. 
+                                The ilkn_id parameter is the ILKN interface ID in the range 0-1.
+                            </doc>
+                        </property>
+                    </value>
+                </table>
+            </tables>
+        </sub_module>
+    </module>        
+</device_data>

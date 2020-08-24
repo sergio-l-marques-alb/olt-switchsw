@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="esem" bsl_flag="BSL_LS_BCMDNX_ESEM">
+
+    <sub_module name="access_cmd" doc="data for egress sem access command">
+        <defines>
+            <define name="nof_esem_accesses"       doc="The number of accesses that can be preformed into the ESEM/EXEM."/>
+            <define name="app_di_id_size_in_bits"  doc="NOF bits for the APP DB ID."/>
+            <!-- access commands options -->
+            <define name="no_action"      doc="Undefined access command index"/>
+            <define name="default_native" doc="Default access command for native AC"/>
+            <define name="default_ac"     doc="Default-access command index for outer AC"/>
+            <define name="ip_tunnel_no_action"      doc="No lookup access command for ip tunnel cases"/>
+            <define name="nof_cmds"       doc="Number of esem access commands"/>
+        </defines>
+    </sub_module>
+
+    <sub_module name="default_result_profile" doc="default results in case of mismatch in esem lookup">
+        <defines>
+            <define name="default_native"              doc="Profile for Esem default result for default native"/>
+            <define name="default_ac"                  doc="Profile for Esem default result for default AC"/>
+            <define name="default_dual_homing"         doc="Profile for Esem default result for dual homing db"/>
+            <define name="nof_profiles"                doc="Number of esem default result profiles"/>
+        </defines>
+    </sub_module>
+    
+    <sub_module name="hw_bug" doc="ESEM-related HW bugs">
+
+        <features>
+            <feature name="etps_properties_assignment" doc="Properties are taken from ETPS TOS entry, instead of EES TOS entry"></feature>
+            <feature name="key_with_sspa_contains_member_id" 
+                         doc="Does the constructed key contain member-id in case of trunk system port aggregate"/>
+        </features>
+    </sub_module>
+</device_data>

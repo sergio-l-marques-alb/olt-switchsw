@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2p_a0"  module="switch">
+
+    <sub_module name="load_balancing">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="hashing_selection_per_layer" value="1"></define>
+            <define name="reserved_next_label_valid" value="0"></define>
+            <define name="mpls_stack_split_hashing" value="1"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+
+        </tables>
+    </sub_module>
+
+    <sub_module name="svtag" doc="Definitions related to the SVTAG.">
+        <features>
+        </features>
+
+        <defines>
+            <define name="supported" value="1"></define>
+            <define name="svtag_label_size_bits" value="32"></define>
+            <define name="egress_svtag_offset_addr_size_bits" value="8"></define>
+            <define name="egress_svtag_offset_addr_position_bits" value="16"></define>
+            <define name="egress_svtag_signature_size_bits" value="8"></define>
+            <define name="egress_svtag_signature_position_bits" value="24"></define>
+            <define name="egress_svtag_sci_size_bits" value="10"></define>
+            <define name="egress_svtag_sci_position_bits" value="0"></define>
+            <define name="egress_svtag_pkt_type_size_bits" value="2"></define>
+            <define name="egress_svtag_pkt_type_position_bits" value="10"></define>
+            <define name="egress_svtag_ipv6_indication_position_bits" value="15"></define>
+            <define name="egress_svtag_hw_field_position_bits" value="0"></define>
+            <define name="egress_svtag_accumulation_indication_hw_field_position_bits" value="32"></define>
+             <!-- The SVTAG is position after the SA (12 bytes) plus the 2 bytes of the PTCH   -->
+            <define name="ingress_svtag_position_bytes" value="14"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+     <sub_module name="hw_bug" doc="switch related hw bug">
+
+        <features>
+            <feature name="mpls_labels_included_in_hash" value="0"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>

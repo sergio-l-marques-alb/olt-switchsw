@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="FIELD_CONTEXT_HASH_CONFIGURATION">
+        <OneLineDescription>This table provides access to the hash configuration per PMF context.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FIELD_PMF_CTX_ID"/>
+            </Key>
+            <Result>
+                <Field Name="COMPRESSION" Size="1" Type="UINT"/>
+                <Field Name="SWITCH" Size="1" Type="UINT"/>
+                <Field Name="HASH_FUNC" Type="CONTEXT_HASH_FUNCTION"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="COMPRESSION">
+                    <Access>
+                        <Register Name="IPPC_TRJ_CFGr">
+                            <HwField Name="COMPRESSIONf"/>
+                            <DataOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SWITCH">
+                    <Access>
+                        <Register Name="IPPC_TRJ_CFGr">
+                            <HwField Name="SWITCH_ENABLEf"/>
+                            <DataOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HASH_FUNC">
+                    <Access>
+                        <Memory Name="IPPC_TRAJECTORY_CONFIGURATIONm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <HwField Name="TRJ_CRC_SELECTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+
+    <AppDB Name="FIELD_CONTEXT_HASH_CONFIGURATION_WITH_KEY">
+        <OneLineDescription>This table provides access to the hash configuration per PMF context, this table is specific for parameters that are configured per LB key.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FIELD_PMF_CTX_ID"/>
+                <Field Name="FIELD_HASH_LB_KEY"/>
+            </Key>
+            <Result>
+                <Field Name="HASH_ACTION" Size="2" Type="UINT"/>
+                <Field Name="CRC_SELECT" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="HASH_ACTION">
+                    <Access>
+                        <KeyCondition Enum="ECMP0_LB" Field="FIELD_HASH_LB_KEY" Type="EQUAL_TO"/>
+                        <Memory Name="IPPC_TRAJECTORY_CONFIGURATIONm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <HwField Name="ECMP_LB_0_FUNCTION_SELECTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ECMP1_LB" Field="FIELD_HASH_LB_KEY" Type="EQUAL_TO"/>
+                        <Memory Name="IPPC_TRAJECTORY_CONFIGURATIONm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <HwField Name="ECMP_LB_1_FUNCTION_SELECTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ECMP2_LB" Field="FIELD_HASH_LB_KEY" Type="EQUAL_TO"/>
+                        <Memory Name="IPPC_TRAJECTORY_CONFIGURATIONm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <HwField Name="ECMP_LB_2_FUNCTION_SELECTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="NWK_LB" Field="FIELD_HASH_LB_KEY" Type="EQUAL_TO"/>
+                        <Memory Name="IPPC_TRAJECTORY_CONFIGURATIONm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <HwField Name="NWK_LB_KEY_FUNCTION_SELECTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="LAG_LB" Field="FIELD_HASH_LB_KEY" Type="EQUAL_TO"/>
+                        <Memory Name="IPPC_TRAJECTORY_CONFIGURATIONm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <HwField Name="LAG_LB_KEY_FUNCTION_SELECTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ADDITIONAL_LB" Field="FIELD_HASH_LB_KEY" Type="EQUAL_TO"/>
+                        <Memory Name="IPPC_TRAJECTORY_CONFIGURATIONm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <HwField Name="ADDITIONAL_LB_KEY_FUNCTION_SELECTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CRC_SELECT">
+                    <Access>
+                        <KeyCondition Enum="ECMP0_LB" Field="FIELD_HASH_LB_KEY" Type="EQUAL_TO"/>
+                        <Memory Name="IPPC_TRAJECTORY_CONFIGURATIONm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <HwField Name="ECMP_LB_0_CRC_SELECTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ECMP1_LB" Field="FIELD_HASH_LB_KEY" Type="EQUAL_TO"/>
+                        <Memory Name="IPPC_TRAJECTORY_CONFIGURATIONm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <HwField Name="ECMP_LB_1_CRC_SELECTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ECMP2_LB" Field="FIELD_HASH_LB_KEY" Type="EQUAL_TO"/>
+                        <Memory Name="IPPC_TRAJECTORY_CONFIGURATIONm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <HwField Name="ECMP_LB_2_CRC_SELECTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="NWK_LB" Field="FIELD_HASH_LB_KEY" Type="EQUAL_TO"/>
+                        <Memory Name="IPPC_TRAJECTORY_CONFIGURATIONm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <HwField Name="NWK_LB_KEY_CRC_SELECTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="LAG_LB" Field="FIELD_HASH_LB_KEY" Type="EQUAL_TO"/>
+                        <Memory Name="IPPC_TRAJECTORY_CONFIGURATIONm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <HwField Name="LAG_LB_KEY_CRC_SELECTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ADDITIONAL_LB" Field="FIELD_HASH_LB_KEY" Type="EQUAL_TO"/>
+                        <Memory Name="IPPC_TRAJECTORY_CONFIGURATIONm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <HwField Name="ADDITIONAL_LB_KEY_CRC_SELECTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+
+
+    <AppDB Name="FIELD_IPMF1_CONTEXT_GENERAL">
+        <OneLineDescription>This table provides access to iPMF1 contexts general params</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FIELD_PMF_CTX_ID"/>
+            </Key>
+            <Result>
+                <Field Name="SYSTEM_HEADER_PROFILE" Size="4" Type="UINT"/>
+                <Field Name="PPH_TYPE"/>
+                <Field Name="FIRST_CONTEXT_PROFILE" Size="5" Type="UINT"/>
+                <Field Name="PGM_EVENTOR_FIFO_CONTEXT_ENABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="SYSTEM_HEADER_PROFILE">
+                    <Access>
+                        <Memory Name="IPPC_PMF_PROGRAM_GENERALm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <HwField Name="SYSTEM_HEADER_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PPH_TYPE">
+                    <Access>
+                        <Memory Name="IPPC_PMF_PROGRAM_GENERALm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <HwField Name="PPH_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FIRST_CONTEXT_PROFILE">
+                    <Access>
+                        <Register Name="IPPC_MAP_1ST_CONTEXT_PROFILEr">
+                            <DataOffset Formula="5*#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PGM_EVENTOR_FIFO_CONTEXT_ENABLE">
+                    <Access>
+                        <Memory Name="IPPC_PROGRAM_KEY_GEN_VARm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/> 
+                            <HwField Name="EVENTOR_FIFO_CONTEXT_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FIELD_IPMF2_CONTEXT_GENERAL">
+        <OneLineDescription>This table provides access to set Bytes/Layers to remove for iPMF2 contexts</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/> 
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FIELD_PMF_CTX_ID"/>
+            </Key>
+            <Result>
+                <Field Name="NUM_LAYERS_TO_REMOVE" Size="2" Type="UINT"/>
+                <Field Name="NUM_BYTES_TO_REMOVE" Size="7" Type="UINT"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="NUM_LAYERS_TO_REMOVE">
+                    <Access>
+                        <Memory Name="IPPD_PMF_PROGRAM_GENERALm">
+                            <HwField Name="BYTES_TO_REMOVE_HEADERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NUM_BYTES_TO_REMOVE">
+                    <Access>
+                        <Memory Name="IPPD_PMF_PROGRAM_GENERALm">
+                            <HwField Name="BYTES_TO_REMOVE_FIXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FIELD_PMF_CONTEXT_GENERAL">
+        <OneLineDescription>This table provides access to PMF contexts general params</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Jira="SDK-150969" Level="PARTIALLY_FUNCTIONAL"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FIELD_PMF_CTX_ID"/>
+                <Field Name="FIELD_PMF_STAGE"/>
+            </Key>
+            <Result>
+                <Field Name="ACL_CONTEXT_PROFILE" Size="6" Type="UINT"/>
+                <Field Name="FWD_CONTEXT_PROFILE" Size="5" Type="HEXA"/>
+                <Field Name="PROGRAM_KEY_GEN_VAR" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ACL_CONTEXT_PROFILE">
+                    <Access>
+                        <KeyCondition Enum="IPMF1" Field="FIELD_PMF_STAGE" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_ACL_CONTEXT_PROFILE_MAPr">
+                            <DataOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)*6"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPMF3" Field="FIELD_PMF_STAGE" Type="EQUAL_TO"/>
+                        <Register Name="IPPD_ACL_CONTEXT_PROFILE_MAPr">
+                            <DataOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)*6"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FWD_CONTEXT_PROFILE">
+                    <Access>
+                        <KeyCondition Enum="IPMF1" Field="FIELD_PMF_STAGE" Type="EQUAL_TO"/>
+                        <Register Name="IPPC_FWD_CONTEXT_PROFILE_MAPr">
+                            <DataOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)*5"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PROGRAM_KEY_GEN_VAR">
+                    <Access>
+                        <KeyCondition Enum="IPMF1" Field="FIELD_PMF_STAGE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPC_PROGRAM_KEY_GEN_VARm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <HwField Name="PROGRAM_KEY_GEN_VARf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="IPMF3" Field="FIELD_PMF_STAGE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPD_PROGRAM_KEY_GEN_VARm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <HwField Name="PROGRAM_KEY_GEN_VARf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+
+
+</AppDbCatalog>

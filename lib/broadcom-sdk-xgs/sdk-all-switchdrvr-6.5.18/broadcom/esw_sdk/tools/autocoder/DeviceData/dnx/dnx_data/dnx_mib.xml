@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="mib" bsl_flag="BSL_LS_BCMDNX_COMMON">
+    <includes>
+        <include>bcm/port.h</include>
+        <include>bcm/stat.h</include>
+        <include>bcm_int/dnx/algo/port/algo_port_mgmt.h</include>
+        <include>bcm_int/dnx/stat/mib/mib_stat.h</include>
+        <include>soc/counter.h</include>
+    </includes>
+    <sub_module name="general" doc="general mib proprties and data">
+        <features>
+        </features>
+
+        <defines>
+        </defines>
+
+
+        <numerics>
+            <numeric labels="j2p_notrev" name="stat_interval" doc="Set statistics collection interval in microseconds"></numeric>
+            <numeric labels="j2p_notrev" name="stat_jumbo" doc="Maximum packet size used in statistics counter update"></numeric>
+        </numerics>
+
+        <tables>
+            <table labels="j2p_notrev" name="stat_pbmp" doc="Bitmap of ports to enable statistic counter collection">
+                <value name="pbmp" type="bcm_pbmp_t" doc="Bitmap of ports to enable statistic counter collection"></value>
+            </table>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="controlled_counters" doc="Controlled counters data">
+        <features>
+        </features>
+
+        <defines>
+        </defines>
+
+
+        <numerics>
+        </numerics>
+
+        <tables>
+            <table labels="j2p_notrev" name="map_data" doc="map table of controlled counters - maps bcm counter type and counter set to a set of internal controlled (hw) counters">
+                <key name="counter_type" doc="bcm stat id out of bcm_stat_val_t type='bcm_stat_val_t'"></key>
+                <key name="set_type" doc="counter set type out of dnx_algo_port_mib_counter_set_type_e"></key>
+                <value name="counters_to_add_array" type="uint32[DNX_MIB_MAX_COUNTER_BUNDLE]" doc="list of counters for addition."></value>
+                <value name="counters_to_subtract_array" type="uint32[DNX_MIB_MAX_COUNTER_BUNDLE]" doc="list of counters for subtraction"></value>
+                <value name="counters_to_get_cb" type="dnx_mib_counters_map_get_cb_f" doc="callback to get the list of required counters"></value>
+            </table>
+            
+            <table labels="j2p_notrev" name="set_data" doc="counters set info - hw access, documentation, etc...">
+                <key name="counter_id" doc="controlled counter id, see - dnx_mib_counter_t'"></key>
+                <key name="set_type" doc="counter set type out of dnx_algo_port_mib_counter_set_type_e"></key>
+                <value name="hw_counter_id" type="int" doc="counter id in hw, used for indirect access"></value>
+                <value name="get_cb" type="soc_get_counter_f" doc="callback to read the counter value"></value>
+                <value name="clear_cb" type="soc_clear_counter_f" doc="callback to clear the counter"></value>
+            </table>
+            
+            <table labels="j2p_notrev" name="counter_data" doc="counter data">
+                <key name="counter_id" doc="controlled counter id, see - dnx_mib_counter_t'"></key>
+                <value name="length" type="int" doc="Counter length in bits"></value>
+                <value name="doc" type="char *" doc="Counter description"></value>  
+            </table>                                              
+        </tables>
+    </sub_module>
+        
+</device_data>

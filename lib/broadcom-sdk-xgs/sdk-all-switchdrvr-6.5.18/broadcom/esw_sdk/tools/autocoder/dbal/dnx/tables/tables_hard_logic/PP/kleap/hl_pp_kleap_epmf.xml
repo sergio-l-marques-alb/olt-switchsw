@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="KLEAP_E_PMF_KBR_INFO">
+        <OneLineDescription>Indicates per Context per KBR the KBR info - FFC and AppDB configured</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="2" Name="FIELD_KEY"/>
+                <Field Name="FIELD_PMF_CTX_ID" Size="6"/>
+            </Key>
+            <Result>
+                <Field Name="APP_DB_ID"/>
+                <Field Name="FFC_BITMAP" Size="20" Type="BITMAP"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FFC_BITMAP">
+                    <Access>
+                        <KeyCondition Field="FIELD_KEY" Type="EQUAL_TO" Value="0"/>
+                        <Memory Name="ERPP_PMF_KBR_PASSm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/> 
+                            <HwField Name="KEY_A_INST_0_TO_19_VALIDf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FIELD_KEY" Type="EQUAL_TO" Value="1"/>
+                        <Memory Name="ERPP_PMF_KBR_PASSm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/> 
+                            <HwField Name="KEY_B_INST_0_TO_19_VALIDf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FIELD_KEY" Type="EQUAL_TO" Value="2"/>
+                        <Memory Name="ERPP_PMF_KBR_PASSm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/> 
+                            <HwField Name="KEY_C_INST_0_TO_19_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="APP_DB_ID">
+                    <Access>
+                        <KeyCondition Field="FIELD_KEY" Type="EQUAL_TO" Value="0"/>
+                        <Memory Name="ERPP_PMF_KBR_PASSm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/> 
+                            <HwField Name="KEY_A_APP_DBf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FIELD_KEY" Type="EQUAL_TO" Value="1"/>
+                        <Memory Name="ERPP_PMF_KBR_PASSm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/> 
+                            <HwField Name="KEY_B_APP_DBf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FIELD_KEY" Type="EQUAL_TO" Value="2"/>
+                        <Memory Name="ERPP_PMF_KBR_PASSm">
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/> 
+                            <HwField Name="KEY_C_APP_DBf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="KLEAP_E_PMF_FFC_INSTRUCTION">
+        <OneLineDescription>Indicates per Context per KBR the KBR info - FFC and AppDB configured</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field MaxValue="19" Name="FFC_IDX" Size="5" Type="UINT"/>
+                <Field Name="FIELD_PMF_CTX_ID"/>
+            </Key>
+            <Result>
+                <Field Name="EPMF_FFC_INSTRUCTION"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="EPMF_FFC_INSTRUCTION">
+                    <Access>
+                        <Memory Name="ERPP_PMF_PASS_KEY_GENm"> 
+                            <EntryOffset Formula="#KEY_VALUE(FIELD_PMF_CTX_ID)"/>
+                            <DataOffset Formula="#KEY_VALUE(FFC_IDX)*#RESULT_SIZE(EPMF_FFC_INSTRUCTION)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

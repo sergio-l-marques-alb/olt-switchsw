@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jr2_a0"  module="linkscan">
+
+    <sub_module name="general">
+
+        <features>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+            <numeric name="error_delay" value="10000000">
+                <property name="bcm_linkscan_errdelay" method="range" range_min="0" range_max="0xffffffff">
+                    <doc>
+                        The amount of time in microseconds for which the bcm_linkscan module will suspend 
+                        a port from further update processing after 'bcm_linkscan_maxerr' errors are detected. 
+                        After this delay, the error state for the port is cleared and normal linkscan processing 
+                        resumes on the port
+                        bcm_linkscan_errdelay= 0~0xffffffff
+                        Default: 10,000,000
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="max_error" value="5">
+                <property name="bcm_linkscan_maxerr" method="range" range_min="0" range_max="0xffffffff">
+                    <doc>
+                        The number of port update errors which will cause the bcm_linkscan module to suspend 
+                        a port from update processing for the period of time set in 'bcm_linkscan_errdelay'
+                        bcm_linkscan_maxerr= 0~0xffffffff
+                        Default: 5
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="thread_priority" value="50">
+                <property name="linkscan_thread_pri" method="range" range_min="1" range_max="99">
+                    <doc>
+                        Specifies the priority of the BCM Linkscan thread
+                        linkcan_thread_pri= 0~0xffffffff
+                        Default: 50
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+</device_data>

@@ -1,0 +1,340 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="j2c_a0" module="fabric">
+    <includes>
+        <include>bcm_int/dnx/tdm/tdm.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_iqs.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_tdm.h</include>
+    </includes>
+    
+    <sub_module name="general">
+
+        <defines>
+            <!-- There is no PLL for fabric - reference clock is constant.
+                 See . dnx_data_pll.general.fabric_const_ref_clk/fabric_serdes_clk_freq-->
+            <define name="nof_lcplls" value="0"></define>
+            <define name="fmac_clock_khz" value="906250"></define>
+        </defines>
+
+        <tables>
+            <!-- There is no PLL for fabric - reference clock is constant.
+                 So pll_phys has no meaning -->
+            <table name="pll_phys">
+                <key name="lcpll" size="1"></key>
+                <value name="min_phy_id" default="-1"></value>
+                <value name="max_phy_id" default="-1"></value>
+            </table>
+
+            <table name="pm_properties">
+                <key name="pm_index" size="DATA(fabric, blocks, nof_pms)"></key>
+                <value name="special_pll_check" default="0"></value>
+                <entries>
+                </entries>
+            </table>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="links">
+
+        <defines>
+            <define name="nof_links" value="48"></define>
+        </defines>
+
+        <tables>
+            <table name="general">
+                <value name="supported_links" default="0xffffffff, 0xffff"></value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="blocks">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="nof_instances_fsrd" value="6"></define>
+        </defines>
+
+        <numerics>
+            <numeric name="nof_instances_fmac" value="12">
+                <property name="diag_emulator_partial_init" method="direct_map">
+                    <map name="1" value="1"></map>
+                    <map name="2" value="1"></map>
+                    <doc>
+                    NULL
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+
+        <tables>
+            <table name="fsrd_sbus_chain">
+                <key name="fsrd_id" size="DATA(fabric, blocks, nof_instances_fsrd)"></key>
+                <value name="index_in_chain" default="-1"></value>
+                <entries>
+                    <entry fsrd_id="0" index_in_chain="5"></entry>
+                    <entry fsrd_id="1" index_in_chain="4"></entry>
+                    <entry fsrd_id="2" index_in_chain="3"></entry>
+                    <entry fsrd_id="3" index_in_chain="2"></entry>
+                    <entry fsrd_id="4" index_in_chain="1"></entry>
+                    <entry fsrd_id="5" index_in_chain="0"></entry>
+                </entries>
+            </table>
+
+            <table name="fmac_sbus_chain">
+                <key name="fmac_id" size="DATA(fabric, blocks, nof_instances_fmac)"></key>
+                <value name="index_in_chain" default="-1"></value>
+                <entries>
+                    <entry fmac_id="0" index_in_chain="11"></entry>
+                    <entry fmac_id="1" index_in_chain="10"></entry>
+                    <entry fmac_id="2" index_in_chain="9"></entry>
+                    <entry fmac_id="3" index_in_chain="8"></entry>
+                    <entry fmac_id="4" index_in_chain="7"></entry>
+                    <entry fmac_id="5" index_in_chain="6"></entry>
+                    <entry fmac_id="6" index_in_chain="5"></entry>
+                    <entry fmac_id="7" index_in_chain="4"></entry>
+                    <entry fmac_id="8" index_in_chain="3"></entry>
+                    <entry fmac_id="9" index_in_chain="2"></entry>
+                    <entry fmac_id="10" index_in_chain="1"></entry>
+                    <entry fmac_id="11" index_in_chain="0"></entry>
+                </entries>
+            </table>
+
+            <table name="fsrd_ref_clk_master">
+                <key name="fsrd_index" size="DATA(fabric, blocks, nof_instances_fsrd)"></key>
+                <value name="master_fsrd_index" default="-1"></value>
+                <entries>
+                    <entry fsrd_index="0" master_fsrd_index="0"></entry>
+                    <entry fsrd_index="1" master_fsrd_index="0"></entry>
+                    <entry fsrd_index="2" master_fsrd_index="2"></entry>
+                    <entry fsrd_index="3" master_fsrd_index="2"></entry>
+                    <entry fsrd_index="4" master_fsrd_index="4"></entry>
+                    <entry fsrd_index="5" master_fsrd_index="4"></entry>
+                </entries>
+            </table>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="tdm"> 
+        <numerics>
+            <numeric name="priority" value="3">
+                <property name="fabric_tdm_priority_min" method="direct_map">
+                    <map name="3" value="3"></map>
+                    <map name="NONE" value="-1"></map>
+                    <doc>
+                        Mark a CGM fabric priority as TDM (should be globally configured over the system).
+                        'NONE' represents a system that does not support TDM and all the priorities can be used as regular priorities.
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+    </sub_module>
+
+    <sub_module name="pipes">
+        <features>
+            <feature name="ocb_wfq"></feature>
+        </features>
+        
+        <defines>
+            <define name="max_nof_subcontexts" value="6"></define>
+        </defines>
+
+        <tables>
+            <table name="valid_map_config">
+                <key name="config_id" size="7"></key>
+                <value name="nof_pipes" default="1"></value>
+                <value name="uc" default="0, 0, 0, 0"></value>
+                <value name="mc" default="0, 0, 0, 0"></value>
+                <value name="name" default="SINGLE PIPE"></value>
+                <value name="type" default="soc_dnxc_fabric_pipe_map_single"></value>
+                <value name="min_hp_mc" default="-1"></value>
+                <value name="tdm_pipe" default="-1"></value>
+                <entries>
+                    <entry config_id="0" nof_pipes="1" uc="0, 0, 0, 0" mc="0, 0, 0, 0" tdm_pipe="0" name="SINGLE PIPE" type="soc_dnxc_fabric_pipe_map_single"></entry>
+                    <entry config_id="1" nof_pipes="2" uc="0, 0, 0, 0" mc="1, 1, 1, 1" name="UC,MC" type="soc_dnxc_fabric_pipe_map_dual_uc_mc"></entry>
+                    <entry config_id="2" nof_pipes="3" uc="0, 0, 0, 0" mc="2, 2, 2, 1" min_hp_mc="3" name="UC,HP MC (3),LP MC" type="soc_dnxc_fabric_pipe_map_triple_uc_hp_mc_lp_mc"></entry>
+                    <entry config_id="3" nof_pipes="3" uc="0, 0, 0, 0" mc="2, 2, 1, 1" min_hp_mc="2" name="UC,HP MC (2,3),LP MC" type="soc_dnxc_fabric_pipe_map_triple_uc_hp_mc_lp_mc"></entry>
+                    <entry config_id="4" nof_pipes="3" uc="0, 0, 0, 0" mc="2, 1, 1, 1" min_hp_mc="1" name="UC,HP MC (1,2,3),LP MC" type="soc_dnxc_fabric_pipe_map_triple_uc_hp_mc_lp_mc"></entry>
+                    <entry config_id="5" nof_pipes="2" uc="0, 0, 0, 1" mc="0, 0, 0, 1" tdm_pipe="1" name="Non-TDM,TDM" type="soc_dnxc_fabric_pipe_map_dual_tdm_non_tdm"></entry>
+                    <entry config_id="6" nof_pipes="3" uc="0, 0, 0, 2" mc="1, 1, 1, 2" tdm_pipe="2" name="UC,MC,TDM" type="soc_dnxc_fabric_pipe_map_triple_uc_mc_tdm"></entry>
+                </entries>
+            </table>
+
+            <table name="dtq_subcontexts">
+                <key name="dtq" size="DATA(fabric,pipes,max_nof_contexts)"></key>
+                <key name="is_ocb_only" size="2"></key>
+                <value name="index" default="0"></value>
+                <entries>
+                    <entry dtq="0" is_ocb_only="0" index="0"></entry>
+                    <entry dtq="0" is_ocb_only="1" index="1"></entry>
+                    <entry dtq="1" is_ocb_only="0" index="2"></entry>
+                    <entry dtq="1" is_ocb_only="1" index="3"></entry>
+                    <entry dtq="2" is_ocb_only="0" index="4"></entry>
+                    <entry dtq="2" is_ocb_only="1" index="5"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="cgm">
+        <features>
+            <feature name="egress_drop_low_prio_mc"></feature>
+            <feature name="egress_fifo_static_size"></feature>
+            <feature name="is_egress_drop_tdm_latency_supported" value="DATA(tdm,params,mode)!=TDM_MODE_NONE"></feature>
+            <feature name="is_static_shaper_supported"></feature>
+        </features>
+
+        <defines>
+            <define name="egress_drop_low_prio_mc_th_clocks_resolution" value="16"></define>
+            <define name="egress_fifo_fc_threshold" value="18"></define>
+            <define name="static_shaper_credit_resolution_bytes" value="32*64/66"></define>
+        </defines>
+
+        <tables>
+            <table name="access_map">
+                <key name="control_type" size="bcmFabricCgmNof"></key>
+                <value name="dbal_table" default="DBAL_NOF_TABLES"></value>
+                <value name="dbal_key1" default="DBAL_FIELD_EMPTY"></value>
+                <value name="dbal_key2" default="DBAL_FIELD_EMPTY"></value>
+                <value name="dbal_result" default="DBAL_FIELD_EMPTY"></value>
+                <value name="index_type" default="DNX_FABRIC_CGM_CONTROL_INDEX_TYPE_NONE"></value>
+                <value name="is_valid" default="0"></value>
+                <value name="err_msg" default="Unknown control_type"></value>
+                <entries>
+                    <!-- RCI -->
+                    <entry control_type="bcmFabricCgmRciLinkPipeLevelTh" dbal_table="DBAL_TABLE_FABRIC_CGM_RCI_THRESHOLDS" dbal_key1="DBAL_FIELD_PIPE" dbal_key2="DBAL_FIELD_LEVEL" dbal_result="DBAL_FIELD_LINK_RCI_THRESHOLD" index_type="DNX_FABRIC_CGM_CONTROL_INDEX_TYPE_PIPE_LEVEL" is_valid="1"></entry>
+                    <entry control_type="bcmFabricCgmRciLocalLevelTh" dbal_table="DBAL_TABLE_FABRIC_CGM_RCI_LOCAL_THRESHOLDS" dbal_key1="DBAL_FIELD_LEVEL" dbal_result="DBAL_FIELD_LOCAL_RCI_THRESHOLD" index_type="DNX_FABRIC_CGM_CONTROL_INDEX_TYPE_LEVEL" is_valid="1"></entry>
+                    <entry control_type="bcmFabricCgmRciLinkLevelFactor" dbal_table="DBAL_TABLE_FABRIC_CGM_RCI_SCORE_MAPPING" dbal_key1="DBAL_FIELD_LEVEL" dbal_result="DBAL_FIELD_LINK_RCI_FACTOR" index_type="DNX_FABRIC_CGM_CONTROL_INDEX_TYPE_LEVEL" is_valid="1"></entry>
+                    <entry control_type="bcmFabricCgmRciHighSeverityMinLinksParam" dbal_table="DBAL_TABLE_FABRIC_CGM_RCI_HIGH_SEVERITY" dbal_result="DBAL_FIELD_MIN_NOF_LINKS" index_type="DNX_FABRIC_CGM_CONTROL_INDEX_TYPE_NONE" is_valid="1"></entry>
+                    <entry control_type="bcmFabricCgmRciHighSeverityFactor" dbal_table="DBAL_TABLE_FABRIC_CGM_RCI_HIGH_SEVERITY" dbal_result="DBAL_FIELD_SCORE" index_type="DNX_FABRIC_CGM_CONTROL_INDEX_TYPE_NONE" is_valid="1"></entry>
+                    <entry control_type="bcmFabricCgmRciDeviceLevelMappingTh" dbal_table="DBAL_TABLE_FABRIC_CGM_RCI_SCORE_TO_LEVEL_THRESHOLDS" dbal_key1="DBAL_FIELD_LEVEL" dbal_result="DBAL_FIELD_DEVICE_THRESHOLD" index_type="DNX_FABRIC_CGM_CONTROL_INDEX_TYPE_LEVEL" is_valid="1"></entry>
+                    <!-- GCI -->
+                    <entry control_type="bcmFabricCgmGciLeakyBucketEn" dbal_table="DBAL_TABLE_FABRIC_CGM_GCI_LEAKY_BUCKET_FC_ENABLE" dbal_result="DBAL_FIELD_LEAKY_BUCKET_ENABLE" index_type="DNX_FABRIC_CGM_CONTROL_INDEX_TYPE_NONE" is_valid="1"></entry>
+                    <entry control_type="bcmFabricCgmGciLeakyBucketSizeLeakyBucketTh" dbal_table="DBAL_TABLE_FABRIC_CGM_GCI_LEAKY_BUCKET_CONFIG" dbal_key1="DBAL_FIELD_LEAKY_BUCKET_ID" dbal_result="DBAL_FIELD_MAX_VALUE" index_type="DNX_FABRIC_CGM_CONTROL_INDEX_TYPE_LEAKY_BUCKET" is_valid="1"></entry>
+                    <entry control_type="bcmFabricCgmGciLeakyBucketFCLeakyBucketTh" dbal_table="DBAL_TABLE_FABRIC_CGM_GCI_LEAKY_BUCKET_CONFIG" dbal_key1="DBAL_FIELD_LEAKY_BUCKET_ID" dbal_result="DBAL_FIELD_THRESHOLD" index_type="DNX_FABRIC_CGM_CONTROL_INDEX_TYPE_LEAKY_BUCKET" is_valid="1"></entry>
+                    <entry control_type="bcmFabricCgmGciBackoffEn" dbal_table="DBAL_TABLE_FABRIC_CGM_GCI_BACKOFF_FC_ENABLE" dbal_result="DBAL_FIELD_BACKOFF_ENABLE" index_type="DNX_FABRIC_CGM_CONTROL_INDEX_TYPE_NONE" is_valid="1"></entry>
+                    <entry control_type="bcmFabricCgmGciBackoffLevelTh" dbal_table="DBAL_TABLE_FABRIC_CGM_GCI_BACKOFF_CONGESTION_SEVERITY_THRESHOLDS" dbal_key1="DBAL_FIELD_LEVEL_SEPARATE" dbal_result="DBAL_FIELD_THRESHOLD" index_type="DNX_FABRIC_CGM_CONTROL_INDEX_TYPE_LEVEL_SEPARATE" is_valid="1"></entry>
+                    <!-- Slow Start -->
+                    <entry control_type="bcmFabricCgmSlowStartEn" dbal_table="DBAL_TABLE_FABRIC_CGM_SLOW_START_ENABLE" dbal_key1="DBAL_FIELD_FMC_SHAPER_ID" dbal_result="DBAL_FIELD_ENABLE" index_type="DNX_FABRIC_CGM_CONTROL_INDEX_TYPE_FMC_SHAPER" is_valid="1"></entry>
+                    <entry control_type="bcmFabricCgmSlowStartRateShaperPhaseParam" dbal_table="DBAL_TABLE_FABRIC_CGM_SLOW_START_CONFIG" dbal_key1="DBAL_FIELD_FMC_SHAPER_ID" dbal_key2="DBAL_FIELD_PHASE" dbal_result="DBAL_FIELD_EMPTY" index_type="DNX_FABRIC_CGM_CONTROL_INDEX_TYPE_FMC_SLOW_START_PHASE" is_valid="1"></entry>
+                    <!-- LLFC -->
+                    <entry control_type="bcmFabricCgmLlfcPipeTh" dbal_table="DBAL_TABLE_FABRIC_CGM_LLFC_THRESHOLDS" dbal_key1="DBAL_FIELD_PIPE" dbal_result="DBAL_FIELD_THRESHOLD" index_type="DNX_FABRIC_CGM_CONTROL_INDEX_TYPE_PIPE" is_valid="1"></entry>
+                    <!-- Drop -->
+                    <entry control_type="bcmFabricCgmDropFabricClassTh" dbal_table="DBAL_TABLE_FABRIC_CGM_EGRESS_FIFO_DROP_THRESHOLDS" dbal_key1="DBAL_FIELD_CAST" dbal_key2="DBAL_FIELD_FABRIC_PRIORITY" dbal_result="DBAL_FIELD_THRESHOLD" index_type="DNX_FABRIC_CGM_CONTROL_INDEX_TYPE_CAST_PRIORITY" is_valid="1"></entry>
+                    <entry control_type="bcmFabricCgmDropMeshMcPriorityTh" dbal_table="DBAL_TABLE_FABRIC_CGM_MESH_MC_FIFO_DROP_THRESHOLDS" dbal_key1="DBAL_FIELD_FABRIC_PRIORITY" dbal_result="DBAL_FIELD_THRESHOLD" index_type="DNX_FABRIC_CGM_CONTROL_INDEX_TYPE_PRIORITY" is_valid="1"></entry>
+                    <!-- Egress Drop -->
+                    <entry control_type="bcmFabricCgmEgressDropTdmLatencyEn" dbal_table="DBAL_TABLE_FABRIC_CGM_EGRESS_DROP_TDM_LATENCY" dbal_result="DBAL_FIELD_ENABLE" index_type="DNX_FABRIC_CGM_CONTROL_INDEX_TYPE_NONE" is_valid="1"></entry>
+                    <entry control_type="bcmFabricCgmEgressDropTdmLatencyTh" dbal_table="DBAL_TABLE_FABRIC_CGM_EGRESS_DROP_TDM_LATENCY" dbal_result="DBAL_FIELD_EMPTY" index_type="DNX_FABRIC_CGM_CONTROL_INDEX_TYPE_NONE" is_valid="1"></entry>
+                    <entry control_type="bcmFabricCgmEgressDropMcLowPrioEn" dbal_table="DBAL_TABLE_FABRIC_CGM_EGRESS_DROP_LOW_PRIO_MC" dbal_result="DBAL_FIELD_ENABLE" index_type="DNX_FABRIC_CGM_CONTROL_INDEX_TYPE_NONE" is_valid="1"></entry>
+                    <entry control_type="bcmFabricCgmEgressDropMcLowPrioTh" dbal_table="DBAL_TABLE_FABRIC_CGM_EGRESS_DROP_LOW_PRIO_MC" dbal_result="DBAL_FIELD_THRESHOLD" index_type="DNX_FABRIC_CGM_CONTROL_INDEX_TYPE_NONE" is_valid="1"></entry>
+                    <entry control_type="bcmFabricCgmEgressDropMcLowPrioSelect" dbal_table="DBAL_TABLE_FABRIC_CGM_EGRESS_DROP_LOW_PRIO_MC" dbal_result="DBAL_FIELD_EMPTY" index_type="DNX_FABRIC_CGM_CONTROL_INDEX_TYPE_NONE" is_valid="1"></entry>
+                    <!-- Flow Control -->
+                    <entry control_type="bcmFabricCgmFcIngressTh" dbal_table="DBAL_TABLE_FABRIC_CGM_FC_INGRESS_THRESHOLDS" dbal_result="DBAL_FIELD_LINK_FIFO_SIZE_THRESHOLD" is_valid="1"></entry>
+                    <!-- Dynamic WFQ -->
+                    <entry control_type="bcmFabricCgmEgressDynamicWfqTh" dbal_table="DBAL_TABLE_FABRIC_CGM_EGRESS_DYNAMIC_WFQ" dbal_result="DBAL_FIELD_THRESHOLD" index_type="DNX_FABRIC_CGM_CONTROL_INDEX_TYPE_NONE" is_valid="1"></entry>
+                    <!-- Static Shaper -->
+                    <entry control_type="bcmFabricCgmLciShaperMode" dbal_table="DBAL_TABLE_FABRIC_CGM_STATIC_SHAPER" dbal_result="DBAL_FIELD_ENABLE" index_type="DNX_FABRIC_CGM_CONTROL_INDEX_TYPE_NONE" is_valid="1"></entry>
+                    <entry control_type="bcmFabricCgmLciShaperStaticRateInGbps" dbal_table="DBAL_TABLE_FABRIC_CGM_STATIC_SHAPER" dbal_result="DBAL_FIELD_EMPTY" index_type="DNX_FABRIC_CGM_CONTROL_INDEX_TYPE_NONE" is_valid="1"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="dbal">
+        
+        <defines>
+            <define name="link_rci_threshold_bits_nof" value="11"></define>
+            <define name="cgm_llfc_threshold_bits_nof" value="11"></define>
+            <define name="cgm_llfc_threshold_max_value" value="1024"></define>
+            <define name="egress_fifo_drop_threshold_bits_nof" value="9"></define>
+            <define name="egress_fifo_drop_threshold_max_value" value="192"></define>
+            <define name="cgm_link_fifo_base_address_bits_nof" value="11"></define>
+            <define name="cgm_link_fifo_base_address_max_value" value="768"></define>
+            <define name="cgm_egress_fifo_base_address_bits_nof" value="9"></define>
+            <define name="cgm_egress_fifo_base_address_max_value" value="192"></define>
+            <define name="cgm_egress_fifo_fc_threshold_bits_nof" value="9"></define>
+            <define name="cgm_egress_fifo_fc_threshold_max_value" value="192"></define>
+            <define name="cgm_ingress_fc_threshold_max_value" value="4"></define>
+            <define name="fabric_transmit_wfq_index_bits_nof" value="3"></define>
+            <define name="fabric_transmit_wfq_index_max_value" value="6"></define>
+            <define name="mesh_topology_status_2_id1_bits_nof" value="6"></define>
+        </defines>
+
+    </sub_module>
+
+    <sub_module name="transmit">
+    
+        <features>
+            <feature name="eir_fc_leaky_backet"></feature>
+        </features>
+
+        <tables>
+            <table name="pdq_to_dqcq_fc_th_select">
+                <key name="pdq_priority" size="2"></key>
+                <key name="dqcq_priority" size="DATA(iqs, dqcq, nof_priorities)"></key>
+                <value name="sram" default="0"></value>
+                <value name="mixs" default="0"></value>
+                <value name="mixd" default="0"></value>
+                <value name="mix_mixs" default="0"></value>
+                <value name="mix_mixd" default="0"></value>
+                <value name="s2d" default="0"></value>
+                <entries>
+                    <entry pdq_priority="0" dqcq_priority="0" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="0" dqcq_priority="1" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="0" dqcq_priority="2" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="0" dqcq_priority="3" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="0" dqcq_priority="4" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="0" dqcq_priority="5" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="0" dqcq_priority="6" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="0" dqcq_priority="7" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="1" dqcq_priority="0" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="1" dqcq_priority="1" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="1" dqcq_priority="2" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="1" dqcq_priority="3" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="1" dqcq_priority="4" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="1" dqcq_priority="5" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="1" dqcq_priority="6" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                    <entry pdq_priority="1" dqcq_priority="7" sram="11" mixs="11" mixd="11" mix_mixs="9" mix_mixd="9" s2d="13"></entry>
+                </entries>
+            </table>
+
+            <table name="eir_fc_leaky_bucket">
+                <value name="almost_full_th" default="3000"></value>
+                <value name="almost_empty_th" default="10"></value>
+                <value name="bucket_size" default="200"></value>
+                <value name="bucket_fc_threshold" default="5"></value>
+                <value name="period" default="99"></value>
+                <value name="tokens_delta0" default="0xa"></value>
+                <value name="tokens_delta1" default="0x1"></value>
+                <value name="tokens_delta2" default="0x3fff"></value>
+                <value name="tokens_delta3" default="0x3ff6"></value>
+            </table>
+
+            <table name="eir_fc_leaky_bucket_delta_select">
+                <value name="fifo_in_between" default="2"></value>
+                <value name="fifo_partially_almost_full" default="1"></value>
+                <value name="fifo_almost_full" default="0"></value>
+                <value name="fifo_partially_almost_empty" default="2"></value>
+                <value name="fifo_not_stable" default="2"></value>
+                <value name="fifo_almost_empty" default="3"></value>
+            </table>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="cell">
+        <defines>
+            <define name="sr_cell_nof_instances" value="6"></define>
+        </defines>
+    </sub_module>
+
+    <sub_module name="mesh_mc">
+    
+        <defines>
+            <define name="nof_replication" value="4"></define>
+        </defines>
+    </sub_module>
+
+</device_data>

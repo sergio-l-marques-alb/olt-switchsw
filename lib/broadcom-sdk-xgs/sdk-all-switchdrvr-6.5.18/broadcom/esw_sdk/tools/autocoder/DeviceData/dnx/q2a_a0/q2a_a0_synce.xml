@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="q2a_a0"  module="synce">
+    <includes>
+        <include>bcm/port.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_nif.h</include>
+    </includes>
+
+    <sub_module name="general">
+        <defines>
+            <define name="fabric_div_min" value="-1"></define>
+            <define name="fabric_div_max" value="-1"></define>
+            <define name="nof_clk_blocks" value="DATA(nif, eth, cdu_nof)+DATA(nif, eth, clu_nof)"></define>
+        </defines>
+        <tables>
+            <table name="cfg">
+                <key name="synce_index" size="2"></key>
+                <value name="source_clock_port" default="-1">
+                    <property name="sync_eth_clk_to_port_id_clk" method="suffix_range" suffix="" range_min="0" range_max="DATA(port,general,fabric_port_base) + DATA(fabric,links,nof_links)">
+                        <doc>
+                            Specify the logical port number that will drive the recovered clock.
+                        </doc>
+                    </property>
+                </value>
+                <value name="squelch_enable" default="1">
+                    <property name="sync_eth_clk_squelch_enable" method="suffix_enable" suffix="clk_">
+                        <doc>
+                            Enable or Disable SyncE auto squelch mode.
+                        </doc>
+                    </property>
+                </value>
+                <value name="output_clock_sel" default="2">
+                    <property name="sync_eth_clk_divider" method="suffix_range" suffix="clk" range_min="2" range_max="2">
+                        <doc>
+                            Select the SyncE output clock
+                                For NIF synce, the available value is,
+                                2: 25Mhz.
+                        </doc>
+                    </property>
+                </value>
+            </table>
+            <table name="nmg_chain_map">
+                <key name="ethu_index" size="DATA(nif,eth,ethu_nof)"></key> 
+                <value name="chain_id" default="0"></value>
+                <entries>
+                    <entry ethu_index="0"  chain_id="1"> </entry>
+                    <entry ethu_index="1"  chain_id="0"> </entry>
+                    <entry ethu_index="2"  chain_id="0"> </entry>
+                    <entry ethu_index="3"  chain_id="0"> </entry>
+                    <entry ethu_index="4"  chain_id="0"> </entry>
+                </entries>
+            </table>
+        </tables>
+
+        <features>
+            <feature name="synce_no_sdm_mode" value="0"></feature>
+            <feature name="synce_nmg_chain_select" value="1"></feature>
+        </features>
+    </sub_module>
+</device_data>

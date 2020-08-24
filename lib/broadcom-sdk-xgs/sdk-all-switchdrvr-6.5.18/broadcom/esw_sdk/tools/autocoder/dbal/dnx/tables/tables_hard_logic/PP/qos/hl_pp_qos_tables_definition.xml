@@ -1,0 +1,2078 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+--><AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="QOS_INGRESS_PHB_PROFILE_INFO">
+        <OneLineDescription>ingress qos profile to context selection profile </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="QOS_PROFILE" Size="10"/>
+            </Key>
+            <Result>
+                <Field Name="QOS_CS_PROFILE"/>
+            </Result>
+            <TableLabels>QOS QOS_PHB</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="QOS_CS_PROFILE">
+                    <Access>
+                        <Memory Name="IPPB_PHB_TCDP_PROFILE_RESOLUTION_MEMm">
+                            <HwField Name="PROGRAM_SELECTION_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_INGRESS_REMARK_PROFILE_INFO">
+        <OneLineDescription>ingress remark qos profile to context selection profile </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="QOS_PROFILE" Size="10"/>
+            </Key>
+            <Result>
+                <Field Name="QOS_CS_PROFILE"/>
+            </Result>
+            <TableLabels>QOS QOS_REMARKING</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="QOS_CS_PROFILE">
+                    <Access>
+                        <Memory Name="IPPB_REMARK_PROFILE_RESOLUTION_MEMm">
+                            <HwField Name="PROGRAM_SELECTION_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_INGRESS_ECN_PROFILE_INFO">
+        <OneLineDescription>ingress qos ECN profile to context selection profile </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ECN_QOS_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="QOS_CS_PROFILE" Size="4"/>
+            </Result>
+            <TableLabels>QOS QOS_ECN</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="QOS_CS_PROFILE">
+                    <Access>
+                        <Memory Name="IPPB_PHB_ECN_PROFILE_RESOLUTION_MEMm">
+                            <HwField Name="PROGRAM_SELECTION_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_INGRESS_PHB_PROFILE_TO_INTERNAL_MAP_ID">
+        <OneLineDescription>PHB qos profile to internal map id</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="INGRESS_QOS_MAP_INDEX" Size="4"/>
+                <Field Name="QOS_PROFILE" Size="10"/>
+            </Key>
+            <Result>
+                <Field Name="QOS_INT_MAP_ID"/>
+            </Result>
+            <TableLabels>QOS QOS_PHB</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0" Name="QOS_INT_MAP_ID">
+                    <Access>
+                        <Memory Name="IPPB_PHB_TC_DP_MAP_INDEX_EXPLICIT_VALUE_MEMm">
+                            <HwField Name="MAP_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="QOS_INT_MAP_ID"> 
+                    <Access>
+                        <Memory Name="IPPB_PHB_TC_DP_MAP_INDEX_EXPLICIT_VALUE_MEMm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%2048"/>
+                            <HwField Name="MAP_INDEXf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()/2048*#FULL_RESULT_SIZE()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_INGRESS_REMARK_PROFILE_TO_INTER_MAP_ID">
+        <OneLineDescription>REMARKING qos profile to internal map id</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="INGRESS_QOS_MAP_INDEX" Size="4"/>
+                <Field Name="QOS_PROFILE" Size="10"/>
+            </Key>
+            <Result>
+                <Field Name="QOS_INT_MAP_ID"/>
+            </Result>
+            <TableLabels>QOS QOS_REMARKING</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0" Name="QOS_INT_MAP_ID">
+                    <Access>
+                        <Memory Name="IPPB_REMARK_MAP_INDEX_EXPLICIT_VALUE_MEMm">
+                            <HwField Name="MAP_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="QOS_INT_MAP_ID"> 
+                    <Access>
+                        <Memory Name="IPPB_REMARK_MAP_INDEX_EXPLICIT_VALUE_MEMm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%2048"/>
+                            <HwField Name="MAP_INDEXf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()/2048*#FULL_RESULT_SIZE()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_INGRESS_ECN_PROFILE_TO_INTERNAL_MAP_ID">
+        <OneLineDescription>ECN qos profile to internal map id</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="INGRESS_QOS_MAP_INDEX" Size="4"/>
+                <Field Name="ECN_QOS_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="QOS_INT_MAP_ID" Size="4"/>
+            </Result>
+            <TableLabels>QOS QOS_ECN</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="QOS_INT_MAP_ID">
+                    <Access>
+                        <Memory Name="IPPB_PHB_ECN_MAP_INDEX_EXPLICIT_VALUE_MEMm">
+                            <HwField Name="MAP_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_INGRESS_PHB_INTERNAL_MAP_ENTRIES">
+        <OneLineDescription>internal map key to tc dp</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="QOS_INT_MAP_KEY" Size="8"/>
+                <Field Name="QOS_INT_MAP_ID" Size="8"/>
+            </Key>
+            <Result>
+                <Field Name="TC"/>
+                <Field Name="DP"/>
+            </Result>
+            <TableLabels>QOS QOS_PHB</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping Device="JR2_A0 JR2_B0">
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TC">
+                    <Access>
+                        <Memory Name="IPPB_PHB_TC_DP_RESULT_MEMm">
+                            <HwField Name="TCf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DP">
+                    <Access>
+                        <Memory Name="IPPB_PHB_TC_DP_RESULT_MEMm">
+                            <HwField Name="DPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+        <AppToPhyDbMapping Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0"> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TC"> 
+                    <Access>
+                        <Memory Name="IPPB_PHB_TC_DP_RESULT_MEMm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%4096"/>
+                            <HwField Name="TCf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()/4096*#FULL_RESULT_SIZE()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DP"> 
+                    <Access>
+                        <Memory Name="IPPB_PHB_TC_DP_RESULT_MEMm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%4096"/>
+                            <HwField Name="DPf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()/4096*#FULL_RESULT_SIZE()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_INGRESS_REMARK_INTERNAL_MAP_ENTRIES">
+        <OneLineDescription>internal map key to tc dp</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="QOS_INT_MAP_KEY" Size="8"/>
+                <Field Name="QOS_INT_MAP_ID" Size="8"/>
+            </Key>
+            <Result>
+                <Field Name="NETWORK_QOS"/>
+            </Result>
+            <TableLabels>QOS QOS_REMARKING</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0" Name="NETWORK_QOS">
+                    <Access>
+                        <Memory Name="IPPB_REMARK_RESULT_MEMm">
+                            <HwField Name="NETWORK_QOSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="NETWORK_QOS"> 
+                    <Access>
+                        <Memory Name="IPPB_REMARK_RESULT_MEMm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%4096"/>
+                            <HwField Name="NETWORK_QOSf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()/4096*#FULL_RESULT_SIZE()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_INGRESS_ECN_INTERNAL_MAP_ENTRIES">
+        <OneLineDescription>internal map key to tc dp</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="QOS_INT_MAP_KEY" Size="8"/>
+                <Field Name="QOS_INT_MAP_ID" Size="4"/>
+            </Key>
+            <Result>
+                <Field Name="ECN_VALUE" Type="QOS_ECN"/>
+            </Result>
+            <TableLabels>QOS QOS_ECN</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0" Name="ECN_VALUE">
+                    <Access>
+                        <Memory Name="IPPB_PHB_ECN_RESULT_MEMm">
+                            <HwField Name="ECNf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="ECN_VALUE"> 
+                    <Access>
+                        <Memory Name="IPPB_PHB_ECN_RESULT_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_INT_MAP_KEY)"/>
+                            <HwField Name="ECNf"/>
+                            <DataOffset Formula="#KEY_VALUE(QOS_INT_MAP_ID)*3"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_INGRESS_INIT_CONTEXT_SELECTION">
+        <OneLineDescription>phb/remark context selection cam</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="QOS_CAM_PRIORITY" Size="5"/>
+                <Field Name="QOS_INGRESS_APP_TYPE" Size="2"/>
+            </Key>
+            <Result>
+                <Field Name="LAYER_TYPES" Size="5"/>
+                <Field Name="NEXT_LAYER_TYPE" Size="5" Type="LAYER_TYPES"/>
+                <Field Name="LAYER_QUALIFIER" Size="16"/>
+                <Field Name="NEXT_LAYER_QUALIFIER" Size="16"/>
+                <Field Name="QOS_CS_PROFILE" Size="4"/>
+                <Field Name="LAYER_TYPE_MASK" Size="5" Type="UINT"/>
+                <Field Name="NEXT_LAYER_TYPE_MASK" Size="5" Type="UINT"/>
+                <Field Name="LAYER_QUALIFIER_MASK" Size="16" Type="UINT"/>
+                <Field Name="NEXT_LAYER_QUALIFIER_MASK" Size="16" Type="UINT"/>
+                <Field Name="QOS_CS_PROFILE_MASK" Size="4"/>
+                <Field Name="QOS_ACTION" Size="5"/>
+                <Field Name="INGRESS_QOS_MAP_INDEX" Size="4"/>
+                <Field Name="FFC_INSTRUCTION" NofInstances="2"/> 
+                <Field Name="QOS_RESOLUTION_MODE" Size="1"/>
+                <Field Name="QOS_INT_MAP_KEY_SIZE" Size="3"/>
+                <Field Name="VALID" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>QOS QOS_PHB QOS_REMARKING QOS_ECN QOS_TTL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LAYER_TYPES">
+                    <Access>
+                        <KeyCondition Enum="PHB" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_TC_DP_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="LAYER_TYPEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="REMARK" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_REMARK_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="LAYER_TYPEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ECN" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_ECN_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="LAYER_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NEXT_LAYER_TYPE">
+                    <Access>
+                        <KeyCondition Enum="PHB" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_TC_DP_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="NEXT_LAYER_TYPEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="REMARK" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_REMARK_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="NEXT_LAYER_TYPEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ECN" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_ECN_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="NEXT_LAYER_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAYER_QUALIFIER">
+                    <Access>
+                        <KeyCondition Enum="PHB" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_TC_DP_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="LAYER_QUALIFIERf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="REMARK" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_REMARK_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="LAYER_QUALIFIERf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ECN" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_ECN_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="LAYER_QUALIFIERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NEXT_LAYER_QUALIFIER">
+                    <Access>
+                        <KeyCondition Enum="PHB" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_TC_DP_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="NEXT_LAYER_QUALIFIERf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="REMARK" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_REMARK_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="NEXT_LAYER_QUALIFIERf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ECN" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_ECN_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="NEXT_LAYER_QUALIFIERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="QOS_CS_PROFILE">
+                    <Access>
+                        <KeyCondition Enum="PHB" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_TC_DP_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="PROFILEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="REMARK" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_REMARK_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="PROFILEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ECN" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_ECN_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAYER_TYPE_MASK">
+                    <Access EncodeType="BITWISE_NOT">
+                        <KeyCondition Enum="PHB" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_TC_DP_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="LAYER_TYPE_MASKf"/>
+                        </Memory>
+                    </Access>
+                    <Access EncodeType="BITWISE_NOT">
+                        <KeyCondition Enum="REMARK" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_REMARK_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="LAYER_TYPE_MASKf"/>
+                        </Memory>
+                    </Access>
+                    <Access EncodeType="BITWISE_NOT">
+                        <KeyCondition Enum="ECN" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_ECN_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="LAYER_TYPE_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NEXT_LAYER_TYPE_MASK">
+                    <Access EncodeType="BITWISE_NOT">
+                        <KeyCondition Enum="PHB" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_TC_DP_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="NEXT_LAYER_TYPE_MASKf"/>
+                        </Memory>
+                    </Access>
+                    <Access EncodeType="BITWISE_NOT">
+                        <KeyCondition Enum="REMARK" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_REMARK_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="NEXT_LAYER_TYPE_MASKf"/>
+                        </Memory>
+                    </Access>
+                    <Access EncodeType="BITWISE_NOT">
+                        <KeyCondition Enum="ECN" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_ECN_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="NEXT_LAYER_TYPE_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAYER_QUALIFIER_MASK">
+                    <Access EncodeType="BITWISE_NOT">
+                        <KeyCondition Enum="PHB" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_TC_DP_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="LAYER_QUALIFIER_MASKf"/>
+                        </Memory>
+                    </Access>
+                    <Access EncodeType="BITWISE_NOT">
+                        <KeyCondition Enum="REMARK" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_REMARK_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="LAYER_QUALIFIER_MASKf"/>
+                        </Memory>
+                    </Access>
+                    <Access EncodeType="BITWISE_NOT">
+                        <KeyCondition Enum="ECN" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_ECN_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="LAYER_QUALIFIER_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NEXT_LAYER_QUALIFIER_MASK">
+                    <Access EncodeType="BITWISE_NOT">
+                        <KeyCondition Enum="PHB" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_TC_DP_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="NEXT_LAYER_QUALIFIER_MASKf"/>
+                        </Memory>
+                    </Access>
+                    <Access EncodeType="BITWISE_NOT">
+                        <KeyCondition Enum="REMARK" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_REMARK_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="NEXT_LAYER_QUALIFIER_MASKf"/>
+                        </Memory>
+                    </Access>
+                    <Access EncodeType="BITWISE_NOT">
+                        <KeyCondition Enum="ECN" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_ECN_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="NEXT_LAYER_QUALIFIER_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="QOS_CS_PROFILE_MASK">
+                    <Access EncodeType="BITWISE_NOT">
+                        <KeyCondition Enum="PHB" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_TC_DP_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="PROFILE_MASKf"/>
+                        </Memory>
+                    </Access>
+                    <Access EncodeType="BITWISE_NOT">
+                        <KeyCondition Enum="REMARK" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_REMARK_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="PROFILE_MASKf"/>
+                        </Memory>
+                    </Access>
+                    <Access EncodeType="BITWISE_NOT">
+                        <KeyCondition Enum="ECN" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_ECN_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="PROFILE_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="QOS_ACTION">
+                    <Access>
+                        <KeyCondition Enum="PHB" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_TC_DP_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="ACTIONf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="REMARK" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_REMARK_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="ACTIONf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ECN" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_ECN_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="ACTIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INGRESS_QOS_MAP_INDEX">
+                    <Access>
+                        <KeyCondition Enum="PHB" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_TC_DP_CONTEXT_ACTION_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="CONTEXTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="REMARK" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_REMARK_CONTEXT_ACTION_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="CONTEXTf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ECN" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_ECN_CONTEXT_ACTION_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="CONTEXTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FFC_INSTRUCTION">
+                    <Access instanceIndex="0">
+                        <KeyCondition Enum="PHB" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_TC_DP_CONTEXT_ACTION_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="FFC_INSTRUCTION_0f"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="0">
+                        <KeyCondition Enum="REMARK" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_REMARK_CONTEXT_ACTION_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="FFC_INSTRUCTION_0f"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="0">
+                        <KeyCondition Enum="ECN" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_ECN_CONTEXT_ACTION_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="FFC_INSTRUCTION_0f"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <KeyCondition Enum="PHB" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_TC_DP_CONTEXT_ACTION_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="FFC_INSTRUCTION_1f"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <KeyCondition Enum="REMARK" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_REMARK_CONTEXT_ACTION_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="FFC_INSTRUCTION_1f"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <KeyCondition Enum="ECN" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_ECN_CONTEXT_ACTION_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="FFC_INSTRUCTION_1f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="QOS_RESOLUTION_MODE">
+                    <Access>
+                        <KeyCondition Enum="PHB" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_TC_DP_CONTEXT_ACTION_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="TYPEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="REMARK" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_REMARK_CONTEXT_ACTION_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="TYPEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ECN" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_ECN_CONTEXT_ACTION_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="QOS_INT_MAP_KEY_SIZE">
+                    <Access>
+                        <KeyCondition Enum="PHB" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_TC_DP_CONTEXT_ACTION_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="MAP_SIZEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="REMARK" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_REMARK_CONTEXT_ACTION_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="MAP_SIZEf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ECN" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_ECN_CONTEXT_ACTION_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="MAP_SIZEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VALID">
+                    <Access>
+                        <KeyCondition Enum="PHB" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_TC_DP_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="VALIDf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="REMARK" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_REMARK_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="VALIDf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Enum="ECN" Field="QOS_INGRESS_APP_TYPE" Type="EQUAL_TO"/>
+                        <Memory Name="IPPB_PHB_ECN_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_INGRESS_IVE_INITIAL_PCP_DEI_MAP_TYPE">
+        <OneLineDescription>Ingress VLAN PCP DEI initial type, 1 means explict</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="LLVP_PCP_DEI_MAP_TYPE" Type="PCP_DEI_MAP_TYPE"/>
+                <Field Name="PCP_DEI_MAP_EXTEND" Type="PCP_DEI_MAP_TYPE"/>
+            </Key>
+            <Result>
+                <Field Name="INITIAL_PCP_DEI_MAP_TYPE" Type="PCP_DEI_MAP_TYPE"/>
+            </Result>
+            <TableLabels>QOS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="INITIAL_PCP_DEI_MAP_TYPE">
+                    <Access>
+                        <Register GroupName="INGRESS_INITIAL_PCP_DEI_MAP_TYPE">
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_INGRESS_INIT_TTL_CONTEXT_SELECTION">
+        <OneLineDescription>TTL context selection cam</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="QOS_CAM_PRIORITY" Size="5"/>
+            </Key>
+            <Result>
+                <Field Name="LAYER_TYPES" Size="5"/>
+                <Field Name="NEXT_LAYER_TYPE" Size="5" Type="LAYER_TYPES"/>
+                <Field Name="LAYER_QUALIFIER" Size="16"/>
+                <Field Name="NEXT_LAYER_QUALIFIER" Size="16"/>
+                <Field Name="LAYER_TYPE_MASK" Size="5" Type="UINT"/>
+                <Field Name="NEXT_LAYER_TYPE_MASK" Size="5" Type="UINT"/>
+                <Field Name="LAYER_QUALIFIER_MASK" Size="16" Type="UINT"/>
+                <Field Name="NEXT_LAYER_QUALIFIER_MASK" Size="16" Type="UINT"/>
+                <Field Name="QOS_ACTION" Size="5"/>
+                <Field Name="FFC_INSTRUCTION" NofInstances="2" Size="21"/>
+                <Field Name="VALID" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>QOS QOS_TTL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LAYER_TYPES">
+                    <Access>
+                        <Memory Name="IPPB_TTL_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="LAYER_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NEXT_LAYER_TYPE">
+                    <Access>
+                        <Memory Name="IPPB_TTL_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="NEXT_LAYER_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAYER_QUALIFIER">
+                    <Access>
+                        <Memory Name="IPPB_TTL_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="LAYER_QUALIFIERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NEXT_LAYER_QUALIFIER">
+                    <Access>
+                        <Memory Name="IPPB_TTL_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="NEXT_LAYER_QUALIFIERf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAYER_TYPE_MASK">
+                    <Access EncodeType="BITWISE_NOT">
+                        <Memory Name="IPPB_TTL_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="LAYER_TYPE_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NEXT_LAYER_TYPE_MASK">
+                    <Access EncodeType="BITWISE_NOT">
+                        <Memory Name="IPPB_TTL_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="NEXT_LAYER_TYPE_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAYER_QUALIFIER_MASK">
+                    <Access EncodeType="BITWISE_NOT">
+                        <Memory Name="IPPB_TTL_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="LAYER_QUALIFIER_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NEXT_LAYER_QUALIFIER_MASK">
+                    <Access EncodeType="BITWISE_NOT">
+                        <Memory Name="IPPB_TTL_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="NEXT_LAYER_QUALIFIER_MASKf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="QOS_ACTION">
+                    <Access>
+                        <Memory Name="IPPB_TTL_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="ACTIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FFC_INSTRUCTION">
+                    <Access instanceIndex="0">
+                        <Memory Name="IPPB_TTL_CONTEXT_ACTION_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="FFC_INSTRUCTION_0f"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Memory Name="IPPB_TTL_CONTEXT_ACTION_MEMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="FFC_INSTRUCTION_1f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VALID">
+                    <Access>
+                        <Memory Name="IPPB_TTL_CONTEXT_SELECTION_CAMm">
+                            <EntryOffset Formula="#KEY_VALUE(QOS_CAM_PRIORITY)"/>
+                            <HwField Name="VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_INGRESS_IVE_PCP_DEI_EXPLICIT_MAP">
+        <OneLineDescription>PCP-DEI explicit mapping Table. Table is accessed with Address7:2 
+                        where: Address = PCP-DEI-Map-Profile3:0 Incoming-Tag.PCP-DEI(4).  
+                        Each entry contains 4 New-PCP-DEI_n, n = Address1:0</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="IN_DEI" Type="DEI"/>
+                <Field Name="IN_PCP" Type="PCP"/>
+                <Field Name="VLAN_PCP_DEI_QOS_PROFILE" Type="PCP_DEI_QOS_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="OUT_DEI" Type="DEI"/>
+                <Field Name="OUT_PCP" Type="PCP"/>
+            </Result>
+            <TableLabels>QOS QOS_REMARKING</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="OUT_DEI">
+                    <Access>
+                        <KeyCondition Field="IN_DEI" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="IN_PCP" Type="IS_EVEN"/>
+                        <Memory GroupName="INGRESS_VLAN_EDIT_PCP_DEI_MAP">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/#FULL_RESULT_SIZE()"/>
+                            <HwField Name="PCP_DEI_MAP_PROFILE_0f"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="IN_DEI" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="IN_PCP" Type="IS_EVEN"/>
+                        <Memory GroupName="INGRESS_VLAN_EDIT_PCP_DEI_MAP">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/#FULL_RESULT_SIZE()"/>
+                            <HwField Name="PCP_DEI_MAP_PROFILE_1f"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="IN_DEI" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="IN_PCP" Type="IS_ODD"/>
+                        <Memory GroupName="INGRESS_VLAN_EDIT_PCP_DEI_MAP">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/#FULL_RESULT_SIZE()"/>
+                            <HwField Name="PCP_DEI_MAP_PROFILE_2f"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="IN_DEI" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="IN_PCP" Type="IS_ODD"/>
+                        <Memory GroupName="INGRESS_VLAN_EDIT_PCP_DEI_MAP">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/#FULL_RESULT_SIZE()"/>
+                            <HwField Name="PCP_DEI_MAP_PROFILE_3f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUT_PCP">
+                    <Access>
+                        <KeyCondition Field="IN_DEI" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="IN_PCP" Type="IS_EVEN"/>
+                        <Memory GroupName="INGRESS_VLAN_EDIT_PCP_DEI_MAP">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/#FULL_RESULT_SIZE()"/>
+                            <HwField Name="PCP_DEI_MAP_PROFILE_0f"/>
+                            <DataOffset Formula="#RESULT_SIZE(OUT_DEI)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="IN_DEI" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="IN_PCP" Type="IS_EVEN"/>
+                        <Memory GroupName="INGRESS_VLAN_EDIT_PCP_DEI_MAP">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/#FULL_RESULT_SIZE()"/>
+                            <HwField Name="PCP_DEI_MAP_PROFILE_1f"/>
+                            <DataOffset Formula="#RESULT_SIZE(OUT_DEI)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="IN_DEI" Type="EQUAL_TO" Value="0"/>
+                        <KeyCondition Field="IN_PCP" Type="IS_ODD"/>
+                        <Memory GroupName="INGRESS_VLAN_EDIT_PCP_DEI_MAP">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/#FULL_RESULT_SIZE()"/>
+                            <HwField Name="PCP_DEI_MAP_PROFILE_2f"/>
+                            <DataOffset Formula="#RESULT_SIZE(OUT_DEI)"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="IN_DEI" Type="EQUAL_TO" Value="1"/>
+                        <KeyCondition Field="IN_PCP" Type="IS_ODD"/>
+                        <Memory GroupName="INGRESS_VLAN_EDIT_PCP_DEI_MAP">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/#FULL_RESULT_SIZE()"/>
+                            <HwField Name="PCP_DEI_MAP_PROFILE_3f"/>
+                            <DataOffset Formula="#RESULT_SIZE(OUT_DEI)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_INGRESS_IVE_UNTAG_MAP">
+        <OneLineDescription>PCP-DEI mapping Table. Table is accessed with Address9:0 
+                        where: Address = PCP-DEI-Map-Profile3:0, 1b0, tc2:0,dp1:0
+                        Each entry contains 4 New-PCP-DEI_n, n = Address9:8
+                        the key "PADDING" MUST be 0</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DP"/>
+                <Field Name="TC"/>
+                <Field Name="PADDING" Size="1" Type="UINT"/>
+                <Field Name="VLAN_PCP_DEI_QOS_PROFILE" Type="PCP_DEI_QOS_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="OUTER_DEI" Type="DEI"/>
+                <Field Name="OUTER_PCP" Type="PCP"/>
+                <Field Name="INNER_DEI" Type="DEI"/>
+                <Field Name="INNER_PCP" Type="PCP"/>
+            </Result>
+            <TableLabels>QOS QOS_REMARKING</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="OUTER_DEI">
+                    <Access>
+                        <Memory Name="IPPB_VLAN_EDIT_PCP_DEI_MEMm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%256"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()/256*#FULL_RESULT_SIZE()"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUTER_PCP">
+                    <Access>
+                        <Memory Name="IPPB_VLAN_EDIT_PCP_DEI_MEMm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%256"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()/256*#FULL_RESULT_SIZE()+#RESULT_SIZE(OUTER_DEI)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INNER_DEI">
+                    <Access>
+                        <Memory Name="IPPB_VLAN_EDIT_PCP_DEI_MEMm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%256"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()/256*#FULL_RESULT_SIZE()+#RESULT_SIZE(OUTER_DEI)+#RESULT_SIZE(OUTER_PCP)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INNER_PCP">
+                    <Access>
+                        <Memory Name="IPPB_VLAN_EDIT_PCP_DEI_MEMm">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()%256"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()/256*#FULL_RESULT_SIZE()+#RESULT_SIZE(OUTER_DEI)+#RESULT_SIZE(OUTER_PCP)+#RESULT_SIZE(INNER_DEI)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_INGRESS_PROPAG_PROFILE_MAPPING">
+        <OneLineDescription>Map Propagation-Profile to PHB/Remark/Ecn/TTL strength, 
+                            map to 2 HW tables IPPA and IPPF</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PROPAGATION_PROF" Size="3"/>
+                <Field Name="QOS_INGRESS_APP_TYPE" Size="2"/>
+            </Key>
+            <Result>
+                <Field Name="QOS_PROPAG_STRENGTH" Size="2"/>
+                <Field Name="QOS_COMP_STRENGTH" Size="2" Type="QOS_PROPAG_STRENGTH"/>
+            </Result>
+            <TableLabels>QOS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="QOS_PROPAG_STRENGTH">
+                    <Access>
+                        <Register GroupName="INGRESS_VTT_QOS_PROPAG_PROFILE_MAPPING">
+                            <DataOffset Formula="#KEY_VALUE(PROPAGATION_PROF)*16+#FULL_RESULT_SIZE()*#KEY_VALUE(QOS_INGRESS_APP_TYPE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="QOS_COMP_STRENGTH">
+                    <Access>
+                        <Register GroupName="INGRESS_VTT_QOS_PROPAG_PROFILE_MAPPING">
+                            <DataOffset Formula="#KEY_VALUE(PROPAGATION_PROF)*16+#FULL_RESULT_SIZE()*#KEY_VALUE(QOS_INGRESS_APP_TYPE)+#RESULT_SIZE(QOS_PROPAG_STRENGTH)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_EGRESS_TTL_DECREMENT_CONFIGURATION">
+        <OneLineDescription>TTL decrement enable disable
+                            Indicates whether the TTL decrement should occur or not. 
+                            1 - decrement TTL by 1 0 - do not decrement</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FORWARDING_ADDITIONAL_INFO"/>
+                <Field Name="LAYER_TYPES"/>
+            </Key>
+            <Result>
+                <Field Name="QOS_TTL_DECREMENT_DISABLE" Type="BOOL"/>
+            </Result>
+            <TableLabels>QOS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="QOS_TTL_DECREMENT_DISABLE">
+                    <Access>
+                        <Register Name="ETPPC_CFG_FWD_EGRESS_DO_NOT_TTL_DECREMENTr">
+                            <DataOffset Formula="#FULL_KEY_VALUE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_EGRESS_NETWORK_QOS_PIPE_PROFILE_TABLE">
+        <OneLineDescription>Map Nwk-QoS-Idx(6b) to Pipe-Mapped-QoS_DP(10b), Pipe-Nwk-QoS-Var-O2(8b)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="NETWORK_QOS_PIPE_PROFILE" Size="6"/>
+            </Key>
+            <Result>
+                <Field Description="Used when layer is in QOS pipe mode" Name="NETWORK_QOS_PIPE" Size="8" Type="NETWORK_QOS"/>
+                <Field Description="Used to update network qos of the existed and initial next layer network QOS when the mapping mode is pipe mapped" Name="NETWORK_QOS_PIPE_MAPPED" Size="8" Type="NETWORK_QOS"/>
+                <Field Description="Used to update initial DP of the existed and next layer mappings when working in pipe mapped mode" Name="DP_PIPE_MAPPED" Size="2" Type="DP"/>
+            </Result>
+            <TableLabels>QOS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="NETWORK_QOS_PIPE">
+                    <Access>
+                        <Memory GroupName="ETPP_NWK_QOS_IDX_MAP">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()"/>
+                            <HwField Name="PIPE_NWK_QOS_VAR_O_2f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NETWORK_QOS_PIPE_MAPPED">
+                    <Access>
+                        <Memory GroupName="ETPP_NWK_QOS_IDX_MAP">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()"/>
+                            <HwField Name="PIPE_MAPPED_QOS_DPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DP_PIPE_MAPPED">
+                    <Access>
+                        <Memory GroupName="ETPP_NWK_QOS_IDX_MAP">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()"/>
+                            <HwField Name="PIPE_MAPPED_QOS_DPf"/>
+                            <DataOffset Formula="#RESULT_SIZE(NETWORK_QOS_PIPE_MAPPED)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_EGRESS_NETWORK_QOS_INITIAL_SELECT">
+        <OneLineDescription>Initial NWK_QOS Selection register Map:Ingress-NWK-Valid(1),NWK-Layer-FWD-Type(3),
+                            NWK-Layer-FWD-Plus1-Type(3) To Initial-NWK-QoS-Select-FWD(2)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FORWARD_QOS_MAP_TYPE_PLUS1" Size="3" Type="ETPP_QOS_VAR_TYPE"/>
+                <Field Name="FORWARD_QOS_MAP_TYPE" Size="3" Type="ETPP_QOS_VAR_TYPE"/>
+                <Field Name="INGRESS_QOS_NETWORK_VALID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="NETWORK_QOS_INITIAL_SELECT" Size="2"/>
+                <Field Name="NETWORK_QOS_INITIAL_SELECT_PLUS_1" Size="2" Type="NETWORK_QOS_INITIAL_SELECT"/>
+            </Result>
+            <TableLabels>QOS QOS_REMARKING</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="NETWORK_QOS_INITIAL_SELECT">
+                    <Access>
+                        <Register Name="ETPPA_INITIAL_NWK_QOS_SELECTr">
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#RESULT_SIZE(NETWORK_QOS_INITIAL_SELECT)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="NETWORK_QOS_INITIAL_SELECT_PLUS_1">
+                    <Access>
+                        <Register Name="ETPPA_INITIAL_NWK_QOS_SELECT_PLUS_1r">
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#RESULT_SIZE(NETWORK_QOS_INITIAL_SELECT_PLUS_1)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_EGRESS_JER_INGRESS_NWK_QOS_MAPPING">
+        <OneLineDescription>Map Jericho IN-DSCP-EXP to NWK_QOS:NWK-Layer-FWD-Type(2),
+                            In-Dscp-Exp(8) To NWK-QoS(8)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="INGRESS_NWK_QOS_TYPE" Size="2"/>
+                <Field Name="INGRESS_DSCP_EXP" Size="8" Type="NETWORK_QOS"/>
+            </Key>
+            <Result>
+                <Field Name="NETWORK_QOS" Size="8"/>
+            </Result>
+            <TableLabels>QOS QOS_REMARKING</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="NETWORK_QOS">
+                    <Access>
+                        <Memory Name="ETPPA_JERICHO_INGRESS_NWK_QOS_TABLEm">
+                            <HwField Name="NWK_QOSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_EGRESS_TC_NWK_QOS_MAPPING">
+        <OneLineDescription>Map TC to NWK_QOS: TC(2) To NWK-QoS(8)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="INGRESS_TC" Size="3" Type="TC"/>
+            </Key>
+            <Result>
+                <Field Name="TC_NWK_QOS" Size="8" Type="NETWORK_QOS"/>
+            </Result>
+            <TableLabels>QOS QOS_REMARKING</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TC_NWK_QOS">
+                    <Access>
+                        <Register Name="ETPPA_CFG_TC_2_NWK_QOS_MAPPINGr">
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#RESULT_SIZE(TC_NWK_QOS)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_INGRESS_NWK_QOS_TYPE_SELECT">
+        <OneLineDescription>Map forward code to egress packet type: FWD_CODE(6) To INGRESS_NWK_QOS_TYPE(2)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FORWARD_CODE" Size="6" Type="EGRESS_FWD_CODE"/>
+            </Key>
+            <Result>
+                <Field Name="INGRESS_NWK_QOS_TYPE" Size="2"/>
+            </Result>
+            <TableLabels>QOS QOS_REMARKING</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="INGRESS_NWK_QOS_TYPE">
+                    <Access>
+                        <Register Name="ETPPA_CFG_INGRESS_NWK_QOS_TYPEr">
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#RESULT_SIZE(INGRESS_NWK_QOS_TYPE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_FWD_LAYER_TYPE_SELECT">
+        <OneLineDescription>Map network protocol to egress forward type: LAYER_PROTOCOL(5) To ETPP_QOS_VAR_TYPE(3) and QOS_LAYER_PROTOCOL(3) and FWD_PLUS_1_LAYER_PROTOCOL_INDEX(2b) </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="NETWORK_PROTOCOL" Size="5" Type="LAYER_TYPES"/>
+            </Key>
+            <Result>
+                <Field Name="FORWARD_TYPE" Size="3" Type="ETPP_QOS_VAR_TYPE"/>
+                <Field Name="QOS_LAYER_PROTOCOL" Size="3"/>
+                <Field Name="FWD_PLUS_1_LAYER_PROTOCOL_INDEX" Size="2" Type="QOS_LR_FORWARD_P1_TYPE_INDEX"/>
+            </Result>
+            <TableLabels>QOS QOS_REMARKING</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FORWARD_TYPE">
+                    <Access>
+                        <Register Name="ETPPA_CFG_MAP_FWD_LAYER_TYPEr">
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#RESULT_SIZE(FORWARD_TYPE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="QOS_LAYER_PROTOCOL">
+                    <Access>
+                        <Register GroupName="ETPP_CFG_MAP_FWD_LAYER_PROTOCOL">
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#RESULT_SIZE(QOS_LAYER_PROTOCOL)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FWD_PLUS_1_LAYER_PROTOCOL_INDEX">
+                    <Access>
+                        <Register Name="ETPPC_CFG_MAP_FWD_PLUS_1_PROTOCOLr">
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#RESULT_SIZE(FWD_PLUS_1_LAYER_PROTOCOL_INDEX)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_EGRESS_MODEL_MAPPING_TABLE">
+        <OneLineDescription>Variables mapped by QoS-Model(3b), Used by ECN and FWD</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ENCAP_QOS_MODEL"/>
+            </Key>
+            <Result>
+                <Field Name="QOS_DP_SELECT" Size="2"/>
+                <Field Name="ECN_IS_ELIGIBLE" Size="1"/>
+                <Field Name="DP_IS_PRESERVE" Size="1"/>
+                <Field Name="NETWORK_QOS_IS_PRESERVE" Size="1"/>
+                <Field Name="QOS_MODEL_TYPE" Size="1" Type="MODEL_TYPE"/>
+                <Field Name="FWD_PLUS_1_EXPLICIT_PROFILE" Size="2" Type="QOS_FORWARD_P1_EXPLICIT_REMARK_PROFILE"/>
+            </Result>
+            <TableLabels>QOS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="QOS_DP_SELECT">
+                    <Access>
+                        <Register GroupName="ETPP_QOS_MODEL_MAPPING_TABLE">
+                            <DataOffset Formula="#KEY_VALUE(ENCAP_QOS_MODEL)*#RESULT_SIZE(QOS_DP_SELECT)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ECN_IS_ELIGIBLE">
+                    <Access>
+                        <Register GroupName="ETPP_QOS_MODEL_MAPPING_TABLE">
+                            <DataOffset Formula="16+#KEY_VALUE(ENCAP_QOS_MODEL)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DP_IS_PRESERVE">
+                    <Access>
+                        <Register GroupName="ETPP_QOS_MODEL_MAPPING_TABLE">
+                            <DataOffset Formula="24+#KEY_VALUE(ENCAP_QOS_MODEL)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="NETWORK_QOS_IS_PRESERVE">
+                    <Access>
+                        <Register GroupName="ETPP_QOS_MODEL_MAPPING_TABLE">
+                            <DataOffset Formula="32+#KEY_VALUE(ENCAP_QOS_MODEL)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="QOS_MODEL_TYPE">
+                    <Access>
+                        <Register Name="ETPPC_CFG_QOS_MODEL_IS_PIPEr">
+                            <DataOffset Formula="#KEY_VALUE(ENCAP_QOS_MODEL)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FWD_PLUS_1_EXPLICIT_PROFILE">
+                    <Access>
+                        <Register Name="ETPPC_CFG_MAP_FWD_PLUS_1_EXPLICIT_REMARK_PROFILEr">
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#RESULT_SIZE(FWD_PLUS_1_EXPLICIT_PROFILE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_EGRESS_MAP_TYPE_SELECT">
+        <OneLineDescription>Configurations for QoS and DP calculations. Mapping QoS and DP into 
+                            various properties to be used in procedures</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FTMH_ECN_ELIGIBLE" Size="1"/>
+                <Field Name="FORWARD_CODE" Size="6" Type="EGRESS_FWD_CODE"/>
+            </Key>
+            <Result>
+                <Field Name="ETPP_QOS_VAR_TYPE" Size="3"/>
+                <Field Name="REMARK_OR_PRESERVE" Size="1"/>
+                <Field Name="ECN_IS_ELIGIBLE" Size="1"/>
+                <Field Name="KEEP_ECN_BITS" Size="1"/>
+            </Result>
+            <TableLabels>QOS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ETPP_QOS_VAR_TYPE">
+                    <Access>
+                        <Memory Name="ETPPC_MAP_FWD_QOS_DP_TO_TYPE_FWDm">
+                            <HwField Name="TYPE_FWD_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REMARK_OR_PRESERVE">
+                    <Access>
+                        <Memory Name="ETPPC_MAP_FWD_QOS_DP_TO_TYPE_FWDm">
+                            <HwField Name="TYPE_FWD_REMARK_OR_KEEPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ECN_IS_ELIGIBLE">
+                    <Access>
+                        <Memory Name="ETPPC_MAP_FWD_QOS_DP_TO_TYPE_FWDm">
+                            <HwField Name="TYPE_FWD_ECN_ELIGIBLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="KEEP_ECN_BITS">
+                    <Access>
+                        <Memory Name="ETPPC_MAP_FWD_QOS_DP_TO_TYPE_FWDm">
+                            <HwField Name="TYPE_FWD_KEEP_ECN_BITSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_EGRESS_PROTOCOL_PROFILE_TO_INTERNAL_MAP_ID">
+        <OneLineDescription>Map QoS-Layer-protocol(3), remark profile(3) to Protocol-Remark-Profile(3)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="REMARK_PROFILE" Size="3"/>
+                <Field Name="QOS_LAYER_PROTOCOL" Size="3"/>
+            </Key>
+            <Result>
+                <Field Name="INITIAL_NETWORK_QOS_INT_MAP_ID" Size="3" Type="QOS_INT_MAP_ID"/>
+            </Result>
+            <TableLabels>QOS QOS_REMARKING</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="INITIAL_NETWORK_QOS_INT_MAP_ID">
+                    <Access>
+                        <Register GroupName="ETPP_CFG_REMARK_PROTOCOL_PROFILE">
+                            <HwField Name="CFG_REMARK_PROTOCOL_PROFILE_VECTORf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#RESULT_SIZE(INITIAL_NETWORK_QOS_INT_MAP_ID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_EGRESS_MAPPING_INITIAL_NETWORK_QOS">
+        <OneLineDescription>Map Protocol-QoS-Map(3), QoS variable(8) to layer-QoS(8)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="INITIAL_NETWORK_QOS_INT_MAP_ID" Size="3" Type="QOS_INT_MAP_ID"/>
+                <Field Name="PACKET_QOS" Size="8" Type="NETWORK_QOS"/>
+            </Key>
+            <Result>
+                <Field Name="INITIAL_NETWORK_QOS" Size="8" Type="NETWORK_QOS"/>
+            </Result>
+            <TableLabels>QOS QOS_REMARKING</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="INITIAL_NETWORK_QOS">
+                    <Access>
+                        <Memory GroupName="ETPP_LAYER_NWK_QOS_TABLE">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()"/>
+                            <HwField Name="LAYER_NWK_QOSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_EGRESS_PCP_DEI_DP_MAPPING_TABLE">
+        <OneLineDescription>PCP-DEI Mapping Table for IVE, maps DP+INLIF_Profile+Selected_PCP_DEI to new PCP-DEI</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="IN_DEI" Type="DEI"/>
+                <Field Name="IN_PCP" Type="PCP"/>
+                <Field Name="INGRESS_DP" Type="DP"/>
+                <Field Name="DP_PROFILE" Type="METER_DP_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="OUT_DEI" Type="DEI"/>
+                <Field Name="OUT_PCP" Type="PCP"/>
+            </Result>
+            <TableLabels>QOS QOS_REMARKING</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="OUT_DEI">
+                    <Access>
+                        <Memory GroupName="EGRESS_PCP_DEI_DP_MAPPING_TABLE">
+                            <HwField Name="PUSH_PCP_DEIf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUT_PCP">
+                    <Access>
+                        <Memory GroupName="EGRESS_PCP_DEI_DP_MAPPING_TABLE">
+                            <HwField Name="PUSH_PCP_DEIf"/>
+                            <DataOffset Formula="#RESULT_SIZE(OUT_DEI)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_EGRESS_PROFILE_TO_INTERNAL_MAP_ID">
+        <OneLineDescription>MapQoS-VAR-Map(5), Type(3) to Protocol-QoS-Map(5), OuLIF-RemarkOrKeep(1)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ETPP_QOS_VAR_TYPE" Size="3"/>
+                <Field Name="REMARK_PROFILE" Size="5"/>
+            </Key>
+            <Result>
+                <Field Name="QOS_INT_MAP_ID" Size="5"/>
+                <Field Name="REMARK_OR_PRESERVE" Size="1"/>
+            </Result>
+            <TableLabels>QOS QOS_REMARKING</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="QOS_INT_MAP_ID">
+                    <Access>
+                        <Memory GroupName="ETPP_CFG_FWD_MAP_PROTOCOL_QOS">
+                            <HwField Name="PROTOCOL_QOS_MAP_DATAf"/>
+                            <DataOffset Formula="#RESULT_SIZE(REMARK_OR_PRESERVE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REMARK_OR_PRESERVE">
+                    <Access>
+                        <Memory GroupName="ETPP_CFG_FWD_MAP_PROTOCOL_QOS">
+                            <HwField Name="PROTOCOL_QOS_MAP_DATAf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_EGRESS_FWD_HEADER_REMARK_ENABLER" Valid="DNX_DATA.qos.hw_bug.egress_remark_or_keep_enabler">
+        <OneLineDescription>Map type_fwd_remark_or_keep(1b) and qos_inheritance_output_remark_or_keep(1) to the final remark enabler for forwarding header.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FORWARD_CODE_REMARK_OR_PRESERVE" Size="1" Type="REMARK_OR_PRESERVE"/>
+                <Field Name="QOS_PROFILE_REMARK_OR_PRESERVE" Size="1" Type="REMARK_OR_PRESERVE"/>
+            </Key>
+            <Result>
+                <Field Name="REMARK_OR_PRESERVE" Size="1"/>
+            </Result>
+            <TableLabels>QOS QOS_REMARKING</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Device="JR2_A0 JR2_B0" Name="REMARK_OR_PRESERVE">
+                    <Access>
+                        <Register Name="ETPPC_RESERVED_SPARE_2r">
+                            <HwField Name="RESERVED_SPARE_2f"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Device="J2C_A0 Q2A_A0 Q2A_B0 J2P_A0" Name="REMARK_OR_PRESERVE">
+                    <Access>
+                        <Register Name="ETPPC_MAP_FWD_QOS_REMARK_OR_KEEPr">
+                            <HwField Name="MAP_FWD_QOS_REMARK_OR_KEEPf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_EGRESS_NETWORK_QOS_MAPPING_PACKET">
+        <OneLineDescription>Map Protocol-QoS-Map(5), QoS_DP(10) to New-QoS-VAR(8) 
+                            Table is accessed with Address14:4 where: Address = Protocol-QoS-Map(5), QoS_DP(10)",  
+                            Each entry contains 16 New QOS Variables. New-QOS-Var = NewQosVarDatan*8+:8 
+                            where n = Address3:0</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="NETWORK_QOS" Size="8"/>
+                <Field Name="DP"/>
+                <Field Name="QOS_INT_MAP_ID" Size="5"/>
+            </Key>
+            <Result>
+                <Field Name="CURRENT_LAYER_NETWORK_QOS" Size="8" Type="NETWORK_QOS"/>
+            </Result>
+            <TableLabels>QOS QOS_REMARKING</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="CURRENT_LAYER_NETWORK_QOS">
+                    <Access>
+                        <Memory GroupName="ETPP_NEW_QOS_MAP">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/16"/>
+                            <HwField Name="NEW_QOS_VAR_DATAf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()%16*#RESULT_SIZE(CURRENT_LAYER_NETWORK_QOS)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_EGRESS_NETWORK_QOS_MAPPING_NEXT_LAYER">
+        <OneLineDescription>Map Remark-Profile.Nwk-Qos-Map(5), QoS_DP(10) to New-QoS_DP(10) 
+                            Table is accessed with Address14:4 where: Address = Remark-Profile.Nwk-Qos-Map(5), QoS_DP(10),
+                            Each entry contains 16 New QOS Variables. New-QoS_DP = NewQosVarDatan*10+:10 where n = Address3:0. 
+                            Address = Remark-Profile.Nwk-Qos-Map(5), QoS_DP(10)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="NETWORK_QOS" Size="8"/>
+                <Field Name="DP"/>
+                <Field Name="REMARK_PROFILE" Size="5"/>
+            </Key>
+            <Result>
+                <Field Name="NEXT_LAYER_NETWORK_QOS" Size="8" Type="NETWORK_QOS"/>
+                <Field Name="NEXT_LAYER_DP" Size="2" Type="DP"/>
+            </Result>
+            <TableLabels>QOS QOS_REMARKING</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="NEXT_LAYER_NETWORK_QOS">
+                    <Access>
+                        <Memory GroupName="ETPP_QOS_DP_MAP">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/16"/>
+                            <HwField Name="NEW_QOS_DP_DATAf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()%16*#RESULT_SIZE(NEXT_LAYER_NETWORK_QOS)+#FULL_KEY_VALUE()%16*#RESULT_SIZE(NEXT_LAYER_DP)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="NEXT_LAYER_DP">
+                    <Access>
+                        <Memory GroupName="ETPP_QOS_DP_MAP">
+                            <EntryOffset Formula="#FULL_KEY_VALUE()/16"/>
+                            <HwField Name="NEW_QOS_DP_DATAf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()%16*#RESULT_SIZE(NEXT_LAYER_NETWORK_QOS)+#FULL_KEY_VALUE()%16*#RESULT_SIZE(NEXT_LAYER_DP)+#RESULT_SIZE(NEXT_LAYER_NETWORK_QOS)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_EGRESS_REMARK_PROFILE_INFO">
+        <OneLineDescription>Remark Profile Mapping for QOS Var Mapping procedure: 
+                            mapping 5 bit remark profile to 5 bit value 1 to 1 mapping</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="REMARK_PROFILE" Size="5"/>
+            </Key>
+            <Result>
+                <Field Name="MAPPED_REMARK_PROFILE" Size="5" Type="REMARK_PROFILE"/>
+            </Result>
+            <TableLabels>QOS QOS_REMARKING</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MAPPED_REMARK_PROFILE">
+                    <Access>
+                        <Register GroupName="ETPP_CFG_MAP_REMARK_PROFILE_QOS_VAR">
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#RESULT_SIZE(MAPPED_REMARK_PROFILE)"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register GroupName="ETPP_CFG_MAP_REMARK_PROFILE_QOS_DP">
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#RESULT_SIZE(MAPPED_REMARK_PROFILE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_EGRESS_TTL_PIPE_MAPPING">
+        <OneLineDescription>Pipe Mapped TTL_Variable(8b), mapped by TTL_Idx(5b)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TTL_PIPE_PROFILE" Size="5"/>
+            </Key>
+            <Result>
+                <Field Name="TTL"/>
+            </Result>
+            <TableLabels>QOS QOS_TTL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TTL">
+                    <Access>
+                        <Register GroupName="ETPP_CFG_PIPE_MAPPED_TTL_VARIABLE_MAP">
+                            <DataOffset Formula="#KEY_VALUE(TTL_PIPE_PROFILE)*#FULL_RESULT_SIZE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_EGRESS_TTL_MODEL_CONFIGURATION">
+        <OneLineDescription>TTL Model Inheritance PHP configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="IN_TTL_MODE" Type="TTL_MODE"/>
+                <Field Name="TTL_DECREMENT_DISABLE"/>
+            </Key>
+            <Result>
+                <Field Name="TTL_INHERITANCE"/>
+                <Field Name="TTL_PIPE_MAP"/>
+            </Result>
+            <TableLabels>QOS QOS_TTL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TTL_INHERITANCE">
+                    <Access>
+                        <Register Name="ETPPC_CFG_IS_TTL_MODEL_INHERIT_PHPr">
+                            <DataOffset Formula="#KEY_VALUE(TTL_DECREMENT_DISABLE)*2+#KEY_VALUE(IN_TTL_MODE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TTL_PIPE_MAP">
+                    <Access>
+                        <Register GroupName="ETPP_CFG_TTL_MODEL_PIPE_MAP">
+                            <DataOffset Formula="#KEY_VALUE(TTL_DECREMENT_DISABLE)*2+#KEY_VALUE(IN_TTL_MODE)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_INGRESS_INHERITANCE_RESOLUTION_MPLS_TYPE">
+        <OneLineDescription>QoS Inheritance MPLS layer type configuration</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key/>
+            <Result>
+                <Field Name="PHB_INHERITANCE_RESOLUTION_MPLS" Type="LAYER_TYPES"/>
+                <Field Name="REMARK_INHERITANCE_RESOLUTION_MPLS" Type="LAYER_TYPES"/>
+                <Field Name="ECN_INHERITANCE_RESOLUTION_MPLS" Type="LAYER_TYPES"/>
+                <Field Name="TTL_INHERITANCE_RESOLUTION_MPLS" Type="LAYER_TYPES"/>
+            </Result>
+            <TableLabels>QOS MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PHB_INHERITANCE_RESOLUTION_MPLS">
+                    <Access>
+                        <Register Name="IPPB_PHB_TC_DP_INHERITANCE_RESOLUTION_MPLS_CFGr">
+                            <HwField Name="PHB_TC_DP_INHERITANCE_RESOLUTION_MPLS_CFGf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="REMARK_INHERITANCE_RESOLUTION_MPLS">
+                    <Access>
+                        <Register Name="IPPB_DSCP_REMARK_INHERITANCE_RESOLUTION_MPLS_CFGr">
+                            <HwField Name="DSCP_REMARK_INHERITANCE_RESOLUTION_MPLS_CFGf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ECN_INHERITANCE_RESOLUTION_MPLS">
+                    <Access>
+                        <Register Name="IPPB_PHB_ECN_INHERITANCE_RESOLUTION_MPLS_CFGr">
+                            <HwField Name="PHB_ECN_INHERITANCE_RESOLUTION_MPLS_CFGf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="TTL_INHERITANCE_RESOLUTION_MPLS">
+                    <Access>
+                        <Register Name="IPPB_TTL_INHERITANCE_RESOLUTION_MPLS_CFGr">
+                            <HwField Name="TTL_INHERITANCE_RESOLUTION_MPLS_CFGf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_EGRESS_POLICER_OFFSET_MAP">
+        <OneLineDescription>Qos egress policer offset mapping</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TC"/>
+                <Field Name="QOS_POLICER_PROFILE_ID" Size="3" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="POLICER_OFFSET" Size="3" Type="UINT"/>
+            </Result>
+            <TableLabels>QOS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="POLICER_OFFSET">
+                    <Access>
+                        <Register Name="ETPPC_CFG_METER_OFFSET_MAPr">
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_EGRESS_JR1_FHEI_MODEL_MAP">
+        <OneLineDescription>FHEI model mapping from JR1 to JR2</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FHEI_MODEL" Type="MODEL_TYPE"/>
+            </Key>
+            <Result>
+                <Field Name="FHEI_QOS_MODEL" Type="MODEL_TYPE"/>
+                <Field Name="FHEI_TTL_MODEL" Type="MODEL_TYPE"/>
+            </Result>
+            <TableLabels>QOS QOS_REMARKING</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FHEI_QOS_MODEL">
+                    <Access>
+                        <Register GroupName="EGRESS_CFG_FHEI_MODEL">
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="FHEI_TTL_MODEL">
+                    <Access>
+                        <Register GroupName="EGRESS_CFG_FHEI_MODEL">
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+#RESULT_SIZE(FHEI_QOS_MODEL)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="ENC_QOS_VAR_TYPE_MAPPING_TABLE" Valid="DNX_DATA.qos.qos.qos_var_type_map_enable">
+        <OneLineDescription>Map qos_var_type and layer_is_ecn_eligible to new qos_var_type</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="LAYER_IS_ECN_ELIGIBLE" Type="BOOL"/>
+                <Field Name="QOS_VAR_TYPE_CURRENT" Type="ETPP_QOS_VAR_TYPE"/>
+            </Key>
+            <Result>
+                <Field Name="ENC_QOS_VAR_TYPE_NEW" Type="ETPP_QOS_VAR_TYPE"/>
+            </Result>
+            <TableLabels>QOS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENC_QOS_VAR_TYPE_NEW">
+                    <Access>
+                        <Memory GroupName="ETPP_ENC_QOS_VAR_TYPE_MAPPING">
+                            <HwField Name="QOS_VAR_TYPE_NEWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_EGRESS_FWD_PLUS_1_REMAKR_TABLE">
+        <OneLineDescription>Map qos model to plus1 remark explicit profile</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FWD_PLUS_1_EXPLICIT_PROFILE" Size="2" Type="QOS_FORWARD_P1_EXPLICIT_REMARK_PROFILE"/>
+                <Field Name="FTMH_ECN_ELIGIBLE" Size="1"/>
+                <Field Name="FWD_PLUS_1_REMARK_INGRESS_PROFILE" Size="2" Type="QOS_FORWARD_P1_REMARK_PROFILE"/>
+                <Field Name="FWD_PLUS_1_LAYER_PROTOCOL_INDEX" Size="2" Type="QOS_LR_FORWARD_P1_TYPE_INDEX"/>  
+            </Key>
+            <Result>
+                <Field Name="FWD_PLUS_1_QOS_VAR_TYPE" Size="3" Type="QOS_TYPEFWDPLUS1_TYPE"/>
+                <Field Name="REMARK_OR_PRESERVE" Size="1"/>
+                <Field Name="ECN_IS_ELIGIBLE" Size="1"/>
+                <Field Name="FWD_PLUS_1_REMARK_EXPLICIT" Type="BOOL"/>
+                <Field Name="FWD_PLUS_1_NWK_QOS_REMARK_BMP" Size="8" Type="BITMAP"/>
+            </Result>
+            <TableLabels>QOS QOS_REMARKING</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FWD_PLUS_1_QOS_VAR_TYPE">
+                    <Access>
+                        <Memory Name="ETPPC_FWD_PLUS_1_REMARKING_TABLEm">
+                            <HwField Name="FWD_PLUS_1_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REMARK_OR_PRESERVE">
+                    <Access>
+                        <Memory Name="ETPPC_FWD_PLUS_1_REMARKING_TABLEm">
+                            <HwField Name="FWD_PLUS_1_REMARK_OR_KEEPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ECN_IS_ELIGIBLE">
+                    <Access>
+                        <Memory Name="ETPPC_FWD_PLUS_1_REMARKING_TABLEm">
+                            <HwField Name="FWD_PLUS_1_ECN_ELIGIBLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_PLUS_1_REMARK_EXPLICIT">
+                    <Access>
+                        <Memory Name="ETPPC_FWD_PLUS_1_REMARKING_TABLEm">
+                            <HwField Name="FWD_PLUS_1_REMARK_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_PLUS_1_NWK_QOS_REMARK_BMP">
+                    <Access>
+                        <Memory Name="ETPPC_FWD_PLUS_1_REMARKING_TABLEm">
+                            <HwField Name="NWK_QOS_FWD_PLUS_1_BITMAPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_EGRESS_PROFILE_TO_FWD_PLUS_1_INTERNAL_MAP_ID">
+        <OneLineDescription>Map QoS-VAR-Map(5), Type(3) to Protocol-QoS-Map(5), OuLIF-RemarkOrKeep(1)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FWD_PLUS_1_QOS_VAR_TYPE" Size="3" Type="QOS_TYPEFWDPLUS1_TYPE"/>
+                <Field Name="REMARK_PROFILE" Size="5"/>
+            </Key>
+            <Result>
+                <Field Name="QOS_INT_MAP_ID" Size="5"/>
+                <Field Name="REMARK_OR_PRESERVE" Size="1"/>
+            </Result>
+            <TableLabels>QOS QOS_REMARKING</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="QOS_INT_MAP_ID">
+                    <Access>
+                        <Memory Name="ETPPC_CFG_TERM_MAP_PROTOCOL_QOSm">
+                            <HwField Name="PROTOCOL_QOS_MAP_DATAf"/>
+                            <DataOffset Formula="#RESULT_SIZE(REMARK_OR_PRESERVE)"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REMARK_OR_PRESERVE">
+                    <Access>
+                        <Memory Name="ETPPC_CFG_TERM_MAP_PROTOCOL_QOSm">
+                            <HwField Name="PROTOCOL_QOS_MAP_DATAf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="QOS_EGRESS_COS_PROFILE_TABLE">
+        <OneLineDescription>egress cos profile, set new tc,dp,nwk_qos across the TM Queues</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="COS_PROFILE"/>
+            </Key>
+            <Result>
+                <Field Name="TC_VALID" Type="BOOL"/>
+                <Field Name="EGRESS_TC" Type="TC"/>
+                <Field Name="DP_VALID" Type="BOOL"/>
+                <Field Name="EGRESS_DP" Type="DP"/>
+                <Field Name="NWK_QOS_VALID" Type="BOOL"/>
+                <Field Name="EGRESS_NWK_QOS" Type="NETWORK_QOS"/>
+            </Result>
+            <TableLabels>QOS QOS_REMARKING</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="TC_VALID">
+                    <Access>
+                        <Register Name="ETPPA_COS_PROFILE_TABLEr">
+                            <HwField Name="COS_PROFILE_TABLE_VECTORf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EGRESS_TC">
+                    <Access>
+                        <Register Name="ETPPA_COS_PROFILE_TABLEr">
+                            <HwField Name="COS_PROFILE_TABLE_VECTORf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+#RESULT_SIZE(TC_VALID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DP_VALID">
+                    <Access>
+                        <Register Name="ETPPA_COS_PROFILE_TABLEr">
+                            <HwField Name="COS_PROFILE_TABLE_VECTORf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+#RESULT_SIZE(TC_VALID)+#RESULT_SIZE(EGRESS_TC)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EGRESS_DP">
+                    <Access>
+                        <Register Name="ETPPA_COS_PROFILE_TABLEr">
+                            <HwField Name="COS_PROFILE_TABLE_VECTORf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+#RESULT_SIZE(TC_VALID)+#RESULT_SIZE(EGRESS_TC)+#RESULT_SIZE(DP_VALID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="NWK_QOS_VALID">
+                    <Access>
+                        <Register Name="ETPPA_COS_PROFILE_TABLEr">
+                            <HwField Name="COS_PROFILE_TABLE_VECTORf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+#RESULT_SIZE(TC_VALID)+#RESULT_SIZE(EGRESS_TC)+#RESULT_SIZE(DP_VALID)+#RESULT_SIZE(EGRESS_DP)"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EGRESS_NWK_QOS">
+                    <Access>
+                        <Register Name="ETPPA_COS_PROFILE_TABLEr">
+                            <HwField Name="COS_PROFILE_TABLE_VECTORf"/>
+                            <DataOffset Formula="#FULL_KEY_VALUE()*#FULL_RESULT_SIZE()+#RESULT_SIZE(TC_VALID)+#RESULT_SIZE(EGRESS_TC)+#RESULT_SIZE(DP_VALID)+#RESULT_SIZE(EGRESS_DP)+#RESULT_SIZE(NWK_QOS_VALID)"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>
