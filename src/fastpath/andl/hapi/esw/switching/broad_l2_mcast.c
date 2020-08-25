@@ -24,7 +24,6 @@
 #include "l7_common.h"
 #include "comm_mask.h"
 
-
 #include "log.h"
 
 #include "broad_common.h"
@@ -33,9 +32,6 @@
 #include "bcm/mcast.h"
 #include "bcm/vlan.h"
 
-#include "bcmx/mcast.h"
-#include "bcmx/vlan.h"
-#include "bcmx/lplist.h"
 #include "l7_usl_bcmx_l2.h"
 #include "broad_l2_vlan.h"
 #include "broad_l2_std.h"
@@ -72,7 +68,7 @@ typedef struct
    * in the Hw.
    */
   L7_int32              hwStatus; 
-  bcmx_mcast_addr_t     mcMacAddr;
+  bcm_mcast_addr_t      mcMacAddr;
   L7_uchar8             *if_member;
   L7_uint32             ipmc_index;
 }MCAST_GROUP_LIST_t;
@@ -223,7 +219,7 @@ void hapiBroadL2McastReInit(void)
   for (i = 0; i < maxEntries; i++)
   {
     mcastGroupList[i].inUse = L7_FALSE;
-    memset(&mcastGroupList[i].mcMacAddr,0,sizeof(bcmx_mcast_addr_t));     
+    memset(&mcastGroupList[i].mcMacAddr,0,sizeof(bcm_mcast_addr_t));     
     memset(mcastGroupList[i].if_member,0,bitmapSize);
   }
 }
@@ -244,7 +240,7 @@ L7_RC_t hapiBroadL2McastUSPJoin(bcm_mac_t mac, bcm_vlan_t vid,
   BROAD_PORT_t               *hapiLagMemberPortPtr, *hapiPortPtr;
   usl_bcm_mcast_addr_t        bcmMcastAddr;
   L7_uint32                   i;
-  bcmx_lport_t                lport = 0;
+  bcm_gport_t                 gport = 0;
   DAPI_PORT_t                *dapiPortPtr;
   int                         rv = BCM_E_NONE;
   DAPI_USP_t                  localUsp;
@@ -271,15 +267,15 @@ L7_RC_t hapiBroadL2McastUSPJoin(bcm_mac_t mac, bcm_vlan_t vid,
       {
         hapiLagMemberPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
 
-        lport = hapiLagMemberPortPtr->bcmx_lport;
+        gport = hapiLagMemberPortPtr->bcm_gport;
 
-        modid = BCM_GPORT_MODPORT_MODID_GET(lport);
-        modport = BCM_GPORT_MODPORT_PORT_GET(lport);
+        modid = BCM_GPORT_MODPORT_MODID_GET(gport);
+        modport = BCM_GPORT_MODPORT_PORT_GET(gport);
         if (modid < 0 || modport < 0)
         {
           L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, 
-                  "Failed to get modid/port for lport %x: modid %d modport %d\n",
-                   lport, modid, modport); 
+                  "Failed to get modid/port for gport %x: modid %d modport %d\n",
+                   gport, modid, modport); 
           continue;
         }
 
@@ -309,18 +305,18 @@ L7_RC_t hapiBroadL2McastUSPJoin(bcm_mac_t mac, bcm_vlan_t vid,
     hapiPortPtr = HAPI_PORT_GET(&localUsp, dapi_g);
 
     /* Get the logical port */
-    lport = hapiPortPtr->bcmx_lport;
+    gport = hapiPortPtr->bcm_gport;
 
 
-    if (!BCM_GPORT_IS_WLAN_PORT(lport))
+    if (!BCM_GPORT_IS_WLAN_PORT(gport))
     {
-      modid = BCM_GPORT_MODPORT_MODID_GET(lport);
-      modport = BCM_GPORT_MODPORT_PORT_GET(lport);
+      modid = BCM_GPORT_MODPORT_MODID_GET(gport);
+      modport = BCM_GPORT_MODPORT_PORT_GET(gport);
       if (modid < 0 || modport < 0)
       {
         L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, 
-               "Failed to get modid/port for lport %x: modid %d modport %d\n",
-               lport, modid, modport); 
+               "Failed to get modid/port for gport %x: modid %d modport %d\n",
+               gport, modid, modport); 
       }
       else
       {
@@ -330,7 +326,7 @@ L7_RC_t hapiBroadL2McastUSPJoin(bcm_mac_t mac, bcm_vlan_t vid,
     }
     else
     {
-      BROAD_WLAN_PBMP_SET(bcmMcastAddr.wlan_pbmp, BROAD_WLAN_GPORT_TO_ID(lport));
+      BROAD_WLAN_PBMP_SET(bcmMcastAddr.wlan_pbmp, BROAD_WLAN_GPORT_TO_ID(gport));
       rv = usl_bcmx_mcast_join_ports(&bcmMcastAddr);
     }
 
@@ -360,7 +356,7 @@ L7_RC_t hapiBroadL2McastUSPLeave(bcm_mac_t mac, bcm_vlan_t vid,
   BROAD_PORT_t               *hapiLagMemberPortPtr, *hapiPortPtr;
   usl_bcm_mcast_addr_t         bcmMcastAddr;
   L7_uint32                   i;
-  bcmx_lport_t                lport = 0;
+  bcm_gport_t                 gport = 0;
   DAPI_PORT_t                *dapiPortPtr;
   int                         rv = BCM_E_NONE;
   DAPI_USP_t                  localUsp;
@@ -388,14 +384,14 @@ L7_RC_t hapiBroadL2McastUSPLeave(bcm_mac_t mac, bcm_vlan_t vid,
       {
         hapiLagMemberPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
 
-        lport = hapiLagMemberPortPtr->bcmx_lport;
-        modid = BCM_GPORT_MODPORT_MODID_GET(lport);
-        modport = BCM_GPORT_MODPORT_PORT_GET(lport);
+        gport = hapiLagMemberPortPtr->bcm_gport;
+        modid = BCM_GPORT_MODPORT_MODID_GET(gport);
+        modport = BCM_GPORT_MODPORT_PORT_GET(gport);
         if (modid < 0 || modport < 0)
         {
           L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, 
-                  "Failed to get modid/port for lport %x: modid %d modport %d\n",
-                   lport, modid, modport); 
+                  "Failed to get modid/port for gport %x: modid %d modport %d\n",
+                   gport, modid, modport); 
           continue;
         }
 
@@ -411,7 +407,7 @@ L7_RC_t hapiBroadL2McastUSPLeave(bcm_mac_t mac, bcm_vlan_t vid,
     hapiPortPtr = HAPI_PORT_GET(&localUsp, dapi_g);
     /* Get the logical port */
     /* will not get here unless the hapPortPtr is valid */
-    lport = hapiPortPtr->bcmx_lport;
+    gport = hapiPortPtr->bcm_gport;
 
     if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) == L7_TRUE)
     {
@@ -422,19 +418,19 @@ L7_RC_t hapiBroadL2McastUSPLeave(bcm_mac_t mac, bcm_vlan_t vid,
       {
         hapiPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[0].usp,dapi_g);
 
-        lport = hapiPortPtr->bcmx_lport;
+        gport = hapiPortPtr->bcm_gport;
       }
     }
 
-    if (!BCM_GPORT_IS_WLAN_PORT(lport))
+    if (!BCM_GPORT_IS_WLAN_PORT(gport))
     {
-      modid = BCM_GPORT_MODPORT_MODID_GET(lport);
-      modport = BCM_GPORT_MODPORT_PORT_GET(lport);
+      modid = BCM_GPORT_MODPORT_MODID_GET(gport);
+      modport = BCM_GPORT_MODPORT_PORT_GET(gport);
       if (modid < 0 || modport < 0)
       {
         L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, 
-               "Failed to get modid/port for lport %x: modid %d modport %d\n",
-               lport, modid, modport); 
+               "Failed to get modid/port for gport %x: modid %d modport %d\n",
+               gport, modid, modport); 
       }
       else
       {
@@ -444,7 +440,7 @@ L7_RC_t hapiBroadL2McastUSPLeave(bcm_mac_t mac, bcm_vlan_t vid,
     }
     else
     {
-      BROAD_WLAN_PBMP_SET(bcmMcastAddr.wlan_pbmp, BROAD_WLAN_GPORT_TO_ID(lport));
+      BROAD_WLAN_PBMP_SET(bcmMcastAddr.wlan_pbmp, BROAD_WLAN_GPORT_TO_ID(gport));
       rv = usl_bcmx_mcast_leave_ports(&bcmMcastAddr);
     }
 
@@ -698,7 +694,7 @@ L7_RC_t hapiBroadGarpGroupRegModify(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
   hapiBroadL2McastCritSecEnter();
 
   /* 
-   * Make sure that the vlan is created (using this in lieu of bcmx_vlan_port_get
+   * Make sure that the vlan is created (using this in lieu of bcm_vlan_port_get
    * because the bcmx routine is costly with a stack)
    * A slight cheat here is that the cpu is a member of all vlans.  If this changes
    * in the future, we will need to change this code
@@ -747,9 +743,9 @@ L7_RC_t hapiBroadGarpGroupRegModify(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
     }
 
     /* allocate a new mcast entry */
-    bcmx_mcast_addr_init(&mcastGroupList[index].mcMacAddr, 
-                         garpMgmt->cmdData.groupRegModify.grpMacAddr, 
-                         garpMgmt->cmdData.groupRegModify.vlanId);
+    bcm_mcast_addr_init(&mcastGroupList[index].mcMacAddr, 
+                        garpMgmt->cmdData.groupRegModify.grpMacAddr, 
+                        garpMgmt->cmdData.groupRegModify.vlanId);
 
     memset(mcastGroupList[index].if_member,0,bitmapSize);      /* WPJ */
 
@@ -977,8 +973,8 @@ L7_RC_t hapiBroadGarpGroupRegDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
       }
 
       mcastGroupList[index].hwStatus = BCM_E_NONE;
-      bcmx_lplist_free(&(mcastGroupList[index].mcMacAddr.ports));
-      bcmx_lplist_free(&(mcastGroupList[index].mcMacAddr.untag_ports));
+      BCM_PBMP_CLEAR(mcastGroupList[index].mcMacAddr.pbmp);
+      BCM_PBMP_CLEAR(mcastGroupList[index].mcMacAddr.ubmp);
 
       memset(&mcastGroupList[index].mcMacAddr, 0, sizeof(mcastGroupList[index].mcMacAddr));
       memset(mcastGroupList[index].if_member,0,bitmapSize);        /* WPJ */
@@ -1147,7 +1143,7 @@ void hapiBroadMgmLagMemberAddNotify (DAPI_USP_t *memberUsp, DAPI_USP_t *lagUsp, 
 
   hapiPortPtr = HAPI_PORT_GET(memberUsp, dapi_g);
 
-  port = hapiPortPtr->bcmx_lport;
+  port = hapiPortPtr->bcm_gport;
 
   if (hapiBroadL2McastLagDistributionSupported() == L7_TRUE)
   {
@@ -1224,7 +1220,7 @@ void hapiBroadMgmLagMemberRemoveNotify (DAPI_USP_t *memberUsp, DAPI_USP_t *lagUs
 
   hapiPortPtr = HAPI_PORT_GET(memberUsp, dapi_g);
 
-  port = hapiPortPtr->bcmx_lport;
+  port = hapiPortPtr->bcm_gport;
 
   if (hapiBroadL2McastLagDistributionSupported() == L7_TRUE)
   {

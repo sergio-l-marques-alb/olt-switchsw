@@ -22,7 +22,6 @@
 *******************************************************************************/
 
 #include "broad_l3_int.h"
-#include "bcmx/tunnel.h"
 #include "bcm/error.h"
 #include "l7_usl_bcmx_l2.h"
 #include "l7_usl_bcmx_l3.h"
@@ -227,22 +226,22 @@ static void hapiBroadL3AsyncNhopWlistProcess (DAPI_t *dapi_g)
           }
           else
           {
-            if (BCM_GPORT_IS_WLAN_PORT(hapiPortPtr->bcmx_lport))
+            if (BCM_GPORT_IS_WLAN_PORT(hapiPortPtr->bcm_gport))
             {
-              bcmEgrObj.bcm_data.module = hapiPortPtr->bcmx_lport;
-              bcmEgrObj.bcm_data.port   = hapiPortPtr->bcmx_lport;
+              bcmEgrObj.bcm_data.module = hapiPortPtr->bcm_gport;
+              bcmEgrObj.bcm_data.port   = hapiPortPtr->bcm_gport;
             }
             else
             {
-              bcmEgrObj.bcm_data.module = BCM_GPORT_MODPORT_MODID_GET(hapiPortPtr->bcmx_lport);
-              bcmEgrObj.bcm_data.port   = BCM_GPORT_MODPORT_PORT_GET(hapiPortPtr->bcmx_lport);
+              bcmEgrObj.bcm_data.module = BCM_GPORT_MODPORT_MODID_GET(hapiPortPtr->bcm_gport);
+              bcmEgrObj.bcm_data.port   = BCM_GPORT_MODPORT_PORT_GET(hapiPortPtr->bcm_gport);
             }
             if ((bcmEgrObj.bcm_data.module == HAPI_BROAD_INVALID_MODID) ||
                 (bcmEgrObj.bcm_data.port   == HAPI_BROAD_INVALID_MODPORT))  
             {
               L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, 
-                      "Failed to get modid/port for lport %x\n",
-                      hapiPortPtr->bcmx_lport);
+                      "Failed to get modid/port for gport %x\n",
+                      hapiPortPtr->bcm_gport);
             }
           }
           bcmEgrObj.bcm_data.intf = pNhop->l3_intf_id;
@@ -254,14 +253,14 @@ static void hapiBroadL3AsyncNhopWlistProcess (DAPI_t *dapi_g)
           cpuHapiPortPtr = hapiBroadL3CpuHapiPortGet(dapi_g);
           bcmEgrObj.bcm_data.vlan = HPC_STACKING_VLAN_ID;
 
-          bcmEgrObj.bcm_data.module = BCM_GPORT_MODPORT_MODID_GET(cpuHapiPortPtr->bcmx_lport);
-          bcmEgrObj.bcm_data.port   = BCM_GPORT_MODPORT_PORT_GET(cpuHapiPortPtr->bcmx_lport);
+          bcmEgrObj.bcm_data.module = BCM_GPORT_MODPORT_MODID_GET(cpuHapiPortPtr->bcm_gport);
+          bcmEgrObj.bcm_data.port   = BCM_GPORT_MODPORT_PORT_GET(cpuHapiPortPtr->bcm_gport);
           if ((bcmEgrObj.bcm_data.module == HAPI_BROAD_INVALID_MODID) ||
               (bcmEgrObj.bcm_data.port   == HAPI_BROAD_INVALID_MODPORT))  
           {
             L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, 
-                    "Failed to get modid/port for lport %x\n",
-                    cpuHapiPortPtr->bcmx_lport);
+                    "Failed to get modid/port for gport %x\n",
+                    cpuHapiPortPtr->bcm_gport);
           }
           bcmEgrObj.bcm_data.intf = hapiBroadL3CpuIntfId;
           memcpy(bcmEgrObj.bcm_data.mac_addr, hapiBroadL3CpuMac, sizeof(bcm_mac_t));
@@ -336,8 +335,8 @@ static void hapiBroadL3AsyncNhopWlistProcess (DAPI_t *dapi_g)
 *
 * @returns none
 *
-* @notes   Instead of using bcmx_l3_egress_multipath_add() and 
-*          bcmx_l3_egress_multipath_delete() APIs, the replace flag is used to 
+* @notes   Instead of using bcm_l3_egress_multipath_add() and 
+*          bcm_l3_egress_multipath_delete() APIs, the replace flag is used to 
 *          update multipath egress objects (single RPC call).
 *
 * @end
@@ -419,7 +418,7 @@ static void hapiBroadL3AsyncEcmpWlistProcess (DAPI_t *dapi_g)
           rv = usl_bcmx_l3_egress_multipath_create(flags, intf_count, intf, 
                                                    &pEcmp->egressId);
 
-          HAPI_BROAD_L3_BCMX_DBG(rv, "bcmx_l3_egress_multipath_create"
+          HAPI_BROAD_L3_BCMX_DBG(rv, "bcm_l3_egress_multipath_create"
                       " returned (%s) intf count %d, egress id %d \n", 
                        bcm_errmsg(rv), intf_count, pEcmp->egressId);
 
@@ -460,7 +459,7 @@ static void hapiBroadL3AsyncEcmpWlistProcess (DAPI_t *dapi_g)
          {
            rv = usl_bcmx_l3_egress_multipath_destroy(egrId);
  
-           HAPI_BROAD_L3_BCMX_DBG(rv, "bcmx_l3_egress_multipath_destroy:"
+           HAPI_BROAD_L3_BCMX_DBG(rv, "bcm_l3_egress_multipath_destroy:"
                                   " Id %d (%s)", egrId, bcm_errmsg(rv));
 
            HAPI_BROAD_L3_INCR_HW_STATS(&broadL3HwEcmpStats, 2, rv);
@@ -983,7 +982,7 @@ static void hapiBroadL3AsyncRouteWlistProcess (DAPI_t *dapi_g)
           usl_bcmx_l3_host_add (&bcmHostInfo, 1, &rv);
      
           HAPI_BROAD_L3_BCMX_DBG(rv, "128-bit prefix special case: "
-                    " bcmx_l3_host_add returned (%s)\n", bcm_errmsg(rv));
+                    " bcm_l3_host_add returned (%s)\n", bcm_errmsg(rv));
         }
         else
         {

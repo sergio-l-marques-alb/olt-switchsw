@@ -38,7 +38,6 @@
 #include "l7_usl_macsync.h"
 #endif
 
-#include "bcmx/bcmx_int.h"
 #include "ibde.h"
 
 /* IP Subnet Vlan table resources */
@@ -3620,7 +3619,7 @@ void usl_system_db_dump(USL_DB_TYPE_t dbType)
 *
 * @notes    If the system has been operational for a while, the caller should
 *           have called the usl_l2_database_invalidate before calling this
-*           in order to insure that the lplists have been properly freed       
+*           in order to insure that the gplists have been properly freed       
 * @end
 *********************************************************************/
 L7_RC_t usl_l2_db_fini()

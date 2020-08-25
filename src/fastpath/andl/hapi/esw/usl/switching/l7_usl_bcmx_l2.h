@@ -25,7 +25,6 @@
 #include "l7_usl_bcm_l2.h"
 
 #include "bcm/vlan.h"
-#include "bcmx/l2.h"
 
 /* PTin added: SDK 6.3.0 */
 #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
@@ -59,10 +58,10 @@ int usl_bcmx_l2_addr_remove_by_trunk (bcm_trunk_t tgid, L7_uint32 flags);
 *
 * @end
 *********************************************************************/
-int usl_bcmx_l2_addr_remove_by_wlan_port (bcmx_lport_t port);
+int usl_bcmx_l2_addr_remove_by_wlan_port (bcm_gport_t port);
 
 /*********************************************************************
-* @purpose  Flush dynamic MAC addresses for specified lport.
+* @purpose  Flush dynamic MAC addresses for specified gport.
 *
 * @param    tgid - BCMX trunk identifier.
 * @param    flags - BCMX flags (BCM_L2_DELETE_*).
@@ -74,7 +73,7 @@ int usl_bcmx_l2_addr_remove_by_wlan_port (bcmx_lport_t port);
 *
 * @end
 *********************************************************************/
-int usl_bcmx_l2_addr_remove_by_port (bcmx_lport_t lport, L7_uint32 flags);
+int usl_bcmx_l2_addr_remove_by_port (bcm_gport_t gport, L7_uint32 flags);
 
 /*********************************************************************
 * @purpose  Flush specific dynamic MAC addresses.
@@ -92,7 +91,7 @@ int usl_bcmx_l2_addr_remove_by_port (bcmx_lport_t lport, L7_uint32 flags);
 int usl_bcmx_l2_addr_remove_by_mac (bcm_mac_t mac, L7_uint32 flags);
 
 /*********************************************************************
-* @purpose  Flush dynamic MAC addresses for all lport.
+* @purpose  Flush dynamic MAC addresses for all gport.
 *
 * @param    flags - BCMX flags (BROAD_FLUSH_FLAGS_t).
 *
@@ -141,7 +140,7 @@ int usl_bcmx_l2_addr_remove_by_vlan (bcm_vlan_t vid, L7_uint32 flags);
 *
 * @end
 *********************************************************************/
-extern int usl_bcmx_l2_addr_add(bcmx_l2_addr_t * l2addr,bcmx_lplist_t *port_block);
+extern int usl_bcmx_l2_addr_add(bcm_l2_addr_t *l2addr, bcmy_gplist_t *port_block);
 
 /*********************************************************************
 * @purpose  Add a L2 MAC address to the USL forwarding database
@@ -153,7 +152,7 @@ extern int usl_bcmx_l2_addr_add(bcmx_l2_addr_t * l2addr,bcmx_lplist_t *port_bloc
 *
 * @end
 *********************************************************************/
-extern int usl_l2_learned_addr_add(bcmx_l2_addr_t * l2addr ,bcmx_lplist_t *port_block);
+extern int usl_l2_learned_addr_add(bcm_l2_addr_t *l2addr, bcmy_gplist_t *port_block);
 
 /*********************************************************************
 * @purpose  Remove a L2 MAC address from the HW's forwarding database
@@ -475,7 +474,7 @@ extern int usl_bcmx_mcast_port_leave_groups(bcm_gport_t port, int *l2mc_index, i
 * @end
 *
 *********************************************************************/
-int usl_ip_bcmx_vlan_control_port_set(bcmx_lport_t port,
+int usl_ip_bcmx_vlan_control_port_set(bcm_gport_t port,
                                       bcm_vlan_control_port_t type, int arg);
 
 /*********************************************************************
@@ -518,7 +517,7 @@ int usl_bcmx_vlan_ip4_delete(bcm_ip_t ipaddr, bcm_ip_t netmask);
 * @end
 *
 *********************************************************************/
-int usl_mac_bcmx_vlan_control_port_set(bcmx_lport_t port,
+int usl_mac_bcmx_vlan_control_port_set(bcm_gport_t port,
                                        bcm_vlan_control_port_t type, int arg);
 
 /*********************************************************************
@@ -591,7 +590,7 @@ int usl_bcmx_protected_group_set(usl_bcm_protected_group_t *groupInfo);
 /*********************************************************************
 * @purpose  Delete a port from protected port group 
 *
-* @param    lport                 @{(input)}  port to be removed
+* @param    gport                 @{(input)}  port to be removed
 * @param    groupId               @{(input)}  GroupId of the protected port
 * @param    protectedGroupList    @{(input)}  List of protected port
 *
@@ -602,7 +601,7 @@ int usl_bcmx_protected_group_set(usl_bcm_protected_group_t *groupInfo);
 *
 * @end
 *********************************************************************/
-int usl_bcmx_protected_group_port_remove(bcmx_lport_t lport, L7_uint32 groupId);
+int usl_bcmx_protected_group_port_remove(bcm_gport_t gport, L7_uint32 groupId);
 
 /*********************************************************************
 * @purpose  Enable/Disable Flow control in the system

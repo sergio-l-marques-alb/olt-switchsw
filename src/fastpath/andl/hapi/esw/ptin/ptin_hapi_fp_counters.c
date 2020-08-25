@@ -324,7 +324,7 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
   hapi_ptin_allportsbmp_get(&pbm_mask);
 
   BCM_PBMP_CLEAR(pbm);
-  portDescriptor.lport            = -1;
+  portDescriptor.gport            = -1;
   portDescriptor.bcm_port         = -1;
   portDescriptor.trunk_id         = -1;
 //portDescriptor.efp_class_port   =  0;
@@ -659,7 +659,7 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
         /* Physical port */
         if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
         {
-          if (hapiBroadPolicyApplyToIface(policyId, hapiPortPtr->bcmx_lport) != L7_SUCCESS)
+          if (hapiBroadPolicyApplyToIface(policyId, hapiPortPtr->bcm_gport) != L7_SUCCESS)
           {
             hapiBroadPolicyDelete(policyId);
             PT_LOG_ERR(LOG_CTX_HAPI,"Error applying interface usp={%d,%d,%d}/bcm_port %u!", usp->unit,usp->slot,usp->port, hapiPortPtr->bcm_port);
@@ -678,7 +678,7 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
             {
               hapiLagMemberPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
 
-              if (hapiBroadPolicyApplyToIface(policyId, hapiLagMemberPortPtr->bcmx_lport) != L7_SUCCESS)
+              if (hapiBroadPolicyApplyToIface(policyId, hapiLagMemberPortPtr->bcm_gport) != L7_SUCCESS)
               {
                 hapiBroadPolicyDelete(policyId);
                 PT_LOG_ERR(LOG_CTX_HAPI,"Error applying interface usp={%d,%d,%d}/bcm_port %u!", usp->unit,usp->slot,usp->port, hapiLagMemberPortPtr->bcm_port);
@@ -1099,7 +1099,8 @@ void ptin_fpcounters_dump_debug(void)
       for (rule=0; rule<PTIN_PACKETS_TYPE_MAX; rule++)
       {
         /* Also print hw group id and entry id*/
-        if (l7_bcm_policy_hwInfo_get(0,ptr->policy_id[stage],ptr->rule_id[stage][rule],&group_id,&entry_id,L7_NULLPTR,L7_NULLPTR)==L7_SUCCESS)
+        /* FIXME: Only applied to unit 0 */
+        if (l7_bcm_policy_hwInfo_get(0 /*unit*/,ptr->policy_id[stage],ptr->rule_id[stage][rule],&group_id,&entry_id,L7_NULLPTR,L7_NULLPTR)==L7_SUCCESS)
         {
           printf("    Rule %d: group=%d, entry=%d\r\n",ptr->rule_id[stage][rule],group_id,entry_id);
         }

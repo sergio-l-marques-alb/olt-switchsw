@@ -24,11 +24,6 @@
 #include "soc/drv.h"
 #include "soc/l2x.h"
 #include "bcm/types.h"
-#include "bcmx/trunk.h"
-#include "bcmx/l2.h"
-#include "bcmx/mcast.h"
-#include "bcmx/vlan.h"
-#include "bcmx/stg.h"
 #include "bcm_int/esw/mbcm.h"
 /* PTin modified: SDK 6.3.0 */
 #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
@@ -37,7 +32,6 @@
 #include "bcm_int/esw/draco.h"
 #endif
 #include "ibde.h"
-#include <bcmx/bcmx_int.h>
 #include "broad_common.h"
 
 /* Local Structure used for VLAN based L2 addr flush */
@@ -148,7 +142,7 @@ int usl_l7_remove_l2_addr_by_port (void *user_data, shr_avl_datum_t *datum , voi
   L7_uint32             l2entry_port, l2entry_modid, l2entry_vlanid, l2entry_static;
   mac_addr_t            macAddr;
   l2x_entry_t          *l2x_entry;
-  bcmx_lport_t          lport;
+  bcm_gport_t           gport;
 
 
   if ((NULL == extra_data) || (NULL == datum))
@@ -157,13 +151,13 @@ int usl_l7_remove_l2_addr_by_port (void *user_data, shr_avl_datum_t *datum , voi
   /* Initialize */
   l2entry_port = l2entry_modid = l2entry_vlanid = 0;
 
-  lport = *((bcmx_lport_t *)extra_data);
+  gport = *((bcm_gport_t *)extra_data);
   l2x_entry = (l2x_entry_t *) datum;
 
   /* Get the unit, port and modid */
-  unit = BCMX_LPORT_BCM_UNIT(lport);
-  port = BCMX_LPORT_BCM_PORT(lport);
-  modid = BCMX_LPORT_MODID (lport);
+  unit  = BCMY_GPORT_BCM_UNIT(gport);
+  port  = BCMY_GPORT_BCM_PORT(gport);
+  modid = BCMY_GPORT_MODID (gport);
 
   /* Now get the entry details */
   l2entry_port = soc_L2Xm_field32_get(unit, l2x_entry, TGID_PORTf);
@@ -266,17 +260,19 @@ int usl_l7_remove_l2_addr_by_vlan (void *user_data, shr_avl_datum_t *datum , voi
 int usl_bcmx_l2_addr_remove_by_trunk (bcm_trunk_t tgid, L7_uint32 flags)
 {
   int                  rc = BCM_E_NONE;
-  int                  i, bcm_unit;
-  soc_control_t               *soc;
+  int                  bcm_unit;
+  soc_control_t        *soc;
   usl_unit_tgid_info_t tgid_unit_info;
   
   BROAD_L2ADDR_FLUSH_t l2addr_msg;
   
-  BCMX_UNIT_ITER(bcm_unit, i) {
-	if (SOC_IS_HERCULES(bcm_unit))
+  /* Run all units */
+  for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
 	{
-	  continue;
-	}
+		if (SOC_IS_HERCULES(bcm_unit))
+		{
+			continue;
+		}
     /* If 5690 then do the manual removal of all the learnt addresses
      * on the given port */
     if (SOC_IS_DRACO1(bcm_unit))
@@ -286,7 +282,7 @@ int usl_bcmx_l2_addr_remove_by_trunk (bcm_trunk_t tgid, L7_uint32 flags)
 
       soc = SOC_CONTROL (bcm_unit);
       sal_mutex_take(soc->arlShadowMutex, -1);
-	  shr_avl_traverse (soc->arlShadow, usl_l7_remove_l2_addr_by_trunk, &tgid_unit_info);
+	    shr_avl_traverse (soc->arlShadow, usl_l7_remove_l2_addr_by_trunk, &tgid_unit_info);
       sal_mutex_give(soc->arlShadowMutex);
     }
     else
@@ -294,7 +290,6 @@ int usl_bcmx_l2_addr_remove_by_trunk (bcm_trunk_t tgid, L7_uint32 flags)
       rc =  bcm_l2_addr_delete_by_trunk (bcm_unit, tgid, flags);
     }
   }
-
 
   memset((void *)&l2addr_msg, 0, sizeof(l2addr_msg));
   l2addr_msg.tgid = tgid;
@@ -305,7 +300,7 @@ int usl_bcmx_l2_addr_remove_by_trunk (bcm_trunk_t tgid, L7_uint32 flags)
 }
 
 /*********************************************************************
-* @purpose  Flush dynamic MAC addresses for specified lport.
+* @purpose  Flush dynamic MAC addresses for specified gport.
 *
 * @param    tgid - BCMX trunk identifier.
 * @param    flags - BCMX flags (BCM_L2_DELETE_*).
@@ -317,7 +312,7 @@ int usl_bcmx_l2_addr_remove_by_trunk (bcm_trunk_t tgid, L7_uint32 flags)
 *
 * @end
 *********************************************************************/
-int usl_bcmx_l2_addr_remove_by_port (bcmx_lport_t lport, L7_uint32 flags)
+int usl_bcmx_l2_addr_remove_by_port (bcm_gport_t gport, L7_uint32 flags)
 {
   int          rc = BCM_E_NONE;
   L7_uint32    unit;
@@ -327,7 +322,7 @@ int usl_bcmx_l2_addr_remove_by_port (bcmx_lport_t lport, L7_uint32 flags)
   bcm_port_t modport; 
 
   /* Get the soc structure for the unit */
-  unit = BCMX_LPORT_BCM_UNIT(lport);
+  unit = BCMY_GPORT_BCM_UNIT(gport);
   soc = SOC_CONTROL (unit);
  
   /* If 5690 then do the manual removal of all the learnt addresses
@@ -335,17 +330,23 @@ int usl_bcmx_l2_addr_remove_by_port (bcmx_lport_t lport, L7_uint32 flags)
   if (SOC_IS_DRACO1(unit))
   {
     sal_mutex_take(soc->arlShadowMutex, -1);
-    shr_avl_traverse (soc->arlShadow, usl_l7_remove_l2_addr_by_port, &lport);
+    shr_avl_traverse (soc->arlShadow, usl_l7_remove_l2_addr_by_port, &gport);
     sal_mutex_give(soc->arlShadowMutex);
   }
   else
   { /* In all other cases call the broadcom call to flush */
-    bcmx_lport_to_modid_port(lport, &modid, &modport);
-    rc = bcm_l2_addr_delete_by_port(unit, modid, modport, flags);
+    if (bcmy_gport_to_modid_port(gport, &modid, &modport) == BCMY_E_NONE)
+	{
+		rc = bcm_l2_addr_delete_by_port(unit, modid, modport, flags);
+	}
+	else
+	{
+		rc = BCM_E_PARAM;	
+	}
   }
 
   memset((void *)&l2addr_msg, 0, sizeof(l2addr_msg));
-  l2addr_msg.bcmx_lport = lport;
+  l2addr_msg.bcm_gport = gport;
   l2addr_msg.port_is_lag = L7_FALSE;
   hapiBroadFlushL2LearnModeSet(l2addr_msg, L7_ENABLE);
 
@@ -354,7 +355,7 @@ int usl_bcmx_l2_addr_remove_by_port (bcmx_lport_t lport, L7_uint32 flags)
 }
 
 /*********************************************************************
-* @purpose  Flush dynamic MAC addresses for all lport.
+* @purpose  Flush dynamic MAC addresses for all gport.
 *
 * @param    flags - BCMX flags (BROAD_FLUSH_FLAGS_t).
 *
@@ -373,7 +374,8 @@ int usl_bcmx_l2_addr_remove_all (BROAD_FLUSH_FLAGS_t flags)
   BROAD_L2ADDR_FLUSH_t l2addr_msg;
   int modid; 
   bcm_port_t modport;
-  bcmx_lport_t lport;
+  bcm_gport_t gport;
+  int gp_idx;
 
   /* Set flags */
   if (flags == BROAD_FLUSH_FLAGS_NOEVENTS)
@@ -385,20 +387,24 @@ int usl_bcmx_l2_addr_remove_all (BROAD_FLUSH_FLAGS_t flags)
     flags = 0;
   }
   
-  BCMX_FOREACH_LPORT(lport) {
-	  if ((BCMX_LPORT_FLAGS(lport) & BCMX_PORT_F_FE) ||
-		  (BCMX_LPORT_FLAGS(lport) & BCMX_PORT_F_GE) ||
-		  (BCMX_LPORT_FLAGS(lport) & BCMX_PORT_F_XE) ||
-          (BCMX_LPORT_FLAGS(lport) & BCMX_PORT_F_HG)) {
-
+  /* Iterate all local gports */
+  BCMY_GPORT_ITER(gp_idx, gport)
+  {
+#if 0
+  BCMX_FOREACH_LPORT(gport) {
+	  if ((BCMX_LPORT_FLAGS(gport) & BCMX_PORT_F_FE) ||
+		  (BCMX_LPORT_FLAGS(gport) & BCMX_PORT_F_GE) ||
+		  (BCMX_LPORT_FLAGS(gport) & BCMX_PORT_F_XE) ||
+          (BCMX_LPORT_FLAGS(gport) & BCMX_PORT_F_HG)) {
+#endif
 		  /* Disable Hw Learning*/
 		  memset((void *)&l2addr_msg, 0, sizeof(l2addr_msg));
-		  l2addr_msg.bcmx_lport = lport;
+		  l2addr_msg.bcm_gport = gport;
 		  l2addr_msg.port_is_lag = L7_FALSE;
 		  hapiBroadFlushL2LearnModeSet(l2addr_msg, L7_DISABLE);
 
 		  /* Get the soc structure for the unit */
-		  unit = BCMX_LPORT_BCM_UNIT(lport);
+		  unit = BCMY_GPORT_BCM_UNIT(gport);
 		  soc = SOC_CONTROL (unit);
  
 		 /* If 5690 then do the manual removal of all the learnt addresses
@@ -406,21 +412,27 @@ int usl_bcmx_l2_addr_remove_all (BROAD_FLUSH_FLAGS_t flags)
 		  if (SOC_IS_DRACO1(unit))
 		  {
 			  sal_mutex_take(soc->arlShadowMutex, -1);
-			  shr_avl_traverse (soc->arlShadow, usl_l7_remove_l2_addr_by_port, &lport);
+			  shr_avl_traverse (soc->arlShadow, usl_l7_remove_l2_addr_by_port, &gport);
 			  sal_mutex_give(soc->arlShadowMutex);
 		  }
 		  else
 		  { /* In all other cases call the broadcom call to flush */
-			  bcmx_lport_to_modid_port(lport, &modid, &modport);
-			  rc = bcm_l2_addr_delete_by_port(unit, modid, modport, flags);
+			  if (bcmy_gport_to_modid_port(gport, &modid, &modport) == BCMY_E_NONE)
+			  {
+				  rc = bcm_l2_addr_delete_by_port(unit, modid, modport, flags);
+			  }
+			  else
+			  {
+				  rc = BCM_E_PARAM;
+			  }
 		  }
 
 		  /* Re-Enable Learning */
 		  memset((void *)&l2addr_msg, 0, sizeof(l2addr_msg));
-		  l2addr_msg.bcmx_lport = lport;
+		  l2addr_msg.bcm_gport = gport;
 		  l2addr_msg.port_is_lag = L7_FALSE;
 		  hapiBroadFlushL2LearnModeSet(l2addr_msg, L7_ENABLE);
-	  }
+//	  }
   }
 
   return rc;
@@ -457,15 +469,17 @@ int usl_bcmx_l2_addr_sync()
 int usl_bcmx_l2_addr_remove_by_vlan (bcm_vlan_t vid, L7_uint32 flags)
 {
   int                  rc = BCM_E_NONE;
-  int                  i, bcm_unit;
-  soc_control_t               *soc;
+  int                  bcm_unit;
+  soc_control_t        *soc;
   usl_unit_vlan_info_t vlan_unit_info;
 
-  BCMX_UNIT_ITER(bcm_unit, i) {
-    if (SOC_IS_HERCULES(bcm_unit))
+  /* Run all units */
+  for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
 	{
-	  continue;
-	}
+    if (SOC_IS_HERCULES(bcm_unit))
+	  {
+	    continue;
+	  }
     /* If 5690 then do the manual removal of all the learnt addresses
      * on the given port */
     if (SOC_IS_DRACO1(bcm_unit))
@@ -502,7 +516,20 @@ int usl_bcmx_l2_addr_remove_by_vlan (bcm_vlan_t vid, L7_uint32 flags)
 *********************************************************************/
 int usl_bcmx_l2_addr_remove_by_mac (bcm_mac_t mac, L7_uint32 flags)
 {
-  return bcmx_l2_addr_delete_by_mac(mac, flags);
+	int bcm_unit;
+	int rc, rc_ret = BCM_E_NONE;
+
+	/* Run all units */
+	for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
+	{
+		rc = bcm_l2_addr_delete_by_mac(bcm_unit, mac, 0);
+		if (rc != BCM_E_NONE)
+		{
+			rc_ret = rc;
+		}
+	}
+
+	return rc_ret;
 }
 
 /*********************************************************************
@@ -515,9 +542,22 @@ int usl_bcmx_l2_addr_remove_by_mac (bcm_mac_t mac, L7_uint32 flags)
 *
 * @end
 *********************************************************************/
-int usl_bcmx_l2_addr_add(bcmx_l2_addr_t * l2addr,bcmx_lplist_t *port_block)
+int usl_bcmx_l2_addr_add(bcm_l2_addr_t *l2addr, bcmy_gplist_t *port_block)
 {
-  return bcmx_l2_addr_add(l2addr,port_block);
+	int bcm_unit;
+	int rc, rc_ret = BCM_E_NONE;
+
+	/* Run all units */
+	for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
+	{
+		rc = bcm_l2_addr_add(bcm_unit, l2addr);
+		if (rc != BCM_E_NONE)
+		{
+			rc_ret = rc;
+		}
+	}
+
+	return rc_ret;
 }
 
 /*********************************************************************
@@ -532,7 +572,20 @@ int usl_bcmx_l2_addr_add(bcmx_l2_addr_t * l2addr,bcmx_lplist_t *port_block)
 *********************************************************************/
 int usl_bcmx_l2_addr_delete(bcm_mac_t mac_addr, bcm_vlan_t vid)
 {
-  return bcmx_l2_addr_delete(mac_addr, vid);
+	int bcm_unit;
+	int rc, rc_ret = BCM_E_NONE;
+
+	/* Run all units */
+	for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
+	{
+		rc = bcm_l2_addr_delete(bcm_unit, mac_addr, vid);
+		if (rc != BCM_E_NONE)
+		{
+			rc_ret = rc;
+		}
+	}
+
+	return rc_ret;
 }
 
 /*********************************************************************
@@ -546,7 +599,20 @@ int usl_bcmx_l2_addr_delete(bcm_mac_t mac_addr, bcm_vlan_t vid)
 *********************************************************************/
 int usl_bcmx_l2_age_timer_set(L7_int32 ageTime)
 {
-  return bcmx_l2_age_timer_set(ageTime);
+	int bcm_unit;
+	int rc, rc_ret = BCM_E_NONE;
+
+	/* Run all units */
+	for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
+	{
+		rc = bcm_l2_age_timer_set(bcm_unit, ageTime);
+		if (rc != BCM_E_NONE)
+		{
+			rc_ret = rc;
+		}
+	}
+
+	return rc_ret;
 }
 
 /*********************************************************************

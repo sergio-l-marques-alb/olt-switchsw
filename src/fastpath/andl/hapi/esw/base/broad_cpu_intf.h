@@ -25,10 +25,7 @@
 
 #include "dapi.h"
 
-#include "bcmx/lplist.h"
-#include "bcmx/bcmx.h"
-#include "bcmx/lport.h"
-#include "bcmx/rx.h"
+#include "bcmy_gport_api.h"
 
 
 /*********************************************************************
@@ -125,7 +122,7 @@ L7_BOOL hapiBroadPortIsForwarding(DAPI_USP_t *usp, L7_ushort16 vlanId, DAPI_t *d
 * @end
 *
 *********************************************************************/
-void hapiBroadGetSameVlanPbmp(L7_ushort16 vlanID, DAPI_USP_t *usp, bcmx_lplist_t *memberLplist, DAPI_t *dapi_g);
+void hapiBroadGetSameVlanPbmp(L7_ushort16 vlanID, DAPI_USP_t *usp, bcmy_gplist_t *memberGplist, DAPI_t *dapi_g);
 
 /*********************************************************************
 *
@@ -144,16 +141,16 @@ void hapiBroadGetSameVlanPbmp(L7_ushort16 vlanID, DAPI_USP_t *usp, bcmx_lplist_t
 * @end
 *
 *********************************************************************/
-void hapiBroadGetSameVlanPbmpTx(L7_ushort16 vlanID, bcmx_lplist_t *taggedLplist, L7_BOOL filter_linkup, DAPI_t *dapi_g);    /* PTin modified: filter_linkup */
+void hapiBroadGetSameVlanPbmpTx(L7_ushort16 vlanID, bcmy_gplist_t *taggedGplist, L7_BOOL filter_linkup, DAPI_t *dapi_g);    /* PTin modified: filter_linkup */
 
 /*********************************************************************
 *
-* @purpose This routine sets the tagging status of the ports passed in the lplist
+* @purpose This routine sets the tagging status of the ports passed in the gplist
 *
 * @param   vlanID          vlan to use for tagging status
-* @param   *lplist         starting list of members both tagged and untagged
-* @param   *tagedlplist    resulting list of members tagged members
-* @param   *untagedlplist  resulting list of members untagged members
+* @param   *gplist         starting list of members both tagged and untagged
+* @param   *tagedGplist    resulting list of members tagged members
+* @param   *untagedGplist  resulting list of members untagged members
 * @param   *dapi_g
 *
 * @returns L7_SUCCESS
@@ -162,8 +159,8 @@ void hapiBroadGetSameVlanPbmpTx(L7_ushort16 vlanID, bcmx_lplist_t *taggedLplist,
 * @end
 *
 *********************************************************************/
-L7_RC_t hapiBroadTaggedStatusLplistSet(L7_ushort16 vlanId, bcmx_lplist_t *lplist, bcmx_lplist_t *taggedLplist,
-                                       bcmx_lplist_t *untaggedLplist, DAPI_t *dapi_g);
+L7_RC_t hapiBroadTaggedStatusGplistSet(L7_ushort16 vlanId, bcmy_gplist_t *gplist, bcmy_gplist_t *taggedGplist,
+                                       bcmy_gplist_t *untaggedGplist, DAPI_t *dapi_g);
 /*********************************************************************
 *
 * @purpose This routine clears bits in a port bitmap of the src port
@@ -180,7 +177,7 @@ L7_RC_t hapiBroadTaggedStatusLplistSet(L7_ushort16 vlanId, bcmx_lplist_t *lplist
 * @end
 *
 *********************************************************************/
-void hapiBroadPruneRxPort(DAPI_USP_t *usp, bcmx_lplist_t *lplist, DAPI_t *dapi_g);
+void hapiBroadPruneRxPort(DAPI_USP_t *usp, bcmy_gplist_t *gplist, DAPI_t *dapi_g);
 
 /*********************************************************************
 *
@@ -199,7 +196,7 @@ void hapiBroadPruneRxPort(DAPI_USP_t *usp, bcmx_lplist_t *lplist, DAPI_t *dapi_g
 * @end
 *
 *********************************************************************/
-void hapiBroadPruneTxPorts(bcmx_lplist_t *lplist, DAPI_t *dapi_g);
+void hapiBroadPruneTxPorts(bcmy_gplist_t *gplist, DAPI_t *dapi_g);
 
 /*********************************************************************
 *
@@ -217,7 +214,7 @@ void hapiBroadPruneTxPorts(bcmx_lplist_t *lplist, DAPI_t *dapi_g);
 * @end
 *
 *********************************************************************/
-void hapiBroadPruneTxUnauthorizedPorts(bcmx_lplist_t *lplist, DAPI_t *dapi_g);
+void hapiBroadPruneTxUnauthorizedPorts(bcmy_gplist_t *gplist, DAPI_t *dapi_g);
 
 /*********************************************************************
 *
@@ -236,7 +233,7 @@ void hapiBroadPruneTxUnauthorizedPorts(bcmx_lplist_t *lplist, DAPI_t *dapi_g);
 * @end
 *
 *********************************************************************/
-void hapiBroadPruneTxDiscardingPorts(L7_ushort16 vlanId, bcmx_lplist_t *lplist, DAPI_t *dapi_g);
+void hapiBroadPruneTxDiscardingPorts(L7_ushort16 vlanId, bcmy_gplist_t *gplist, DAPI_t *dapi_g);
 
 /*********************************************************************
 *

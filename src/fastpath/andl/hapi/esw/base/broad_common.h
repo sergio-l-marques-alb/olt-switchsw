@@ -312,19 +312,6 @@ extern L7_uint32 hapiDriverPrintfFlag;
 
 #define HAPI_BROAD_INVALID_L3_INTF_ID 0xFFFFFFFF
 
-#define HAPI_BROAD_USP_TO_UPORT(_usp,_uport)  (_uport) = (bcmx_uport_t) (((_usp)->unit << 24) | ((_usp)->slot << 16) | (_usp)->port)
-#define HAPI_BROAD_UPORT_TO_USP(_uport,_usp)  do {                                       \
-                                              (_usp)->unit = (((L7_uint32)_uport) >> 24) & 0xFF;     \
-                                              (_usp)->slot = (((L7_uint32)_uport) >> 16) & 0xFF;     \
-                                              (_usp)->port = (((L7_uint32)_uport))       & 0xFFFF;   \
-                                            } while (0)
-#define HAPI_BROAD_LPORT_TO_USP(_lport,_usp)  do {                                       \
-                                              bcmx_uport_t _uport = BCMX_UPORT_GET(_lport);       \
-                                              (_usp)->unit = (((L7_uint32)_uport) >> 24) & 0xFF;     \
-                                              (_usp)->slot = (((L7_uint32)_uport) >> 16) & 0xFF;     \
-                                              (_usp)->port = (((L7_uint32)_uport))       & 0xFFFF;   \
-                                            } while (0)
-
 /* maximum voip profile supported 
 */
 #define L7_MAX_VOIP_PROFILES 1
@@ -352,7 +339,7 @@ typedef struct BROAD_SYSTEM_s BROAD_SYSTEM_t;
 *******************************************************************************/
 typedef struct
 {
-  bcmx_lport_t            bcmx_lport;
+  bcm_gport_t             bcm_gport;
   int                     bcm_unit;
   int                     bcm_port;
   int                     bcm_modid;
@@ -590,7 +577,7 @@ struct BROAD_SYSTEM_s
 
 typedef struct 
 {
-  bcmx_lport_t     bcmx_lport;
+  bcm_gport_t      bcm_gport;
   L7_uint32        vlanID;
   DAPI_USP_t       usp;
 
@@ -609,20 +596,20 @@ typedef struct
          /* Following structure is for L2 Protocol Tunneling */
 typedef struct 
 {
-  bcmx_lport_t   bcmx_lport;
+  bcm_gport_t      bcm_gport;
   L7_uint32        vlanID;
   L7_ushort16      dot1adSVlanId;
   L7_ushort16      dot1adRemarkCVlanId;
-  DAPI_USP_t    usp;
+  DAPI_USP_t       usp;
 
   L7_uchar8       *pkt_data;
   L7_uint32        user_data_size;
-  L7_uchar8       proto_byte;
-  L7_uchar8       rx_untagged;
+  L7_uchar8        proto_byte;
+  L7_uchar8        rx_untagged;
   L7_uint32        sendFrame;
   L7_uint32        sendBpdu;
-  BROAD_PORT_t          *hapiPortPtr;
-  L7_BOOL         tunnel;     /* tells whether to tunnel or detunnel */
+  BROAD_PORT_t    *hapiPortPtr;
+  L7_BOOL          tunnel;     /* tells whether to tunnel or detunnel */
 
 } BROAD_TX_PDU_MSG_t;
 #endif
@@ -659,7 +646,7 @@ typedef enum
 
 typedef struct
 {
-  L7_uint32           bcmx_lport;
+  L7_uint32           bcm_gport;
   L7_uint32           tgid;
   L7_BOOL             port_is_lag;
   L7_uint32           vlanID;
@@ -747,7 +734,8 @@ L7_BOOL hapiBroadRxMacSaIsL3Intf(L7_uchar8 *macSa, DAPI_t *dapi_g);
 
 L7_RC_t hapiBroadDrvInit(L7_ulong32 cardId, DAPI_t *dapi_g);
 
-void hapiBroadAddrMacUpdate(void *bcmx_l2addr, int insert, DAPI_t *dapi_g);
+/** MAC address learn/age callback to DAPI */
+void hapiBroadAddrMacUpdate(int unit, bcm_l2_addr_t *l2addr, int operation, DAPI_t *dapi_g);
 
 void hapiBroadAddrMacFrameLearn(bcm_pkt_t *bcm_pkt, DAPI_t *dapi_g);
 
@@ -802,7 +790,7 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enable, L7_uint16 vlanId, L7_BOOL swit
 L7_RC_t hapiBroadConfigMldFilter(L7_BOOL enableFilter, DAPI_t *dapi_g);
 
 L7_RC_t hapiBroadTgidToUspConvert(L7_uint32 tgid, DAPI_USP_t *usp, DAPI_t *dapi_g);
-void hapiBroadLportToTgidUspConvert(L7_uint32 lport, DAPI_USP_t *usp, DAPI_t *dapi_g);
+
 L7_RC_t hapiBroadCosCommitDot1pParams(BROAD_PORT_t *hapiPortPtr, L7_uchar8 *dot1pMap);
 
 L7_RC_t hapiBroadCosSetDot1pParams(DAPI_USP_t *usp, L7_uchar8 dot1p, L7_uchar8 cosq, DAPI_t *dapi_g);
@@ -1027,17 +1015,6 @@ L7_BOOL hapiBroadMldHwIssueCheck (void);
 *********************************************************************/
 L7_BOOL hapiBroadTriumphCheck (void);
 
-L7_RC_t hapiBroadMapDbCreate(void);
-L7_RC_t hapiBroadMapDbCpuUnitEntryAdd(int unit, cpudb_key_t *cpuKey, int cpuunit);
-L7_RC_t hapiBroadMapDbCpuUnitEntryDel(int unit);
-L7_RC_t hapiBroadMapDbPortEntryAdd(int unit, bcm_port_t port, bcmx_lport_t lport);
-L7_RC_t hapiBroadMapDbEntryGet(cpudb_key_t *cpuKey, int cpuunit, bcm_port_t port, int *unit, bcmx_lport_t *lport);
-bcmx_uport_t lvl7_uport_create_callback(bcmx_lport_t lport, int unit, bcm_port_t port, uint32 flags);
-void hapiBroadDebugBcmxMapDump(void);
-
-void hapiBroadModidModportToLportSet (int mod_id, int mod_port, int lport);
-void hapiBroadModidModportToLportGet (int mod_id, int mod_port, int *lport);
-
 void hapiBroadFfpIpAddrSync (void);
 void hpcBroadRediscover(int priority);
 
@@ -1085,28 +1062,6 @@ L7_BOOL hpcIsBcmPortStacking (L7_uint32 bcm_unit, L7_uint32 bcm_port);
 * @end
 *********************************************************************/
 void hpcStackPortEnable (L7_BOOL enable);
-
-/* PTin removed: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-/* No filter functions */
-#else
-/*********************************************************************
-* @purpose  Qualifies BCMX filter with non-stack ports.
-*
-* @param    void
-*                                       
-* @returns  none
-*
-* @comments This function is called for BCMX filters that are installed   
-* @comments on all ports in the box. For stand-alone boxes and HiGig
-* @comments stackable systems the filter is not changed. 
-* @comments For the front-panel stacked systems the filter is qualified
-* @comments with front panel ports which are not configured for stacking.
-*       
-* @end
-*********************************************************************/
-void hpcBcmxFilterStackPortRemove(bcm_filterid_t *bcmx_filter);
-#endif
 
 /*********************************************************************
 *
@@ -1173,7 +1128,7 @@ void hapiBroadL2FlushRequest(BROAD_L2ADDR_FLUSH_t flushReq);
 *
 * @purpose Set the Ingress Filtering mode
 *
-* @param   lport  - broadcom lport
+* @param   gport  - broadcom gport
 * @param   val    - True, enabled
 *                 - False, disabled
 *
@@ -1182,13 +1137,13 @@ void hapiBroadL2FlushRequest(BROAD_L2ADDR_FLUSH_t flushReq);
 * @end
 *
 *********************************************************************/
-L7_RC_t hapiBroadVlanIngressFilterSet(bcmx_lport_t lport,L7_BOOL val);
+L7_RC_t hapiBroadVlanIngressFilterSet(bcm_gport_t gport,L7_BOOL val);
 
 /*********************************************************************
 *
 * @purpose Set the Egress Filtering mode
 *
-* @param   lport  - broadcom lport
+* @param   gport  - broadcom gport
 * @param   val    - True, enabled
 *                 - False, disabled
 *
@@ -1197,13 +1152,13 @@ L7_RC_t hapiBroadVlanIngressFilterSet(bcmx_lport_t lport,L7_BOOL val);
 * @end
 *
 *********************************************************************/
-L7_RC_t hapiBroadVlanEgressFilterSet(bcmx_lport_t lport, L7_BOOL val, DAPI_t *dapi_g);
+L7_RC_t hapiBroadVlanEgressFilterSet(bcm_gport_t gport, L7_BOOL val, DAPI_t *dapi_g);
 
 /*********************************************************************
 *
 * @purpose Set the tpid on a port
 *
-* @param   lport  - broadcom lport
+* @param   gport  - broadcom gport
 * @param   val    - True, enabled
 *                 - False, disabled
 *
@@ -1212,7 +1167,7 @@ L7_RC_t hapiBroadVlanEgressFilterSet(bcmx_lport_t lport, L7_BOOL val, DAPI_t *da
 * @end
 *
 *********************************************************************/
-L7_RC_t hapiBroadPortTpidSet(bcmx_lport_t lport, L7_ushort16 val, DAPI_t *dapi_g);
+L7_RC_t hapiBroadPortTpidSet(bcm_gport_t gport, L7_ushort16 val, DAPI_t *dapi_g);
 
 /*********************************************************************
 * @purpose Stub function to point to SDK assert to log error
@@ -1241,7 +1196,7 @@ L7_RC_t hapiBroadMmuConfigModify(L7_uint32 unit);
 *
 * @purpose Enable/Disable learning on a port or trunk during flush operation.
 *
-* @param   portInfo  - Learn mode of lport/tgid to be changed
+* @param   portInfo  - Learn mode of gport/tgid to be changed
 * @param   learnMode - L7_ENABLE: Enable learning
 *                      L7_DISABLE: Disable learning
 *
@@ -1442,7 +1397,7 @@ L7_RC_t hapiBroadControlUnitStatusNotify (DAPI_USP_t *usp, DAPI_CMD_t cmd, void 
 *
 * @purpose Get the Management Cpu Lport
 *
-* @params  lport {(output)} lport for the cpu
+* @params  gport {(output)} gport for the cpu
 *
 * @returns L7_RC_t result
 *
@@ -1450,7 +1405,7 @@ L7_RC_t hapiBroadControlUnitStatusNotify (DAPI_USP_t *usp, DAPI_CMD_t cmd, void 
 * @end
 *
 *********************************************************************/
-int hapiBroadCpuLportGet(bcmx_lport_t *lport);
+int hapiBroadCpuLportGet(bcm_gport_t *gport);
 
 /*********************************************************************
 * @purpose  Setup the cpu hardware cosq rate limits during warm start

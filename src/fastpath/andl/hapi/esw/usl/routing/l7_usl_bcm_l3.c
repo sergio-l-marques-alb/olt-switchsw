@@ -105,6 +105,7 @@ void l7_l3route_to_bcm(usl_bcm_l3_route_t *l7BcmRoute, bcm_l3_route_t *bcmRoute)
   return;
 }
 
+/* PTin removed: BCMX */
 /*********************************************************************
 * @purpose  Convert BCMX terminator structure to the BCM terminator structure
 *
@@ -115,6 +116,7 @@ void l7_l3route_to_bcm(usl_bcm_l3_route_t *l7BcmRoute, bcm_l3_route_t *bcmRoute)
 *
 * @end
 *********************************************************************/
+#if 0
 void
 l7_bcmx_terminator_to_bcm(bcmx_tunnel_terminator_t *l3xtun,
                           bcm_tunnel_terminator_t *l3tun)
@@ -130,6 +132,7 @@ l7_bcmx_terminator_to_bcm(bcmx_tunnel_terminator_t *l3xtun,
   l3tun->type = l3xtun->type;
   l3tun->vlan = l3xtun->vlan;
 }
+#endif
 
 /*********************************************************************
 * @purpose  Initialize the usl_bcm_l3_intf_t structure

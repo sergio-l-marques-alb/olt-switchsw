@@ -24,10 +24,6 @@
 #define L7_MAC_ENET_VRRP
 
 #include "bcm/l2.h"
-#include "bcmx/port.h"
-#include "bcmx/vlan.h"
-#include "bcmx/switch.h"
-
 #include "l7_common.h"
 #include "l7_packet.h"
 #include "osapi.h"
@@ -575,14 +571,14 @@ L7_RC_t hapiBroadL3CardInit(L7_ushort16 unitNum,
           }
           else
           {
-            bcmEgrObj.bcm_data.module = BCM_GPORT_MODPORT_MODID_GET(hapiPortPtr->bcmx_lport);
-            bcmEgrObj.bcm_data.port   = BCM_GPORT_MODPORT_PORT_GET(hapiPortPtr->bcmx_lport);
+            bcmEgrObj.bcm_data.module = BCM_GPORT_MODPORT_MODID_GET(hapiPortPtr->bcm_gport);
+            bcmEgrObj.bcm_data.port   = BCM_GPORT_MODPORT_PORT_GET(hapiPortPtr->bcm_gport);
             if ((bcmEgrObj.bcm_data.module == HAPI_BROAD_INVALID_MODID) ||
                 (bcmEgrObj.bcm_data.port   == HAPI_BROAD_INVALID_MODPORT))
             {
               L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID,
-                      "Failed to get modid/port for lport %x\n",
-                      hapiPortPtr->bcmx_lport);
+                      "Failed to get modid/port for gport %x\n",
+                      hapiPortPtr->bcm_gport);
               HAPI_BROAD_L3_L7_LOG_ERROR(0);
             }
           }
@@ -1401,7 +1397,7 @@ static L7_RC_t hapiBroadL3IntfCreate(DAPI_USP_t *usp,
 
     L7_VLAN_SETMASKBIT(portVlanMask.vlan_membership_mask, vid);
 
-    rv = usl_bcmx_port_vlan_member_add(hapiPortPtr->bcmx_lport, &portVlanMask);
+    rv = usl_bcmx_port_vlan_member_add(hapiPortPtr->bcm_gport, &portVlanMask);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       HAPI_BROAD_L3_L7_LOG_ERROR(vid);
@@ -1417,37 +1413,37 @@ static L7_RC_t hapiBroadL3IntfCreate(DAPI_USP_t *usp,
      * entries in hardware. Also, the port can only be part routing VLAN.
      */
     learnMode = BCM_PORT_LEARN_FWD;
-    rv = usl_bcmx_port_learn_set(hapiPortPtr->bcmx_lport, learnMode);
+    rv = usl_bcmx_port_learn_set(hapiPortPtr->bcm_gport, learnMode);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       HAPI_BROAD_L3_L7_LOG_ERROR(rv);
     }
 
     /* Set PVID to this VLAN */
-    rv = usl_bcmx_port_untagged_vlan_set(hapiPortPtr->bcmx_lport, vid);
+    rv = usl_bcmx_port_untagged_vlan_set(hapiPortPtr->bcm_gport, vid);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       HAPI_BROAD_L3_L7_LOG_ERROR(rv);
     }
 
     /* Set default priority */
-    rv = usl_bcmx_port_untagged_priority_set(hapiPortPtr->bcmx_lport, 0);
+    rv = usl_bcmx_port_untagged_priority_set(hapiPortPtr->bcm_gport, 0);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       HAPI_BROAD_L3_L7_LOG_ERROR(rv);
     }
 
     /* Enable ingress filtering */
-    result = hapiBroadVlanIngressFilterSet(hapiPortPtr->bcmx_lport, L7_TRUE);
+    result = hapiBroadVlanIngressFilterSet(hapiPortPtr->bcm_gport, L7_TRUE);
 
     if (result != L7_SUCCESS)
     {
-      HAPI_BROAD_L3_L7_LOG_ERROR(hapiPortPtr->bcmx_lport);
+      HAPI_BROAD_L3_L7_LOG_ERROR(hapiPortPtr->bcm_gport);
     }
 
     /* Set port to accept both untagged and tagged frames */
     discardMode = BCM_PORT_DISCARD_NONE;
-    rv = usl_bcmx_port_discard_set(hapiPortPtr->bcmx_lport, discardMode);
+    rv = usl_bcmx_port_discard_set(hapiPortPtr->bcm_gport, discardMode);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       HAPI_BROAD_L3_L7_LOG_ERROR(rv);
@@ -1721,7 +1717,7 @@ static L7_RC_t hapiBroadL3IntfDelete(DAPI_USP_t *usp,
       learnMode = (BCM_PORT_LEARN_ARL |  BCM_PORT_LEARN_FWD);
     }
 
-    rv = usl_bcmx_port_learn_set(hapiPortPtr->bcmx_lport, learnMode);
+    rv = usl_bcmx_port_learn_set(hapiPortPtr->bcm_gport, learnMode);
 
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
@@ -1731,11 +1727,11 @@ static L7_RC_t hapiBroadL3IntfDelete(DAPI_USP_t *usp,
     /* Restore STP state for port. */
     if (L7_BRIDGE_SPEC_SUPPORTED == L7_BRIDGE_SPEC_802DOT1D)
     {
-      rv = bcmx_port_stp_set(hapiPortPtr->bcmx_lport,
-                             hapiPortPtr->hw_stp_state);
+      rv = bcm_port_stp_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
+                            hapiPortPtr->hw_stp_state);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
-        HAPI_BROAD_L3_L7_LOG_ERROR(hapiPortPtr->bcmx_lport);
+        HAPI_BROAD_L3_L7_LOG_ERROR(hapiPortPtr->bcm_gport);
       }
     }
     else
@@ -3693,9 +3689,7 @@ static L7_RC_t hapiBroadL3MacEntryResolve (BROAD_L3_MAC_ENTRY_t *pMac,
   DAPI_USP_t   usp;
   L7_int32 rv = BCM_E_NOT_FOUND;
   L7_uint32 local_bcm_unit;
-  bcmx_uport_t uport;
   bcm_l2_addr_t bcm_l2;
-  bcmx_l2_addr_t bcmx_l2;
 
   /* Note: The BCMX call returns as soon as the L2 entry is found on one of the
    * units (local units first)
@@ -3712,7 +3706,7 @@ static L7_RC_t hapiBroadL3MacEntryResolve (BROAD_L3_MAC_ENTRY_t *pMac,
                            pMac->key.vlanId, &bcm_l2);
       if (BCM_SUCCESS(rv))
       {
-        rv = bcmx_l2_addr_from_bcm(&bcmx_l2, L7_NULLPTR, &bcm_l2);
+        /* Entry found! */
         break;
       }
     }
@@ -3721,21 +3715,21 @@ static L7_RC_t hapiBroadL3MacEntryResolve (BROAD_L3_MAC_ENTRY_t *pMac,
   /* If address found, update mac entry/Nhop. Else, MAC/Nhop is unresolved */
   if (rv == BCM_E_NONE)
   {
-    if (bcmx_l2.flags & BCM_L2_TRUNK_MEMBER)
+    if (bcm_l2.flags & BCM_L2_TRUNK_MEMBER)
     {
-      if (hapiBroadTgidToUspConvert(bcmx_l2.tgid, &usp, dapi_g) == L7_SUCCESS)
+      if (hapiBroadTgidToUspConvert(bcm_l2.tgid, &usp, dapi_g) == L7_SUCCESS)
       {
         pMac->usp = usp;
         pMac->resolved = L7_TRUE;
         pMac->target_is_trunk = L7_TRUE;
-        pMac->trunkId = bcmx_l2.tgid;
+        pMac->trunkId = bcm_l2.tgid;
       }
     }
 
-    else if (BCM_GPORT_IS_WLAN_PORT(bcmx_l2.lport))
+    else if (BCM_GPORT_IS_WLAN_PORT(bcm_l2.port))
     {
 #ifdef L7_WIRELESS_PACKAGE
-      if (hapiBroadWlanUspGet(dapi_g, bcmx_l2.lport, &usp) != L7_SUCCESS)
+      if (hapiBroadWlanUspGet(dapi_g, bcm_l2.port, &usp) != L7_SUCCESS)
       {
         return L7_FAILURE;
       }
@@ -3748,13 +3742,10 @@ static L7_RC_t hapiBroadL3MacEntryResolve (BROAD_L3_MAC_ENTRY_t *pMac,
     }
     else
     {
-      /* not a trunk, calculate based off of the present info */
-      uport = BCMX_UPORT_GET(bcmx_l2.lport);
-
-      if (uport != BCMX_UPORT_INVALID_DEFAULT)
+      /* Get USP from local unit and physical port */
+      if (bcmy_lut_gport_to_usp_get(bcm_l2.port, &usp) == BCMY_E_NONE)
       {
-        HAPI_BROAD_UPORT_TO_USP(uport,&usp);
-        if (isValidUsp(&usp,dapi_g) == L7_TRUE)
+        if (isValidUsp(&usp, dapi_g) == L7_TRUE)
         {
           pMac->resolved = L7_TRUE;
           pMac->usp = usp;
@@ -4197,7 +4188,7 @@ static L7_RC_t hapiBroadL3HostEntryQuery(DAPI_USP_t *usp,
   int rv;                           /* result buffer for broadcom queries */
   BROAD_L3_HOST_ENTRY_t host;       /* host search buffer */
   BROAD_L3_HOST_ENTRY_t *pHostEntry;/* pointer to located host entry */
-  bcmx_l3_host_t hostInfo;          /* host query buffer */
+  bcm_l3_host_t hostInfo;           /* host query buffer */
   bcm_if_t theIf;                   /* interface for this host */
   L7_uint32 currUpTime;             /* current time; used as last hit time */
   L7_BOOL notInHw;                  /* indicates error submitting to hw */
@@ -4378,7 +4369,8 @@ static L7_RC_t hapiBroadL3HostEntryQuery(DAPI_USP_t *usp,
         hostInfo.l3a_intf = theIf;
 
         /* query the hardware for this host */
-        rv = bcmx_l3_host_find(&hostInfo);
+        /* FIXME: Only applied to unit 0 */
+        rv = bcm_l3_host_find(0 /*unit*/, &hostInfo);
         if ( L7_TRUE == L7_BCMX_OK(rv) )
         {
           /* found it; set the flags & time for source hit and dest hit */
@@ -5762,6 +5754,7 @@ L7_RC_t hapiBroadL3IcmpRedirConfig(DAPI_USP_t *usp,
   DAPI_SYSTEM_t *dapiSystemPtr = dapi_g->system;
   DAPI_PORT_t *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr;
+  int bcm_unit;
 
   HAPI_BROAD_L3_DEBUG(broadL3Debug, "hapiBroadL3IcmpRedirConfig: %d\n",
                       dapiCmd->cmdData.icmpRedirectsConfig.enable);
@@ -5784,72 +5777,76 @@ L7_RC_t hapiBroadL3IcmpRedirConfig(DAPI_USP_t *usp,
     dapiSystemPtr->icmpRedirEnable = L7_FALSE;
   }
 
-  /* Always set the switch control. Do not get the current value
-   * and skip the set. That causes issues when new unit gets attached
-   */
-  rv = bcmx_switch_control_get(bcmSwitchIcmpRedirectToCpu, &i);
-  if (rv == BCM_E_NONE)
+  /* Run all units */
+  for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
   {
-  rv = bcmx_switch_control_set(bcmSwitchIcmpRedirectToCpu, enable);
-
-    HAPI_BROAD_L3_BCMX_DBG(rv, "bcmx_switch_control_set: ICMP redirect");
+    /* Always set the switch control. Do not get the current value
+     * and skip the set. That causes issues when new unit gets attached
+     */
+    rv = bcm_switch_control_get(bcm_unit, bcmSwitchIcmpRedirectToCpu, &i);
     if (rv != BCM_E_NONE)
     {
-      result = L7_FAILURE;
+      return L7_SUCCESS;
+    }
+    
+    rv = bcm_switch_control_set(bcm_unit, bcmSwitchIcmpRedirectToCpu, enable);
+
+    HAPI_BROAD_L3_BCMX_DBG(rv, "bcm_switch_control_set: ICMP redirect");
+    if (rv != BCM_E_NONE)
+    {
+      return L7_FAILURE;
     }
   }
-  else
+
+  /* Some devices, like Triumph, support per VLAN control for ICMP redirect,
+   * instead of global control knob in CPU_CONTROL register. Currently,
+   * FastPath support global knob for ICMP redirect, and not per VLAN/intf.
+   * In future, this may change, in which case consider the input USP
+   * and apply the ICMP redirect config only on that routed VLAN.
+   */
+
+  /* Check the VLAN routing interfaces */
+  vlanUsp.unit = L7_LOGICAL_UNIT;
+  vlanUsp.slot = L7_VLAN_SLOT_NUM;
+
+  for (vlanUsp.port = 0; vlanUsp.port < L7_MAX_NUM_ROUTER_INTF; vlanUsp.port++)
   {
-    /* Some devices, like Triumph, support per VLAN control for ICMP redirect,
-     * instead of global control knob in CPU_CONTROL register. Currently,
-     * FastPath support global knob for ICMP redirect, and not per VLAN/intf.
-     * In future, this may change, in which case consider the input USP
-     * and apply the ICMP redirect config only on that routed VLAN.
-     */
-
-    /* Check the VLAN routing interfaces */
-    vlanUsp.unit = L7_LOGICAL_UNIT;
-    vlanUsp.slot = L7_VLAN_SLOT_NUM;
-
-    for (vlanUsp.port = 0; vlanUsp.port < L7_MAX_NUM_ROUTER_INTF; vlanUsp.port++)
+    if (isValidUsp(&vlanUsp,dapi_g) == L7_FALSE)
     {
-      if (isValidUsp(&vlanUsp,dapi_g) == L7_FALSE)
-      {
-        continue;
-      }
-
-      dapiPortPtr = GET_DAPI_PORT(dapi_g, &vlanUsp);
-
-      /* Check if VLAN is enabled for routing */
-      if ((dapiPortPtr->modeparm.router.vlanID != 0) &&
-          (dapiPortPtr->modeparm.router.routerIntfEnabled == L7_TRUE))
-      {
-        result = hapiBroadL3IcmpRedirVlanConfig(
-                     dapiPortPtr->modeparm.router.vlanID, enable);
-      }
+      continue;
     }
 
-    /* Check port based routing VLANs */
-    for (portUsp.unit = 0; portUsp.unit < dapi_g->system->totalNumOfUnits; portUsp.unit++)
-    {
-      for (portUsp.slot = 0; portUsp.slot < dapi_g->unit[portUsp.unit]->numOfSlots; portUsp.slot++)
-      {
-        if (dapi_g->unit[portUsp.unit]->slot[portUsp.slot]->cardPresent == L7_TRUE)
-        {
-          for (portUsp.port = 0; portUsp.port < dapi_g->unit[portUsp.unit]->slot[portUsp.slot]->numOfPortsInSlot; portUsp.port++)
-          {
-            if (isValidUsp(&portUsp, dapi_g) == L7_FALSE)
-            {
-              continue;
-            }
-            dapiPortPtr = DAPI_PORT_GET(&portUsp, dapi_g);
-            hapiPortPtr = HAPI_PORT_GET(&portUsp, dapi_g);
+    dapiPortPtr = GET_DAPI_PORT(dapi_g, &vlanUsp);
 
-            if ((IS_PORT_TYPE_PHYSICAL(dapiPortPtr) == L7_TRUE) &&
-                (dapiPortPtr->modeparm.physical.routerIntfEnabled == L7_TRUE))
-            {
-              result = hapiBroadL3IcmpRedirVlanConfig(hapiPortPtr->port_based_routing_vlanid, enable);
-            }
+    /* Check if VLAN is enabled for routing */
+    if ((dapiPortPtr->modeparm.router.vlanID != 0) &&
+        (dapiPortPtr->modeparm.router.routerIntfEnabled == L7_TRUE))
+    {
+      result = hapiBroadL3IcmpRedirVlanConfig(
+                   dapiPortPtr->modeparm.router.vlanID, enable);
+    }
+  }
+
+  /* Check port based routing VLANs */
+  for (portUsp.unit = 0; portUsp.unit < dapi_g->system->totalNumOfUnits; portUsp.unit++)
+  {
+    for (portUsp.slot = 0; portUsp.slot < dapi_g->unit[portUsp.unit]->numOfSlots; portUsp.slot++)
+    {
+      if (dapi_g->unit[portUsp.unit]->slot[portUsp.slot]->cardPresent == L7_TRUE)
+      {
+        for (portUsp.port = 0; portUsp.port < dapi_g->unit[portUsp.unit]->slot[portUsp.slot]->numOfPortsInSlot; portUsp.port++)
+        {
+          if (isValidUsp(&portUsp, dapi_g) == L7_FALSE)
+          {
+            continue;
+          }
+          dapiPortPtr = DAPI_PORT_GET(&portUsp, dapi_g);
+          hapiPortPtr = HAPI_PORT_GET(&portUsp, dapi_g);
+
+          if ((IS_PORT_TYPE_PHYSICAL(dapiPortPtr) == L7_TRUE) &&
+              (dapiPortPtr->modeparm.physical.routerIntfEnabled == L7_TRUE))
+          {
+            result = hapiBroadL3IcmpRedirVlanConfig(hapiPortPtr->port_based_routing_vlanid, enable);
           }
         }
       }
@@ -5894,7 +5891,7 @@ L7_RC_t hapiBroadL3IcmpRedirVlanConfig(L7_ushort16 vlanId, L7_int32 enable)
   /* Update the vlan control flag */
   rv = usl_bcmx_vlan_control_flag_update(vlanId, flags, cmd);
 
-  HAPI_BROAD_L3_BCMX_DBG(rv, "bcmx_vlan_control_vlan_set: returned %s",
+  HAPI_BROAD_L3_BCMX_DBG(rv, "bcm_vlan_control_vlan_set: returned %s",
                          bcm_errmsg(rv));
 
   if (rv != BCM_E_NONE)

@@ -2108,13 +2108,13 @@ int CmpUdpEntry(udp1, udp2)
 }
 
 udpEntry_t     *
-k_udpEntry_get(id, contextInfo, nominator, searchType, laddr, lport)
+k_udpEntry_get(id, contextInfo, nominator, searchType, laddr, gport)
     int             id;
     ContextInfo    *contextInfo;
     int             nominator;
     int             searchType;
     SR_UINT32       laddr;
-    SR_INT32        lport;
+    SR_INT32        gport;
 {
     static udpEntry_t best;
     udpEntry_t start, cur;
@@ -2135,7 +2135,7 @@ k_udpEntry_get(id, contextInfo, nominator, searchType, laddr, lport)
     }
 
     start.udpLocalAddress = laddr;
-    start.udpLocalPort = lport;
+    start.udpLocalPort = gport;
 
     best.udpLocalAddress = (SR_UINT32) 0xffffffff;
     best.udpLocalPort = (SR_INT32) 0x7fffffff;
@@ -2171,7 +2171,7 @@ k_udpEntry_get(id, contextInfo, nominator, searchType, laddr, lport)
         if (best.udpLocalAddress != laddr) {
             return NULL;
         }
-        if (best.udpLocalPort != lport) {
+        if (best.udpLocalPort != gport) {
             return NULL;
         }
     }

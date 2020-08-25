@@ -2,7 +2,6 @@
 #define _PTIN_HAPI_BRIDGE__H
 
 #include "ptin_hapi.h"
-#include "bcmx/l2.h"
 
 /**
  * Initialize bridge module

@@ -80,7 +80,7 @@ typedef struct
 {
   bcm_if_t         intf;      /* L3 interface (src mac, tunnel)             */
   bcm_vlan_t       vlan;      /* Next hop vlan id.                          */
-  bcm_gport_t      lport;     /* Port packet switched to.                   */
+  bcm_gport_t      gport;     /* Port packet switched to.                   */
   bcm_if_t         egrintf;   /* egress interface interface                 */
   L7_uint32        mc_index;  /* multicast index                            */
   L7_uint32        use_count; /* how many users for this egr interface      */

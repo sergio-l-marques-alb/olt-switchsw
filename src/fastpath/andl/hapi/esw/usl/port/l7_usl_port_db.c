@@ -67,7 +67,7 @@ static bcm_gport_t        uslGportMap[L7_MAX_BCM_DEVICES_PER_UNIT][L7_MAX_BCM_PO
 L7_uint32                  uslBcmUnitPortToGportConversionErrors = 0;
 L7_uint32                  uslGportToBcmUnitPortConversionErrors = 0;
 
-L7_RC_t usl_portdb_update_msg_send(L7_BOOL updateCmd, L7_uint32 targetFpUnit, bcmx_lplist_t *lpList);
+L7_RC_t usl_portdb_update_msg_send(L7_BOOL updateCmd, L7_uint32 targetFpUnit, bcmy_gplist_t *gpList);
 L7_RC_t usl_port_db_invalidate(USL_DB_TYPE_t dbType);
 L7_int32 usl_update_port_db_elem_bcm(void *shadowDbItem, void *operDbItem);
 
@@ -998,13 +998,13 @@ static void usl_gport_map_update(L7_BOOL updateCmd,
 }
 
 /*********************************************************************
-* @purpose  Add/Reomve the ports in lpList from local and targetFpUnit 
+* @purpose  Add/Reomve the ports in gpList from local and targetFpUnit 
 *           USL Port database  
 *
 * @param    updateCmd     @{(input)}  L7_TRUE: Adds the ports to db
 *                                     L7_FALSE: Remove the ports from db
 * @param    targetFpUnit  @{(input)}  Unit to send the message
-* @param    lpList        @{(input)}  List of ports to be updated in the
+* @param    gpList        @{(input)}  List of ports to be updated in the
 *                                     USL port database
 *
 * @returns  L7_SUCCESS - if the ports were updated
@@ -1015,12 +1015,12 @@ static void usl_gport_map_update(L7_BOOL updateCmd,
 * @end
 *********************************************************************/
 L7_RC_t usl_portdb_update(L7_BOOL updateCmd, L7_uint32 targetFpUnit, 
-                          bcmx_lplist_t *lpList)
+                          bcmy_gplist_t *gpList)
 {
   L7_RC_t           rc = L7_SUCCESS;
   L7_uint32         thisFpUnit, mgrFpUnit;
   L7_int32          i, rv;
-  bcmx_lport_t      lport;
+  bcm_gport_t       gport;
   L7_uint32         globalBcmUnit, localBcmUnit = 0, bcmPort = 0;
 
   if ((rc = unitMgrNumberGet(&thisFpUnit)) != L7_SUCCESS)
@@ -1042,18 +1042,18 @@ L7_RC_t usl_portdb_update(L7_BOOL updateCmd, L7_uint32 targetFpUnit,
 
   USL_PORT_DB_LOCK_TAKE();
 
-  /* Loop through the ports in the lpList and 
+  /* Loop through the ports in the gpList and 
      update the gports in the local port database */
-  for (i=0; i < BCMX_LPLIST_COUNT(lpList); i++)
+  for (i=0; i < BCMY_GPLIST_COUNT(gpList); i++)
   {
-    lport = bcmx_lplist_index(lpList, i);
+    gport = bcmy_gplist_index(gpList, i);
 
-    if (BCMX_NO_SUCH_LPORT == lport)
+    if (BCM_GPORT_INVALID == gport)
       break;
 
     if (thisFpUnit == targetFpUnit) 
     {
-      globalBcmUnit = BCMX_LPORT_BCM_UNIT(lport);
+      globalBcmUnit = BCMY_GPORT_BCM_UNIT(gport);
       rv = bcm_unit_remote_unit_get(globalBcmUnit, &localBcmUnit); 
       if (rv != BCM_E_NONE)
       {
@@ -1069,7 +1069,7 @@ L7_RC_t usl_portdb_update(L7_BOOL updateCmd, L7_uint32 targetFpUnit,
         }
       }
 
-      bcmPort = BCMX_LPORT_BCM_PORT(lport);
+      bcmPort = BCMY_GPORT_BCM_PORT(gport);
       if ((localBcmUnit >= L7_MAX_BCM_DEVICES_PER_UNIT) || 
           (bcmPort >= L7_MAX_BCM_PORTS_PER_DEVICE))
       {
@@ -1085,16 +1085,16 @@ L7_RC_t usl_portdb_update(L7_BOOL updateCmd, L7_uint32 targetFpUnit,
         }
       }
 
-      usl_gport_map_update(updateCmd, lport, localBcmUnit, bcmPort);
+      usl_gport_map_update(updateCmd, gport, localBcmUnit, bcmPort);
     }
 
-    rc = usl_portdb_update_port_record(updateCmd, lport);
+    rc = usl_portdb_update_port_record(updateCmd, gport);
 
     if (rc != L7_SUCCESS)
     {
       USL_LOG_MSG(USL_BCM_E_LOG,
                   "Update cmd %d failed for gport %x\n",
-                   updateCmd, lport);    
+                   updateCmd, gport);    
     }
     
   }
@@ -1111,7 +1111,7 @@ L7_RC_t usl_portdb_update(L7_BOOL updateCmd, L7_uint32 targetFpUnit,
     result = unitMgrUnitStatusGet(targetFpUnit, &unitStatus);
     if ((result == L7_SUCCESS) && (unitStatus == L7_UNITMGR_UNIT_OK))
     {
-      rc = usl_portdb_update_msg_send(updateCmd, targetFpUnit, lpList);    
+      rc = usl_portdb_update_msg_send(updateCmd, targetFpUnit, gpList);    
       if (rc != L7_SUCCESS)
       {
         USL_LOG_MSG(USL_E_LOG,
@@ -1212,7 +1212,7 @@ L7_RC_t usl_portdb_update_msg_process(L7_uchar8 *msg)
 * @param    updateCmd     @{(input)}  L7_TRUE: Adds the ports to db
 *                                     L7_FALSE: Remove the ports from db
 * @param    targetFpUnit  @{(input)}  Unit to send the message
-* @param    lpList        @{(input)}  List of ports to be send in the message
+* @param    gpList        @{(input)}  List of ports to be send in the message
 *
 * @returns  L7_SUCCESS - if the message was successfully sent
 * @returns  L7_FAILURE - if errors were encountered in sending message
@@ -1222,7 +1222,7 @@ L7_RC_t usl_portdb_update_msg_process(L7_uchar8 *msg)
 * @end
 *********************************************************************/
 L7_RC_t usl_portdb_update_msg_send(L7_BOOL updateCmd, L7_uint32 targetFpUnit, 
-                                   bcmx_lplist_t *lpList)
+                                   bcmy_gplist_t *gpList)
 {
   L7_uchar8      *msg, *msgPtr;
   L7_uint32       msgSize, thisFpUnit, unit;
@@ -1232,7 +1232,6 @@ L7_RC_t usl_portdb_update_msg_send(L7_BOOL updateCmd, L7_uint32 targetFpUnit,
   L7_uint32       unitResp[L7_MAX_UNITS_PER_STACK + 1];
   msMcastData_t   respData[L7_MAX_UNITS_PER_STACK + 1];
   L7_RC_t         rc = L7_SUCCESS;
-  bcmx_lport_t    lport;
   bcm_gport_t     gport;
 
   if ((rc = unitMgrNumberGet(&thisFpUnit)) != L7_SUCCESS)
@@ -1274,17 +1273,15 @@ L7_RC_t usl_portdb_update_msg_send(L7_BOOL updateCmd, L7_uint32 targetFpUnit,
   memcpy(msgPtr, &updateCmd, sizeof(updateCmd));
   msgPtr += sizeof(updateCmd);
 
-  /* Loop through the ports in the lpList and insert the gports in the message */
-  for (i=0; i < BCMX_LPLIST_COUNT(lpList); i++)
+  /* Loop through the ports in the gpList and insert the gports in the message */
+  for (i=0; i < BCMY_GPLIST_COUNT(gpList); i++)
   {
-    lport = bcmx_lplist_index(lpList, i);
+    gport = bcmy_gplist_index(gpList, i);
 
-    if (BCMX_NO_SUCH_LPORT == lport)
+    if (BCM_GPORT_INVALID == gport)
       break;
 
-    gport = (bcm_gport_t)lport;
-
-    globalBcmUnit = BCMX_LPORT_BCM_UNIT(lport);
+    globalBcmUnit = BCMY_GPORT_BCM_UNIT(gport);
     rv = bcm_unit_remote_unit_get(globalBcmUnit, &localBcmUnit); 
     if (rv != BCM_E_NONE)
     {
@@ -1296,7 +1293,7 @@ L7_RC_t usl_portdb_update_msg_send(L7_BOOL updateCmd, L7_uint32 targetFpUnit,
         continue;
     }
 
-    bcmPort = BCMX_LPORT_BCM_PORT(lport);
+    bcmPort = BCMY_GPORT_BCM_PORT(gport);
     if ((localBcmUnit >= L7_MAX_BCM_DEVICES_PER_UNIT) || 
         (bcmPort >= L7_MAX_BCM_PORTS_PER_DEVICE))
     {

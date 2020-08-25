@@ -230,13 +230,13 @@ L7_RC_t usl_portdb_delete_port_record(USL_DB_TYPE_t dbType,
 
 
 /*********************************************************************
-* @purpose  Add/Reomve the ports in lpList from local and targetFpUnit 
+* @purpose  Add/Reomve the ports in gpList from local and targetFpUnit 
 *           USL Port database  
 *
 * @param    updateCmd     @{(input)}  L7_TRUE: Adds the ports to db
 *                                     L7_FALSE: Remove the ports from db
 * @param    targetFpUnit  @{(input)}  Unit to send the message
-* @param    lpList        @{(input)}  List of ports to be updated in the
+* @param    gpList        @{(input)}  List of ports to be updated in the
 *                                     USL port database
 *
 * @returns  L7_SUCCESS - if the ports were inserted
@@ -246,7 +246,7 @@ L7_RC_t usl_portdb_delete_port_record(USL_DB_TYPE_t dbType,
 *       
 * @end
 *********************************************************************/
-L7_RC_t usl_portdb_update(L7_BOOL updateCmd, L7_uint32 targetFpUnit, bcmx_lplist_t *lpList);
+L7_RC_t usl_portdb_update(L7_BOOL updateCmd, L7_uint32 targetFpUnit, bcmy_gplist_t *gpList);
 
 /*********************************************************************
 * @purpose  Process the portdb update message on remote units 

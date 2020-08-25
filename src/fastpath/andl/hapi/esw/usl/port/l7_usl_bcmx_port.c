@@ -26,7 +26,6 @@
 #include "l7_rpc_port.h"
 #include "l7_usl_trace.h"
 #include "l7_usl_sm.h"
-#include "bcmx/port.h"
 
 /* Port Db Bcmx Lock */
 static osapiRWLock_t      uslPortDbBcmxRWLock;
@@ -133,7 +132,7 @@ void usl_port_bcmx_resume()
 * @purpose Set the broadcast rate threshold for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    port           @{(input)} Gport 
 * @param    bcast_limit    @{(input)} Bcast rate threshold limits
 *
 * @returns BCMX Error Code
@@ -143,7 +142,7 @@ void usl_port_bcmx_resume()
 * @end
 *
 *********************************************************************/
-int usl_bcmx_rate_bcast_set(bcmx_lport_t port, 
+int usl_bcmx_rate_bcast_set(bcm_gport_t port, 
                             usl_bcm_port_rate_limit_t bcast_limit)
 {
   int     rv;
@@ -197,7 +196,7 @@ int usl_bcmx_rate_bcast_set(bcmx_lport_t port,
 * @purpose Set the multicast rate threshold for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    port           @{(input)} Gport 
 * @param    mcast_limit    @{(input)} Mcast rate threshold limits
 *
 * @returns BCMX Error Code
@@ -207,7 +206,7 @@ int usl_bcmx_rate_bcast_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int usl_bcmx_rate_mcast_set(bcmx_lport_t port, 
+int usl_bcmx_rate_mcast_set(bcm_gport_t port, 
                             usl_bcm_port_rate_limit_t mcast_limit)
 {
   int     rv;
@@ -260,7 +259,7 @@ int usl_bcmx_rate_mcast_set(bcmx_lport_t port,
 * @purpose Set the dlf rate threshold for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    port           @{(input)} Gport 
 * @param    dlf_limit      @{(input)} Dlf rate threshold limits
 *
 * @returns BCMX Error Code
@@ -270,7 +269,7 @@ int usl_bcmx_rate_mcast_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int usl_bcmx_rate_dlfbc_set(bcmx_lport_t port, 
+int usl_bcmx_rate_dlfbc_set(bcm_gport_t port, 
                             usl_bcm_port_rate_limit_t dlfbc_limit)
 {
   int     rv;
@@ -320,7 +319,7 @@ int usl_bcmx_rate_dlfbc_set(bcmx_lport_t port,
 *
 * @purpose Set the Ingress filtering mode for a port
 *
-* @param   port    -  The LPORT 
+* @param   port    -  The Gport 
 * @param   flags   -  Filtering mode
 *
 * @returns BCMX Error Code
@@ -330,7 +329,7 @@ int usl_bcmx_rate_dlfbc_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_vlan_member_set(bcmx_lport_t port, 
+int usl_bcmx_port_vlan_member_set(bcm_gport_t port, 
                                   usl_bcm_port_filter_mode_t mode)
 {
   int     rv;
@@ -382,7 +381,7 @@ int usl_bcmx_port_vlan_member_set(bcmx_lport_t port,
 *
 * @purpose Set the priority for a port
 *
-* @param   port       -  The LPORT 
+* @param   port       -  The Gport 
 * @param   priority   -  Default priority for the port
 *
 * @returns BCMX Error Code
@@ -392,7 +391,7 @@ int usl_bcmx_port_vlan_member_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_untagged_priority_set(bcmx_lport_t port, 
+int usl_bcmx_port_untagged_priority_set(bcm_gport_t port, 
                                         usl_bcm_port_priority_t priority)
 {
   int     rv;
@@ -444,7 +443,7 @@ int usl_bcmx_port_untagged_priority_set(bcmx_lport_t port,
 *
 * @purpose Set the max frame size allowed on a port
 *
-* @param   port           -  The LPORT 
+* @param   port           -  The Gport 
 * @param   maxFrameSize   -  Max frame size data
 *
 * @returns BCMX Error Code
@@ -454,7 +453,7 @@ int usl_bcmx_port_untagged_priority_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_frame_max_set(bcmx_lport_t port, 
+int usl_bcmx_port_frame_max_set(bcm_gport_t port, 
                                 usl_bcm_port_frame_size_t max_frame_size)
 {
   int     rv;
@@ -505,7 +504,7 @@ int usl_bcmx_port_frame_max_set(bcmx_lport_t port,
 *
 * @purpose Set the learn mode for a port
 *
-* @param   port           -  The LPORT 
+* @param   port           -  The Gport 
 * @param   learnMode      -  Learn mode
 *
 * @returns BCMX Error Code
@@ -515,7 +514,7 @@ int usl_bcmx_port_frame_max_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_learn_set(bcmx_lport_t port, 
+int usl_bcmx_port_learn_set(bcm_gport_t port, 
                             usl_bcm_port_learn_mode_t learn_mode)
 {
   int     rv;
@@ -568,7 +567,7 @@ int usl_bcmx_port_learn_set(bcmx_lport_t port,
 *
 * @purpose Set the dtag mode for a port
 *
-* @param   port           -  The LPORT 
+* @param   port           -  The Gport 
 * @param   dtagMode       -  Learn mode
 *
 * @returns BCMX Error Code
@@ -578,7 +577,7 @@ int usl_bcmx_port_learn_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_dtag_mode_set(bcmx_lport_t port, 
+int usl_bcmx_port_dtag_mode_set(bcm_gport_t port, 
                                 usl_bcm_port_dtag_mode_t dtag_mode)
 {
   int     rv;
@@ -630,7 +629,7 @@ int usl_bcmx_port_dtag_mode_set(bcmx_lport_t port,
 *
 * @purpose Set the tpid for a port
 *
-* @param   port           -  The LPORT 
+* @param   port           -  The Gport 
 * @param   tpid           -  tpid
 *
 * @returns BCMX Error Code
@@ -640,7 +639,7 @@ int usl_bcmx_port_dtag_mode_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_tpid_set(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
+int usl_bcmx_port_tpid_set(bcm_gport_t port, usl_bcm_port_tpid_t tpid)
 {
   int     rv;
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
@@ -691,7 +690,7 @@ int usl_bcmx_port_tpid_set(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
 *
 * @purpose Add a tpid for a port
 *
-* @param   port           -  The LPORT 
+* @param   port           -  The Gport 
 * @param   tpid           -  tpid
 *
 * @returns BCMX Error Code
@@ -701,7 +700,7 @@ int usl_bcmx_port_tpid_set(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_tpid_add(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
+int usl_bcmx_port_tpid_add(bcm_gport_t port, usl_bcm_port_tpid_t tpid)
 {
   int     rv;
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
@@ -752,7 +751,7 @@ int usl_bcmx_port_tpid_add(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
 *
 * @purpose Delete a tpid from a port
 *
-* @param   port           -  The LPORT 
+* @param   port           -  The Gport 
 * @param   tpid           -  tpid
 *
 * @returns BCMX Error Code
@@ -762,7 +761,7 @@ int usl_bcmx_port_tpid_add(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_tpid_delete(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
+int usl_bcmx_port_tpid_delete(bcm_gport_t port, usl_bcm_port_tpid_t tpid)
 {
   int     rv;
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
@@ -814,7 +813,7 @@ int usl_bcmx_port_tpid_delete(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
 * @purpose Set the default vid for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    port           @{(input)} Gport 
 * @param    vid            @{(input)} Default vid
 *
 * @returns BCMX Error Code
@@ -824,7 +823,7 @@ int usl_bcmx_port_tpid_delete(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_untagged_vlan_set(bcmx_lport_t port, bcm_vlan_t vid)
+int usl_bcmx_port_untagged_vlan_set(bcm_gport_t port, bcm_vlan_t vid)
 {
   int     rv;
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
@@ -876,7 +875,7 @@ int usl_bcmx_port_untagged_vlan_set(bcmx_lport_t port, bcm_vlan_t vid)
 * @purpose Set the discard mode for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    port           @{(input)} Gport 
 * @param    mode           @{(input)} Discard mode
 *
 * @returns BCMX Error Code
@@ -886,7 +885,7 @@ int usl_bcmx_port_untagged_vlan_set(bcmx_lport_t port, bcm_vlan_t vid)
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_discard_set(bcmx_lport_t port, bcm_port_discard_t mode)
+int usl_bcmx_port_discard_set(bcm_gport_t port, bcm_port_discard_t mode)
 {
   int     rv;
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
@@ -937,7 +936,7 @@ int usl_bcmx_port_discard_set(bcmx_lport_t port, bcm_port_discard_t mode)
 * @purpose Set the phy medium config for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    port           @{(input)} Gport 
 * @param    medium         @{(input)} Medium of the phy
 * @param    config         @{(input)} Medium configuration
 *
@@ -948,7 +947,7 @@ int usl_bcmx_port_discard_set(bcmx_lport_t port, bcm_port_discard_t mode)
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_medium_config_set(bcmx_lport_t port,
+int usl_bcmx_port_medium_config_set(bcm_gport_t port,
                                     bcm_port_medium_t medium,
                                     bcm_phy_config_t  *config)
 {
@@ -1001,7 +1000,7 @@ int usl_bcmx_port_medium_config_set(bcmx_lport_t port,
 * @purpose Set the flow-control config for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    port           @{(input)} Gport 
 * @param    pauseConfig    @{(input)} Pause configuration for the port
 *
 * @returns BCMX Error Code
@@ -1011,7 +1010,7 @@ int usl_bcmx_port_medium_config_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_flow_control_set(bcmx_lport_t port, 
+int usl_bcmx_port_flow_control_set(bcm_gport_t port, 
                                    usl_bcm_port_pause_config_t pauseConfig)
 {
   int     rv;
@@ -1063,7 +1062,7 @@ int usl_bcmx_port_flow_control_set(bcmx_lport_t port,
 * @purpose Set the Cos queue Sched config for a port
 *
 *
-* @param    port               @{(input)} Lport 
+* @param    port               @{(input)} Gport 
 * @param    cosqSchedConfig    @{(input)} Cosq Sched configuration for the port
 *
 * @returns BCMX Error Code
@@ -1073,7 +1072,7 @@ int usl_bcmx_port_flow_control_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_cosq_sched_set(bcmx_lport_t port, 
+int usl_bcmx_port_cosq_sched_set(bcm_gport_t port, 
                                  usl_bcm_port_cosq_sched_config_t cosqSchedConfig)
 {
   int     rv;
@@ -1127,7 +1126,7 @@ int usl_bcmx_port_cosq_sched_set(bcmx_lport_t port,
 * @purpose Set the rate shaper config for a port
 *
 *
-* @param    port               @{(input)} Lport 
+* @param    port               @{(input)} Gport 
 * @param    shaperConfig       @{(input)} Rate shaper configuration for the port
 *
 * @returns BCMX Error Code
@@ -1137,7 +1136,7 @@ int usl_bcmx_port_cosq_sched_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_rate_egress_set(bcmx_lport_t port, 
+int usl_bcmx_port_rate_egress_set(bcm_gport_t port, 
                                   usl_bcm_port_shaper_config_t shaperConfig)
 {
   int     rv;
@@ -1189,7 +1188,7 @@ int usl_bcmx_port_rate_egress_set(bcmx_lport_t port,
 * @purpose Add port to vlans 
 *
 *
-* @param    port               @{(input)} Lport 
+* @param    port               @{(input)} Gport 
 * @param    vlanConfig         @{(input)}  Vlan configuration
 *
 * @returns BCMX Error Code
@@ -1199,7 +1198,7 @@ int usl_bcmx_port_rate_egress_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_vlan_member_add(bcmx_lport_t port, 
+int usl_bcmx_port_vlan_member_add(bcm_gport_t port, 
                                   usl_bcm_port_vlan_t *vlanConfig)
 {
   int     rv;
@@ -1252,7 +1251,7 @@ int usl_bcmx_port_vlan_member_add(bcmx_lport_t port,
 * @purpose Remove port from vlans 
 *
 *
-* @param    port               @{(input)} Lport 
+* @param    port               @{(input)} Gport 
 * @param    vlanConfig         @{(input)}  Vlan configuration
 *
 * @returns BCMX Error Code
@@ -1262,7 +1261,7 @@ int usl_bcmx_port_vlan_member_add(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_vlan_member_delete(bcmx_lport_t port, 
+int usl_bcmx_port_vlan_member_delete(bcm_gport_t port, 
                                      usl_bcm_port_vlan_t *vlanConfig)
 {
   int     rv;
@@ -1316,7 +1315,7 @@ int usl_bcmx_port_vlan_member_delete(bcmx_lport_t port,
 *
 *
 * @param    stg                @{(input)}  Stg id
-* @param    port               @{(input)} Lport 
+* @param    port               @{(input)} Gport 
 * @param    stpState          @{(input)}  State configuration
 *
 * @returns BCMX Error Code
@@ -1326,7 +1325,7 @@ int usl_bcmx_port_vlan_member_delete(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int usl_bcmx_stg_stp_set(bcm_stg_t stg, bcmx_lport_t port, bcm_stg_stp_t stpState)
+int usl_bcmx_stg_stp_set(bcm_stg_t stg, bcm_gport_t port, bcm_stg_stp_t stpState)
 {
   int     rv;
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
@@ -1379,7 +1378,7 @@ int usl_bcmx_stg_stp_set(bcm_stg_t stg, bcmx_lport_t port, bcm_stg_stp_t stpStat
 * @purpose Associate a vlan with a protocol on a port
 *
 *
-* @param    port               @{(input)} Lport 
+* @param    port               @{(input)} Gport 
 * @param    pbvlanConfig       @{(input)} Protocol-based vlan configuration
 *
 * @returns BCMX Error Code
@@ -1389,7 +1388,7 @@ int usl_bcmx_stg_stp_set(bcm_stg_t stg, bcmx_lport_t port, bcm_stg_stp_t stpStat
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_protocol_vlan_add(bcmx_lport_t port, 
+int usl_bcmx_port_protocol_vlan_add(bcm_gport_t port, 
                                     usl_bcm_port_pbvlan_config_t pbvlanConfig)
 {
   int     rv;
@@ -1441,7 +1440,7 @@ int usl_bcmx_port_protocol_vlan_add(bcmx_lport_t port,
 * @purpose Dis-associate a vlan with a protocol on a port
 *
 *
-* @param    port               @{(input)} Lport 
+* @param    port               @{(input)} Gport 
 * @param    pbvlanConfig       @{(input)} Protocol-based vlan configuration
 *
 * @returns BCMX Error Code
@@ -1451,7 +1450,7 @@ int usl_bcmx_port_protocol_vlan_add(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_protocol_vlan_delete(bcmx_lport_t port, 
+int usl_bcmx_port_protocol_vlan_delete(bcm_gport_t port, 
                                        usl_bcm_port_pbvlan_config_t pbvlanConfig)
 {
   int     rv;
@@ -1503,7 +1502,7 @@ int usl_bcmx_port_protocol_vlan_delete(bcmx_lport_t port,
 * @purpose Set the dot1x state for the port
 *
 *
-* @param    port               @{(input)} Lport 
+* @param    port               @{(input)} Gport 
 * @param    dot1xStatus        @{(input)} Dot1x state for the port
 *
 * @returns BCMX Error Code
@@ -1513,7 +1512,7 @@ int usl_bcmx_port_protocol_vlan_delete(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_dot1x_config(bcmx_lport_t port, 
+int usl_bcmx_port_dot1x_config(bcm_gport_t port, 
                                L7_DOT1X_PORT_STATUS_t dot1xStatus)
 {
   int     rv;
@@ -1563,7 +1562,7 @@ int usl_bcmx_port_dot1x_config(bcmx_lport_t port,
  *
  * @purpose Get SFP diagnostics for the specified port.
  *
- * @param   port - BCMX Lport
+ * @param   gport - BCM Gport
  * @param
  *
  * @returns BCMX Error Code
@@ -1574,7 +1573,7 @@ int usl_bcmx_port_dot1x_config(bcmx_lport_t port,
  *
  *********************************************************************/
 int
-usl_bcmx_port_sfp_diag_get(bcmx_lport_t port,
+usl_bcmx_port_sfp_diag_get(bcm_gport_t port,
                            int32 *temperature,
                            uint32 *voltage,
                            uint32 *current,
@@ -1595,7 +1594,7 @@ usl_bcmx_port_sfp_diag_get(bcmx_lport_t port,
  *
  * @purpose Get copper diagnostics for the specified port.
  *
- * @param   port - BCMX Lport
+ * @param   gport - BCM Gport
  * @param
  *
  * @returns BCMX Error Code
@@ -1606,7 +1605,7 @@ usl_bcmx_port_sfp_diag_get(bcmx_lport_t port,
  *
  *********************************************************************/
 int
-usl_bcmx_port_copper_diag_get(bcmx_lport_t port, bcm_port_cable_diag_t *cd)
+usl_bcmx_port_copper_diag_get(bcm_gport_t port, bcm_port_cable_diag_t *cd)
 {
   int rv;
 
@@ -1619,7 +1618,7 @@ usl_bcmx_port_copper_diag_get(bcmx_lport_t port, bcm_port_cable_diag_t *cd)
 *
 * @purpose Block an unauthorized dot1x client for the specified port.
 *
-* @param   port - BCMX Lport
+* @param   gport - BCM Gport
 * @param   client_cmd - Mac address, vlan Id 
 *
 * @returns BCMX Error Code
@@ -1630,7 +1629,7 @@ usl_bcmx_port_copper_diag_get(bcmx_lport_t port, bcm_port_cable_diag_t *cd)
 *
 *********************************************************************/
 int
-usl_bcmx_port_dot1x_client_block(bcmx_lport_t port,
+usl_bcmx_port_dot1x_client_block(bcm_gport_t port,
                                  usl_bcm_port_dot1x_client_t *client_cmd)
 {
   int rv;
@@ -1645,7 +1644,7 @@ usl_bcmx_port_dot1x_client_block(bcmx_lport_t port,
 *
 * @purpose Unblock an unauthorized dot1x client for the specified port.
 *
-* @param   port - BCMX Lport
+* @param   gport - BCM Gport
 * @param   client_cmd - Mac address, vlan Id 
 *
 * @returns BCMX Error Code
@@ -1656,7 +1655,7 @@ usl_bcmx_port_dot1x_client_block(bcmx_lport_t port,
 *
 *********************************************************************/
 int
-usl_bcmx_port_dot1x_client_unblock(bcmx_lport_t port,
+usl_bcmx_port_dot1x_client_unblock(bcm_gport_t port,
                                    usl_bcm_port_dot1x_client_t *client_cmd)
 {
   int rv;
@@ -1671,7 +1670,7 @@ usl_bcmx_port_dot1x_client_unblock(bcmx_lport_t port,
 *
 * @purpose Get dot1x client timeout for the specified port.
 *
-* @param   port - BCMX Lport
+* @param   gport - BCM Gport
 * @param   client_cmd - Mac address, vlan Id 
 *
 * @returns BCMX Error Code
@@ -1682,7 +1681,7 @@ usl_bcmx_port_dot1x_client_unblock(bcmx_lport_t port,
 *
 *********************************************************************/
 int
-usl_bcmx_port_dot1x_client_timeout_get(bcmx_lport_t port, 
+usl_bcmx_port_dot1x_client_timeout_get(bcm_gport_t port, 
                                        usl_bcm_port_dot1x_client_t *client_cmd)
 {
   int rv;
@@ -1697,7 +1696,7 @@ usl_bcmx_port_dot1x_client_timeout_get(bcmx_lport_t port,
 *
 * @purpose Get all statistics for the specified port.
 *
-* @param   port - BCMX Lport
+* @param   gport - BCM Gport
 * @param   stats - 64-bit stats for the port.
 *
 * @returns BCMX Error Code
@@ -1708,7 +1707,7 @@ usl_bcmx_port_dot1x_client_timeout_get(bcmx_lport_t port,
 *
 *********************************************************************/
 int
-usl_bcmx_stat_get(bcmx_lport_t port, uint64 stats[snmpValCount])
+usl_bcmx_stat_get(bcm_gport_t port, uint64 stats[snmpValCount])
 {
   int rv;
 
@@ -1721,7 +1720,7 @@ usl_bcmx_stat_get(bcmx_lport_t port, uint64 stats[snmpValCount])
 *
 * @purpose Get all statistics for the specified port.
 *
-* @param   port - BCMX Lport
+* @param   gport - BCM Gport
 * @param   stats - 64-bit stats for the port.
 *
 * @returns BCMX Error Code
@@ -1732,7 +1731,7 @@ usl_bcmx_stat_get(bcmx_lport_t port, uint64 stats[snmpValCount])
 *
 *********************************************************************/
 int
-usl_bcmx_port_stat_get(bcmx_lport_t port, uint64 stats[snmpValCount])
+usl_bcmx_port_stat_get(bcm_gport_t port, uint64 stats[snmpValCount])
 {
   int rv;
 
@@ -1746,7 +1745,7 @@ usl_bcmx_port_stat_get(bcmx_lport_t port, uint64 stats[snmpValCount])
 * @purpose Set the mirroring configuration for the port
 *
 *
-* @param    port               @{(input)} Lport 
+* @param    port               @{(input)} Gport 
 * @param    mirrorConfig       @{(input)} Mirroring configuration
 *
 * @returns BCMX Error Code
@@ -1756,7 +1755,7 @@ usl_bcmx_port_stat_get(bcmx_lport_t port, uint64 stats[snmpValCount])
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_mirror_set(bcmx_lport_t port, 
+int usl_bcmx_port_mirror_set(bcm_gport_t port, 
                              usl_bcm_port_mirror_config_t mirrorConfig)
 {
   int     rv;
@@ -1816,7 +1815,7 @@ int usl_bcmx_port_mirror_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_enable_set(bcmx_lport_t port, int enable)
+int usl_bcmx_port_enable_set(bcm_gport_t port, int enable)
 {
   int     rv;
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
@@ -1866,7 +1865,7 @@ int usl_bcmx_port_enable_set(bcmx_lport_t port, int enable)
 *
 * @purpose Set WRED parameters on a port
 *
-* @param   port - BCMX Lport
+* @param   gport - BCM Gport
 * @param   wredParams - Pointer to WRED params for all queues/colors
 *
 * @returns BCMX Error Code
@@ -1874,7 +1873,7 @@ int usl_bcmx_port_enable_set(bcmx_lport_t port, int enable)
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_wred_set(bcmx_lport_t port,
+int usl_bcmx_port_wred_set(bcm_gport_t port,
                            usl_bcm_port_wred_config_t *wredParams)
 {
 
@@ -1928,7 +1927,7 @@ int usl_bcmx_port_wred_set(bcmx_lport_t port,
 *
 * @purpose Set sflow parameters on a port
 *
-* @param   port - BCMX Lport
+* @param   gport - BCM Gport
 * @param   sflowConfig - Pointer to sflow config
 *
 * @returns BCMX Error Code
@@ -1936,7 +1935,7 @@ int usl_bcmx_port_wred_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_sample_rate_set(bcmx_lport_t port,
+int usl_bcmx_port_sample_rate_set(bcm_gport_t port,
                                   usl_bcm_port_sflow_config_t *sflowConfig)
 {
 
@@ -1989,7 +1988,7 @@ int usl_bcmx_port_sample_rate_set(bcmx_lport_t port,
 *
 * @purpose Get sflow parameters on a port
 *
-* @param   port - BCMX Lport
+* @param   gport - BCM Gport
 * @param   sflowConfig - Pointer to sflow config
 *
 * @returns BCMX Error Code
@@ -1997,11 +1996,11 @@ int usl_bcmx_port_sample_rate_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_sample_rate_get(bcmx_lport_t port,
+int usl_bcmx_port_sample_rate_get(bcm_gport_t port,
                                   usl_bcm_port_sflow_config_t *sflowConfig)
 {
-
-  int     rv = BCM_E_NONE;
+  int bcm_unit, bcm_port;
+  int rv = BCM_E_NONE;
 
   /* Take the portdb bcmx lock */
   USL_PORT_BCMX_LOCK_TAKE();
@@ -2011,9 +2010,14 @@ int usl_bcmx_port_sample_rate_get(bcmx_lport_t port,
     /* If USL caching is on then read from db */
     if (USL_BCMX_CONFIGURE_HW(USL_PORT_DB_ID) == L7_TRUE)
     {
-      rv = bcmx_port_sample_rate_get(port, 
-                                     &(sflowConfig->ingressSamplingRate),
-                                     &(sflowConfig->egressSamplingRate));
+      /* Convert gport to bcm unit/gport */
+      if (bcmy_lut_gport_to_unit_port_get(port, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+      {
+          return BCM_E_PARAM;
+      }
+      rv = bcm_port_sample_rate_get(bcm_unit, bcm_port, 
+                                    &(sflowConfig->ingressSamplingRate),
+                                    &(sflowConfig->egressSamplingRate));
     }
     else
     {
@@ -2048,7 +2052,7 @@ int usl_bcmx_port_sample_rate_get(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_vlan_translate_ingress_enable_set(bcmx_lport_t port, L7_BOOL enable)
+int usl_bcmx_port_vlan_translate_ingress_enable_set(bcm_gport_t port, L7_BOOL enable)
 {
   int     rv;
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
@@ -2105,7 +2109,7 @@ int usl_bcmx_port_vlan_translate_ingress_enable_set(bcmx_lport_t port, L7_BOOL e
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_vlan_translate_ingress_miss_drop_set(bcmx_lport_t port, L7_BOOL drop)
+int usl_bcmx_port_vlan_translate_ingress_miss_drop_set(bcm_gport_t port, L7_BOOL drop)
 {
   int     rv;
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
@@ -2162,7 +2166,7 @@ int usl_bcmx_port_vlan_translate_ingress_miss_drop_set(bcmx_lport_t port, L7_BOO
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_vlan_translate_egress_enable_set(bcmx_lport_t port, L7_BOOL enable)
+int usl_bcmx_port_vlan_translate_egress_enable_set(bcm_gport_t port, L7_BOOL enable)
 {
   int     rv;
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
@@ -2219,7 +2223,7 @@ int usl_bcmx_port_vlan_translate_egress_enable_set(bcmx_lport_t port, L7_BOOL en
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_vlan_translate_egress_miss_drop_set(bcmx_lport_t port, L7_BOOL drop)
+int usl_bcmx_port_vlan_translate_egress_miss_drop_set(bcm_gport_t port, L7_BOOL drop)
 {
   int     rv;
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
@@ -2276,7 +2280,7 @@ int usl_bcmx_port_vlan_translate_egress_miss_drop_set(bcmx_lport_t port, L7_BOOL
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_vlan_translate_key_first_set(bcmx_lport_t port, bcm_vlan_translate_key_t key)
+int usl_bcmx_port_vlan_translate_key_first_set(bcm_gport_t port, bcm_vlan_translate_key_t key)
 {
   int     rv;
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
@@ -2333,7 +2337,7 @@ int usl_bcmx_port_vlan_translate_key_first_set(bcmx_lport_t port, bcm_vlan_trans
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_vlan_translate_key_second_set(bcmx_lport_t port, bcm_vlan_translate_key_t key)
+int usl_bcmx_port_vlan_translate_key_second_set(bcm_gport_t port, bcm_vlan_translate_key_t key)
 {
   int     rv;
   int     hwRv = BCM_E_NONE, dbRv = BCM_E_NONE;
@@ -2384,7 +2388,7 @@ int usl_bcmx_port_vlan_translate_key_second_set(bcmx_lport_t port, bcm_vlan_tran
 * @purpose Set the pfc configuration for the port
 *
 *
-* @param    port            @{(input)} Lport 
+* @param    port            @{(input)} Gport 
 * @param    pfcConfig       @{(input)} PFC configuration
 *
 * @returns BCMX Error Code
@@ -2394,7 +2398,7 @@ int usl_bcmx_port_vlan_translate_key_second_set(bcmx_lport_t port, bcm_vlan_tran
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_pfc_config_set(bcmx_lport_t port, 
+int usl_bcmx_port_pfc_config_set(bcm_gport_t port, 
                                 usl_bcm_port_pfc_config_t pfcConfig)
 {
   int     rv;
@@ -2445,7 +2449,7 @@ int usl_bcmx_port_pfc_config_set(bcmx_lport_t port,
 * @purpose Get the pfc stat for the port
 *
 *
-* @param    port      @{(input)} Lport 
+* @param    port      @{(input)} Gport 
 * @param    stat      @{(input)} PFC configuration
 *
 * @returns BCMX Error Code
@@ -2455,7 +2459,7 @@ int usl_bcmx_port_pfc_config_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_pfc_stat_get(bcmx_lport_t port, usl_bcm_port_pfc_stat_t *stat)
+int usl_bcmx_port_pfc_stat_get(bcm_gport_t port, usl_bcm_port_pfc_stat_t *stat)
 {
   return l7_rpc_client_port_pfc_stat_get(port, stat);
 }
@@ -2465,7 +2469,7 @@ int usl_bcmx_port_pfc_stat_get(bcmx_lport_t port, usl_bcm_port_pfc_stat_t *stat)
 * @purpose Clear the pfc stats for the port
 *
 *
-* @param    port      @{(input)} Lport 
+* @param    port      @{(input)} Gport 
 *
 * @returns BCMX Error Code
 *
@@ -2474,7 +2478,7 @@ int usl_bcmx_port_pfc_stat_get(bcmx_lport_t port, usl_bcm_port_pfc_stat_t *stat)
 * @end
 *
 *********************************************************************/
-int usl_bcmx_port_pfc_stats_clear(bcmx_lport_t port)
+int usl_bcmx_port_pfc_stats_clear(bcm_gport_t port)
 {
   return l7_rpc_client_port_pfc_stats_clear(port);
 }

@@ -15,7 +15,6 @@
 #include "ptin_fpga_api.h"
 #include "hpc_db.h"
 #include "dapi_db.h"
-#include "bcmx/vlan.h"
 #include "logger.h"
 
 
@@ -464,7 +463,7 @@ int ptin_lookup_counter_clear(L7_int index)
 int ptin_lookup_counter_set(L7_int type, L7_int stage, L7_int index, L7_int port, L7_uint16 outerVlan, L7_uint16 innerVlan)
 {
   bcm_port_t          bcm_port;
-  bcmx_lport_t        lport;
+  bcm_gport_t         gport;
   BROAD_POLICY_t      policyId;
   BROAD_POLICY_RULE_t ruleId;
   L7_uint8  dmac[]       = {0x00, 0x00, 0xc0, 0x01, 0x01, 0x02};
@@ -484,7 +483,12 @@ int ptin_lookup_counter_set(L7_int type, L7_int stage, L7_int index, L7_int port
     hapiBroadPolicyDelete(policyId);
     return L7_FAILURE;
   }
-  lport = bcmx_unit_port_to_lport(0, bcm_port);
+  /* FIXME: Only applied to unit 0 */
+  if (bcmy_lut_unit_port_to_gport_get(0 /*unit*/, bcm_port, &gport) != BCMY_E_NONE)
+  {
+    printf("Error with unit %d, port %d", 0, bcm_port);
+    return -1;
+  }
 
   ptin_lookup_counter_clear(index);
 
@@ -567,7 +571,7 @@ int ptin_lookup_counter_set(L7_int type, L7_int stage, L7_int index, L7_int port
   if (stage == BROAD_POLICY_STAGE_LOOKUP ||
       stage == BROAD_POLICY_STAGE_INGRESS)
   {
-    rc = hapiBroadPolicyApplyToIface(policyId, lport);
+    rc = hapiBroadPolicyApplyToIface(policyId, gport);
     if (L7_SUCCESS != rc)
     {
       printf("%s(%d) Error\r\n",__FUNCTION__,__LINE__);
@@ -593,7 +597,7 @@ static BROAD_POLICY_t policyId_pvid[PTIN_SYSTEM_N_PORTS]  = {[0 ... PTIN_SYSTEM_
 int ptin_lookup_pvid_set(L7_int port, L7_uint16 outerVlan, L7_uint16 innerVlan, L7_uint8 vlan_format)
 {
   bcm_port_t          bcm_port;
-  bcmx_lport_t        lport;
+  bcm_gport_t         gport;
   BROAD_POLICY_t      policyId;
   BROAD_POLICY_RULE_t ruleId;
   L7_uint8  mask[]       = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
@@ -621,7 +625,12 @@ int ptin_lookup_pvid_set(L7_int port, L7_uint16 outerVlan, L7_uint16 innerVlan, 
       fflush(stdout);
       return L7_FAILURE;
     }
-    lport = bcmx_unit_port_to_lport(0, bcm_port);
+    /* FIXME: Only applied to unit 0 */
+    if (bcmy_lut_unit_port_to_gport_get(0 /*unit*/, bcm_port, &gport) != BCMY_E_NONE)
+    {
+      printf("Error with unit %d, port %d", 0, bcm_port);
+      return -1;
+    }
 
     hapiBroadPolicyCreate(BROAD_POLICY_TYPE_PORT);
     hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_LOOKUP);
@@ -673,7 +682,7 @@ int ptin_lookup_pvid_set(L7_int port, L7_uint16 outerVlan, L7_uint16 innerVlan, 
       return rc;
     }
 
-    rc = hapiBroadPolicyApplyToIface(policyId, lport);
+    rc = hapiBroadPolicyApplyToIface(policyId, gport);
     if (L7_SUCCESS != rc)
     {
       printf("%s(%d) Error\r\n",__FUNCTION__,__LINE__);
@@ -740,18 +749,23 @@ int ptin_l2_replace_trunk(bcm_trunk_t tgid_old, bcm_trunk_t tgid_new)
 int ptin_link_notify(bcm_port_t bcm_port)
 {
   int link_status;
-  bcmx_lport_t lport;
+  bcm_gport_t gport;
   bcm_port_info_t info;
   bcm_error_t rv;
 
-  lport = bcmx_unit_port_to_lport(0, bcm_port);
-  if (lport < 0)
+  /* FIXME: Only applied to unit 0 */
+  if (bcmy_lut_unit_port_to_gport_get(0 /*unit*/, bcm_port, &gport) != BCMY_E_NONE)
+  {
+    printf("Error with unit %d, port %d", 0, bcm_port);
+    return -1;
+  }
+  if (gport < 0)
   {
     printf("%s(%d) Invalid bcm_port %d\r\n", __FUNCTION__, __LINE__, bcm_port);
     return -1;
   }
 
-  rv = bcm_port_link_status_get(0, bcm_port, &link_status);
+  rv = bcm_port_link_status_get(0 /*unit*/, bcm_port, &link_status);
   if (rv != BCM_E_NONE)
   {
     printf("%s(%d) bcm_port_link_status_get: rv=%u (\"%s\")\r\n", __FUNCTION__, __LINE__, rv, bcm_errmsg(rv));
@@ -759,9 +773,9 @@ int ptin_link_notify(bcm_port_t bcm_port)
   }
 
   info.linkstatus = link_status;
-  hapiBroadPortLinkStatusChange(lport, &info);
+  hapiBroadPortLinkStatusChange(0 /*unit*/, bcm_port, &info);
 
-  printf("%s(%d) Notification sent: lport=0x%08x -> link=%d\r\n", __FUNCTION__, __LINE__, lport, link_status);
+  printf("%s(%d) Notification sent: gport=0x%08x -> link=%d\r\n", __FUNCTION__, __LINE__, gport, link_status);
 
   return 0;
 }
@@ -1886,7 +1900,7 @@ int ptin_vp_group_create(L7_uint32 port_nni, L7_uint32 port_uni, L7_uint16 vid_n
 
   /* Get current control definitions for this vlan */
   bcm_vlan_control_vlan_t_init(&control);
-  if ((error = bcmx_vlan_control_vlan_get(vid_nni, &control))!=BCM_E_NONE)
+  if ((error = bcm_vlan_control_vlan_get(0 /*unit*/, vid_nni, &control))!=BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error getting vlan control structure! error=%d (%s)\r\n", error, bcm_errmsg(error));
     return L7_FAILURE;
@@ -1896,7 +1910,7 @@ int ptin_vp_group_create(L7_uint32 port_nni, L7_uint32 port_uni, L7_uint16 vid_n
   control.forwarding_mode = bcmVlanForwardBridging;
 
   /* Apply new control definitions to this vlan */
-  if ( (error = bcmx_vlan_control_vlan_set(vid_nni, control)) != BCM_E_NONE )
+  if ( (error = bcm_vlan_control_vlan_set(0 /*unit*/, vid_nni, control)) != BCM_E_NONE )
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_vlan_control_vlan_set: error=%d (%s)", error, bcm_errmsg(error));
     return L7_FAILURE;

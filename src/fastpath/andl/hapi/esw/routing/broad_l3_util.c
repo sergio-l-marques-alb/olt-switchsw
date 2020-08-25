@@ -26,9 +26,7 @@
 #include "broad_policy.h"
 #include "broad_l2_vlan.h"
 #include "commdefs.h"
-#include "bcm/tunnel.h"
 #include "bcm/error.h"
-#include "bcmx/port.h"
 #include "l7_usl_bcmx_l2.h"
 
 /* Maximum number of HOST policies allowed.
@@ -463,13 +461,13 @@ L7_RC_t hapiBroadL3IntfMtuSet (DAPI_USP_t *usp, L7_ulong32  mtu, DAPI_t *dapi_g)
   {
     dapiPortPtr->modeparm.physical.mtu = mtu;
 
-    rv = bcmx_port_l3_mtu_set(hapiPortPtr->bcmx_lport, (L7_int32)mtu);
+    rv = bcm_port_l3_mtu_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, (L7_int32)mtu);
 
     /* Ignore the E_UNAVAIL error code */
     if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
     {
-      HAPI_BROAD_L3_BCMX_DBG(rv, "bcmx_port_l3_mtu_set: returned %s",
-                              bcm_errmsg(rv));
+      HAPI_BROAD_L3_BCMX_DBG(rv, "bcm_port_l3_mtu_set: returned %s",
+                             bcm_errmsg(rv));
       result = L7_FAILURE;
     }
   }
@@ -501,11 +499,11 @@ L7_RC_t hapiBroadL3IntfMtuSet (DAPI_USP_t *usp, L7_ulong32  mtu, DAPI_t *dapi_g)
             {
               hapiPortPtr = HAPI_PORT_GET(&tUsp,dapi_g);
 
-              rv = bcmx_port_l3_mtu_set(hapiPortPtr->bcmx_lport, (L7_int32)mtu);
+              rv = bcm_port_l3_mtu_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, (L7_int32)mtu);
               if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
               {
-                 HAPI_BROAD_L3_BCMX_DBG(rv, "bcmx_port_l3_mtu_set: returned %s",
-                                         bcm_errmsg(rv));
+                 HAPI_BROAD_L3_BCMX_DBG(rv, "bcm_port_l3_mtu_set: returned %s",
+                                        bcm_errmsg(rv));
                  result = L7_FAILURE;
               }
             }
@@ -558,11 +556,11 @@ static L7_RC_t hapiBroadL3HostPolicyUpdate(DAPI_USP_t *usp,
     /* Update the policy on the given physical port */
     if (action == HOST_POLICY_ADD)
     {
-      hapiBroadPolicyApplyToIface(sysId, hapiPortPtr->bcmx_lport);
+      hapiBroadPolicyApplyToIface(sysId, hapiPortPtr->bcm_gport);
     }
     else
     {
-      hapiBroadPolicyRemoveFromIface(sysId, hapiPortPtr->bcmx_lport);
+      hapiBroadPolicyRemoveFromIface(sysId, hapiPortPtr->bcm_gport);
     }
   }
   else if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) == L7_TRUE)
@@ -591,11 +589,11 @@ static L7_RC_t hapiBroadL3HostPolicyUpdate(DAPI_USP_t *usp,
               hapiPortPtr = HAPI_PORT_GET(&tUsp,dapi_g);
               if (action == HOST_POLICY_ADD)
               {
-                hapiBroadPolicyApplyToIface(sysId, hapiPortPtr->bcmx_lport);
+                hapiBroadPolicyApplyToIface(sysId, hapiPortPtr->bcm_gport);
               }
               else
               {
-                hapiBroadPolicyRemoveFromIface(sysId, hapiPortPtr->bcmx_lport);
+                hapiBroadPolicyRemoveFromIface(sysId, hapiPortPtr->bcm_gport);
               }
             }
           }
@@ -655,11 +653,11 @@ static L7_RC_t hapiBroadL3HostPolicyApplyToLag(DAPI_USP_t *usp,
 
       if (action == HOST_POLICY_ADD)
       {
-        hapiBroadPolicyApplyToIface(sysId, hapiLagPortPtr->bcmx_lport);
+        hapiBroadPolicyApplyToIface(sysId, hapiLagPortPtr->bcm_gport);
       }
       else
       {
-        hapiBroadPolicyRemoveFromIface(sysId, hapiLagPortPtr->bcmx_lport);
+        hapiBroadPolicyRemoveFromIface(sysId, hapiLagPortPtr->bcm_gport);
       }
     }
   }
@@ -880,10 +878,10 @@ L7_RC_t hapiBroadL3PortVlanNotify(DAPI_USP_t  *usp,
     }
  
     /* hapiBroadL3IntfMtuSet cannot be used here as it is tied to L3 USP */
-    rv = bcmx_port_l3_mtu_set(hapiPortPtr->bcmx_lport, mtu);
+    rv = bcm_port_l3_mtu_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, mtu);
     if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
     {
-      HAPI_BROAD_L3_BCMX_DBG(rv, "bcmx_port_l3_mtu_set: returned %s",
+      HAPI_BROAD_L3_BCMX_DBG(rv, "bcm_port_l3_mtu_set: returned %s",
                              bcm_errmsg(rv));
     }
 
@@ -1167,7 +1165,7 @@ L7_RC_t hapiBroadL3MacAddressAdd(DAPI_USP_t *usp,
 {
   DAPI_PORT_t *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr;
-  bcmx_l2_addr_t l2addr;
+  bcm_l2_addr_t l2addr;
   bcm_vlan_t vid = 0;
   int rv;
 
@@ -1189,12 +1187,13 @@ L7_RC_t hapiBroadL3MacAddressAdd(DAPI_USP_t *usp,
     return L7_FAILURE;
   }
 
-  bcmx_l2_addr_t_init(&l2addr, pMacAddr->addr, vid);
+  bcm_l2_addr_t_init(&l2addr, pMacAddr->addr, vid);
   l2addr.flags = (BCM_L2_L3LOOKUP | BCM_L2_STATIC | BCM_L2_REPLACE_DYNAMIC);
 
   /* Set the port for the L2 entry to CPU port */
-  hapiPortPtr =  hapiBroadL3CpuHapiPortGet(dapi_g);
-  l2addr.lport = hapiPortPtr->bcmx_lport;
+  hapiPortPtr  =  hapiBroadL3CpuHapiPortGet(dapi_g);
+  l2addr.port  = hapiPortPtr->bcm_gport;
+  l2addr.modid = hapiPortPtr->bcm_modid;
 
   rv = usl_bcmx_l2_addr_add(&l2addr, L7_NULL);
   if (rv != BCM_E_NONE)

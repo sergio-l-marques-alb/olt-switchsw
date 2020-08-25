@@ -6775,7 +6775,7 @@ void hpcBrcmPoeDebugLed(int port, int value)
 *
 * @param   devId        @b{(input)}  PoE card identifier
 * @param   cmd          @b{(input)}  multipurpose variable
-* @param   lport        @b{(input)}  lport number
+* @param   gport        @b{(input)}  gport number
 * @param   var1         @b{(input)}  multipurpose variable
 * @param   var2         @b{(input)}  multipurpose variable
 *
@@ -6806,7 +6806,7 @@ void hpcBrcmDebugPoeDriver(L7_uchar8 psePort, int cmd, L7_uchar8 val1, int val2)
       rv = hpcBrcmPoeMsgPortOnOffSet(cardIndex, psePort, val1);
       if(L7_POE_OK(rv) == L7_TRUE)
       {
-        sysapiPrintf("hapiBroadDebugPoeDriver: lport: %d admin status: %d\n", psePort, val1);
+        sysapiPrintf("hapiBroadDebugPoeDriver: gport: %d admin status: %d\n", psePort, val1);
       }
       break;
 
@@ -6814,7 +6814,7 @@ void hpcBrcmDebugPoeDriver(L7_uchar8 psePort, int cmd, L7_uchar8 val1, int val2)
       rv = hpcBrcmPoeMsgPortStatusGet(cardIndex, psePort, &ch1, &ch2, &ch3, &ch4, &ch5);
       if(L7_POE_OK(rv) == L7_TRUE)
       {
-        sysapiPrintf("hapiBroadDebugPoeDriver: lport: %d pd_status: 0x%0x class_info: 0x%0x\n",
+        sysapiPrintf("hapiBroadDebugPoeDriver: gport: %d pd_status: 0x%0x class_info: 0x%0x\n",
                psePort, ch1, ch2);
       }
       break;
@@ -6823,7 +6823,7 @@ void hpcBrcmDebugPoeDriver(L7_uchar8 psePort, int cmd, L7_uchar8 val1, int val2)
       rv = hpcBrcmPoeMsgPortMeasurementGet(cardIndex, psePort, &sh1, &sh2, &sh3, &sh4);
       if(L7_POE_OK(rv) == L7_TRUE)
       {
-        sysapiPrintf("hapiBroadDebugPoeDriver: lport: %d: port_voltage: 0x%0x port_curr: 0x%0x port_power: 0x%0x port_temp: 0x%0x\n",
+        sysapiPrintf("hapiBroadDebugPoeDriver: gport: %d: port_voltage: 0x%0x port_curr: 0x%0x port_power: 0x%0x port_temp: 0x%0x\n",
             psePort, sh1, sh2, sh3, sh4);
       }
       break;

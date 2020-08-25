@@ -443,18 +443,18 @@ void usl_mac_table_all_flush (void)
 }
 
 /*********************************************************************
-* @purpose  Associate the lport characteristics with the FP unit/slot
+* @purpose  Associate the gport characteristics with the FP unit/slot
 *
 * @param    fp_unit     {(input)}   The FASTPATH unit being inserted
 * @param    fp_slot     {(input)}   The FASTPATH slot being inserted
-* @param    lpList      {(input)}   The list of lports
+* @param    gpList      {(input)}   The list of gports
 *
 * @returns  L7_SUCCESS or L7_ERROR 
 *
 * @end
 *********************************************************************/
 L7_RC_t usl_db_bcm_unit_populate(L7_uint32 fp_unit, L7_uint32 fp_slot, 
-                                 bcmx_lplist_t *lpList)
+                                 bcmy_gplist_t *gpList)
 {
   return L7_SUCCESS;
 }

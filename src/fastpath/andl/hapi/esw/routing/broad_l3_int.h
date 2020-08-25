@@ -30,7 +30,6 @@
 #include "osapi_support.h"
 #include "comm_mask.h"
 
-#include "bcmx/l3.h"
 #include "l7_usl_bcmx_l3.h"
 
 /* AVL Tree heap and data sizes - derived from size of tables */

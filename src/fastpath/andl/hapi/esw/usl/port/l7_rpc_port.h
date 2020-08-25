@@ -30,7 +30,7 @@
 * @purpose RPC Client API to set the broadcast rate threshold for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    bcast_limit    @{(input)} Bcast rate threshold limits
 *
 * @returns BCMX Error Code
@@ -40,7 +40,7 @@
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_rate_bcast_set(bcmx_lport_t port, 
+int l7_rpc_client_rate_bcast_set(bcm_gport_t gport, 
                                  usl_bcm_port_rate_limit_t bcast_limit);
 
 
@@ -49,7 +49,7 @@ int l7_rpc_client_rate_bcast_set(bcmx_lport_t port,
 * @purpose RPC Client API to set the Multicast rate threshold for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    mcast_limit    @{(input)} Mcast rate threshold limits
 *
 * @returns BCMX Error Code
@@ -59,7 +59,7 @@ int l7_rpc_client_rate_bcast_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_rate_mcast_set(bcmx_lport_t port,
+int l7_rpc_client_rate_mcast_set(bcm_gport_t gport,
                                  usl_bcm_port_rate_limit_t mcast_limit);
 
 
@@ -68,7 +68,7 @@ int l7_rpc_client_rate_mcast_set(bcmx_lport_t port,
 * @purpose RPC Client API to set the DLF rate threshold for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    dlf_limit      @{(input)} Dlf rate threshold limits
 *
 * @returns BCMX Error Code
@@ -78,7 +78,7 @@ int l7_rpc_client_rate_mcast_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_rate_dlfbc_set(bcmx_lport_t port, 
+int l7_rpc_client_rate_dlfbc_set(bcm_gport_t gport, 
                                  usl_bcm_port_rate_limit_t dlf_limit);
 
 
@@ -86,7 +86,7 @@ int l7_rpc_client_rate_dlfbc_set(bcmx_lport_t port,
 *
 * @purpose RPC Client API to set the Ingress filtering mode for a port
 *
-* @param   port    -  The LPORT 
+* @param   gport   -  The GPORT 
 * @param   mode    -  Filtering mode
 *
 * @returns BCMX Error Code
@@ -96,7 +96,7 @@ int l7_rpc_client_rate_dlfbc_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_vlan_member_set(bcmx_lport_t port, 
+int l7_rpc_client_port_vlan_member_set(bcm_gport_t gport, 
                                        usl_bcm_port_filter_mode_t mode);
 
 
@@ -104,7 +104,7 @@ int l7_rpc_client_port_vlan_member_set(bcmx_lport_t port,
 *
 * @purpose RPC Client API to Set the default priority for a port
 *
-* @param   port        -  The LPORT 
+* @param   gport       -  The GPORT 
 * @param   priority    -  Deafult priority for the port
 *
 * @returns BCMX Error Code
@@ -114,14 +114,14 @@ int l7_rpc_client_port_vlan_member_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_untagged_priority_set(bcmx_lport_t port, 
+int l7_rpc_client_port_untagged_priority_set(bcm_gport_t gport, 
                                              usl_bcm_port_priority_t priority);
 
 /*********************************************************************
 *
 * @purpose RPC Client API to set the max frame size allowed on a port
 *
-* @param   port           -  The LPORT 
+* @param   gport          -  The GPORT 
 * @param   maxFrameSize   -  Max frame size data
 *
 * @returns BCMX Error Code
@@ -131,7 +131,7 @@ int l7_rpc_client_port_untagged_priority_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_frame_max_set(bcmx_lport_t port, 
+int l7_rpc_client_port_frame_max_set(bcm_gport_t gport, 
                                      usl_bcm_port_frame_size_t max_frame_size);
 
 
@@ -139,7 +139,7 @@ int l7_rpc_client_port_frame_max_set(bcmx_lport_t port,
 *
 * @purpose RPC Client API to set the learn mode for a port
 *
-* @param   port           -  The LPORT 
+* @param   gport          -  The GPORT 
 * @param   learnMode      -  Learn mode of the port
 *
 * @returns BCMX Error Code
@@ -149,7 +149,7 @@ int l7_rpc_client_port_frame_max_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_learn_set(bcmx_lport_t port, 
+int l7_rpc_client_port_learn_set(bcm_gport_t gport, 
                                  usl_bcm_port_learn_mode_t learn_mode);
 
 
@@ -157,7 +157,7 @@ int l7_rpc_client_port_learn_set(bcmx_lport_t port,
 *
 * @purpose RPC Client API to set the dtag mode for a port
 *
-* @param   port           -  The LPORT 
+* @param   gport          -  The GPORT 
 * @param   dtagMode       -  Learn mode
 *
 * @returns BCMX Error Code
@@ -167,7 +167,7 @@ int l7_rpc_client_port_learn_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_dtag_mode_set(bcmx_lport_t port, 
+int l7_rpc_client_dtag_mode_set(bcm_gport_t gport, 
                                 usl_bcm_port_dtag_mode_t dtag_mode);
 
 
@@ -175,7 +175,7 @@ int l7_rpc_client_dtag_mode_set(bcmx_lport_t port,
 *
 * @purpose RPC Client API to set the tpid for a port
 *
-* @param   port           -  The LPORT 
+* @param   gport          -  The GPORT 
 * @param   dtagMode       -  Learn mode
 *
 * @returns BCMX Error Code
@@ -185,14 +185,14 @@ int l7_rpc_client_dtag_mode_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_tpid_set(bcmx_lport_t port, 
+int l7_rpc_client_port_tpid_set(bcm_gport_t gport, 
                                 usl_bcm_port_tpid_t tpid);
 
 /*********************************************************************
 *
 * @purpose RPC Client API to add a dtag tpid for a port
 *
-* @param   port           -  The LPORT 
+* @param   gport          -  The GPORT 
 * @param   tpid           -  tpid for the port
 *
 * @returns BCMX Error Code
@@ -202,13 +202,13 @@ int l7_rpc_client_port_tpid_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_tpid_add(bcmx_lport_t port, usl_bcm_port_tpid_t tpid);
+int l7_rpc_client_port_tpid_add(bcm_gport_t gport, usl_bcm_port_tpid_t tpid);
 
 /*********************************************************************
 *
 * @purpose RPC Client API to delete a dtag tpid from a port
 *
-* @param   port           -  The LPORT 
+* @param   gport          -  The GPORT 
 * @param   tpid           -  tpid for the port
 *
 * @returns BCMX Error Code
@@ -218,15 +218,14 @@ int l7_rpc_client_port_tpid_add(bcmx_lport_t port, usl_bcm_port_tpid_t tpid);
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_tpid_delete(bcmx_lport_t port, usl_bcm_port_tpid_t tpid);
+int l7_rpc_client_port_tpid_delete(bcm_gport_t gport, usl_bcm_port_tpid_t tpid);
 
 /*********************************************************************
 *
 * @purpose RPC Client API to set the default vid for a port
 *
 *
-* @param    unit          @{(input)} Local bcm unit number
-* @param    port          @{(input)} Local bcm port number 
+* @param    gport         @{(input)} The Gport
 * @param    setget        @{(input)} Set or Get command
 * @param    args          @{(input)} pvid data
 *
@@ -238,7 +237,7 @@ int l7_rpc_client_port_tpid_delete(bcmx_lport_t port, usl_bcm_port_tpid_t tpid);
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_untagged_vlan_set(bcmx_lport_t lport, bcm_vlan_t vid);
+int l7_rpc_client_port_untagged_vlan_set(bcm_gport_t gport, bcm_vlan_t vid);
 
 
 /*********************************************************************
@@ -246,7 +245,7 @@ int l7_rpc_client_port_untagged_vlan_set(bcmx_lport_t lport, bcm_vlan_t vid);
 * @purpose RPC Client API to set the discard mode for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    mode           @{(input)} Discard mode
 *
 * @returns BCMX Error Code
@@ -256,7 +255,7 @@ int l7_rpc_client_port_untagged_vlan_set(bcmx_lport_t lport, bcm_vlan_t vid);
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_discard_set(bcmx_lport_t port, 
+int l7_rpc_client_port_discard_set(bcm_gport_t gport, 
                                    bcm_port_discard_t mode);
 
 
@@ -265,7 +264,7 @@ int l7_rpc_client_port_discard_set(bcmx_lport_t port,
 * @purpose RPC Client API to set the phy medium config for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    medium         @{(input)} Medium of the phy
 * @param    config         @{(input)} Medium configuration
 *
@@ -276,7 +275,7 @@ int l7_rpc_client_port_discard_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_medium_config_set(bcmx_lport_t port,
+int l7_rpc_client_port_medium_config_set(bcm_gport_t gport,
                                          bcm_port_medium_t medium,
                                          bcm_phy_config_t  *config);
 
@@ -286,7 +285,7 @@ int l7_rpc_client_port_medium_config_set(bcmx_lport_t port,
 * @purpose RPC Client API to set the flow-control config for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    pauseConfig    @{(input)} Pause configuration for the port
 *
 * @returns BCMX Error Code
@@ -296,7 +295,7 @@ int l7_rpc_client_port_medium_config_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_flow_control_set(bcmx_lport_t port, 
+int l7_rpc_client_port_flow_control_set(bcm_gport_t gport, 
                                         usl_bcm_port_pause_config_t pauseConfig);
 
 
@@ -305,7 +304,7 @@ int l7_rpc_client_port_flow_control_set(bcmx_lport_t port,
 * @purpose RPC Client API to set the Cos queue sched config for a port
 *
 *
-* @param    port               @{(input)} Lport 
+* @param    gport              @{(input)} Gport 
 * @param    cosqSchedConfig    @{(input)} Cosq Sched configuration for the port
 *
 * @returns BCMX Error Code
@@ -315,7 +314,7 @@ int l7_rpc_client_port_flow_control_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_cosq_sched_set(bcmx_lport_t port, 
+int l7_rpc_client_port_cosq_sched_set(bcm_gport_t gport, 
                                       usl_bcm_port_cosq_sched_config_t cosqSchedConfig);
 
 
@@ -324,7 +323,7 @@ int l7_rpc_client_port_cosq_sched_set(bcmx_lport_t port,
 * @purpose RPC Client API to set the rate shaper config for a port
 *
 *
-* @param    port               @{(input)} Lport 
+* @param    gport              @{(input)} Gport 
 * @param    shaperConfig       @{(input)} Rate shaper configuration for the port
 *
 * @returns BCMX Error Code
@@ -334,7 +333,7 @@ int l7_rpc_client_port_cosq_sched_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_rate_egress_set(bcmx_lport_t port, 
+int l7_rpc_client_port_rate_egress_set(bcm_gport_t gport, 
                                        usl_bcm_port_shaper_config_t shaperConfig);
 
 
@@ -343,7 +342,7 @@ int l7_rpc_client_port_rate_egress_set(bcmx_lport_t port,
 * @purpose RPC Client API to add/remove port to/from vlans 
 *
 *
-* @param    port               @{(input)} Lport 
+* @param    gport              @{(input)} Gport 
 * @param    vlanConfig         @{(input)} Vlan configuration
 * @param    cmd                @{(input)} L7_TRUE: Add ports to vlan
 *                                         L7_FALSE: Remove ports from vlan
@@ -355,7 +354,7 @@ int l7_rpc_client_port_rate_egress_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_vlan_config(bcmx_lport_t port, 
+int l7_rpc_client_port_vlan_config(bcm_gport_t gport, 
                                    usl_bcm_port_vlan_t *vlanConfig, L7_BOOL cmd);
 
 
@@ -365,7 +364,7 @@ int l7_rpc_client_port_vlan_config(bcmx_lport_t port,
 *
 *
 * @param    stg                @{(input)}  Stg id
-* @param    port               @{(input)} Lport 
+* @param    gport              @{(input)} Gport 
 * @param    stpState           @{(input)}  State configuration
 *
 * @returns BCMX Error Code
@@ -375,7 +374,7 @@ int l7_rpc_client_port_vlan_config(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_stg_stp_set(bcm_stg_t stg, bcmx_lport_t port, 
+int l7_rpc_client_stg_stp_set(bcm_stg_t stg, bcm_gport_t gport, 
                               bcm_stg_stp_t stpState);
 
 
@@ -384,7 +383,7 @@ int l7_rpc_client_stg_stp_set(bcm_stg_t stg, bcmx_lport_t port,
 * @purpose RPC Client API to configure protocol based vlans on a port 
 *
 *
-* @param    port               @{(input)} Lport 
+* @param    gport              @{(input)} Gport 
 * @param    pbvlanConfig       @{(input)} protocol Vlan configuration
 * @param    cmd                @{(input)} L7_TRUE: Add pbvlan config
 *                                         L7_FALSE: Remove pbvlan config
@@ -396,7 +395,7 @@ int l7_rpc_client_stg_stp_set(bcm_stg_t stg, bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_protocol_vlan_config(bcmx_lport_t port, 
+int l7_rpc_client_port_protocol_vlan_config(bcm_gport_t gport, 
                                             usl_bcm_port_pbvlan_config_t pbvlanConfig, 
                                             L7_BOOL cmd);
 
@@ -406,7 +405,7 @@ int l7_rpc_client_port_protocol_vlan_config(bcmx_lport_t port,
 * @purpose RPC Client API to set the dot1x state for the port
 *
 *
-* @param    port               @{(input)} Lport 
+* @param    gport              @{(input)} Gport 
 * @param    dot1xStatus        @{(input)} Dot1x state for the port
 *
 * @returns BCMX Error Code
@@ -416,14 +415,14 @@ int l7_rpc_client_port_protocol_vlan_config(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_dot1x_config(bcmx_lport_t port, 
+int l7_rpc_client_port_dot1x_config(bcm_gport_t gport, 
                                     L7_DOT1X_PORT_STATUS_t dot1xStatus);
 
 /*********************************************************************
  *
  * @purpose Get SFP diagnostics for the specified port.
  *
- * @param   port - BCMX Lport
+ * @param   gport- BCM Gport
  * @param
  *
  * @returns BCMX Error Code
@@ -434,7 +433,7 @@ int l7_rpc_client_port_dot1x_config(bcmx_lport_t port,
  *
  *********************************************************************/
 int
-l7_rpc_client_port_sfp_diag_get(bcmx_lport_t port,
+l7_rpc_client_port_sfp_diag_get(bcm_gport_t gport,
                                 int32 *temperature,
                                 uint32 *voltage,
                                 uint32 *current,
@@ -447,7 +446,7 @@ l7_rpc_client_port_sfp_diag_get(bcmx_lport_t port,
  *
  * @purpose Get copper diagnostics for the specified port.
  *
- * @param   port - BCMX Lport
+ * @param   gport- BCM Gport
  * @param
  *
  * @returns BCMX Error Code
@@ -458,13 +457,13 @@ l7_rpc_client_port_sfp_diag_get(bcmx_lport_t port,
  *
  *********************************************************************/
 int
-l7_rpc_client_port_copper_diag_get(bcmx_lport_t port, bcm_port_cable_diag_t *cd);
+l7_rpc_client_port_copper_diag_get(bcm_gport_t gport, bcm_port_cable_diag_t *cd);
 
 /*********************************************************************
 *
 * @purpose Block an unauthoriezed dot1x client for the specified port.
 *
-* @param   port - BCMX Lport
+* @param   gport- BCM Gport
 * @param   client_cmd - Mac address, vlan Id 
 *
 * @returns BCMX Error Code
@@ -475,14 +474,14 @@ l7_rpc_client_port_copper_diag_get(bcmx_lport_t port, bcm_port_cable_diag_t *cd)
 *
 *********************************************************************/
 int
-l7_rpc_client_port_dot1x_client_block(bcmx_lport_t port, 
+l7_rpc_client_port_dot1x_client_block(bcm_gport_t gport, 
                                       usl_bcm_port_dot1x_client_t *client_cmd);
 
 /*********************************************************************
 *
 * @purpose unblock an unauthoriezed dot1x client for the specified port.
 *
-* @param   port - BCMX Lport
+* @param   gport- BCM Gport
 * @param   client_cmd - Mac address, vlan Id 
 *
 * @returns BCMX Error Code
@@ -493,14 +492,14 @@ l7_rpc_client_port_dot1x_client_block(bcmx_lport_t port,
 *
 *********************************************************************/
 int
-l7_rpc_client_port_dot1x_client_unblock(bcmx_lport_t port, 
+l7_rpc_client_port_dot1x_client_unblock(bcm_gport_t gport, 
                                       usl_bcm_port_dot1x_client_t *client_cmd);
 
 /*********************************************************************
 *
 * @purpose Get dot1x client timeout for the specified port.
 *
-* @param   port - BCMX Lport
+* @param   gport- BCM Gport
 * @param   client_cmd - Mac address, vlan Id 
 *
 * @returns BCMX Error Code
@@ -511,14 +510,14 @@ l7_rpc_client_port_dot1x_client_unblock(bcmx_lport_t port,
 *
 *********************************************************************/
 int
-l7_rpc_client_port_dot1x_client_timeout_get(bcmx_lport_t port, 
+l7_rpc_client_port_dot1x_client_timeout_get(bcm_gport_t gport, 
                                             usl_bcm_port_dot1x_client_t *client_cmd);
 
 /*********************************************************************
 *
 * @purpose RPC Client API to get all statistics for the specified port.
 *
-* @param   port - BCMX Lport
+* @param   gport- BCM Gport
 * @param   stats - 64-bit stats for the port.
 *
 * @returns BCMX Error Code
@@ -529,13 +528,13 @@ l7_rpc_client_port_dot1x_client_timeout_get(bcmx_lport_t port,
 *
 *********************************************************************/
 int
-l7_rpc_client_stat_get(bcmx_lport_t port, uint64 stats[snmpValCount]);
+l7_rpc_client_stat_get(bcm_gport_t gport, uint64 stats[snmpValCount]);
 
 /*********************************************************************
 *
 * @purpose Get all statistics for the specified port.
 *
-* @param   port - BCMX Lport
+* @param   gport- BCM Gport
 * @param   stats - 64-bit stats for the port.
 *
 * @returns BCMX Error Code
@@ -546,14 +545,14 @@ l7_rpc_client_stat_get(bcmx_lport_t port, uint64 stats[snmpValCount]);
 *
 *********************************************************************/
 int
-l7_rpc_client_port_stat_get(bcmx_lport_t port, uint64 stats[snmpValCount]);
+l7_rpc_client_port_stat_get(bcm_gport_t gport, uint64 stats[snmpValCount]);
 
 /*********************************************************************
 *
 * @purpose RPC Client API to set the mirroring configuration for the port
 *
 *
-* @param    port               @{(input)} Lport 
+* @param    gport              @{(input)} Gport 
 * @param    mirrorConfig       @{(input)} Mirroring configuration
 *
 * @returns BCMX Error Code
@@ -563,7 +562,7 @@ l7_rpc_client_port_stat_get(bcmx_lport_t port, uint64 stats[snmpValCount]);
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_mirror_set(bcmx_lport_t port, 
+int l7_rpc_client_port_mirror_set(bcm_gport_t gport, 
                                   usl_bcm_port_mirror_config_t mirrorConfig);
 
 
@@ -572,7 +571,7 @@ int l7_rpc_client_port_mirror_set(bcmx_lport_t port,
 * @purpose RPC Client API to set the admin mode for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    enable         @{(input)} 
 *
 * @returns BCMX Error Code
@@ -582,7 +581,7 @@ int l7_rpc_client_port_mirror_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_enable_set(bcmx_lport_t port, 
+int l7_rpc_client_port_enable_set(bcm_gport_t gport, 
                                   int enable);
 
 
@@ -591,7 +590,7 @@ int l7_rpc_client_port_enable_set(bcmx_lport_t port,
 * @purpose RPC Client API to set the admin mode for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    enable         @{(input)} 
 *
 * @returns BCMX Error Code
@@ -601,7 +600,7 @@ int l7_rpc_client_port_enable_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_wred_set(bcmx_lport_t port, 
+int l7_rpc_client_port_wred_set(bcm_gport_t gport, 
                                 usl_bcm_port_wred_config_t *wredParams);
 
 
@@ -610,7 +609,7 @@ int l7_rpc_client_port_wred_set(bcmx_lport_t port,
 * @purpose RPC Client API to set the sflow config for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    enable         @{(input)} 
 *
 * @returns BCMX Error Code
@@ -620,7 +619,7 @@ int l7_rpc_client_port_wred_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_sflow_config_set(bcmx_lport_t port, 
+int l7_rpc_client_port_sflow_config_set(bcm_gport_t gport, 
                                         usl_bcm_port_sflow_config_t *sflowConfig);
 
 /*********************************************************************
@@ -628,7 +627,7 @@ int l7_rpc_client_port_sflow_config_set(bcmx_lport_t port,
 * @purpose RPC Client API to set the VLAN translation config for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    enable         @{(input)} 
 *
 * @returns BCMX Error Code
@@ -638,14 +637,14 @@ int l7_rpc_client_port_sflow_config_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_vlan_translate_ingress_enable_set(bcmx_lport_t port, L7_BOOL enable);
+int l7_rpc_client_port_vlan_translate_ingress_enable_set(bcm_gport_t gport, L7_BOOL enable);
 
 /*********************************************************************
 *
 * @purpose RPC Client API to set the VLAN translation config for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    enable         @{(input)} 
 *
 * @returns BCMX Error Code
@@ -655,14 +654,14 @@ int l7_rpc_client_port_vlan_translate_ingress_enable_set(bcmx_lport_t port, L7_B
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_vlan_translate_ingress_miss_drop_set(bcmx_lport_t port, L7_BOOL drop);
+int l7_rpc_client_port_vlan_translate_ingress_miss_drop_set(bcm_gport_t gport, L7_BOOL drop);
 
 /*********************************************************************
 *
 * @purpose RPC Client API to set the VLAN translation config for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    enable         @{(input)} 
 *
 * @returns BCMX Error Code
@@ -672,14 +671,14 @@ int l7_rpc_client_port_vlan_translate_ingress_miss_drop_set(bcmx_lport_t port, L
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_vlan_translate_egress_enable_set(bcmx_lport_t port, L7_BOOL enable);
+int l7_rpc_client_port_vlan_translate_egress_enable_set(bcm_gport_t gport, L7_BOOL enable);
 
 /*********************************************************************
 *
 * @purpose RPC Client API to set the VLAN translation config for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    enable         @{(input)} 
 *
 * @returns BCMX Error Code
@@ -689,14 +688,14 @@ int l7_rpc_client_port_vlan_translate_egress_enable_set(bcmx_lport_t port, L7_BO
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_vlan_translate_egress_miss_drop_set(bcmx_lport_t port, L7_BOOL drop);
+int l7_rpc_client_port_vlan_translate_egress_miss_drop_set(bcm_gport_t gport, L7_BOOL drop);
 
 /*********************************************************************
 *
 * @purpose RPC Client API to set the VLAN translation config for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    enable         @{(input)} 
 *
 * @returns BCMX Error Code
@@ -706,14 +705,14 @@ int l7_rpc_client_port_vlan_translate_egress_miss_drop_set(bcmx_lport_t port, L7
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_vlan_translate_key_first_set(bcmx_lport_t port, bcm_vlan_translate_key_t key);
+int l7_rpc_client_port_vlan_translate_key_first_set(bcm_gport_t gport, bcm_vlan_translate_key_t key);
 
 /*********************************************************************
 *
 * @purpose RPC Client API to set the VLAN translation config for a port
 *
 *
-* @param    port           @{(input)} Lport 
+* @param    gport          @{(input)} Gport 
 * @param    enable         @{(input)} 
 *
 * @returns BCMX Error Code
@@ -723,14 +722,14 @@ int l7_rpc_client_port_vlan_translate_key_first_set(bcmx_lport_t port, bcm_vlan_
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_vlan_translate_key_second_set(bcmx_lport_t port, bcm_vlan_translate_key_t key);
+int l7_rpc_client_port_vlan_translate_key_second_set(bcm_gport_t gport, bcm_vlan_translate_key_t key);
 
 /*********************************************************************
 *
 * @purpose RPC Client API to set the PFC configuration for the port
 *
 *
-* @param    port               @{(input)} Lport 
+* @param    gport              @{(input)} Gport 
 * @param    pfcConfig       @{(input)} PFC configuration
 *
 * @returns BCMX Error Code
@@ -740,7 +739,7 @@ int l7_rpc_client_port_vlan_translate_key_second_set(bcmx_lport_t port, bcm_vlan
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_pfc_config_set(bcmx_lport_t port, 
+int l7_rpc_client_port_pfc_config_set(bcm_gport_t gport, 
                                       usl_bcm_port_pfc_config_t pfcConfig);
 
 /*********************************************************************
@@ -748,7 +747,7 @@ int l7_rpc_client_port_pfc_config_set(bcmx_lport_t port,
 * @purpose RPC Client API to get the PFC stat for the port
 *
 *
-* @param    port       @{(input)} Lport 
+* @param    gport      @{(input)} Gport 
 * @param    stat       @{(input)} PFC configuration
 *
 * @returns BCMX Error Code
@@ -758,7 +757,7 @@ int l7_rpc_client_port_pfc_config_set(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_pfc_stat_get(bcmx_lport_t port, 
+int l7_rpc_client_port_pfc_stat_get(bcm_gport_t gport, 
                                     usl_bcm_port_pfc_stat_t *stat);
 
 /*********************************************************************
@@ -766,7 +765,7 @@ int l7_rpc_client_port_pfc_stat_get(bcmx_lport_t port,
 * @purpose RPC Client API to clear the PFC stats for the port
 *
 *
-* @param    port               @{(input)} Lport 
+* @param    gport              @{(input)} Gport 
 *
 * @returns BCMX Error Code
 *
@@ -775,7 +774,7 @@ int l7_rpc_client_port_pfc_stat_get(bcmx_lport_t port,
 * @end
 *
 *********************************************************************/
-int l7_rpc_client_port_pfc_stats_clear(bcmx_lport_t port);
+int l7_rpc_client_port_pfc_stats_clear(bcm_gport_t gport);
 
 /*********************************************************************
 *

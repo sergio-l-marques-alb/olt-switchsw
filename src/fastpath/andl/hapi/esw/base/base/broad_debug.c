@@ -78,11 +78,6 @@ extern void init_symtab();
   #include "broad_l3_mcast_debug.h"
 #endif
 
-#include "bcmx/port.h"
-#include "bcmx/lport.h"
-#include "bcmx/stg.h"
-#include "bcmx/tx.h"
-#include "bcmx/rate.h"
 #include "ibde.h"
 
 #define  __C_CODE__
@@ -1371,6 +1366,7 @@ L7_RC_t hapiBroadDebugStpVlanList(L7_uint32 instNumber)
   L7_uint32             stg_index;
   L7_int32              numVlans, vlanIndex;
   L7_int32              rc;
+  int                   bcm_unit;
 
   if (hapiBroadDot1sBcmStgMapGet(instNumber,&stg,&stg_index) == L7_FAILURE)
   {
@@ -1380,26 +1376,30 @@ L7_RC_t hapiBroadDebugStpVlanList(L7_uint32 instNumber)
     return(L7_FAILURE);
   }
 
-  /* Get a list of vlans for the given spanning tree instance */
-  rc = bcmx_stg_vlan_list (stg, &vlanList, &numVlans);
-  if (BCM_E_NOT_FOUND == rc)
+  /* Run all units */
+  for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
   {
-    SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                   "\n%s %d: In %s call to 'bcmx_stg_vlan_list' - FAILED : %d (Spanning Tree Instance not found)\n",
-                   __FILE__, __LINE__, __FUNCTION__, rc);
-    return(L7_FAILURE);
-  }
-  else if (BCM_E_NONE != rc)
-  {
-    SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                   "\n%s %d: In %s call to 'bcmx_stg_vlan_list' - FAILED : %d\n",
-                   __FILE__, __LINE__, __FUNCTION__, rc);
-    return(L7_FAILURE);
+    /* Get a list of vlans for the given spanning tree instance */
+    rc = bcm_stg_vlan_list (bcm_unit, stg, &vlanList, &numVlans);
+    if (BCM_E_NOT_FOUND == rc)
+    {
+      SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
+                     "\n%s %d: In %s call to 'bcm_stg_vlan_list' - FAILED : %d (Spanning Tree Instance not found)\n",
+                     __FILE__, __LINE__, __FUNCTION__, rc);
+      return(L7_FAILURE);
+    }
+    else if (BCM_E_NONE != rc)
+    {
+      SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
+                     "\n%s %d: In %s call to 'bcm_stg_vlan_list' - FAILED : %d\n",
+                     __FILE__, __LINE__, __FUNCTION__, rc);
+      return(L7_FAILURE);
+    }
   }
 
 
   /* Loop thru and print the instances */
-  printf ("For Spanning Tree : %d\n", instNumber);
+  printf ("bcm_unit %d: For Spanning Tree (instNumber %d)\n", bcm_unit, instNumber);
   for (vlanIndex = 0; vlanIndex < numVlans; vlanIndex++)
   {
     printf ("Vlan [%d] : %d\n", vlanIndex, vlanList [vlanIndex]);
@@ -1427,8 +1427,6 @@ L7_RC_t hapiBroadDebugStpPortList(L7_uint32 instNumber)
   L7_uint32             stg_index;
   L7_int32              rc;
   bcm_stg_stp_t         stgState;
-  bcmx_lport_t          lport;
-
 
   if (hapiBroadDot1sBcmStgMapGet(instNumber,&stg,&stg_index) == L7_FAILURE)
   {
@@ -1448,26 +1446,23 @@ L7_RC_t hapiBroadDebugStpPortList(L7_uint32 instNumber)
         {
           /* Get the logical BCMX port */
           hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
-          lport = hapiPortPtr->bcmx_lport;
 
           /* Call BCMX to get the state for a port in a STG instance */
-          rc = bcmx_stg_stp_get (lport, stg, (int*)&stgState);
+          rc = bcm_stg_stp_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, stg, (int *)&stgState);
           if (BCM_E_NOT_FOUND == rc)
           {
             SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                           "\n%s %d: In %s call to 'bcmx_stg_stp_get' - FAILED : %d (Spanning Tree Instance not found)\n",
+                           "\n%s %d: In %s call to 'bcm_stg_stp_get' - FAILED : %d (Spanning Tree Instance not found)\n",
                            __FILE__, __LINE__, __FUNCTION__, rc);
             return(L7_FAILURE);
           }
           else if (BCM_E_NONE != rc)
           {
             SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                           "\n%s %d: In %s call to 'bcmx_stg_stp_get' - FAILED : %d\n",
+                           "\n%s %d: In %s call to 'bcm_stg_stp_get' - FAILED : %d\n",
                            __FILE__, __LINE__, __FUNCTION__, rc);
             return(L7_FAILURE);
           }
-
-
 
           /* Print the state informatino for the port */
           printf ("Unit : %d Port : %d \t\t State :", usp.unit, (usp.port + 1));
@@ -1495,7 +1490,6 @@ L7_RC_t hapiBroadDebugStpPortList(L7_uint32 instNumber)
             printf ("Unknown ??\n");
             break;
           }
-
         }
       }
     }
@@ -1995,6 +1989,35 @@ L7_RC_t hapiBroadDebugMmuSet(int unit,
 }
 
 
+/*
+ * Function:
+ *      albcm_tx_pkt_untagged_set
+ * Purpose:
+ *      Set untagged characteristic for a bcm pkt sent thru bcmx
+ * Parameters:
+ *      pkt         - the pkt to affect
+ *      untagged    - boolean; should pkt be tagged
+ * Returns:
+ *      BCM_E_XXX
+ */
+static int 
+_bcmy_tx_pkt_untagged_set(bcm_pkt_t *pkt, int untagged)
+{
+    bcm_pbmp_t tmp_pbm;
+
+    if (pkt) {
+        if (untagged) {
+            BCM_PBMP_CLEAR(tmp_pbm);
+            BCM_PBMP_NEGATE(pkt->tx_upbmp, tmp_pbm);
+        } else {
+            BCM_PBMP_CLEAR(pkt->tx_upbmp);
+        }
+    }
+
+    return BCM_E_NONE;
+}
+
+
 int hapiBroadDebugPktSendEnabled = 0;
 int hapiBroadDebugPktSendVlanId = 1;
 int hapiBroadDebugPktSendPktCount = 0;
@@ -2059,9 +2082,15 @@ void hapiBroadDebugPktSendTask(DAPI_t *dapi_g, L7_uint32 numArgs)
       for (i = 0; i < pkt_count; i++)
       {
         osapiTaskYield();
-        bcmx_tx_pkt_untagged_set(&pkt,L7_FALSE);
+        _bcmy_tx_pkt_untagged_set(&pkt,L7_FALSE);
         t1 = osapiTimeMillisecondsGet64();
-        bcmx_tx_uc(&pkt, hapiPortPtr->bcmx_lport,BCMX_TX_F_CPU_TUNNEL);
+
+        /* Transmit */
+        pkt.unit = hapiPortPtr->bcm_unit;
+        BCM_PBMP_PORT_SET(pkt.tx_pbmp, hapiPortPtr->bcm_port);
+        BCM_PBMP_CLEAR(pkt.tx_upbmp);
+        bcm_tx(hapiPortPtr->bcm_unit, &pkt, L7_NULL);
+
         hapiBroadDebugSendCounter++;
 
         t2 = osapiTimeMillisecondsGet64();
@@ -2158,9 +2187,15 @@ void hapiBroadDebugPktSend(int unit,
   while (pkt_count)
   {
     osapiTaskYield();
-    printf("\nSending packet[%d] to %d.%d.%d (lport %d)of size %d \n",pkt_count,unit,slot,port,hapiPortPtr->bcmx_lport,pkt_size);
-    bcmx_tx_pkt_untagged_set(&pkt,L7_FALSE);
-    bcmx_tx_uc(&pkt, hapiPortPtr->bcmx_lport,BCMX_TX_F_CPU_TUNNEL);
+    printf("\nSending packet[%d] to %d.%d.%d (gport %d)of size %d \n",pkt_count,unit,slot,port,hapiPortPtr->bcm_gport,pkt_size);
+    _bcmy_tx_pkt_untagged_set(&pkt,L7_FALSE);
+
+    /* Transmit */
+    pkt.unit = hapiPortPtr->bcm_unit;
+    BCM_PBMP_PORT_SET(pkt.tx_pbmp, hapiPortPtr->bcm_port);
+    BCM_PBMP_CLEAR(pkt.tx_upbmp);
+    bcm_tx(hapiPortPtr->bcm_unit, &pkt, L7_NULL);
+
     pkt_count--;
     osapiSleep(2);
   }
@@ -2221,7 +2256,7 @@ int hapiBroadDebugDuplexAdvertSet(int unit,int slot,int port,int duplex)
 
   hapiPortPtr = HAPI_PORT_GET(&usp,dapi_g);
 
-  rv = bcmx_port_advert_get(hapiPortPtr->bcmx_lport, &ability_mask);
+  rv = bcm_port_advert_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &ability_mask);
   if (L7_BCMX_OK(rv) != L7_TRUE)
   {
     return rv;
@@ -2238,7 +2273,7 @@ int hapiBroadDebugDuplexAdvertSet(int unit,int slot,int port,int duplex)
     ability_mask |=  (BCM_PORT_ABIL_10MB_FD | BCM_PORT_ABIL_100MB_FD | BCM_PORT_ABIL_1000MB_FD);
   }
 
-  rv = bcmx_port_advert_set(hapiPortPtr->bcmx_lport, ability_mask);
+  rv = bcm_port_advert_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, ability_mask);
 
   return rv;
 }
@@ -2831,18 +2866,20 @@ TKS_DEBUG(TKS_DBG_ERR,("TKS_DBG_TUNNELV=0x%lx  /* Tunnel verbose */\n", TKS_DBG_
 #endif
 #endif
 
-extern _bcmx_port_t *_bcmx_port;
-extern int bcmx_lport_max;
-void debug_bcmx_db_print(void)
+/* PTin removed: BCMX */
+#if 0
+extern _bcmx_port_t *_bcm_gport;
+extern int bcm_gport_max;
+void debug_bcm_db_print(void)
 {
     int i=0;
-    for (i = 0; i < bcmx_lport_max; i++) {
-      if (BCMX_LPORT_VALID(i)) {
+    for (i = 0; i < bcm_gport_max; i++) {
+      if (BCMY_GPORT_VALID(i)) {
         sal_printf("\n***********************\n");
-        sal_printf("modid = %u \n", _bcmx_port[i].modid);
-        sal_printf("unit = %u \n", _bcmx_port[i].bcm_unit);
-        sal_printf("modport = %u \n", _bcmx_port[i].modport);
-        sal_printf("port = %u \n", _bcmx_port[i].bcm_port);
+        sal_printf("modid = %u \n", _bcm_gport[i].modid);
+        sal_printf("unit = %u \n", _bcm_gport[i].bcm_unit);
+        sal_printf("modport = %u \n", _bcm_gport[i].modport);
+        sal_printf("port = %u \n", _bcm_gport[i].bcm_port);
       }
     }
 
@@ -2853,6 +2890,7 @@ void hapiBroadDebugBcmxInfoDump(void)
 {
   _bcmx_port_info_dump();
 }
+#endif
 
 /* Dump specified PHY Register for the specified port */
 L7_int32 hapiBroadDebugSinglePhyRegDump(L7_int32 u, L7_uint32 p, L7_short16 phy_reg)

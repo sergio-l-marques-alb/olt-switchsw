@@ -29,7 +29,6 @@
 #include "bcm/port.h"
 #include "bcm/stg.h"
 #include "bcm/vlan.h"
-#include "bcmx/types.h"
 
 /* USL Port BCM typedefs */
 

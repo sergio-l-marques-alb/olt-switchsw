@@ -119,12 +119,12 @@ static L7_RC_t hapiBroadLlpfPortUpdate(DAPI_USP_t  *portUsp,
 {
   L7_RC_t         rc = L7_SUCCESS;
   BROAD_PORT_t   *hapiPortPtr;
-  bcmx_lport_t    lport;
+  bcm_gport_t     gport;
   L7_uchar8       temp8;
 
   hapiPortPtr    = HAPI_PORT_GET(portUsp, dapi_g);
 
-  lport = hapiPortPtr->bcmx_lport;
+  gport = hapiPortPtr->bcm_gport;
 
   temp8 = (oldLlpfEnabled << 4) | newLlpfEnabled;
   switch (temp8)
@@ -136,22 +136,22 @@ static L7_RC_t hapiBroadLlpfPortUpdate(DAPI_USP_t  *portUsp,
 
   case 0x01:
     /* Add this port to the Llpf default policy */
-    rc = hapiBroadPolicyApplyToIface(policyId, lport);
+    rc = hapiBroadPolicyApplyToIface(policyId, gport);
 
     /*Debug trace*/
     HAPI_BROAD_LLPF_DEBUG(\
-        "LLPF policy with id(%d) Install on port:Unit %d,slot %d port %d lport 0x%x\n" \
-        ,policyId,portUsp->unit, portUsp->slot,portUsp->port,hapiPortPtr->bcmx_lport);
+        "LLPF policy with id(%d) Install on port:Unit %d,slot %d port %d gport 0x%x\n" \
+        ,policyId,portUsp->unit, portUsp->slot,portUsp->port,hapiPortPtr->bcm_gport);
 
     break;
   case 0x10:
     /* Remove this port from the Llpf default policy */
-    rc = hapiBroadPolicyRemoveFromIface(policyId, lport);
+    rc = hapiBroadPolicyRemoveFromIface(policyId, gport);
 
     /*Debug trace*/
     HAPI_BROAD_LLPF_DEBUG(\
-        "LLPF policy with id(%d) Remove on port:Unit %d,slot %d port %d lport  0x%x\n" \
-        ,policyId,portUsp->unit, portUsp->slot,portUsp->port,hapiPortPtr->bcmx_lport);
+        "LLPF policy with id(%d) Remove on port:Unit %d,slot %d port %d gport  0x%x\n" \
+        ,policyId,portUsp->unit, portUsp->slot,portUsp->port,hapiPortPtr->bcm_gport);
 
     break;
   }
@@ -160,8 +160,8 @@ static L7_RC_t hapiBroadLlpfPortUpdate(DAPI_USP_t  *portUsp,
    {
      /*Debug trace*/
      HAPI_BROAD_LLPF_DEBUG(\
-        "Failed to Install (or) Remove LLPF policy with id(%d) on port:Unit %d,slot %d port %d lport 0x%x\n" \
-         ,policyId,portUsp->unit, portUsp->slot,portUsp->port,hapiPortPtr->bcmx_lport);
+        "Failed to Install (or) Remove LLPF policy with id(%d) on port:Unit %d,slot %d port %d gport 0x%x\n" \
+         ,policyId,portUsp->unit, portUsp->slot,portUsp->port,hapiPortPtr->bcm_gport);
      /*log message */
    }
  
@@ -403,8 +403,8 @@ L7_RC_t hapiBroadLlpfLagAddNotify(DAPI_USP_t *portUsp, DAPI_USP_t *lagUsp, DAPI_
      /*Debug trace*/
       HAPI_BROAD_LLPF_DEBUG(\
             "Failed to update the port state during LAG Add Notify \
-             Unit %d Slot:%d Port %d lport  0x%x\n" \
-             ,portUsp->unit, portUsp->slot,portUsp->port,hapiPortPtr->bcmx_lport);
+             Unit %d Slot:%d Port %d gport  0x%x\n" \
+             ,portUsp->unit, portUsp->slot,portUsp->port,hapiPortPtr->bcm_gport);
       continue;
     }
   }
@@ -479,13 +479,13 @@ L7_RC_t hapiBroadLlpfLagDeleteNotify(DAPI_USP_t *portUsp, DAPI_USP_t *lagUsp, DA
     {
       /*log*/
       L7_LOGF(L7_LOG_SEVERITY_WARNING,L7_LLPF_COMPONENT_ID,
-              "Failed to update the port state during LAG Delete Notify Port %d lport 0x%x\n", 
-               portUsp->port,hapiPortPtr->bcmx_lport);
+              "Failed to update the port state during LAG Delete Notify Port %d gport 0x%x\n", 
+               portUsp->port,hapiPortPtr->bcm_gport);
       /*debug*/
       HAPI_BROAD_LLPF_DEBUG(\
             "Failed to update the port state during LAG Delete Notify \
-             Unit %d Slot:%d Port %d lport 0x%x\n" \
-             ,portUsp->unit, portUsp->slot,portUsp->port,hapiPortPtr->bcmx_lport);
+             Unit %d Slot:%d Port %d gport 0x%x\n" \
+             ,portUsp->unit, portUsp->slot,portUsp->port,hapiPortPtr->bcm_gport);
       continue;
     }
   }
@@ -844,8 +844,8 @@ L7_RC_t hapiBroadIntfLlpfBlockModeConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *
     /*Debug trace*/
      HAPI_BROAD_LLPF_DEBUG(\
             "Invalid LLPF Port Number to configure LLPF block Types \
-             port: Unit %d, slot %d port %d lport  0x%x\n" \
-             ,usp->unit,usp->slot,usp->port,hapiPortPtr->bcmx_lport);
+             port: Unit %d, slot %d port %d gport  0x%x\n" \
+             ,usp->unit,usp->slot,usp->port,hapiPortPtr->bcm_gport);
 
     return( L7_FAILURE );
   }
@@ -900,15 +900,15 @@ L7_RC_t hapiBroadIntfLlpfBlockModeConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *
   {
     /*log*/
     L7_LOGF(L7_LOG_SEVERITY_WARNING,L7_LLPF_COMPONENT_ID,
-            "Failed to set/unset(%d) LLPF BlockType (%d) with Policy ID(%d) port %d lport  0x%x\n",
-             usp->port,hapiPortPtr->bcmx_lport); 
+            "Failed to set/unset(%d) LLPF BlockType (%d) with Policy ID(%d) port %d gport  0x%x\n",
+             usp->port,hapiPortPtr->bcm_gport); 
              
     /*Debug trace*/
      HAPI_BROAD_LLPF_DEBUG(\
             "Failed to set/unset(%d) LLPF BlockType (%d) with Policy ID(%d) \
-             on port: Unit %d, slot %d port %d lport  0x%x\n" \
+             on port: Unit %d, slot %d port %d gport  0x%x\n" \
              ,portEnabled,llpfBlockType,policyId,usp->unit \
-             ,usp->slot,usp->port,hapiPortPtr->bcmx_lport);
+             ,usp->slot,usp->port,hapiPortPtr->bcm_gport);
 
     return rc;
   }
@@ -924,9 +924,9 @@ L7_RC_t hapiBroadIntfLlpfBlockModeConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *
       LLPF_PORT_BLOCK_PROTO_CLEAR(hapiPortPtr, dapiCmd->cmdData.llpfConfig.blockType);
     } 
     HAPI_BROAD_LLPF_DEBUG(\
-            "Succesfully Updated LLPF Port Pointer for protocol(%d) with PolicyID(%d) for port: Unit %d, slot %d port %d lport  0x%x\n" \
+            "Succesfully Updated LLPF Port Pointer for protocol(%d) with PolicyID(%d) for port: Unit %d, slot %d port %d gport  0x%x\n" \
              ,llpfBlockType,policyId,usp->unit \
-             ,usp->slot,usp->port,hapiPortPtr->bcmx_lport);
+             ,usp->slot,usp->port,hapiPortPtr->bcm_gport);
 
   }
 

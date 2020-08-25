@@ -216,7 +216,7 @@ int usl_db_policy_remove_all(USL_DB_TYPE_t dbType, BROAD_POLICY_t policy);
 *
 * @param    dbType      @{(input)} Type of db
 * @param    policy      @{(input)} policy ID
-* @param    port        @{(input)} port
+* @param    gport       @{(input)} port
 *
 * @returns  Defined by the Broadcom driver
 *
@@ -224,14 +224,14 @@ int usl_db_policy_remove_all(USL_DB_TYPE_t dbType, BROAD_POLICY_t policy);
 *********************************************************************/
 int usl_db_policy_port_apply(USL_DB_TYPE_t  dbType, 
                              BROAD_POLICY_t policyId,
-                             bcmx_lport_t   port);
+                             bcm_gport_t    gport);
 
 /*********************************************************************
 * @purpose  Remove a policy from a port
 *
 * @param    dbType      @{(input)} Type of db
 * @param    policy      @{(input)} policy ID
-* @param    port        @{(input)} port
+* @param    gport       @{(input)} port
 *
 * @returns  Defined by the Broadcom driver
 *
@@ -239,7 +239,7 @@ int usl_db_policy_port_apply(USL_DB_TYPE_t  dbType,
 *********************************************************************/
 int usl_db_policy_port_remove(USL_DB_TYPE_t  dbType, 
                               BROAD_POLICY_t policyId,
-                              bcmx_lport_t   port);
+                              bcm_gport_t    gport);
 
 #ifdef L7_STACKING_PACKAGE
 /*********************************************************************

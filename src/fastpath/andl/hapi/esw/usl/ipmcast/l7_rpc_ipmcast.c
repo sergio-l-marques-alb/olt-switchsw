@@ -27,8 +27,7 @@
 #include "osapi.h"
 #include "log.h"
 #include "soc/drv.h"
-#include "bcmx/custom.h"
-#include "bcmx/bcmx_int.h"
+#include "bcm/custom.h"
 
 #include "l7_rpc_ipmcast.h"
 
@@ -425,7 +424,7 @@ L7_RC_t l7_rpc_server_ipmc_set_l2_ports (L7_uint32 transaction_id,
 *
 * @purpose Add L2 ports to the multicast group.
 *
-* @param   port - BCMX Lport
+* @param   gport - BCM Gport
 * @param   *index - List of IPMC indexes to modify with this call.
 * @param   num_groups - Number of IPMC groups in the *index array.
 * @param   vlan_id - VLAN affected by this call.
@@ -440,7 +439,7 @@ L7_RC_t l7_rpc_server_ipmc_set_l2_ports (L7_uint32 transaction_id,
 *
 *********************************************************************/
 int
-l7_rpc_client_ipmc_add_l2_port_groups (bcmx_lport_t      port,
+l7_rpc_client_ipmc_add_l2_port_groups (bcm_gport_t       gport,
                                        L7_uint32        *ipmc_index,
                                        L7_uint32         num_groups,
                                        L7_uint32         vlan_id,
@@ -451,6 +450,14 @@ l7_rpc_client_ipmc_add_l2_port_groups (bcmx_lport_t      port,
   usl_bcmx_port_ipmc_cmd_t  *ipmc_cmd;
   uint32                     args[BCM_CUSTOM_ARGS_MAX];
   uint32                     n_args;
+  int                        bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   memset (&args, 0, sizeof (args));
 
@@ -483,9 +490,9 @@ l7_rpc_client_ipmc_add_l2_port_groups (bcmx_lport_t      port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L2_PORT_ADD, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_IPMC_L2_PORT_ADD, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L2_PORT_ADD, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_IPMC_L2_PORT_ADD, args);
   #endif
 
   return rv;
@@ -524,7 +531,7 @@ int l7_rpc_server_ipmc_add_l2_port_groups (int unit, bcm_port_t port, int setget
 *
 * @purpose Delete L2 ports from the multicast group.
 *
-* @param   port - BCMX Lport
+* @param   gport - BCM Gport
 * @param   *index - List of IPMC indexes to modify with this call.
 * @param   num_groups - Number of IPMC groups in the *index array.
 * @param   vlan_id - VLAN affected by this call.
@@ -538,7 +545,7 @@ int l7_rpc_server_ipmc_add_l2_port_groups (int unit, bcm_port_t port, int setget
 *
 *********************************************************************/
 int
-l7_rpc_client_ipmc_delete_l2_port_groups(bcmx_lport_t port,
+l7_rpc_client_ipmc_delete_l2_port_groups(bcm_gport_t  gport,
                                          L7_uint32    *ipmc_index,
                                          L7_uint32    num_groups,
                                          L7_uint32    vlan_id)
@@ -548,6 +555,14 @@ l7_rpc_client_ipmc_delete_l2_port_groups(bcmx_lport_t port,
   usl_bcmx_port_ipmc_cmd_t     *ipmc_cmd;
   uint32                        args[BCM_CUSTOM_ARGS_MAX];
   uint32                        n_args;
+  int                           bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   memset (&args, 0, sizeof (args));
 
@@ -581,9 +596,9 @@ l7_rpc_client_ipmc_delete_l2_port_groups(bcmx_lport_t port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L2_PORT_DELETE, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_IPMC_L2_PORT_DELETE, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L2_PORT_DELETE, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_IPMC_L2_PORT_DELETE, args);
   #endif
 
   return rv;
@@ -620,7 +635,7 @@ int l7_rpc_server_ipmc_delete_l2_port_groups (int unit, bcm_port_t port,
 *
 * @purpose Add L3 ports to the multicast group.
 *
-* @param   port - BCMX Lport
+* @param   gport - BCM Gport
 * @param   *index - List of IPMC indexes to modify with this call.
 * @param   num_groups - Number of IPMC groups in the *index array.
 * @param   vlan_id - VLAN affected by this call.
@@ -635,7 +650,7 @@ int l7_rpc_server_ipmc_delete_l2_port_groups (int unit, bcm_port_t port,
 *
 *********************************************************************/
 int
-l7_rpc_client_ipmc_add_l3_port_groups (bcmx_lport_t port,
+l7_rpc_client_ipmc_add_l3_port_groups (bcm_gport_t  gport,
                                        L7_uint32    *ipmc_index,
                                        L7_uint32    num_groups,
                                        L7_uint32    vlan_id,
@@ -648,6 +663,14 @@ l7_rpc_client_ipmc_add_l3_port_groups (bcmx_lport_t port,
   usl_bcmx_port_ipmc_cmd_t    *ipmc_cmd;
   uint32                       args[BCM_CUSTOM_ARGS_MAX];
   uint32                       n_args;
+  int                          bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   memset (&args, 0, sizeof (args));
 
@@ -683,9 +706,9 @@ l7_rpc_client_ipmc_add_l3_port_groups (bcmx_lport_t port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L3_PORT_ADD, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_IPMC_L3_PORT_ADD, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L3_PORT_ADD, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_IPMC_L3_PORT_ADD, args);
   #endif
 
   return rv;
@@ -722,7 +745,7 @@ int l7_rpc_server_ipmc_add_l3_port_groups (int unit, bcm_port_t port, int setget
 *
 * @purpose Add L3 ports to the multicast group.
 *
-* @param   port - BCMX Lport
+* @param   gport - BCM Gport
 * @param   *index - single IPMC index to modify with this call.
 * @param   encap_id - encap_id associated with the port.
 *
@@ -733,7 +756,7 @@ int l7_rpc_server_ipmc_add_l3_port_groups (int unit, bcm_port_t port, int setget
 *
 *********************************************************************/
 int
-l7_rpc_client_ipmc_egress_port_add (bcmx_lport_t port,
+l7_rpc_client_ipmc_egress_port_add (bcm_gport_t  gport,
                                     L7_uint32    *ipmc_index,
                                     L7_uint32    encap_id)
 {
@@ -741,6 +764,14 @@ l7_rpc_client_ipmc_egress_port_add (bcmx_lport_t port,
   usl_bcmx_port_ipmc_cmd_t    *ipmc_cmd;
   uint32                       args[BCM_CUSTOM_ARGS_MAX];
   uint32                       n_args;
+  int                          bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   memset (&args, 0, sizeof (args));
 
@@ -762,9 +793,9 @@ l7_rpc_client_ipmc_egress_port_add (bcmx_lport_t port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_EGRESS_PORT_ADD, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_IPMC_EGRESS_PORT_ADD, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_EGRESS_PORT_ADD, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_IPMC_EGRESS_PORT_ADD, args);
   #endif
 
   return rv;
@@ -800,7 +831,7 @@ int l7_rpc_server_ipmc_egress_port_add (int unit, bcm_port_t port, int setget,
 *
 * @purpose Delete L3 ports from the multicast group.
 *
-* @param   port - BCMX Lport
+* @param   gport - BCM Gport
 * @param   *index - List of IPMC indexes to modify with this call.
 * @param   num_groups - Number of IPMC groups in the *index array.
 * @param   vlan_id - VLAN affected by this call.
@@ -814,7 +845,7 @@ int l7_rpc_server_ipmc_egress_port_add (int unit, bcm_port_t port, int setget,
 *
 *********************************************************************/
 int
-l7_rpc_client_ipmc_delete_l3_port_groups (bcmx_lport_t port,
+l7_rpc_client_ipmc_delete_l3_port_groups (bcm_gport_t  gport,
                                           L7_uint32    *ipmc_index,
                                           L7_uint32    num_groups,
                                           L7_uint32    vlan_id)
@@ -824,6 +855,14 @@ l7_rpc_client_ipmc_delete_l3_port_groups (bcmx_lport_t port,
   usl_bcmx_port_ipmc_cmd_t *ipmc_cmd;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   memset (&args, 0, sizeof (args));
 
@@ -855,9 +894,9 @@ l7_rpc_client_ipmc_delete_l3_port_groups (bcmx_lport_t port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L3_PORT_DELETE, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_IPMC_L3_PORT_DELETE, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_L3_PORT_DELETE, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_IPMC_L3_PORT_DELETE, args);
   #endif
 
   return rv;
@@ -894,7 +933,7 @@ int l7_rpc_server_ipmc_delete_l3_port_groups (int unit, bcm_port_t port,
 *
 * @purpose Delete L3 ports from the multicast group.
 *
-* @param   port - BCMX Lport
+* @param   gport - BCM Gport
 * @param   *index - single IPMC index to modify with this call.
 * @param   encap_id - encap_id associated with the port.
 *
@@ -905,14 +944,22 @@ int l7_rpc_server_ipmc_delete_l3_port_groups (int unit, bcm_port_t port,
 *
 *********************************************************************/
 int
-l7_rpc_client_ipmc_egress_port_delete (bcmx_lport_t port,
-                                       L7_uint32    *ipmc_index,
-                                       L7_uint32    encap_id)
+l7_rpc_client_ipmc_egress_port_delete (bcm_gport_t gport,
+                                       L7_uint32   *ipmc_index,
+                                       L7_uint32   encap_id)
 {
   int rv = BCM_E_NONE;
   usl_bcmx_port_ipmc_cmd_t *ipmc_cmd;
   uint32  args[BCM_CUSTOM_ARGS_MAX];
   uint32  n_args;
+  int     bcm_unit, bcm_port;
+
+  /* Convert to bcm unit/port */
+  if (bcmy_gport_to_unit_port(gport, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid gport 0x%x", gport);
+    return BCM_E_PARAM;
+  }
 
   memset (&args, 0, sizeof (args));
 
@@ -932,9 +979,9 @@ l7_rpc_client_ipmc_egress_port_delete (bcmx_lport_t port,
 
   /* PTin modified: SDK 6.3.0 */
   #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_EGRESS_PORT_DELETE, n_args, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_IPMC_EGRESS_PORT_DELETE, n_args, args);
   #else
-  rv = bcmx_custom_port_set(port, USL_BCMX_IPMC_EGRESS_PORT_DELETE, args);
+  rv = bcm_custom_port_set(bcm_unit, bcm_port, USL_BCMX_IPMC_EGRESS_PORT_DELETE, args);
   #endif
 
   return rv;

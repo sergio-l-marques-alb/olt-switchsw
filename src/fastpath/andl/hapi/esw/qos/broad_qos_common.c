@@ -181,7 +181,7 @@ L7_RC_t hapiBroadQosApplyToIface(BROAD_POLICY_t policy, BROAD_PORT_t *hapiPortPt
 {
     L7_RC_t result = L7_SUCCESS;
 
-    result = hapiBroadPolicyApplyToIface(policy, hapiPortPtr->bcmx_lport);
+    result = hapiBroadPolicyApplyToIface(policy, hapiPortPtr->bcm_gport);
 
     return result;
 }
@@ -204,7 +204,7 @@ L7_RC_t hapiBroadQosRemoveFromIface(BROAD_POLICY_t policy, BROAD_PORT_t *hapiPor
 {
     L7_RC_t result = L7_SUCCESS;
 
-    result = hapiBroadPolicyRemoveFromIface(policy, hapiPortPtr->bcmx_lport);
+    result = hapiBroadPolicyRemoveFromIface(policy, hapiPortPtr->bcm_gport);
 
     return result;
 }

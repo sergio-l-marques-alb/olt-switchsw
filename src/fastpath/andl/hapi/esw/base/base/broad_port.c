@@ -37,7 +37,6 @@
 #include "broad_l2_lag.h"
 #include "broad_l3.h"
 #include "phy_hapi.h"
-#include "bcmx/port.h"
 
 #ifdef L7_QOS_PACKAGE
 #include "broad_qos.h"
@@ -264,24 +263,55 @@ extern DAPI_t *dapi_g;
 * @end
 *
 *********************************************************************/
-void hapiBroadPortLinkStatusChange(bcmx_lport_t lport, bcm_port_info_t *portInfo)
+void hapiBroadPortLinkStatusChange(int unit, bcm_port_t port, bcm_port_info_t *portInfo)
 {
- portLinkStatus_t link_msg;
+  portLinkStatus_t link_msg;
 
- PT_LOG_NOTICE(LOG_CTX_INTF  ,"LPort 0x%08x link=%d", lport, portInfo->linkstatus);
- PT_LOG_NOTICE(LOG_CTX_EVENTS,"LPort 0x%08x link=%d", lport, portInfo->linkstatus);
+  /* Fill struct */
+  link_msg.bcm_unit = unit;
+  link_msg.bcm_port = port;
+  link_msg.linkstatus = portInfo->linkstatus;
 
- link_msg.lport = lport;
- link_msg.linkstatus = portInfo->linkstatus;
+  /* Fill gport and usp */
+  if (bcmy_lut_unit_port_to_gport_get(unit, port, &link_msg.gport) != BCMY_E_NONE ||
+     bcmy_lut_unit_port_to_usp_get(unit, port, &link_msg.usp) != BCMY_E_NONE)
+  {
+    PT_LOG_WARN(LOG_CTX_INTF,"unit %u, bcm_port %u: No GPORT/USP found!", unit, port);
+    return;
+  }
 
- if (osapiMessageSend(hapiLinkStatusQueue,
+  /* Only proceed if gport and usp are valid */
+  if (link_msg.gport == 0x0 || link_msg.gport == BCM_GPORT_INVALID)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"bcm_unit %u, bcm_port %u: Invalid gport 0x%x", unit, port, link_msg.gport);
+    return;
+  }
+  if ((link_msg.usp.unit < 0 || link_msg.usp.slot < 0 || link_msg.usp.port < 0) ||
+     isValidUsp(&link_msg.usp, dapi_g) == L7_FALSE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"bcm_unit %u, bcm_port %u: Invalid usp {%d,%d,%d}",
+               unit, port, link_msg.usp.unit, link_msg.usp.slot, link_msg.usp.port);
+    return;
+  }
+
+  PT_LOG_NOTICE(LOG_CTX_INTF  ,"unit %d, port %d, gport 0x%x, usp={%d,%d,%d}: link=%d",
+                unit, port, link_msg.gport, 
+                link_msg.usp.unit, link_msg.usp.slot, link_msg.usp.port,
+                portInfo->linkstatus);
+  PT_LOG_NOTICE(LOG_CTX_EVENTS,"unit %d, port %d, gport 0x%x, usp={%d,%d,%d}: link=%d",
+                unit, port, link_msg.gport, 
+                link_msg.usp.unit, link_msg.usp.slot, link_msg.usp.port,
+                portInfo->linkstatus);
+
+  /* Send Message */
+  if (osapiMessageSend(hapiLinkStatusQueue,
                       (void *)&link_msg,
                       sizeof(link_msg),
                       L7_WAIT_FOREVER,
                       L7_MSG_PRIORITY_NORM) != L7_SUCCESS)
- {
-   L7_LOG_ERROR(lport);
- }
+  {
+    L7_LOG_ERROR(link_msg.gport);
+  }
 
 }
 #else /* L7_PRODUCT_SMARTPATH */
@@ -302,18 +332,21 @@ void hapiBroadPortLinkStatusChange(bcmx_lport_t lport, bcm_port_info_t *portInfo
  * @end
  *
  *********************************************************************/
-void hapiBroadPortLinkStatusChange(bcmx_lport_t lport, bcm_port_info_t *portInfo)
+void hapiBroadPortLinkStatusChange(int unit, bcm_port_t port, bcm_port_info_t *portInfo)
 {
   int linkstatus;
   DAPI_USP_t        usp;
   DAPI_PORT_t       *dapiPortPtr;
-  bcmx_uport_t      uport;
+  bcm_gport_t       gport;
 
   linkstatus = portInfo->linkstatus;
 
-  uport = BCMX_UPORT_GET(lport);
-
-  HAPI_BROAD_UPORT_TO_USP(uport,&usp);
+  if (bcmy_lut_unit_port_to_gport_get(unit, port, &gport) != BCMY_E_NONE ||
+      bcmy_lut_unit_port_to_usp_get(unit, port, &usp) != BCMY_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"unit %u, bcm_port %u: No GPORT/USP found!", unit, port);
+    return;
+  }
 
   /* Make sure that card is not unplugged while we are using the
    ** pointers.
@@ -332,16 +365,16 @@ void hapiBroadPortLinkStatusChange(bcmx_lport_t lport, bcm_port_info_t *portInfo
   if ((dapiPortPtr->modeparm.physical.isLinkUp == L7_FALSE) && (linkstatus == TRUE))
   {
     /* link is up */
-    PT_LOG_NOTICE(LOG_CTX_INTF  ,"LPort 0x%08x link is up", lport);
-    PT_LOG_NOTICE(LOG_CTX_EVENTS,"LPort 0x%08x link is up", lport);
+    PT_LOG_NOTICE(LOG_CTX_INTF  ,"gport 0x%08x / unit %d port %d link is up", gport, unit, port);
+    PT_LOG_NOTICE(LOG_CTX_EVENTS,"gport 0x%08x / unit %d port %d link is up", gport, unit, port);
     dapiPortPtr->modeparm.physical.isLinkUp = L7_TRUE;
     hapiBroadPortLinkUp(&usp, dapi_g);
   }
   else if ((dapiPortPtr->modeparm.physical.isLinkUp == L7_TRUE) && (linkstatus == FALSE))
   {
     /* link is down */
-    PT_LOG_NOTICE(LOG_CTX_INTF  ,"LPort 0x%08x link is down", lport);
-    PT_LOG_NOTICE(LOG_CTX_EVENTS,"LPort 0x%08x link is down", lport);
+    PT_LOG_NOTICE(LOG_CTX_INTF  ,"gport 0x%08x / unit %d port %d link is down", gport, unit, port);
+    PT_LOG_NOTICE(LOG_CTX_EVENTS,"gport 0x%08x / unit %d port %d link is down", gport, unit, port);
     dapiPortPtr->modeparm.physical.isLinkUp = L7_FALSE;
     hapiBroadPortLinkDown(&usp, dapi_g);
   }
@@ -370,7 +403,6 @@ void hapiBroadPortLinkStatusTask(void)
 {
   DAPI_USP_t        usp;
   DAPI_PORT_t      *dapiPortPtr;
-  bcmx_uport_t         uport;
   portLinkStatus_t  link_msg;
 
   do
@@ -381,9 +413,8 @@ void hapiBroadPortLinkStatusTask(void)
       L7_LOG_ERROR(0);
     }
 
-    uport = BCMX_UPORT_GET(link_msg.lport);
-
-    HAPI_BROAD_UPORT_TO_USP(uport,&usp);
+    /* Extract usp */
+    usp = link_msg.usp;
 
     /* Make sure that card is not unplugged while we are using the
     ** pointers.
@@ -472,11 +503,10 @@ L7_RC_t hapiBroadPortLinkUp(DAPI_USP_t *usp, DAPI_t *dapi_g)
     hapiPortPtr->rx_pause = rxPauseStatus;
     hapiPortPtr->tx_pause = txPauseStatus;
 #if L7_FEAT_DUAL_PHY_COMBO
-    bcmx_port_autoneg_get(hapiPortPtr->bcmx_lport,&anStatus);
+    bcm_port_autoneg_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &anStatus);
     if(anStatus == L7_ENABLE)
     {
-      bcmx_port_advert_get(hapiPortPtr->bcmx_lport,
-                                       &abilityMask);
+      bcm_port_advert_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &abilityMask);
       hapiPortPtr->autonegotiationAbilityMask = abilityMask;
     } else {
       hapiPortPtr->autonegotiationAbilityMask = L7_DISABLE;
@@ -537,11 +567,10 @@ L7_RC_t hapiBroadPortLinkDown(DAPI_USP_t *usp, DAPI_t *dapi_g)
   hapiPortPtr->rx_pause = L7_FALSE;
   hapiPortPtr->tx_pause = L7_FALSE;
 #if L7_FEAT_DUAL_PHY_COMBO
-  bcmx_port_autoneg_get(hapiPortPtr->bcmx_lport,&anStatus);
+  bcm_port_autoneg_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &anStatus);
   if(anStatus == L7_ENABLE)
   {
-    bcmx_port_advert_get(hapiPortPtr->bcmx_lport,
-                                    &abilityMask);
+    bcm_port_advert_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &abilityMask);
     hapiPortPtr->autonegotiationAbilityMask = abilityMask;
   }
   else {

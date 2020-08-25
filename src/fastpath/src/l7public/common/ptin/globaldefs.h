@@ -8,10 +8,12 @@
    #define EXTERN_C extern
 #endif
 
-
 // Data Types
 #ifndef SBYTE
    #define SBYTE                signed char
+#endif
+#ifndef BOOL
+   #define BOOL                 unsigned char
 #endif
 #ifndef BOOLEAN
    #define BOOLEAN              unsigned char
@@ -82,12 +84,19 @@
    #define ID_NULL                  ((UINT)(-1))
 #endif
 
-// Uma vez que no agente, existem includes para o boolean, fica aqui a definicao condicionada
-#ifndef TRUE
-   #define TRUE                     1
-   #define FALSE                    0
-   #define BOOL                     unsigned char
+#ifndef NULLPTR
+ #define NULLPTR ((void *) 0)
 #endif
+
+/* Boolean values */
+#ifndef TRUE
+ #define TRUE   1
+#endif
+#ifndef FALSE
+ #define FALSE  0
+#endif
+
+
 /*
 
 typedef enum

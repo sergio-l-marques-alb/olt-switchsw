@@ -3743,7 +3743,7 @@ static int _policy_group_add_actions(int                   unit,
         /* handle case of redirect to invalid port, e.g. LAG with no members */
         if ((BROAD_ACTION_REDIRECT == action) || (BROAD_ACTION_MIRROR == action))
         {
-          if (BCMX_LPORT_INVALID == actPtr->u.ifp_parms.modid)
+          if (BCM_GPORT_INVALID == actPtr->u.ifp_parms.modid)
           {
             if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
               sysapiPrintf("%s(%d) Skipped action %u\n",__FUNCTION__,__LINE__,action);

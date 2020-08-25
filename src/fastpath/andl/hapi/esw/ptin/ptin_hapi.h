@@ -17,11 +17,9 @@ typedef struct {
 } ptin_dapi_port_t;
 
 typedef struct {
-//L7_int        ptin_port;
-  bcmx_lport_t  lport;
+  bcm_gport_t   gport;
   bcm_trunk_t   trunk_id;
   bcm_port_t    bcm_port;
-//L7_uint32     efp_class_port;
   L7_uint32     xlate_class_port;
 } ptin_hapi_intf_t;
 
@@ -33,6 +31,11 @@ typedef struct {
 /********************************************************************
  * MACROS AND INLINE FUNCTIONS
  ********************************************************************/
+/* Run all units */
+#include "ibde.h"
+#define BCM_UNIT_ITER(unit) \
+  for (unit = 0; unit < bde->num_devices(BDE_SWITCH_DEVICES); unit++)
+
 
 #define DAPIPORT_SET(dapiPort,usp_ref,dapi_g_ref) \
 {                                         \
@@ -179,7 +182,7 @@ extern void hapi_ptin_allportsbmp_get(pbmp_t *pbmp_mask);
  * @param dapi_g
  * @param pbmp : If is a physical port, it will be ADDED to this
  *             port bitmap.
- * @param intf_desc : interface descriptor with lport, bcm_port 
+ * @param intf_desc : interface descriptor with gport, bcm_port 
  *                  (-1 if not physical) and trunk_id (-1 if not
  *                  trunk)
  * 

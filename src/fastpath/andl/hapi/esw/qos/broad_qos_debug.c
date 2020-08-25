@@ -27,8 +27,6 @@
 #include "soc/debug.h"
 #include "soc/cm.h"
 #include "soc/mcm/allenum.h"
-#include "bcmx/cosq.h"
-#include "bcmx/port.h"
 #ifdef L7_STACKING_PACKAGE
 #include "../../../../../src/l7public/api/unitmgr_api.h"
 #endif
@@ -108,7 +106,7 @@ L7_RC_t hapiBroadDebugDumpCosShaping(L7_uint32 unit,L7_uint32 port)
 
     hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
 
-    bcmx_port_rate_egress_get( hapiPortPtr->bcmx_lport, &kbits_sec, &kbits_burst);
+    bcm_port_rate_egress_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &kbits_sec, &kbits_burst);
 
     printf("COS Egress Rate   Port = %d   Rate = %d Kbps  \n",port,kbits_sec);
 
@@ -121,11 +119,11 @@ L7_RC_t hapiBroadDebugDumpCosShaping(L7_uint32 unit,L7_uint32 port)
 
 int hapiBroadDebugDumpCosQueues(int unit, int port)
 {
-    bcmx_lplist_t               cosq_port_list;
+    pbmp_t                      port_bmp;
     BROAD_PORT_t               *hapiPortPtr;
     int mode = 0;
     L7_uint32                   weights[8] = {0}; 
-    DAPI_USP_t                usp;
+    DAPI_USP_t                  usp;
 
 
 
@@ -136,11 +134,10 @@ int hapiBroadDebugDumpCosQueues(int unit, int port)
 
     hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
 
+    BCM_PBMP_CLEAR(port_bmp);
+    BCM_PBMP_PORT_ADD(port_bmp, hapiPortPtr->bcm_port);
 
-    bcmx_lplist_init(&cosq_port_list, L7_MAX_INTERFACE_COUNT, 0);
-    bcmx_lplist_last_insert(&cosq_port_list, hapiPortPtr->bcmx_lport);
-    bcmx_cosq_port_sched_get(cosq_port_list,&mode, (int *)&weights, 0);
-    bcmx_lplist_free(&cosq_port_list);
+    bcm_cosq_port_sched_get(hapiPortPtr->bcm_unit, port_bmp, &mode, (int *)&weights, 0);
     printf("COS Queue type = %x\n",mode);
 
     printf("COS Queue Weights = (0)%d (1)%d (2)%d (3)%d (4)%d (5)%d (6)%d (7)%d\n",
@@ -183,8 +180,8 @@ void hapiBroadDebugDumpDscpMap(int unit,int port)
     printf("DSCP Map from Broadcom Chip- ");
     for (index=0; index<L7_QOS_COS_MAP_NUM_IPDSCP; index++)
     {
-        /* result = bcmx_port_dscp_map_get(bcmx_lport_t port, int srccp, int mapcp, int prio);*/
-        bcmx_port_dscp_map_get(BCMX_LPORT_ETHER_ALL, index, &mapcp, &prio);
+        /* result = bcm_port_dscp_map_get(int unit, bcm_port_t port, int srccp, int mapcp, int prio);*/
+        bcm_port_dscp_map_get(hapiPortPtr->bcm_unit, -1 /*All ports*/, index, &mapcp, &prio);
 
         if ((index%8) == 0)
             printf("\n[%2.2d-%2.2d] ", index, index+7);

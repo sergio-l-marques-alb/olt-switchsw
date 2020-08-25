@@ -42,10 +42,7 @@
 #include "unitmgr_api.h"
 #include "sysnet_api.h"
 
-#include <bcmx/tx.h>
-#include <bcmx/lport.h>
-#include <bcmx/port.h>    /* PTin added: link up status */
-
+#include "ibde.h"
 #include "bcm_int/esw/mbcm.h"
 #include "dapi_trace.h"
 #include "log.h"
@@ -82,6 +79,16 @@ extern ptin_debug_pktTimer_t debug_pktTimer;
 
 extern DAPI_t *dapi_g;
 extern L7_ushort16 hapiBroadDvlanEthertype;
+
+static int _bcmy_tx_pkt_untagged_set(bcm_pkt_t *pkt, int untagged);
+/* FIXME: BCMX - Check me */
+static int _bcmy_tx_uc(bcm_pkt_t *pkt, bcm_gport_t d_port, uint32 flags);
+/* FIXME: BCMX - Check me */
+static int _bcmy_tx_gplist(bcm_pkt_t *pkt, bcmy_gplist_t *tx_ports,
+                           bcmy_gplist_t *untagged_ports, uint32 flags);
+/* FIXME: BCMX - Check me */
+static int _bcmy_tx_gplist_intercept(bcm_pkt_t *pkt, bcmy_gplist_t *tx_ports,
+                                     bcmy_gplist_t *untagged_ports, uint32 flags, DAPI_t *dapi_g);
 
 L7_RC_t hapiBroadRxLegacy(BROAD_PKT_RX_MSG_t *pktRxMsg,L7_BOOL *dropFrame, bcm_chip_family_t family, DAPI_t *dapi_g);
 L7_BOOL hapiBroadXgsRxCheck(BROAD_PKT_RX_MSG_t *pktRxMsg, DAPI_t *dapi_g);
@@ -160,10 +167,10 @@ typedef struct {
 
 static PKT_RX_COS_STATS_t hapiRxDebugCosCounters[8];
 static L7_uint32          hapiTxDebugCounters[DAPI_NUM_OF_FRAME_TYPES];
-/* Number of errors in uport to lport conversion on packet receive.
+/* Number of errors in Gport to USP conversion on packet receive.
  * Shown as part of rxStats
  */
-static L7_uint32          hapiLportToUportConvertErrors = 0;
+static L7_uint32 hapiGportToUSPConvertErrors = 0;
 
 // PTin added: intercept
 int cpu_intercept_debug = 0;
@@ -845,7 +852,7 @@ L7_BOOL hapiBroadPktIsDhcp(L7_uchar8 *pkt)
 * @purpose Insert CAPWAP header when sending to a wlan virtual port
 *
 * @param   L7_uchar8    *pkt      payload frame
-* @param   bcmx_lport_t lport     gport of wlan vp
+* @param   bcm_gport_t  gport     gport of wlan vp
 * @param   uint32       flags     
 *
 * @returns void
@@ -855,18 +862,17 @@ L7_BOOL hapiBroadPktIsDhcp(L7_uchar8 *pkt)
 * @end
 *
 *********************************************************************/
-void hapiBroadWlanPortSend(bcm_pkt_t *pkt, bcmx_lport_t lport, uint32 flags, DAPI_t *dapi_g)
+void hapiBroadWlanPortSend(bcm_pkt_t *pkt, bcm_gport_t gport, uint32 flags, DAPI_t *dapi_g)
 {
 #ifdef L7_WIRELESS_PACKAGE
   bcm_pkt_t bcm_pkt;
   bcm_pkt_t bcm_pkt_frag;
   bcm_pkt_blk_t     bcm_pkt_blk;
   bcm_pkt_blk_t     bcm_pkt_blk_frag;
-  bcmx_uport_t         uport;
   DAPI_USP_t           usp;
   L7_BOOL tagged = L7_FALSE;
   bcm_tunnel_initiator_t initiator;
-  bcm_gport_t physical_txlport;;
+  bcm_gport_t physical_txgport;
   static L7_ushort16  iph_ident = 0; 
   L7_uchar8 *bufPtr;
   L7_uchar8 *secondFragBufPtr;
@@ -890,7 +896,7 @@ void hapiBroadWlanPortSend(bcm_pkt_t *pkt, bcmx_lport_t lport, uint32 flags, DAP
   bcm_pkt.pkt_data  = &bcm_pkt_blk;
   bcm_pkt.blk_count = 1;
 
-  if (hapiBroadWlanInfoGet(dapi_g, lport, &wlanTunnelInfo) != L7_SUCCESS)
+  if (hapiBroadWlanInfoGet(dapi_g, gport, &wlanTunnelInfo) != L7_SUCCESS)
   {
     return;
   }
@@ -902,25 +908,25 @@ void hapiBroadWlanPortSend(bcm_pkt_t *pkt, bcmx_lport_t lport, uint32 flags, DAP
   }
   bufPtr = bcm_pkt.pkt_data->data;
   memcpy(&initiator, &wlanTunnelInfo.initiator, sizeof(initiator));
-  physical_txlport = wlanTunnelInfo.wlan_port.port;
+  physical_txgport = wlanTunnelInfo.wlan_port.port;
 
 
   /* Is the port a LAG port */
-  if (BCM_GPORT_IS_TRUNK(physical_txlport))
+  if (BCM_GPORT_IS_TRUNK(physical_txgport))
   {
     L7_uint32 i;
     DAPI_LAG_ENTRY_t  *lagEntryPtr;
     DAPI_USP_t    lag_member_usp;
     BROAD_PORT_t *lagMemHapiPortPtr;
 
-    /* get usp of lag port and lport of first physical member port */
-    if (hapiBroadTgidToUspConvert(BCM_GPORT_TRUNK_GET(physical_txlport), &usp, dapi_g) != L7_SUCCESS)
+    /* get usp of lag port and gport of first physical member port */
+    if (hapiBroadTgidToUspConvert(BCM_GPORT_TRUNK_GET(physical_txgport), &usp, dapi_g) != L7_SUCCESS)
     {
       sal_dma_free(bcm_pkt.pkt_data->data);
       return;
     }
 
-    physical_txlport = 0;
+    physical_txgport = 0;
     lagEntryPtr = GET_DAPI_PORT(dapi_g, &usp)->modeparm.lag.memberSet;
     for (i = 0; i < L7_MAX_MEMBERS_PER_LAG; i++)
     {
@@ -929,23 +935,21 @@ void hapiBroadWlanPortSend(bcm_pkt_t *pkt, bcmx_lport_t lport, uint32 flags, DAP
           (isValidUsp (&lag_member_usp, dapi_g) == L7_TRUE))
       {
         lagMemHapiPortPtr = HAPI_PORT_GET(&lag_member_usp, dapi_g);
-        physical_txlport = lagMemHapiPortPtr->bcmx_lport;
+        physical_txgport = lagMemHapiPortPtr->bcm_gport;
         break;
       }
     }
   }
   else
   {
-    uport = BCMX_UPORT_GET(physical_txlport);
-    if (uport == BCMX_UPORT_INVALID_DEFAULT)
+    if (bcmy_lut_gport_to_usp_get(physical_txgport, &usp) != BCMY_E_NONE)
     {
       sal_dma_free(bcm_pkt.pkt_data->data);
       return;
     }
-    HAPI_BROAD_UPORT_TO_USP(uport,&usp);
   }
 
-  if (isValidUsp (&usp, dapi_g) == L7_FALSE || physical_txlport <= 0)
+  if (isValidUsp (&usp, dapi_g) == L7_FALSE || physical_txgport <= 0)
   {
     sal_dma_free(bcm_pkt.pkt_data->data);
     return;
@@ -956,17 +960,17 @@ void hapiBroadWlanPortSend(bcm_pkt_t *pkt, bcmx_lport_t lport, uint32 flags, DAP
   if ((IS_PORT_TYPE_PHYSICAL(dapiPortPtr) == L7_TRUE) && 
       (dapiPortPtr->modeparm.physical.routerIntfEnabled == L7_TRUE))
   {
-    bcmx_tx_pkt_untagged_set(&bcm_pkt,L7_TRUE);
+    _bcmy_tx_pkt_untagged_set(&bcm_pkt, L7_TRUE);
     tagged = L7_TRUE;
   }
   else if (BROAD_IS_VLAN_TAGGING(&usp, initiator.vlan, dapi_g))
   {
-    bcmx_tx_pkt_untagged_set(&bcm_pkt,L7_FALSE);
+    _bcmy_tx_pkt_untagged_set(&bcm_pkt, L7_FALSE);
     tagged = L7_TRUE;
   }
   else  /* send pkt w/o a tag */
   {
-    bcmx_tx_pkt_untagged_set(&bcm_pkt,L7_TRUE);
+    _bcmy_tx_pkt_untagged_set(&bcm_pkt, L7_TRUE);
     tagged = L7_TRUE;
   }
 
@@ -1127,7 +1131,7 @@ void hapiBroadWlanPortSend(bcm_pkt_t *pkt, bcmx_lport_t lport, uint32 flags, DAP
     if (wlanVpDebugEncap)
     {
       L7_uint32 k;
-      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS,"\n\n %s: Sending fragment to wlanvp %d with flags %x; pktflags %x \n", __FUNCTION__, lport, flags, bcm_pkt_frag.flags);
+      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS,"\n\n %s: Sending fragment to wlanvp %d with flags %x; pktflags %x \n", __FUNCTION__, gport, flags, bcm_pkt_frag.flags);
       for (k=0; k<wlanVpDebugSize && k<bcm_pkt_frag.pkt_data->len; k++)
       {
         if (k%32 == 0 && k != 0)
@@ -1139,7 +1143,7 @@ void hapiBroadWlanPortSend(bcm_pkt_t *pkt, bcmx_lport_t lport, uint32 flags, DAP
 
     }
 
-    bcmx_tx_uc (&bcm_pkt_frag, physical_txlport, flags);
+    _bcmy_tx_uc(&bcm_pkt_frag, physical_txgport, flags);
     /* increment the CPU stats */
     hapiBroadStatsCpuIncrement(bcm_pkt_frag.pkt_data->data, 
                                bcm_pkt_frag.pkt_data->len,
@@ -1155,7 +1159,7 @@ void hapiBroadWlanPortSend(bcm_pkt_t *pkt, bcmx_lport_t lport, uint32 flags, DAP
   if (wlanVpDebugEncap)
   {
     L7_uint32 k;
-    SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS,"\n\n %s: Sending capwap to wlanvp %d with flags %x; pktflags %x \n", __FUNCTION__, lport, flags, bcm_pkt.flags);
+    SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS,"\n\n %s: Sending capwap to wlanvp %d with flags %x; pktflags %x \n", __FUNCTION__, gport, flags, bcm_pkt.flags);
     for (k=0; k<wlanVpDebugSize && k<bcm_pkt.pkt_data->len; k++)
     {
       if (k%32 == 0 && k != 0)
@@ -1167,7 +1171,7 @@ void hapiBroadWlanPortSend(bcm_pkt_t *pkt, bcmx_lport_t lport, uint32 flags, DAP
 
   }
 
-  bcmx_tx_uc (&bcm_pkt, physical_txlport, flags);
+  _bcmy_tx_uc(&bcm_pkt, physical_txgport, flags);
 
   /* increment the CPU stats */
   hapiBroadStatsCpuIncrement(bcm_pkt.pkt_data->data, 
@@ -1178,13 +1182,14 @@ void hapiBroadWlanPortSend(bcm_pkt_t *pkt, bcmx_lport_t lport, uint32 flags, DAP
 #endif
 }
 
+/* FIXME: BCMX - Check me */
 /*********************************************************************
 *
-* @purpose Filter wlan virtual ports from the lplist, and send capwap frame
+* @purpose Filter wlan virtual ports from the gplist, and send capwap frame
 *
 * @param   L7_uchar8    *pkt      payload frame
-* @param   bcmx_lplist_t *tx_ports     gport of wlan vp
-* @param   bcmx_lplist_t *untagged_ports     
+* @param   bcmy_gplist_t *tx_ports     gport of wlan vp
+* @param   bcmy_gplist_t *untagged_ports     
 * @param   uint32 flags     
 *
 * @returns int
@@ -1194,28 +1199,29 @@ void hapiBroadWlanPortSend(bcm_pkt_t *pkt, bcmx_lport_t lport, uint32 flags, DAP
 * @end
 *
 *********************************************************************/
-int bcmx_tx_lplist_intercept(bcm_pkt_t *pkt, bcmx_lplist_t *tx_ports,
-                             bcmx_lplist_t *untagged_ports, uint32 flags, DAPI_t *dapi_g)
+static int
+_bcmy_tx_gplist_intercept(bcm_pkt_t *pkt, bcmy_gplist_t *tx_ports,
+                          bcmy_gplist_t *untagged_ports, uint32 flags, DAPI_t *dapi_g)
 {
-  bcmx_lport_t lport;
-  int i;
-  bcmx_lplist_t         removeList;
-  int                   rv;
+  bcm_gport_t   gport;
+  bcmy_gplist_t removeList;
+  int           i;
+  int           rv;
 
-  rv = bcmx_lplist_init(&removeList,L7_MAX_INTERFACE_COUNT,0);
+  rv = bcmy_gplist_init(&removeList, L7_MAX_INTERFACE_COUNT, 0);
   if (L7_BCMX_OK(rv) != L7_TRUE)
   {
     L7_LOG_ERROR(rv);
   }
-  BCMX_LPLIST_IDX_ITER(tx_ports, lport, i) 
+  BCMY_GPLIST_IDX_ITER(tx_ports, gport, i) 
   {
-    if (BCM_GPORT_IS_WLAN_PORT(lport))
+    if (BCM_GPORT_IS_WLAN_PORT(gport))
     {
       /* insert encapsulation and transmit on the physical port */
       if (wlanVpDebugTx)
       {
         L7_uint32 k;
-        SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS,"\n\n %s: Sending to wlanvp %d with flags %x; pktflags %x \n", __FUNCTION__, lport, flags, pkt->flags);
+        SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS,"\n\n %s: Sending to wlanvp %d with flags %x; pktflags %x \n", __FUNCTION__, gport, flags, pkt->flags);
         for (k=0; k<wlanVpDebugSize && k<pkt->pkt_data->len; k++)
         {
           if (k%32 == 0 && k != 0)
@@ -1225,31 +1231,31 @@ int bcmx_tx_lplist_intercept(bcm_pkt_t *pkt, bcmx_lplist_t *tx_ports,
           SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%02x", pkt->pkt_data->data[k]);
         }
       }
-      hapiBroadWlanPortSend(pkt, lport, flags, dapi_g);
+      hapiBroadWlanPortSend(pkt, gport, flags, dapi_g);
 
-      BCMX_LPLIST_ADD(&removeList, lport);
+      BCMY_GPLIST_ADD(&removeList, gport);
     }
 
   }
   if (untagged_ports != NULL)
   {
-    BCMX_LPLIST_IDX_ITER(untagged_ports, lport, i) 
+    BCMY_GPLIST_IDX_ITER(untagged_ports, gport, i) 
     {
-      if (BCM_GPORT_IS_WLAN_PORT(lport))
+      if (BCM_GPORT_IS_WLAN_PORT(gport))
       {
         /* insert encapsulation and transmit on the physical port */
         /*if (wlanVpDebug)*/
         {
           SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS,
-                        "bcmx_tx_lplist_intercept untagged: Sending to wlanvp %d with flags %x \n %02x%02x%02x%02x%02x%02x %02x%02x%02x%02x%02x%02x %02x%02x%02x%02x%02x%02x%02x%02x \n",
-                        lport, flags,
+                        "_bcmy_tx_gplist_intercept untagged: Sending to wlanvp %d with flags %x \n %02x%02x%02x%02x%02x%02x %02x%02x%02x%02x%02x%02x %02x%02x%02x%02x%02x%02x%02x%02x \n",
+                        gport, flags,
                         pkt->pkt_data->data[0],pkt->pkt_data->data[1],pkt->pkt_data->data[2],pkt->pkt_data->data[3],pkt->pkt_data->data[4],pkt->pkt_data->data[5],
                         pkt->pkt_data->data[6],pkt->pkt_data->data[7],pkt->pkt_data->data[8],pkt->pkt_data->data[9],pkt->pkt_data->data[10],pkt->pkt_data->data[11],
                         pkt->pkt_data->data[12],pkt->pkt_data->data[13],pkt->pkt_data->data[14],pkt->pkt_data->data[15],pkt->pkt_data->data[16],pkt->pkt_data->data[17],
                         pkt->pkt_data->data[18],pkt->pkt_data->data[19]
                         );
         }
-        /*hapiBroadWlanPortSend(pkt, lport, flags, dapi_g);*/
+        /*hapiBroadWlanPortSend(pkt, gport, flags, dapi_g);*/
 
       }
 
@@ -1257,15 +1263,112 @@ int bcmx_tx_lplist_intercept(bcm_pkt_t *pkt, bcmx_lplist_t *tx_ports,
   }
 
   /* Now remove the ports from the list */
-  BCMX_LPLIST_IDX_ITER(&removeList, lport, i)
+  BCMY_GPLIST_IDX_ITER(&removeList, gport, i)
   {
-    BCMX_LPLIST_REMOVE(tx_ports, lport);
+    BCMY_GPLIST_REMOVE(tx_ports, gport);
   }
 
-  bcmx_lplist_free(&removeList);
-  return bcmx_tx_lplist (pkt, tx_ports, untagged_ports, flags);
+  bcmy_gplist_free(&removeList);
 
+  return _bcmy_tx_gplist(pkt, tx_ports, untagged_ports, flags);
 }
+
+/* FIXME: BCMX - Check me */
+/**
+ * Transmit a gplist
+ * 
+ * @author mruas (20/08/20)
+ * 
+ * @param pkt 
+ * @param tx_ports
+ * @param untagged_ports
+ * @param flags 
+ * 
+ * @return int 
+ */
+static int
+_bcmy_tx_gplist(bcm_pkt_t *pkt, bcmy_gplist_t *tx_ports,
+                bcmy_gplist_t *untagged_ports, uint32 flags)
+{
+  bcm_gport_t gport;
+  int    i, bcm_unit;
+  pbmp_t pbmp_tx;
+  pbmp_t pbmp_untagged;
+  int    rv, rv_ret = BCM_E_NONE;;
+
+  /* Run all units */
+  for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
+  {
+    BCM_PBMP_CLEAR(pbmp_tx);
+    if (tx_ports != NULLPTR)
+    {
+      BCMY_GPLIST_IDX_ITER(tx_ports, gport, i)
+      {
+        int unit, port;
+
+        /* Convert gport to unit+port */
+        if (bcmy_lut_gport_to_unit_port_get(gport, &unit, &port) == BCMY_E_NONE &&
+            unit == bcm_unit)
+        {
+          BCM_PBMP_PORT_ADD(pbmp_tx, port);
+        }
+      }
+    }
+
+    BCM_PBMP_CLEAR(pbmp_untagged);
+    if (untagged_ports != NULLPTR)
+    {
+      BCMY_GPLIST_IDX_ITER(untagged_ports, gport, i)
+      {
+        int unit, port;
+
+        /* Convert gport to unit+port */
+        if (bcmy_lut_gport_to_unit_port_get(gport, &unit, &port) == BCMY_E_NONE &&
+            unit == bcm_unit)
+        {
+          BCM_PBMP_PORT_ADD(pbmp_untagged, port);
+        }
+      }
+    }
+
+    /* Update destination */
+    pkt->unit     = bcm_unit;
+    pkt->tx_pbmp  = pbmp_tx;
+    pkt->tx_upbmp = pbmp_untagged;
+
+    rv = bcm_tx(bcm_unit, pkt, L7_NULL);
+    if (rv != BCM_E_NONE)
+    {
+      rv_ret = rv;
+    }
+  }
+
+  return rv_ret;
+}
+
+/* FIXME: BCMX - Check me */
+/* Direct a packet to a logical port. */
+static int
+_bcmy_tx_uc(bcm_pkt_t *pkt, bcm_gport_t d_port, uint32 flags)
+{
+  pbmp_t pbmp_tx;
+  int bcm_unit, bcm_port;
+
+  BCM_PBMP_CLEAR(pbmp_tx);
+
+  /* Convert gport to unit+port */
+  if (bcmy_lut_gport_to_unit_port_get(d_port, &bcm_unit, &bcm_port) != BCMY_E_NONE)
+  {
+    return BCM_E_PARAM;
+  }
+  BCM_PBMP_PORT_ADD(pbmp_tx, bcm_port);
+
+  pkt->unit = bcm_unit;
+  pkt->tx_pbmp  = pbmp_tx;
+
+  return bcm_tx(bcm_unit, pkt, L7_NULL);
+}
+
 
 /*********************************************************************
 *
@@ -1308,9 +1411,9 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
   L7_BOOL                  portIsForwarding;
   L7_uint32                frameLength;
   L7_BOOL                  etype_eapol = L7_FALSE;
-  bcmx_lplist_t            mcastLplist;
-  bcmx_lplist_t            taggedLplist;
-  bcmx_lplist_t            untaggedLplist;
+  bcmy_gplist_t            mcastGplist;
+  bcmy_gplist_t            taggedGplist;
+  bcmy_gplist_t            untaggedGplist;
   int                      rv;
   int                      bcmTxRv = BCM_E_NONE;
   L7_ushort16              sendVlanId;
@@ -1598,7 +1701,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
     {
       L7_uint32 k;
       SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS,"\n\n %s: Sending to usp %d.%d.%d, wlanvp %d with frameType %d pktflags %x \n", 
-                    __FUNCTION__, destUsp.unit, destUsp.slot, destUsp.port, hapiPortPtr->bcmx_lport, frameType, bcm_pkt.flags);
+                    __FUNCTION__, destUsp.unit, destUsp.slot, destUsp.port, hapiPortPtr->bcm_gport, frameType, bcm_pkt.flags);
       for (k=0; k<wlanVpDebugSize && k<bcm_pkt.pkt_data->len; k++)
       {
         if (k%32 == 0 && k != 0)
@@ -1608,7 +1711,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
         SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%02x", bcm_pkt.pkt_data->data[k]);
       }
     }
-    hapiBroadWlanPortSend(&bcm_pkt, hapiPortPtr->bcmx_lport, BCMX_TX_F_CPU_TUNNEL, dapi_g);
+    hapiBroadWlanPortSend(&bcm_pkt, hapiPortPtr->bcm_gport, 0 /*BCMX_TX_F_CPU_TUNNEL*/, dapi_g);
 
     /* Free the frame from the buffer */
     SYSAPI_NET_MBUF_FREE(cmdInfo->cmdData.send.frameHdl);
@@ -1623,8 +1726,8 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
   /* Dump first 64 bytes */
   if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL3)
   {
-    PT_LOG_DEBUG(LOG_CTX_HAPI,"Packet to be transmited on usp={%d,%d,%d} (lport=0x%08x) with sendVLAN=%u (frameType=%u, flags=0x%08x)",
-              destUsp.unit, destUsp.slot, destUsp.port, hapiPortPtr->bcmx_lport, cmdInfo->cmdData.send.vlanID, frameType, bcm_pkt.flags);
+    PT_LOG_DEBUG(LOG_CTX_HAPI,"Packet to be transmited on usp={%d,%d,%d} (gport=0x%08x) with sendVLAN=%u (frameType=%u, flags=0x%08x)",
+              destUsp.unit, destUsp.slot, destUsp.port, hapiPortPtr->bcm_gport, cmdInfo->cmdData.send.vlanID, frameType, bcm_pkt.flags);
   }
 
   /* determine how the packet is to be sent */
@@ -1650,17 +1753,17 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
         (dapiPortPtr->modeparm.physical.routerIntfEnabled == L7_TRUE))
     {
       /* send pkt w/o a tag */
-      bcmx_tx_pkt_untagged_set(&bcm_pkt,L7_TRUE);
+      _bcmy_tx_pkt_untagged_set(&bcm_pkt, L7_TRUE);
     }
     else if (BROAD_IS_VLAN_TAGGING(&destUsp, cmdInfo->cmdData.send.vlanID, dapi_g))
     {
       /* send packet w/ tag */
-      bcmx_tx_pkt_untagged_set(&bcm_pkt,L7_FALSE);
+      _bcmy_tx_pkt_untagged_set(&bcm_pkt, L7_FALSE);
     }
     else
     {
       /* send pkt w/o a tag */
-      bcmx_tx_pkt_untagged_set(&bcm_pkt,L7_TRUE);
+      _bcmy_tx_pkt_untagged_set(&bcm_pkt, L7_TRUE);
     }
 
     portIsForwarding = hapiBroadPortIsForwarding(&destUsp, cmdInfo->cmdData.send.vlanID, dapi_g);
@@ -1669,9 +1772,9 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
     {
             
 #ifndef L7_CHASSIS 
-      rv = bcmx_tx_uc (&bcm_pkt, hapiPortPtr->bcmx_lport, BCMX_TX_F_CPU_TUNNEL);
+      rv = _bcmy_tx_uc(&bcm_pkt, hapiPortPtr->bcm_gport, 0 /*BCMX_TX_F_CPU_TUNNEL*/);
 #else
-      rv = bcmx_tx_uc (&bcm_pkt, hapiPortPtr->bcmx_lport, 0); 
+      rv = _bcmy_tx_uc(&bcm_pkt, hapiPortPtr->bcm_gport, 0); 
 #endif
 
       if (bcm_pkt.flags & BCM_PKT_F_TIMESYNC) /* Packet is for Time Sync protocol. */
@@ -1773,15 +1876,15 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
 #ifdef L7_DOT1AG_PACKAGE
     if ((frameData[16] == 0x89) && (frameData[17] == 0x02))
     {
-      bcmx_tx_pkt_untagged_set(&bcm_pkt,L7_FALSE);
+      _bcmy_tx_pkt_untagged_set(&bcm_pkt, L7_FALSE);
     }
     else
 #endif
     {
-      bcmx_tx_pkt_untagged_set(&bcm_pkt,L7_TRUE);
+      _bcmy_tx_pkt_untagged_set(&bcm_pkt, L7_TRUE);
     }
 
-    rv = bcmx_tx_uc (&bcm_pkt, hapiPortPtr->bcmx_lport, BCMX_TX_F_CPU_TUNNEL ); 
+    rv = _bcmy_tx_uc(&bcm_pkt, hapiPortPtr->bcm_gport, 0 /*BCMX_TX_F_CPU_TUNNEL*/ ); 
   
     bcmTxRv = rv;
     frameSent = L7_TRUE;
@@ -1793,7 +1896,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
 
   case DAPI_FRAME_TYPE_MCAST_DOMAIN:
 
-    rv = bcmx_lplist_init(&mcastLplist,L7_MAX_INTERFACE_COUNT,0);
+    rv = bcmy_gplist_init(&mcastGplist, L7_MAX_INTERFACE_COUNT, 0);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL2)
@@ -1803,58 +1906,58 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
       return L7_FAILURE;
     }
  
-    rv = bcmx_lplist_init(&taggedLplist,L7_MAX_INTERFACE_COUNT,0);
+    rv = bcmy_gplist_init(&taggedGplist, L7_MAX_INTERFACE_COUNT, 0);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL2)
         PT_LOG_ERR(LOG_CTX_HAPI,"Failed transmission: rv=%d", rv);
       SYSAPI_NET_MBUF_FREE(cmdInfo->cmdData.send.frameHdl);
       sal_dma_free(bcm_pkt.pkt_data->data);
-      bcmx_lplist_free(&mcastLplist);
+      bcmy_gplist_free(&mcastGplist);
       return L7_FAILURE;
     }
 
-    rv = bcmx_lplist_init(&untaggedLplist,L7_MAX_INTERFACE_COUNT,0);
+    rv = bcmy_gplist_init(&untaggedGplist, L7_MAX_INTERFACE_COUNT, 0);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL2)
         PT_LOG_ERR(LOG_CTX_HAPI,"Failed transmission: rv=%d", rv);
       SYSAPI_NET_MBUF_FREE(cmdInfo->cmdData.send.frameHdl);
       sal_dma_free(bcm_pkt.pkt_data->data);
-      bcmx_lplist_free(&mcastLplist);
-      bcmx_lplist_free(&taggedLplist);
+      bcmy_gplist_free(&mcastGplist);
+      bcmy_gplist_free(&taggedGplist);
       return L7_FAILURE;
     }
 
     /*
      * Get port bitmap for this vlan from BCM
      */
-    hapiBroadGetSameVlanPbmpTx(cmdInfo->cmdData.send.vlanID, &mcastLplist, L7_TRUE, dapi_g);
-    hapiBroadPruneTxDiscardingPorts(cmdInfo->cmdData.send.vlanID, &mcastLplist, dapi_g);
+    hapiBroadGetSameVlanPbmpTx(cmdInfo->cmdData.send.vlanID, &mcastGplist, L7_TRUE, dapi_g);
+    hapiBroadPruneTxDiscardingPorts(cmdInfo->cmdData.send.vlanID, &mcastGplist, dapi_g);
 
     /* if this is not eapol, only send on authorized ports */
     if (etype_eapol == L7_FALSE)
     {
-      hapiBroadPruneTxUnauthorizedPorts(&mcastLplist,dapi_g);
+      hapiBroadPruneTxUnauthorizedPorts(&mcastGplist, dapi_g);
     }
-    if (hapiBroadTaggedStatusLplistSet(cmdInfo->cmdData.send.vlanID,
-                                       &mcastLplist,&taggedLplist,&untaggedLplist,
+    if (hapiBroadTaggedStatusGplistSet(cmdInfo->cmdData.send.vlanID,
+                                       &mcastGplist, &taggedGplist, &untaggedGplist,
                                        dapi_g) != L7_SUCCESS)
     {
       if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL2)
         PT_LOG_ERR(LOG_CTX_HAPI,"Failed transmission");
       SYSAPI_NET_MBUF_FREE(cmdInfo->cmdData.send.frameHdl);
       sal_dma_free(bcm_pkt.pkt_data->data);
-      bcmx_lplist_free(&mcastLplist);
-      bcmx_lplist_free(&taggedLplist);
-      bcmx_lplist_free(&untaggedLplist);
+      bcmy_gplist_free(&mcastGplist);
+      bcmy_gplist_free(&taggedGplist);
+      bcmy_gplist_free(&untaggedGplist);
       return L7_FAILURE;
     }
 
 #ifndef L7_CHASSIS 
-    rv = bcmx_tx_lplist_intercept (&bcm_pkt, &mcastLplist, &untaggedLplist, BCMX_TX_F_CPU_TUNNEL, dapi_g); /* sdk 5.3.1 change */
+    rv = _bcmy_tx_gplist_intercept(&bcm_pkt, &mcastGplist, &untaggedGplist, 0 /*BCMX_TX_F_CPU_TUNNEL*/, dapi_g); /* sdk 5.3.1 change */
 #else
-    rv = bcmx_tx_port_list(&mcastLplist, &bcm_pkt); 
+    rv = _bcmy_tx_gplist(&bcm_pkt, &mcastGplist, NULLPTR, 0 /*flags*/);
 #endif
     bcmTxRv = rv;
     frameSent = L7_TRUE;
@@ -1866,7 +1969,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
 
   case DAPI_FRAME_TYPE_NO_L2_EGRESS_MCAST_DOMAIN:
 
-    rv = bcmx_lplist_init(&mcastLplist,L7_MAX_INTERFACE_COUNT,0);
+    rv = bcmy_gplist_init(&mcastGplist, L7_MAX_INTERFACE_COUNT, 0);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL2)
@@ -1879,20 +1982,20 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
     /*
      * Get port bitmap for this vlan from BCM
      */
-    hapiBroadGetSameVlanPbmpTx(cmdInfo->cmdData.send.vlanID, &mcastLplist, L7_TRUE, dapi_g);
+    hapiBroadGetSameVlanPbmpTx(cmdInfo->cmdData.send.vlanID, &mcastGplist, L7_TRUE, dapi_g);
 
     /* if this is not eapol, only send on authorized ports */
     if (etype_eapol == L7_FALSE)
     {
-      hapiBroadPruneTxUnauthorizedPorts(&mcastLplist,dapi_g);
+      hapiBroadPruneTxUnauthorizedPorts(&mcastGplist, dapi_g);
     }
 
-    if (BCMX_LPLIST_IS_EMPTY(&mcastLplist) == L7_FALSE)
+    if (BCMY_GPLIST_IS_EMPTY(&mcastGplist) == L7_FALSE)
     {
       /* will be proccessed in hardware */
-      bcmx_tx_pkt_untagged_set(&bcm_pkt,L7_FALSE);
+      _bcmy_tx_pkt_untagged_set(&bcm_pkt, L7_FALSE);
 
-      rv = bcmx_tx_lplist_intercept (&bcm_pkt, &mcastLplist, NULL, BCMX_TX_F_CPU_TUNNEL, dapi_g); /* sdk 5.3.1 change */
+      rv = _bcmy_tx_gplist_intercept(&bcm_pkt, &mcastGplist, NULL, 0 /*BCMX_TX_F_CPU_TUNNEL*/, dapi_g); /* sdk 5.3.1 change */
       bcmTxRv = rv;
       frameSent = L7_TRUE;
       if (L7_BCMX_OK(rv) != L7_TRUE)
@@ -1939,9 +2042,9 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
            (cpuDapiPortPtr->mirrorType == DAPI_MIRROR_BIDIRECTIONAL)))
       {
         /* Always send mirrored packet w/ tag, to help debug VLAN associations */
-        bcmx_tx_pkt_untagged_set(&bcm_pkt,L7_FALSE);
+        _bcmy_tx_pkt_untagged_set(&bcm_pkt, L7_FALSE);
 
-        rv = bcmx_tx_uc(&bcm_pkt, probeHapiPortPtr->bcmx_lport, BCMX_TX_F_CPU_TUNNEL);   
+        rv = _bcmy_tx_uc(&bcm_pkt, probeHapiPortPtr->bcm_gport, 0 /*BCMX_TX_F_CPU_TUNNEL*/);   
       }
     }
     
@@ -1960,7 +2063,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
                    ((mirrorDapiPortPtr->mirrorType == DAPI_MIRROR_BIDIRECTIONAL) || 
                     (mirrorDapiPortPtr->mirrorType == DAPI_MIRROR_EGRESS)))) 
       {
-        rv = bcmx_tx_uc(&bcm_pkt, probeHapiPortPtr->bcmx_lport, BCMX_TX_F_CPU_TUNNEL); 
+        rv = _bcmy_tx_uc(&bcm_pkt, probeHapiPortPtr->bcm_gport, 0 /*BCMX_TX_F_CPU_TUNNEL*/); 
       }
       break;
 
@@ -2008,24 +2111,24 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
                   mirrorHapiPortPtr = HAPI_PORT_GET(&(searchUsp), dapi_g);
                 }
                   
-                if (BROAD_IS_VLAN_TAGGING(&(searchUsp),sendVlanId,dapi_g))
+                if (BROAD_IS_VLAN_TAGGING(&(searchUsp), sendVlanId, dapi_g))
                 {
-                  rv = bcmx_lplist_index_get(&taggedLplist,mirrorHapiPortPtr->bcmx_lport);
+                  rv = bcmy_gplist_index_get(&taggedGplist, mirrorHapiPortPtr->bcm_gport);
                   if (rv >= 0)
                   {
-                    bcmx_tx_pkt_untagged_set(&bcm_pkt,L7_FALSE);
+                    _bcmy_tx_pkt_untagged_set(&bcm_pkt, L7_FALSE);
           
-                    rv = bcmx_tx_uc(&bcm_pkt, probeHapiPortPtr->bcmx_lport, BCMX_TX_F_CPU_TUNNEL ); 
+                    rv = _bcmy_tx_uc(&bcm_pkt, probeHapiPortPtr->bcm_gport, 0 /*BCMX_TX_F_CPU_TUNNEL*/ ); 
                   }
                 }
                 else
                 {
-                  rv = bcmx_lplist_index_get(&untaggedLplist,mirrorHapiPortPtr->bcmx_lport);
+                  rv = bcmy_gplist_index_get(&untaggedGplist, mirrorHapiPortPtr->bcm_gport);
                   if (rv >= 0)
                   {
-                    bcmx_tx_pkt_untagged_set(&bcm_pkt,L7_TRUE);
+                    _bcmy_tx_pkt_untagged_set(&bcm_pkt, L7_TRUE);
           
-                    rv = bcmx_tx_uc(&bcm_pkt, probeHapiPortPtr->bcmx_lport,BCMX_TX_F_CPU_TUNNEL); 
+                    rv = _bcmy_tx_uc(&bcm_pkt, probeHapiPortPtr->bcm_gport, 0 /*BCMX_TX_F_CPU_TUNNEL*/); 
                   }
                 }
               }
@@ -2079,10 +2182,10 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
                   mirrorHapiPortPtr = HAPI_PORT_GET(&(searchUsp), dapi_g);
                 }
                   
-                rv = bcmx_lplist_index_get(&mcastLplist,mirrorHapiPortPtr->bcmx_lport);
+                rv = bcmy_gplist_index_get(&mcastGplist, mirrorHapiPortPtr->bcm_gport);
                 if (rv >= 0)
                 {
-                  rv = bcmx_tx_uc(&bcm_pkt, probeHapiPortPtr->bcmx_lport, BCMX_TX_F_CPU_TUNNEL); 
+                  rv = _bcmy_tx_uc(&bcm_pkt, probeHapiPortPtr->bcm_gport, 0 /*BCMX_TX_F_CPU_TUNNEL*/); 
                 }
               }
             }
@@ -2101,12 +2204,12 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
     {
     
     case DAPI_FRAME_TYPE_MCAST_DOMAIN:
-      bcmx_lplist_free(&mcastLplist);
-      bcmx_lplist_free(&taggedLplist);
-      bcmx_lplist_free(&untaggedLplist);
+      bcmy_gplist_free(&mcastGplist);
+      bcmy_gplist_free(&taggedGplist);
+      bcmy_gplist_free(&untaggedGplist);
       break;
     case DAPI_FRAME_TYPE_NO_L2_EGRESS_MCAST_DOMAIN:
-      bcmx_lplist_free(&mcastLplist);
+      bcmy_gplist_free(&mcastGplist);
       break;
     default:
       break;
@@ -2124,8 +2227,8 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
   /* Dump first 64 bytes */
   if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_STDOUT)
   {
-    printf("Packet transmited on usp={%d,%d,%d} (lport=0x%08x) with sendVLAN=%u, length=%u (frameType=%u, flags=0x%x): bcmTxRv=%d result=%d\r\n",
-           destUsp.unit, destUsp.slot, destUsp.port, hapiPortPtr->bcmx_lport, cmdInfo->cmdData.send.vlanID, bcm_pkt.pkt_data->len, frameType, bcm_pkt.flags, bcmTxRv, result);
+    printf("Packet transmited on usp={%d,%d,%d} (gport=0x%08x) with sendVLAN=%u, length=%u (frameType=%u, flags=0x%x): bcmTxRv=%d result=%d\r\n",
+           destUsp.unit, destUsp.slot, destUsp.port, hapiPortPtr->bcm_gport, cmdInfo->cmdData.send.vlanID, bcm_pkt.pkt_data->len, frameType, bcm_pkt.flags, bcmTxRv, result);
     fflush(stdout);
   }
 
@@ -2157,8 +2260,8 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
 
   if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL1)
   {
-    PT_LOG_DEBUG(LOG_CTX_HAPI, "Sending to usp %d.%d.%d (bcmx_lport 0x%08x), with sendVLAN %u, length=%u/%u (frameType %u, pktflags 0x%x): bcmTxRv=%d result=%d",
-              destUsp.unit, destUsp.slot, destUsp.port, hapiPortPtr->bcmx_lport, cmdInfo->cmdData.send.vlanID, bcm_pkt.pkt_data->len, frameType, bcm_pkt.flags, bcmTxRv, result);
+    PT_LOG_DEBUG(LOG_CTX_HAPI, "Sending to usp %d.%d.%d (gport 0x%08x), with sendVLAN %u, length=%u/%u (frameType %u, pktflags 0x%x): bcmTxRv=%d result=%d",
+              destUsp.unit, destUsp.slot, destUsp.port, hapiPortPtr->bcm_gport, cmdInfo->cmdData.send.vlanID, bcm_pkt.pkt_data->len, frameType, bcm_pkt.flags, bcmTxRv, result);
   }
 
   return result;
@@ -2206,7 +2309,6 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   L7_netBufHandle      frameHdl=L7_NULL;
   bcm_rx_t             result = BCM_RX_NOT_HANDLED;
   BROAD_PKT_RX_MSG_t   pktRxMsg;
-  bcmx_uport_t         uport;
   L7_uint32            frameLength = bcm_pkt->pkt_len;
   L7_uchar8            gmrpPduMac[] = {0x01,0x80,0xC2,0x00,0x00,0x20};
   L7_uchar8            gvrpPduMac[] = {0x01,0x80,0xC2,0x00,0x00,0x21};
@@ -2216,7 +2318,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   L7_uchar8            lldpEthType[] = {0x88, 0xCC};
   L7_uchar8            dot3ahEthType[] = {0x88, 0x09};
   DAPI_USP_t           gmrpUspCheck;
-  int                  lport;
+  int                  gport;
   DAPI_ADDR_MGMT_CMD_t macAddressInfo;
   BROAD_PORT_t        *hapiPortPtr;
   L7_DOT1X_PORT_STATUS_t dot1xStatus;
@@ -2439,21 +2541,24 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
      if ( (board_family == BCM_FAMILY_TRIUMPH) ||
           (board_family == BCM_FAMILY_TRIUMPH2) ||
           (board_family == BCM_FAMILY_TRIDENT)
-        ) /* Remove the inner tag if the frame is double tagged */
-          /* Currently All the double tagged frames comes with
-             inner inner TPID as 0x8100.*/
+        ) 
      {
+       /* Remove the inner tag if the frame is double tagged */
+       /* Currently All the double tagged frames comes with
+          inner inner TPID as 0x8100.*/
        outerVlanId = osapiNtohs(*(L7_ushort16 *)&bcm_pkt->pkt_data->data[14]) & 0xFFF;
 
        if (dapi_g->system->dvlanEnable)
        {
-         hapiBroadModidModportToLportGet (bcm_pkt->src_mod, bcm_pkt->src_port, &lport);
-         uport = BCMX_UPORT_GET(lport);
-         if (uport == BCMX_UPORT_INVALID_DEFAULT)
+         /* Extract USP from ingress port */
+         if (bcmy_lut_unit_port_to_gport_get(bcm_pkt->src_mod, bcm_pkt->src_port, &gport) != BCMY_E_NONE ||
+             bcmy_lut_unit_port_to_usp_get(bcm_pkt->src_mod, bcm_pkt->src_port, &usp) != BCMY_E_NONE ||
+             !isValidUsp(&usp, dapi_g))
          {
+           PT_LOG_ERR(LOG_CTX_HAPI,"Error processing packet: unit=%d src_mod=%u src_port=%u => gport=0x%x, usp={%d,%d,%d}",
+                      bcm_pkt->src_mod, bcm_pkt->src_mod, bcm_pkt->src_port, gport, usp.unit, usp.slot, usp.port);
            return result;
          }
-         HAPI_BROAD_UPORT_TO_USP(uport,&usp);
 
          hapiPortPtr = HAPI_PORT_GET(&usp,dapi_g);
          memcpy(&ether_type, &bcm_pkt->pkt_data->data[16], sizeof(ether_type));
@@ -2496,7 +2601,6 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
         sysapiPrintf("\n\r");
       }
      }
-  
   } /* Frames from unknown boards will be dropped further*/
 
   if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL4)
@@ -2505,45 +2609,48 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL4)
     PT_LOG_TRACE(LOG_CTX_HAPI,"...");
 
+
+  if (bcm_pkt->rx_port == 54 && BCM_GPORT_IS_WLAN_PORT(bcm_pkt->src_gport))
   {
-    if (bcm_pkt->rx_port == 54 && BCM_GPORT_IS_WLAN_PORT(bcm_pkt->src_gport))
-    {
 #ifdef L7_WIRELESS_PACKAGE
-      if (hapiBroadWlanUspGet(dapi_g, bcm_pkt->src_gport, &usp) != L7_SUCCESS)
-      {
-        /* WLAN usp not completely up yet */
-        return result;
-      }
+    if (hapiBroadWlanUspGet(dapi_g, bcm_pkt->src_gport, &usp) != L7_SUCCESS)
+    {
+      /* WLAN usp not completely up yet */
+      return result;
+    }
 #endif
+  }
+  else
+  {
+    int bcm_unit=0,bcm_port=0;
+
+    /* This code assumes that trunk128 mode is enabled on XGS3 devices.
+     ** At this point we need to know the physical port.
+     */
+    if (weAreHawkeye == L7_TRUE) 
+    { 
+      bcm_unit = bcm_pkt->src_mod;
+      bcm_port = bcm_pkt->rx_port;
     }
     else
     {
-     int bcm_unit=0,bcm_port=0;
+      bcm_unit = bcm_pkt->src_mod;
+      bcm_port = bcm_pkt->src_port;
+    }
 
-     /* This code assumes that trunk128 mode is enabled on XGS3 devices.
-     ** At this point we need to know the physical port.
-     */
-   if (weAreHawkeye == L7_TRUE) 
-     { 
-        bcm_unit = bcm_pkt->src_mod;
-        bcm_port = bcm_pkt->rx_port;
-     }
-    else
-     {
-        bcm_unit = bcm_pkt->src_mod;
-        bcm_port = bcm_pkt->src_port;
-     }
-     hapiBroadModidModportToLportGet (bcm_unit, bcm_port, &lport);
+    /* Extract gport and USP value */
+    if (bcmy_lut_unit_port_to_gport_get(bcm_unit, bcm_port, &gport) != BCMY_E_NONE ||
+        bcmy_lut_unit_port_to_usp_get(bcm_unit, bcm_port, &usp) != BCMY_E_NONE ||
+        (gport == 0x0 || usp.unit < 0 || usp.slot < 0 || usp.port < 0))
+    {
+      hapiGportToUSPConvertErrors++;
+      PT_LOG_ERR(LOG_CTX_HAPI,"Error processing packet: unit=%d src_mod=%u src_port=%u => gport=0x%x, usp={%d,%d,%d}",
+                 unit, bcm_unit, bcm_port, gport, usp.unit, usp.slot, usp.port);
 
-     uport = BCMX_UPORT_GET(lport);
-     if (uport == BCMX_UPORT_INVALID_DEFAULT)
-     {
-       ++hapiLportToUportConvertErrors;             
-       return result;
-     }
- 
-     HAPI_BROAD_UPORT_TO_USP(uport,&usp);
-     gmrpUspCheck = usp;
+      return result;
+    }
+
+    gmrpUspCheck = usp;
   }
 
   if (isValidUsp(&usp,dapi_g) == L7_FALSE)
@@ -2551,7 +2658,6 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
                       "hapiBroadReceive: Invalid USP (%d.%d.%d)\n", usp.unit,usp.slot,usp.port);
      return result;
-  }
   }
 
   if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL4)
@@ -2572,7 +2678,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
 
     extern L7_RC_t voiceVlanPortAuthGet(L7_uint32 intIfNum,L7_BOOL *state);
     extern L7_RC_t nimGetIntIfNumFromUSP(nimUSP_t* usp, L7_uint32 *intIfNum);
-    extern L7_RC_t hapiBroadVoiceVlanStpSet(bcmx_lport_t lport, L7_BOOL state, DAPI_t *dapi_g);
+    extern L7_RC_t hapiBroadVoiceVlanStpSet(bcm_gport_t gport, L7_BOOL state, DAPI_t *dapi_g);
 
     unAuthMode = hapiPortPtr->voiceVlanPort.voiceVlanUnauthMode;
 
@@ -3246,8 +3352,8 @@ void rxStats(int clear)
   printf("Packets delivered to Application = %10u\n", 
          totalPktsReceived - totalPktsDropped);
   printf("Packets Dropped on HAPI Receive Task  = %10u\n",totalPktsDropped);
-  printf("Packets dropped due to lport to uport conversion error: %d\n",
-         hapiLportToUportConvertErrors);
+  printf("Packets dropped due to gport to USP conversion error: %d\n",
+         hapiGportToUSPConvertErrors);
   if (clear != 0) {
     hapiRxQueueLostMsgs = 0;
     for (i =0; i < 8;i++)
@@ -3255,7 +3361,7 @@ void rxStats(int clear)
       hapiRxDebugCosCounters[i].pktRxCosRecv  = 0;
       hapiRxDebugCosCounters[i].pktRxCosDrops = 0;
     }
-    hapiLportToUportConvertErrors = 0;
+    hapiGportToUSPConvertErrors = 0;
   }
   fflush(stdout);
 }
@@ -3394,8 +3500,8 @@ void hapiBroadReceiveTask(DAPI_t *dapi_g, L7_uint32 numArgs)
             memcpy(bcm_pkt.pkt_data->data, pkt_start, pkt_len);
 
             /* Always send mirrored packet w/ tag, to help debug VLAN associations */
-            bcmx_tx_pkt_untagged_set(&bcm_pkt, L7_FALSE);
-            bcmx_tx_uc (&bcm_pkt, probeHapiPortPtr->bcmx_lport, BCMX_TX_F_CPU_TUNNEL);
+            _bcmy_tx_pkt_untagged_set(&bcm_pkt, L7_FALSE);
+            _bcmy_tx_uc(&bcm_pkt, probeHapiPortPtr->bcm_gport, 0 /*BCMX_TX_F_CPU_TUNNEL*/);
 
             sal_dma_free(bcm_pkt.pkt_data->data);
           }
@@ -4159,11 +4265,11 @@ L7_BOOL hapiBroadReceivePdu(L7_netBufHandle frameHdl,
 
         if (isLagMember == L7_TRUE)
         {
-          pdu_msg.bcmx_lport = hapiLagMemberPort->bcmx_lport; 
+          pdu_msg.bcm_gport = hapiLagMemberPort->bcm_gport; 
         }
         else
         {
-        pdu_msg.bcmx_lport = hapiPort->bcmx_lport;
+        pdu_msg.bcm_gport = hapiPort->bcm_gport;
         }
         pdu_msg.vlanID = vlanID;
         pdu_msg.hapiPortPtr = hapiPort;
@@ -4486,7 +4592,7 @@ L7_BOOL hapiBroadReceivePdu(L7_netBufHandle frameHdl,
       }
   
       bpdu_msg.usp = *usp;
-      bpdu_msg.bcmx_lport = hapiPort->bcmx_lport;
+      bpdu_msg.bcm_gport = hapiPort->bcm_gport;
       bpdu_msg.vlanID = vlanID;
       bpdu_msg.dtag_mode = hapiPort->dtag_mode;
       bpdu_msg.user_data_size = user_data_size;
@@ -4556,9 +4662,9 @@ L7_BOOL hapiBroadReceivePdu(L7_netBufHandle frameHdl,
 void hapiBroadBpduTxTask(DAPI_t *dapi_g, L7_uint32 numArgs)
 {
   BROAD_TX_BPDU_MSG_t    bpdu_msg;
-  bcmx_lplist_t          lplist;
-  bcmx_lplist_t          untaggedLplist;
-  bcmx_lplist_t          taggedLplist;
+  bcmy_gplist_t          gplist;
+  bcmy_gplist_t          untaggedGplist;
+  bcmy_gplist_t          taggedGplist;
   bcm_pkt_t              bcm_pkt;
   bcm_pkt_blk_t          bcm_pkt_blk;
   int                    rv = 0;
@@ -4591,17 +4697,17 @@ void hapiBroadBpduTxTask(DAPI_t *dapi_g, L7_uint32 numArgs)
 
     /* if sending a BPDU, make sure it goes to all ports that are not 
        participating in STP */
-    rv = bcmx_lplist_init(&lplist,L7_MAX_INTERFACE_COUNT,0);
+    rv = bcmy_gplist_init(&gplist, L7_MAX_INTERFACE_COUNT, 0);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       L7_LOG_ERROR(rv);
     }
-    rv = bcmx_lplist_init(&untaggedLplist,L7_MAX_INTERFACE_COUNT,0);
+    rv = bcmy_gplist_init(&untaggedGplist, L7_MAX_INTERFACE_COUNT, 0);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       L7_LOG_ERROR(rv);
     }
-    rv = bcmx_lplist_init(&taggedLplist,L7_MAX_INTERFACE_COUNT,0);
+    rv = bcmy_gplist_init(&taggedGplist, L7_MAX_INTERFACE_COUNT, 0);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       L7_LOG_ERROR(rv);
@@ -4610,16 +4716,16 @@ void hapiBroadBpduTxTask(DAPI_t *dapi_g, L7_uint32 numArgs)
     if (bpdu_msg.sendBpdu)
     {
       /* clear ports from bit mask that are not link up, or originally received the PDU */
-      hapiBroadGetStpNotParticipatingPbmp(&bpdu_msg.usp,&lplist,dapi_g);
-      hapiBroadPruneTxUnauthorizedPorts(&lplist,dapi_g);
+      hapiBroadGetStpNotParticipatingPbmp(&bpdu_msg.usp, &gplist, dapi_g);
+      hapiBroadPruneTxUnauthorizedPorts(&gplist, dapi_g);
     }
     /* otherwise send the packet to all ports in the VLAN */
     else
     {
       /* clear ports from bit mask that are not link up, or originally received the PDU */
-      hapiBroadGetSameVlanPbmp(bpdu_msg.vlanID,&bpdu_msg.usp,&lplist,dapi_g);
-      hapiBroadPruneTxDiscardingPorts(bpdu_msg.vlanID, &lplist, dapi_g);
-      hapiBroadPruneTxUnauthorizedPorts(&lplist,dapi_g);
+      hapiBroadGetSameVlanPbmp(bpdu_msg.vlanID, &bpdu_msg.usp, &gplist, dapi_g);
+      hapiBroadPruneTxDiscardingPorts(bpdu_msg.vlanID, &gplist, dapi_g);
+      hapiBroadPruneTxUnauthorizedPorts(&gplist, dapi_g);
     }
 
     /*
@@ -4633,11 +4739,11 @@ void hapiBroadBpduTxTask(DAPI_t *dapi_g, L7_uint32 numArgs)
         ((mode == HAPI_BROAD_DTAG_MODE_EXTERNAL) &&         /* Forward BPDU's and GVRP if double tagged */
          ((bpdu_msg.proto_byte == 0x00) || (bpdu_msg.proto_byte == 0x21))))
     {
-      hapiBroadTaggedStatusLplistSet(bpdu_msg.vlanID, &lplist, &taggedLplist, &untaggedLplist, dapi_g);
+      hapiBroadTaggedStatusGplistSet(bpdu_msg.vlanID, &gplist, &taggedGplist, &untaggedGplist, dapi_g);
     }
     else
     {
-      bcmx_lplist_copy(&untaggedLplist,&lplist);
+      bcmy_gplist_copy(&untaggedGplist, &gplist);
     }
 
     /* Check for mirror case */
@@ -4691,16 +4797,16 @@ void hapiBroadBpduTxTask(DAPI_t *dapi_g, L7_uint32 numArgs)
                   mirrorHapiPortPtr = HAPI_PORT_GET(&(searchUsp), dapi_g);
                 }
   
-                rv = bcmx_lplist_index_get(&untaggedLplist,mirrorHapiPortPtr->bcmx_lport);
+                rv = bcmy_gplist_index_get(&untaggedGplist, mirrorHapiPortPtr->bcm_gport);
                 if (rv >= 0)
                 {
-                   BCMX_LPLIST_ADD(&untaggedLplist,probeHapiPortPtr->bcmx_lport);
+                   BCMY_GPLIST_ADD(&untaggedGplist, probeHapiPortPtr->bcm_gport);
                 }
   
-                rv = bcmx_lplist_index_get(&taggedLplist,mirrorHapiPortPtr->bcmx_lport);
+                rv = bcmy_gplist_index_get(&taggedGplist, mirrorHapiPortPtr->bcm_gport);
                 if (rv >= 0)
                 {
-                   BCMX_LPLIST_ADD(&taggedLplist,probeHapiPortPtr->bcmx_lport);
+                   BCMY_GPLIST_ADD(&taggedGplist, probeHapiPortPtr->bcm_gport);
                 }
               }
             }
@@ -4710,29 +4816,29 @@ void hapiBroadBpduTxTask(DAPI_t *dapi_g, L7_uint32 numArgs)
     }
 
     /* Check for untagged and send them */
-    if (BCMX_LPLIST_IS_EMPTY(&untaggedLplist) == L7_FALSE)
+    if (BCMY_GPLIST_IS_EMPTY(&untaggedGplist) == L7_FALSE)
     {
-      bcmx_tx_pkt_untagged_set(&bcm_pkt,L7_TRUE);
+      _bcmy_tx_pkt_untagged_set(&bcm_pkt, L7_TRUE);
 
-      rv = bcmx_tx_lplist_intercept (&bcm_pkt, &untaggedLplist, &untaggedLplist, BCMX_TX_F_CPU_TUNNEL, dapi_g); /* sdk 5.3.1 change */
+      rv = _bcmy_tx_gplist_intercept(&bcm_pkt, &untaggedGplist, &untaggedGplist, 0 /*BCMX_TX_F_CPU_TUNNEL*/, dapi_g); /* sdk 5.3.1 change */
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
       }
     }
     /* Check for tagged and send them */
-    if (BCMX_LPLIST_IS_EMPTY(&taggedLplist) == L7_FALSE)
+    if (BCMY_GPLIST_IS_EMPTY(&taggedGplist) == L7_FALSE)
     {
-      bcmx_tx_pkt_untagged_set(&bcm_pkt,L7_FALSE);
+      _bcmy_tx_pkt_untagged_set(&bcm_pkt, L7_FALSE);
 
-      rv = bcmx_tx_lplist_intercept (&bcm_pkt, &taggedLplist, NULL, BCMX_TX_F_CPU_TUNNEL, dapi_g); /* sdk 5.3.1 change */
+      rv = _bcmy_tx_gplist_intercept(&bcm_pkt, &taggedGplist, NULL, 0 /*BCMX_TX_F_CPU_TUNNEL*/, dapi_g); /* sdk 5.3.1 change */
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
       }
     }
 
-    bcmx_lplist_free(&lplist);
-    bcmx_lplist_free(&untaggedLplist);
-    bcmx_lplist_free(&taggedLplist);
+    bcmy_gplist_free(&gplist);
+    bcmy_gplist_free(&untaggedGplist);
+    bcmy_gplist_free(&taggedGplist);
     sal_dma_free(bcm_pkt.pkt_data->data);
   }
 }
@@ -4820,7 +4926,7 @@ L7_BOOL hapiBroadPortIsForwarding(DAPI_USP_t *usp, L7_ushort16 vlanId, DAPI_t *d
 * @end
 *
 *********************************************************************/
-void hapiBroadGetSameVlanPbmp(L7_ushort16 vlanID, DAPI_USP_t *usp, bcmx_lplist_t *memberLplist, DAPI_t *dapi_g)
+void hapiBroadGetSameVlanPbmp(L7_ushort16 vlanID, DAPI_USP_t *usp, bcmy_gplist_t *memberGplist, DAPI_t *dapi_g)
 {
   DAPI_USP_t             searchUsp;
   DAPI_PORT_t           *dapiPortPtr;
@@ -4839,8 +4945,8 @@ void hapiBroadGetSameVlanPbmp(L7_ushort16 vlanID, DAPI_USP_t *usp, bcmx_lplist_t
             continue;
           }
 
-          dapiPortPtr = DAPI_PORT_GET(&searchUsp,dapi_g);
-          hapiPortPtr = HAPI_PORT_GET(&searchUsp,dapi_g);
+          dapiPortPtr = DAPI_PORT_GET(&searchUsp, dapi_g);
+          hapiPortPtr = HAPI_PORT_GET(&searchUsp, dapi_g);
 
           if ((IS_PORT_TYPE_PHYSICAL(dapiPortPtr) == L7_TRUE) ||
               (IS_PORT_TYPE_CAPWAP_TUNNEL(dapiPortPtr) == L7_TRUE))
@@ -4849,9 +4955,9 @@ void hapiBroadGetSameVlanPbmp(L7_ushort16 vlanID, DAPI_USP_t *usp, bcmx_lplist_t
             ** Lags will be accounted for in later function
             ** calls
             */
-            if (BROAD_IS_HW_VLAN_MEMBER(&searchUsp,vlanID,dapi_g))
+            if (BROAD_IS_HW_VLAN_MEMBER(&searchUsp, vlanID, dapi_g))
             {
-              BCMX_LPLIST_ADD(memberLplist,hapiPortPtr->bcmx_lport);
+              BCMY_GPLIST_ADD(memberGplist, hapiPortPtr->bcm_gport);
             }
           }
         }
@@ -4859,9 +4965,9 @@ void hapiBroadGetSameVlanPbmp(L7_ushort16 vlanID, DAPI_USP_t *usp, bcmx_lplist_t
     }
   }
 
-  hapiBroadPruneRxPort(usp, memberLplist, dapi_g);
+  hapiBroadPruneRxPort(usp, memberGplist, dapi_g);
 
-  hapiBroadPruneTxPorts(memberLplist, dapi_g);
+  hapiBroadPruneTxPorts(memberGplist, dapi_g);
 
   return;
 }
@@ -4883,7 +4989,7 @@ void hapiBroadGetSameVlanPbmp(L7_ushort16 vlanID, DAPI_USP_t *usp, bcmx_lplist_t
 * @end
 *
 *********************************************************************/
-void hapiBroadGetSameVlanPbmpTx(L7_ushort16 vlanID, bcmx_lplist_t *lplist, L7_BOOL filter_linkup, DAPI_t *dapi_g)   /* PTin modified: filter_linkup */
+void hapiBroadGetSameVlanPbmpTx(L7_ushort16 vlanID, bcmy_gplist_t *gplist, L7_BOOL filter_linkup, DAPI_t *dapi_g)   /* PTin modified: filter_linkup */
 {
   DAPI_USP_t             searchUsp;
   DAPI_PORT_t           *dapiPortPtr;
@@ -4903,8 +5009,8 @@ void hapiBroadGetSameVlanPbmpTx(L7_ushort16 vlanID, bcmx_lplist_t *lplist, L7_BO
             continue;
           }
 
-          dapiPortPtr = DAPI_PORT_GET(&searchUsp,dapi_g);
-          hapiPortPtr = HAPI_PORT_GET(&searchUsp,dapi_g);
+          dapiPortPtr = DAPI_PORT_GET(&searchUsp, dapi_g);
+          hapiPortPtr = HAPI_PORT_GET(&searchUsp, dapi_g);
 
           if ((IS_PORT_TYPE_PHYSICAL(dapiPortPtr) == L7_TRUE) ||
               (IS_PORT_TYPE_CAPWAP_TUNNEL(dapiPortPtr) == L7_TRUE))
@@ -4913,13 +5019,14 @@ void hapiBroadGetSameVlanPbmpTx(L7_ushort16 vlanID, bcmx_lplist_t *lplist, L7_BO
             ** Lags will be accounted for in later function
             ** calls
             */
-            if (BROAD_IS_HW_VLAN_MEMBER(&searchUsp,vlanID,dapi_g))
+            if (BROAD_IS_HW_VLAN_MEMBER(&searchUsp, vlanID, dapi_g))
             {
               /* PTin modified: filter considering link status */
               if (!filter_linkup ||
-                  (bcmx_port_link_status_get(hapiPortPtr->bcmx_lport, &link_status) == BCM_E_NONE && link_status == BCM_PORT_LINK_STATUS_UP))
+                  (bcm_port_link_status_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &link_status) == BCM_E_NONE
+                   && link_status == BCM_PORT_LINK_STATUS_UP))
               {
-                BCMX_LPLIST_ADD(lplist,hapiPortPtr->bcmx_lport);
+                BCMY_GPLIST_ADD(gplist, hapiPortPtr->bcm_gport);
               }
             }
           }
@@ -4927,7 +5034,7 @@ void hapiBroadGetSameVlanPbmpTx(L7_ushort16 vlanID, bcmx_lplist_t *lplist, L7_BO
       }
     }
   }
-  hapiBroadPruneTxPorts(lplist, dapi_g);
+  hapiBroadPruneTxPorts(gplist, dapi_g);
 
   return;
 }
@@ -4948,7 +5055,7 @@ void hapiBroadGetSameVlanPbmpTx(L7_ushort16 vlanID, bcmx_lplist_t *lplist, L7_BO
 * @end
 *
 *********************************************************************/
-void hapiBroadPruneRxPort(DAPI_USP_t *usp, bcmx_lplist_t *lplist, DAPI_t *dapi_g)
+void hapiBroadPruneRxPort(DAPI_USP_t *usp, bcmy_gplist_t *gplist, DAPI_t *dapi_g)
 {
   DAPI_PORT_t  *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr;
@@ -4961,7 +5068,7 @@ void hapiBroadPruneRxPort(DAPI_USP_t *usp, bcmx_lplist_t *lplist, DAPI_t *dapi_g
   {
     hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
 
-    BCMX_LPLIST_REMOVE(lplist, hapiPortPtr->bcmx_lport);
+    BCMY_GPLIST_REMOVE(gplist, hapiPortPtr->bcm_gport);
   }
   else if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) == L7_TRUE)
   {
@@ -4974,7 +5081,7 @@ void hapiBroadPruneRxPort(DAPI_USP_t *usp, bcmx_lplist_t *lplist, DAPI_t *dapi_g
       {
         hapiPortPtr = HAPI_PORT_GET(&lag_member_usp, dapi_g);
 
-        BCMX_LPLIST_REMOVE(lplist, hapiPortPtr->bcmx_lport);
+        BCMY_GPLIST_REMOVE(gplist, hapiPortPtr->bcm_gport);
       }
     }
   }
@@ -5008,7 +5115,7 @@ void hapiBroadPruneRxPort(DAPI_USP_t *usp, bcmx_lplist_t *lplist, DAPI_t *dapi_g
 * @end
 *
 *********************************************************************/
-void hapiBroadPruneTxPorts(bcmx_lplist_t *lplist, DAPI_t *dapi_g)
+void hapiBroadPruneTxPorts(bcmy_gplist_t *gplist, DAPI_t *dapi_g)
 {
   DAPI_PORT_t          *tempDapiPort;
   BROAD_PORT_t         *tempHapiPort;
@@ -5016,54 +5123,47 @@ void hapiBroadPruneTxPorts(bcmx_lplist_t *lplist, DAPI_t *dapi_g)
   DAPI_USP_t            tempUsp;
   L7_int32              i;
   L7_BOOL               foundFirstMember;
-  bcmx_lport_t          lport;
-  bcmx_uport_t          uport;
+  bcm_gport_t           gport;
   int                   count;
-  bcmx_lplist_t         removeList;
+  bcmy_gplist_t         removeList;
   int                   rv;
 
-  rv = bcmx_lplist_init(&removeList,L7_MAX_INTERFACE_COUNT,0);
+  rv = bcmy_gplist_init(&removeList, L7_MAX_INTERFACE_COUNT, 0);
   if (L7_BCMX_OK(rv) != L7_TRUE)
     L7_LOG_ERROR(rv);
 
   /* clear ports from bit mask that are not link up, or originally received the PDU */
-  BCMX_LPLIST_IDX_ITER(lplist, lport, count)
+  BCMY_GPLIST_IDX_ITER(gplist, gport, count)
   {
-    uport = BCMX_UPORT_GET(lport);
-
-    if (uport == BCMX_UPORT_INVALID_DEFAULT)
+    if (bcmy_lut_gport_to_usp_get(gport, &tempUsp) != BCMY_E_NONE)
     {
-      BCMX_LPLIST_ADD(&removeList, lport);
-      continue;
+      continue;  /* Ignore invalid ports. */
     }
-
-    HAPI_BROAD_UPORT_TO_USP(uport,&tempUsp);
-
-    if (isValidUsp(&tempUsp,dapi_g) == L7_FALSE)
+    if (isValidUsp(&tempUsp, dapi_g) == L7_FALSE)
     {
-      BCMX_LPLIST_ADD(&removeList, lport);
+      BCMY_GPLIST_ADD(&removeList, gport);
       continue; /* Remove invalid ports */
     }
 
     tempDapiPort = DAPI_PORT_GET(&tempUsp, dapi_g);
     tempHapiPort = HAPI_PORT_GET(&tempUsp, dapi_g);
 
-    if (tempHapiPort->bcmx_lport != lport)
+    if (tempHapiPort->bcm_gport != gport)
     {
-      L7_LOG_ERROR((L7_ulong32)uport);
+      L7_LOG_ERROR((L7_ulong32) gport);
     }
 
     /* if this physical port is link down, clear the corresponding bit */
     if (tempDapiPort->modeparm.physical.isLinkUp == L7_FALSE)
     {
-      BCMX_LPLIST_ADD(&removeList, lport);
+      BCMY_GPLIST_ADD(&removeList, gport);
       continue;
     }
 
     /* if this physical port is a router port, clear the corresponding bit */
     if (tempDapiPort->modeparm.physical.routerIntfEnabled == L7_TRUE)
     {
-      BCMX_LPLIST_ADD(&removeList, lport);
+      BCMY_GPLIST_ADD(&removeList, gport);
       continue;
     }
 
@@ -5088,7 +5188,7 @@ void hapiBroadPruneTxPorts(bcmx_lplist_t *lplist, DAPI_t *dapi_g)
 
             tempHapiPort = HAPI_PORT_GET(&tempUsp, dapi_g);
 
-            BCMX_LPLIST_ADD(&removeList, tempHapiPort->bcmx_lport);
+            BCMY_GPLIST_ADD(&removeList, tempHapiPort->bcm_gport);
           }
           else
           {
@@ -5100,15 +5200,15 @@ void hapiBroadPruneTxPorts(bcmx_lplist_t *lplist, DAPI_t *dapi_g)
   }
 
   /* Now remove the port from the list */
-  BCMX_LPLIST_IDX_ITER(&removeList, lport, count)
+  BCMY_GPLIST_IDX_ITER(&removeList, gport, count)
   {
-    if (!BCM_GPORT_IS_WLAN_PORT(lport))
+    if (!BCM_GPORT_IS_WLAN_PORT(gport))
     {
-      BCMX_LPLIST_REMOVE(lplist, lport);
+      BCMY_GPLIST_REMOVE(gplist, gport);
     }
   }
 
-  bcmx_lplist_free(&removeList);
+  bcmy_gplist_free(&removeList);
 }
 
 /*********************************************************************
@@ -5128,7 +5228,7 @@ void hapiBroadPruneTxPorts(bcmx_lplist_t *lplist, DAPI_t *dapi_g)
 * @end
 *
 *********************************************************************/
-void hapiBroadPruneTxDiscardingPorts(L7_ushort16 vlanId, bcmx_lplist_t *lplist, DAPI_t *dapi_g)
+void hapiBroadPruneTxDiscardingPorts(L7_ushort16 vlanId, bcmy_gplist_t *gplist, DAPI_t *dapi_g)
 {
   BROAD_PORT_t         *tempHapiPort;
   DAPI_PORT_t          *dapiLagPort;
@@ -5137,41 +5237,34 @@ void hapiBroadPruneTxDiscardingPorts(L7_ushort16 vlanId, bcmx_lplist_t *lplist, 
   L7_int32              i;
   L7_BOOL               foundFirstMember;
 
-  bcmx_lport_t          lport;
-  bcmx_uport_t          uport;
+  bcm_gport_t           gport;
   int                   count;
-  bcmx_lplist_t         removeList;
+  bcmy_gplist_t         removeList;
   int                   rv;
 
-  rv = bcmx_lplist_init(&removeList,L7_MAX_INTERFACE_COUNT,0);
+  rv = bcmy_gplist_init(&removeList, L7_MAX_INTERFACE_COUNT, 0);
   if (L7_BCMX_OK(rv) != L7_TRUE)
   {
     L7_LOG_ERROR(rv);
   }
 
   /* clear ports from bit mask that are not link up, or originally received the PDU */
-  BCMX_LPLIST_IDX_ITER(lplist, lport, count)
+  BCMY_GPLIST_IDX_ITER(gplist, gport, count)
   {
-    uport = BCMX_UPORT_GET(lport);
-
-    if (uport == BCMX_UPORT_INVALID_DEFAULT)
+    if (bcmy_lut_gport_to_usp_get(gport, &tempUsp) != BCMY_E_NONE)
     {
-      BCMX_LPLIST_ADD(&removeList, lport);
-      continue;
+      continue;  /* Ignore invalid ports. */
     }
-
-    HAPI_BROAD_UPORT_TO_USP(uport,&tempUsp);
-
-    if (isValidUsp(&tempUsp,dapi_g) == L7_FALSE)
+    if (isValidUsp(&tempUsp, dapi_g) == L7_FALSE)
     {
       continue; /* Ignore invalid ports */
     }
 
     tempHapiPort = HAPI_PORT_GET(&tempUsp, dapi_g);
 
-    if (tempHapiPort->bcmx_lport != lport)
+    if (tempHapiPort->bcm_gport != gport)
     {
-      L7_LOG_ERROR((L7_ulong32)uport);
+      L7_LOG_ERROR((L7_ulong32) gport);
     }
 
     /* if this port is a LAG member, make sure only one member of that LAG sends the pkt */
@@ -5198,7 +5291,7 @@ void hapiBroadPruneTxDiscardingPorts(L7_ushort16 vlanId, bcmx_lplist_t *lplist, 
 
             tempHapiPort = HAPI_PORT_GET(&tempUsp, dapi_g);
 
-            BCMX_LPLIST_ADD(&removeList, tempHapiPort->bcmx_lport);
+            BCMY_GPLIST_ADD(&removeList, tempHapiPort->bcm_gport);
           }
           else
           {
@@ -5209,7 +5302,7 @@ void hapiBroadPruneTxDiscardingPorts(L7_ushort16 vlanId, bcmx_lplist_t *lplist, 
 
               tempHapiPort = HAPI_PORT_GET(&tempUsp, dapi_g);
 
-              BCMX_LPLIST_ADD(&removeList, tempHapiPort->bcmx_lport);
+              BCMY_GPLIST_ADD(&removeList, tempHapiPort->bcm_gport);
             }
           }
           foundFirstMember = L7_TRUE;
@@ -5220,32 +5313,32 @@ void hapiBroadPruneTxDiscardingPorts(L7_ushort16 vlanId, bcmx_lplist_t *lplist, 
     {
       if (hapiBroadPortIsForwarding(&tempUsp, vlanId, dapi_g) == L7_FALSE)
       {
-        BCMX_LPLIST_ADD(&removeList, lport);
+        BCMY_GPLIST_ADD(&removeList, gport);
       }
     }
   }
 
   /* Now remove the port from the list */
-  BCMX_LPLIST_IDX_ITER(&removeList, lport, count)
+  BCMY_GPLIST_IDX_ITER(&removeList, gport, count)
   {
-    if (!BCM_GPORT_IS_WLAN_PORT(lport))
+    if (!BCM_GPORT_IS_WLAN_PORT(gport))
     {
-      BCMX_LPLIST_REMOVE(lplist, lport);
+      BCMY_GPLIST_REMOVE(gplist, gport);
     }
   }
 
-  bcmx_lplist_free(&removeList);
+  bcmy_gplist_free(&removeList);
 }
 
 
 /*********************************************************************
 *
-* @purpose This routine sets the tagging status of the ports passed in the lplist
+* @purpose This routine sets the tagging status of the ports passed in the gplist
 *
 * @param   vlanID          vlan to use for tagging status
-* @param   *lplist         starting list of members both tagged and untagged
-* @param   *tagedlplist    resulting list of members tagged members
-* @param   *untagedlplist  resulting list of members untagged members
+* @param   *gplist         starting list of members both tagged and untagged
+* @param   *tagedGplist    resulting list of members tagged members
+* @param   *untagedGplist  resulting list of members untagged members
 * @param   *dapi_g
 *
 * @returns L7_SUCCESS
@@ -5254,11 +5347,11 @@ void hapiBroadPruneTxDiscardingPorts(L7_ushort16 vlanId, bcmx_lplist_t *lplist, 
 * @end
 *
 *********************************************************************/
-L7_RC_t hapiBroadTaggedStatusLplistSet(L7_ushort16 vlanId, bcmx_lplist_t *lplist, bcmx_lplist_t *taggedLplist,
-                                       bcmx_lplist_t *untaggedLplist, DAPI_t *dapi_g)
+L7_RC_t hapiBroadTaggedStatusGplistSet(L7_ushort16 vlanId, bcmy_gplist_t *gplist, bcmy_gplist_t *taggedGplist,
+                                       bcmy_gplist_t *untaggedGplist, DAPI_t *dapi_g)
 {
   int           count;
-  bcmx_lport_t  lport;
+  bcm_gport_t   gport;
   DAPI_USP_t    usp;
   BROAD_PORT_t *hapiPortPtr;
   L7_uint32     localUnitNumber;
@@ -5267,53 +5360,55 @@ L7_RC_t hapiBroadTaggedStatusLplistSet(L7_ushort16 vlanId, bcmx_lplist_t *lplist
   if (unitMgrNumberGet(&localUnitNumber) != L7_SUCCESS)
     return L7_FAILURE;
 
-  BCMX_LPLIST_IDX_ITER(lplist,lport, count)
+  BCMY_GPLIST_IDX_ITER(gplist, gport, count)
   {
-    if (!BCM_GPORT_IS_WLAN_PORT(lport))
+    if (!BCM_GPORT_IS_WLAN_PORT(gport))
     {
-    HAPI_BROAD_UPORT_TO_USP(BCMX_UPORT_GET(lport),&usp);
-
-    if (isValidUsp(&usp,dapi_g) == L7_FALSE)
-    {
-      continue; /* Ignore invalid ports */
-    }
-
-    hapiPortPtr = HAPI_PORT_GET(&usp,dapi_g);
-
-    if (hapiPortPtr->bcmx_lport != lport)
-    {
-      L7_LOG_ERROR((L7_ulong32)lport);
-    }
-
-    /* If its a member of a lag, use the lags tagging status */
-    if (hapiPortPtr->hapiModeparm.physical.isMemberOfLag == L7_TRUE)
-    {
-      if (BROAD_IS_VLAN_TAGGING(&hapiPortPtr->hapiModeparm.physical.lagUsp,vlanId,dapi_g))
+      if (bcmy_lut_gport_to_usp_get(gport, &usp) != BCMY_E_NONE)
       {
-        BCMX_LPLIST_ADD(taggedLplist,lport);
+        continue;  /* Ignore invalid ports. */
       }
+      if (isValidUsp(&usp, dapi_g) == L7_FALSE)
+      {
+        continue; /* Ignore invalid ports */
+      }
+
+      hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+
+      if (hapiPortPtr->bcm_gport != gport)
+      {
+        L7_LOG_ERROR((L7_ulong32) gport);
+      }
+
+      /* If its a member of a lag, use the lags tagging status */
+      if (hapiPortPtr->hapiModeparm.physical.isMemberOfLag == L7_TRUE)
+      {
+        if (BROAD_IS_VLAN_TAGGING(&hapiPortPtr->hapiModeparm.physical.lagUsp, vlanId, dapi_g))
+        {
+          BCMY_GPLIST_ADD(taggedGplist, gport);
+        }
+        else
+        {
+          BCMY_GPLIST_ADD(untaggedGplist, gport);
+        }
+      }
+      /* Otherwise use the tagging status of the port itself */
       else
       {
-        BCMX_LPLIST_ADD(untaggedLplist,lport);
+        if (BROAD_IS_VLAN_TAGGING(&usp, vlanId, dapi_g))
+        {
+          BCMY_GPLIST_ADD(taggedGplist, gport);
+        }
+        else
+        {
+          BCMY_GPLIST_ADD(untaggedGplist, gport);
+        }
       }
     }
-    /* Otherwise use the tagging status of the port itself */
-    else
-    {
-      if (BROAD_IS_VLAN_TAGGING(&usp,vlanId,dapi_g))
-      {
-        BCMX_LPLIST_ADD(taggedLplist,lport);
-      }
-      else
-      {
-        BCMX_LPLIST_ADD(untaggedLplist,lport);
-      }
-    }
-  }
     else
     {
       /* l2 tunnel ports are always tagging */
-      BCMX_LPLIST_ADD(taggedLplist,lport);
+      BCMY_GPLIST_ADD(taggedGplist, gport);
     }
   }
   return L7_SUCCESS;
@@ -5335,64 +5430,57 @@ L7_RC_t hapiBroadTaggedStatusLplistSet(L7_ushort16 vlanId, bcmx_lplist_t *lplist
 * @end
 *
 *********************************************************************/
-void hapiBroadPruneTxUnauthorizedPorts(bcmx_lplist_t *lplist, DAPI_t *dapi_g)
+void hapiBroadPruneTxUnauthorizedPorts(bcmy_gplist_t *gplist, DAPI_t *dapi_g)
 {
   BROAD_PORT_t         *tempHapiPort;
   DAPI_USP_t            tempUsp;
-  bcmx_lport_t          lport;
-  bcmx_uport_t          uport;
+  bcm_gport_t           gport;
   int                   count;
-  bcmx_lplist_t         removeList;
+  bcmy_gplist_t         removeList;
   int                   rv;
 
-  rv = bcmx_lplist_init(&removeList,L7_MAX_INTERFACE_COUNT,0);
+  rv = bcmy_gplist_init(&removeList, L7_MAX_INTERFACE_COUNT, 0);
   if (L7_BCMX_OK(rv) != L7_TRUE)
   {
     L7_LOG_ERROR(rv);
   }
 
   /* clear ports from bit mask that are not link up, or originally received the PDU */
-  BCMX_LPLIST_IDX_ITER(lplist, lport, count)
+  BCMY_GPLIST_IDX_ITER(gplist, gport, count)
   {
-    uport = BCMX_UPORT_GET(lport);
-
-    if (uport == BCMX_UPORT_INVALID_DEFAULT)
+    if (bcmy_lut_gport_to_usp_get(gport, &tempUsp) != BCMY_E_NONE)
     {
-      BCMX_LPLIST_ADD(&removeList, lport);
-      continue;
+      continue;  /* Ignore invalid ports. */
     }
-
-    HAPI_BROAD_UPORT_TO_USP(uport,&tempUsp);
-
-    if (isValidUsp(&tempUsp,dapi_g) == L7_FALSE)
+    if (isValidUsp(&tempUsp, dapi_g) == L7_FALSE)
     {
       continue;  /* Ignore invalid ports. */
     }
 
     tempHapiPort = HAPI_PORT_GET(&tempUsp, dapi_g);
 
-    if (tempHapiPort->bcmx_lport != lport)
+    if (tempHapiPort->bcm_gport != gport)
     {
-      L7_LOG_ERROR((L7_ulong32)uport);
+      L7_LOG_ERROR((L7_ulong32) gport);
     }
 
     /* if this physical port is not authorized, clear the corresponding bit */
     if (!HAPI_DOT1X_PORT_IS_AUTHORIZED(tempHapiPort))
     {
-      BCMX_LPLIST_ADD(&removeList, lport);
+      BCMY_GPLIST_ADD(&removeList, gport);
     }
   }
 
   /* Now remove the port from the list */
-  BCMX_LPLIST_IDX_ITER(&removeList, lport, count)
+  BCMY_GPLIST_IDX_ITER(&removeList, gport, count)
   {
-    if (!BCM_GPORT_IS_WLAN_PORT(lport))
+    if (!BCM_GPORT_IS_WLAN_PORT(gport))
     {
-      BCMX_LPLIST_REMOVE(lplist, lport);
+      BCMY_GPLIST_REMOVE(gplist, gport);
     }
   }
 
-  bcmx_lplist_free(&removeList);
+  bcmy_gplist_free(&removeList);
 }
 
 
@@ -6125,7 +6213,7 @@ void hapiBroadPduTransmitTask(DAPI_t *dapi_g, L7_uint32 numArgs)
   BROAD_PORT_t                    *tmpHapiPort;
   BROAD_PORT_t                    *searchHapiPortPtr;
   DAPI_PORT_t                     *dapiPortPtr;
-  bcmx_lport_t                    lPort=0;
+  bcm_gport_t                     gport=0;
   L7_ushort16                     svid=0;
   L7_ushort16                     remarkCVID=0;
   L7_uchar8                       *user_data;
@@ -6232,7 +6320,7 @@ void hapiBroadPduTransmitTask(DAPI_t *dapi_g, L7_uint32 numArgs)
                 }
                 searchHapiPortPtr = HAPI_PORT_GET(&(searchUsp), dapi_g);
 
-                if (hapiPort->bcmx_lport == searchHapiPortPtr->bcmx_lport)
+                if (hapiPort->bcm_gport == searchHapiPortPtr->bcm_gport)
                 {
                  continue;
                 }
@@ -6241,9 +6329,9 @@ void hapiBroadPduTransmitTask(DAPI_t *dapi_g, L7_uint32 numArgs)
                {
                  continue;
                }
-                  lPort=searchHapiPortPtr->bcmx_lport;
+                  gport=searchHapiPortPtr->bcm_gport;
 
-               if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) == L7_TRUE) /* Adjust the lport */
+               if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) == L7_TRUE) /* Adjust the gport */
                {
                  for (index = 0; index < L7_MAX_MEMBERS_PER_LAG; index++)
                  {
@@ -6258,7 +6346,7 @@ void hapiBroadPduTransmitTask(DAPI_t *dapi_g, L7_uint32 numArgs)
                  }
                  tmpHapiPort = HAPI_PORT_GET(&(dapiPortPtr->modeparm.lag.memberSet[index].usp),
                                                   dapi_g);
-                 lPort = tmpHapiPort->bcmx_lport;
+                 gport = tmpHapiPort->bcm_gport;
               }
 
 
@@ -6287,7 +6375,7 @@ void hapiBroadPduTransmitTask(DAPI_t *dapi_g, L7_uint32 numArgs)
                                                     searchUsp.port);
                  }
                   
-                  bcmx_tx_uc(&bcm_pkt, lPort, BCMX_TX_F_CPU_TUNNEL);
+                  _bcmy_tx_uc(&bcm_pkt, gport, 0 /*BCMX_TX_F_CPU_TUNNEL*/);
                   hapiPort->hapiDot1adIntfStats.numPduTunneled++;
 
                   if (remarkCVID > 0)
@@ -6406,7 +6494,7 @@ void hapiBroadPduTransmitTask(DAPI_t *dapi_g, L7_uint32 numArgs)
                        pdu_msg.user_data_size -=4;
                        bcm_pkt.pkt_data->len = pdu_msg.user_data_size;
                     }
-                    bcmx_tx_uc(&bcm_pkt, lPort, BCMX_TX_F_CPU_TUNNEL);
+                    _bcmy_tx_uc(&bcm_pkt, gport, 0 /*BCMX_TX_F_CPU_TUNNEL*/);
                     hapiPort->hapiDot1adIntfStats.numPduTunneled++;
                     if (frameLength > pdu_msg.user_data_size)
                     {
@@ -6608,17 +6696,17 @@ L7_RC_t hapiBroadRxProtoSnoopModify(BROAD_PKT_RX_MSG_t *pktRxMsg,DAPI_t *dapi_g)
           {
             cvid = L7_NULL;
           }
-          if(hapiBroadDot1adUpstreamInfoGet((bcmx_lport_t)hapiPortPtr->bcmx_lport,
-                                  cvid,  
-                                  (L7_ushort16 *)&SVID,
-                                  (L7_ushort16 *)&remarkCVID)!=L7_SUCCESS)
+          if(hapiBroadDot1adUpstreamInfoGet((bcm_gport_t) hapiPortPtr->bcm_gport,
+                                            cvid,  
+                                            (L7_ushort16 *)&SVID,
+                                            (L7_ushort16 *)&remarkCVID)!=L7_SUCCESS)
           {
             if (cvid == L7_NULL)
             {
-              if (hapiBroadDot1adUpstreamInfoGet((bcmx_lport_t)hapiPortPtr->bcmx_lport,
-                                  hapiPortPtr->pvid,
-                                  (L7_ushort16 *)&SVID,
-                                  (L7_ushort16 *)&remarkCVID)!=L7_SUCCESS)
+              if (hapiBroadDot1adUpstreamInfoGet((bcm_gport_t) hapiPortPtr->bcm_gport,
+                                                 hapiPortPtr->pvid,
+                                                 (L7_ushort16 *)&SVID,
+                                                 (L7_ushort16 *)&remarkCVID)!=L7_SUCCESS)
               {
                 return L7_FAILURE;
               }
@@ -6660,3 +6748,33 @@ L7_RC_t hapiBroadRxProtoSnoopModify(BROAD_PKT_RX_MSG_t *pktRxMsg,DAPI_t *dapi_g)
 }
 #endif
 #endif
+
+
+/*
+ * Function:
+ *      albcm_tx_pkt_untagged_set
+ * Purpose:
+ *      Set untagged characteristic for a bcm pkt sent thru bcmx
+ * Parameters:
+ *      pkt         - the pkt to affect
+ *      untagged    - boolean; should pkt be tagged
+ * Returns:
+ *      BCM_E_XXX
+ */
+static int 
+_bcmy_tx_pkt_untagged_set(bcm_pkt_t *pkt, int untagged)
+{
+    bcm_pbmp_t tmp_pbm;
+
+    if (pkt) {
+        if (untagged) {
+            BCM_PBMP_CLEAR(tmp_pbm);
+            BCM_PBMP_NEGATE(pkt->tx_upbmp, tmp_pbm);
+        } else {
+            BCM_PBMP_CLEAR(pkt->tx_upbmp);
+        }
+    }
+
+    return BCM_E_NONE;
+}
+

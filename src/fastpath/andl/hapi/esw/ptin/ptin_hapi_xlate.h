@@ -135,7 +135,8 @@ extern L7_RC_t ptin_hapi_xlate_ingress_action_delete(ptin_dapi_port_t *dapiPort,
 /**
  * Get egress translation configuration for a given class id, 
  * outer vlan and inner vlan 
- * 
+ *  
+ * @param unit : bcm_unit
  * @param portgroup: port class id
  * @param oVlanId: outer vlan id 
  * @param iVlanId: inner vlan id (0 to not use inner vlan)
@@ -143,12 +144,13 @@ extern L7_RC_t ptin_hapi_xlate_ingress_action_delete(ptin_dapi_port_t *dapiPort,
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_xlate_egress_action_get(L7_uint32 portgroup, L7_uint16 oVlanId, L7_uint16 iVlanId, L7_uint16 *newOVlanId);
+extern L7_RC_t ptin_hapi_xlate_egress_action_get(int unit, L7_uint32 portgroup, L7_uint16 oVlanId, L7_uint16 iVlanId, L7_uint16 *newOVlanId);
 
 /**
  * Translate single or double-tagged packets to another 
  * outer-vlan at the egress stage 
- * 
+ *  
+ * @param unit : bcm_unit  
  * @param portgroup: port class id
  * @param oVlanId: outer vlan id 
  * @param iVlanId: inner vlan id (0 to not use inner vlan)
@@ -156,32 +158,37 @@ extern L7_RC_t ptin_hapi_xlate_egress_action_get(L7_uint32 portgroup, L7_uint16 
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_xlate_egress_action_add(L7_uint32 portgroup, L7_uint16 oVlanId, L7_uint16 iVlanId, L7_uint16 newOVlanId);
+extern L7_RC_t ptin_hapi_xlate_egress_action_add(int unit, L7_uint32 portgroup, L7_uint16 oVlanId, L7_uint16 iVlanId, L7_uint16 newOVlanId);
 
 /**
  * Remove a single/double-vlan translation at the egress stage
- * 
+ *  
+ * @param unit : bcm_unit 
  * @param portgroup: port class id
  * @param oVlanId: outer vlan id 
  * @param iVlanId: inner vlan id (use 0 for single vlan) 
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_xlate_egress_action_delete(L7_uint32 portgroup, L7_uint16 oVlanId, L7_uint16 iVlanId);
+extern L7_RC_t ptin_hapi_xlate_egress_action_delete(int unit, L7_uint32 portgroup, L7_uint16 oVlanId, L7_uint16 iVlanId);
 
 /**
  * Remove all ingress translations
- * 
+ *  
+ * @param unit : bcm_unit 
+ *  
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_xlate_ingress_action_delete_all(void);
+extern L7_RC_t ptin_hapi_xlate_ingress_action_delete_all(int unit);
 
 /**
  * Remove all egress translations
- * 
+ *  
+ * @param unit : bcm_unit 
+ *  
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_xlate_egress_action_delete_all(void);
+extern L7_RC_t ptin_hapi_xlate_egress_action_delete_all(int unit);
 
 
 
@@ -203,7 +210,8 @@ extern L7_RC_t ptin_hapi_xlate_ingress_replaceOVid_addIVid(ptin_dapi_port_t *dap
 
 /**
  * Replace Outer VID and remove inner VID
- * 
+ *  
+ * @param unit : bcm_unit 
  * @param portgroup: port class id
  * @param oVlanId: outer vlan id 
  * @param iVlanId: inner vlan id (0 to not use inner vlan)
@@ -211,7 +219,7 @@ extern L7_RC_t ptin_hapi_xlate_ingress_replaceOVid_addIVid(ptin_dapi_port_t *dap
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_xlate_egress_replaceOVid_deleteIVid(L7_uint32 portgroup, L7_uint16 oVlanId, L7_uint16 iVlanId, L7_uint16 newOVlanId);
+extern L7_RC_t ptin_hapi_xlate_egress_replaceOVid_deleteIVid(int unit, L7_uint32 portgroup, L7_uint16 oVlanId, L7_uint16 iVlanId, L7_uint16 newOVlanId);
 
 
 
@@ -253,49 +261,56 @@ extern L7_RC_t ptin_hapi_xlate_ingress_delete(ptin_dapi_port_t *dapiPort, ptin_h
 
 /**
  * Remove all ingress translations
- * 
+ *  
+ * @param unit : bcm_unit
+ *  
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_xlate_ingress_delete_all(void);
+extern L7_RC_t ptin_hapi_xlate_ingress_delete_all(int unit);
 
 /**
  * Get egress translation configuration for a given class id, 
  * outer vlan and inner vlan 
- * 
+ *  
+ * @param unit : bcm_unit 
  * @param portgroup: port class id
  * @param xlate : vlans and actions
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_xlate_egress_get(L7_uint32 portgroup, ptin_hapi_xlate_t *xlate);
+extern L7_RC_t ptin_hapi_xlate_egress_get(int unit, L7_uint32 portgroup, ptin_hapi_xlate_t *xlate);
 
 /**
  * Translate single or double-tagged packets to another 
  * outer-vlan at the egress stage 
- * 
+ *  
+ * @param unit : bcm_unit 
  * @param portgroup: port class id
  * @param xlate : vlans and actions
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_xlate_egress_add(L7_uint32 portgroup, ptin_hapi_xlate_t *xlate);
+extern L7_RC_t ptin_hapi_xlate_egress_add(int unit, L7_uint32 portgroup, ptin_hapi_xlate_t *xlate);
 
 /**
  * Remove a single/double-vlan translation at the egress stage
- * 
+ *  
+ * @param unit : bcm_unit 
  * @param portgroup: port class id
  * @param xlate : vlans and actions
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_xlate_egress_delete(L7_uint32 portgroup, ptin_hapi_xlate_t *xlate);
+extern L7_RC_t ptin_hapi_xlate_egress_delete(int unit, L7_uint32 portgroup, ptin_hapi_xlate_t *xlate);
 
 /**
  * Remove all egress translations
- * 
+ *  
+ * @param unit : bcm_unit 
+ *  
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_xlate_egress_delete_all(void);
+extern L7_RC_t ptin_hapi_xlate_egress_delete_all(int unit);
 
 
 /******************************** 
@@ -304,7 +319,7 @@ extern L7_RC_t ptin_hapi_xlate_egress_delete_all(void);
 
 /**
  * Define a group of ports identified by a class id
- * 
+ *  
  * @param portgroup: class id (positive value)
  * @param usp_list: List of ports that make part of the group 
  * @param usp_list_size: Number of ports

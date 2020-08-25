@@ -35,6 +35,7 @@
 #include "broad_common.h"
 
 #include "ibde.h"
+#include "bcm/init.h"
 #include "bcm/vlan.h"
 #include "bcm/cosq.h"
 #include "soc/cmext.h"
@@ -42,7 +43,6 @@
 #include "appl/diag/sysconf.h"
 #include "appl/stktask/topo_brd.h"
 #include "appl/stktask/topo_pkt.h"
-#include "bcmx/bcmx_int.h"
 
 #if (SDK_VERSION_IS >= SDK_VERSION(6,4,0,0))
 #include <shared/bslext.h>
@@ -330,9 +330,10 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
 /* Added this for non-stackable, it was lifted from hpcBroadTransportInit */
   for (i = 0; i < bde->num_devices(BDE_SWITCH_DEVICES); i++)
   {
-
-    hapiBroadMapDbCpuUnitEntryAdd(i, &cpu_key, i);
+    /* PTin removed: BCMX */
+#if 0
     (void) bcmx_device_attach(i);
+#endif
 
     rv = bcm_rx_init(i);
     if (rv < 0)
@@ -639,38 +640,17 @@ void hpcHardwareRemoveStackManager(L7_enetMacAddr_t managerKey)
 *********************************************************************/
 L7_int32 hpcBroadMasterCpuModPortGet(L7_int32 *modid, L7_int32 *cpuport)
 {
-  L7_int32       rv = BCM_E_FAIL;
+  bcm_gport_t gport_cpu;
+  L7_int32    rv = BCM_E_FAIL;
 
-#if 0
-  cpudb_key_t    cpu_key;
-  cpudb_entry_t *master_entry = L7_NULLPTR;
-  
-
-  do
+  /* Get gport belonging to CPU of unit 0 */
+  gport_cpu = bcmy_gport_local_cpu_get_first(0 /*unit*/);
+  if (gport_cpu == BCMY_INVALID_VAL)
   {
-    if (hpcLocalUnitIdentifierMacGet((L7_enetMacAddr_t *)&(cpu_key.key)) != L7_SUCCESS)
-    {
-      break;
-    }
-
-    CPUDB_KEY_SEARCH(system_cpudb, cpu_key, master_entry);
-    if (master_entry == L7_NULLPTR)
-    {
-      break;    
-    }
-
-    *modid = master_entry->dest_mod;
-    *cpuport = master_entry->dest_port;
-
-    rv = BCM_E_NONE;
-
-  } while (0);
-#else
-
-  rv = bcmx_lport_to_modid_port(BCMX_LPORT_LOCAL_CPU_GET(0),
-                                modid,
-                                cpuport);
-#endif
+    return BCM_E_FAIL;
+  }
+  
+  rv = bcmy_gport_to_modid_port(gport_cpu, modid, cpuport);
 
   return rv;
 }

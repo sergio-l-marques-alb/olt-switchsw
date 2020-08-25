@@ -3,9 +3,6 @@
 #include "ptin_hapi.h"
 #include "l7_usl_bcmx_l3.h"
 
-#include <bcmx/switch.h>
-#include <bcmx/port.h>
-#include <bcmx/l3.h>
 
 /**
  * Add L3 host
@@ -399,6 +396,7 @@ L7_int32 ptin_debug_bcm_ipmc_add(L7_int ipmc_index, L7_uint32 vlanId, L7_uint32 
 {
   ptin_dtl_ipmc_addr_t ptin_ipmc;
   bcm_ipmc_addr_t      bcm_ipmc;
+  int unit, rv;
 
   /*Initialize Struct*/
   memset(&ptin_ipmc, 0X00, sizeof(ptin_ipmc));
@@ -418,7 +416,16 @@ L7_int32 ptin_debug_bcm_ipmc_add(L7_int ipmc_index, L7_uint32 vlanId, L7_uint32 
 
   ptin_ipmc_to_bcm(&ptin_ipmc, &bcm_ipmc);
 
-  return bcm_ipmc_add(0, &bcm_ipmc);        
+  /* Run all units */
+  BCM_UNIT_ITER(unit)
+  {
+      rv = bcm_ipmc_add(unit, &bcm_ipmc);
+      if (rv != BCM_E_NONE && rv != BCM_E_EXISTS)
+      {
+          return rv;
+      }
+  }
+  return BCM_E_NONE;
 }
 
 static uint32 numberOfIpmcEntries = 0;
@@ -439,9 +446,10 @@ uint32 ptin_hapi_l3_ipmc_number_of_entries_get(void)
 *********************************************************************/
 L7_RC_t ptin_hapi_l3_ipmc_add(ptin_dtl_ipmc_addr_t *ptin_ipmc)
 {  
+  int unit;
   bcm_ipmc_addr_t      bcm_ipmc;
   bcm_multicast_t      group;
-  int                  rv = L7_SUCCESS;
+  int                  rv = BCM_E_NONE;
   L7_BOOL              create_group;
   L7_uint32            flags;
 
@@ -478,17 +486,28 @@ L7_RC_t ptin_hapi_l3_ipmc_add(ptin_dtl_ipmc_addr_t *ptin_ipmc)
     #endif
   }
 
-  PT_LOG_TRACE(LOG_CTX_HAPI,"Group id %d will %s created (flags=0x%08x)",ptin_ipmc->group_index,((create_group) ? "BE" : "NOT be"),flags);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"Group id %d will %s created (flags=0x%08x)",
+               ptin_ipmc->group_index,((create_group) ? "BE" : "NOT be"),flags);
 
   /* Create group, if necessary */
   if (create_group)
   {
-    rv = bcm_multicast_create(0, flags, &group);
-    if ( (rv != BCM_E_NONE && rv != BCM_E_EXISTS) || group <= 0)
+    /* Run all units */
+    BCM_UNIT_ITER(unit)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI,"Error with bcm_multicast_create(0x%x, group_index:0x%08x rv:%d) (\"%s\")",
-              BCM_MULTICAST_TYPE_L3, group, rv, bcm_errmsg(rv));
-      return ptin_bcm_to_fp_error_code(rv);
+        /* If higher unit, reuse id */
+        if (unit > 0)
+        {
+            flags |= BCM_MULTICAST_WITH_ID;
+        }
+        
+        rv = bcm_multicast_create(unit, flags, &group);
+        if ( (rv != BCM_E_NONE && rv != BCM_E_EXISTS) || group <= 0)
+        {
+          PT_LOG_ERR(LOG_CTX_HAPI,"unit %d: Error with bcm_multicast_create(%d, 0x%x, group_index:0x%08x rv:%d) (\"%s\")",
+                     unit, BCM_MULTICAST_TYPE_L3, group, rv, bcm_errmsg(rv));
+          return ptin_bcm_to_fp_error_code(rv);
+        }
     }
     PT_LOG_TRACE(LOG_CTX_HAPI,"Group id 0x%x created (with flags=0x%08x)",group,flags);
     ptin_ipmc->group_index = group;
@@ -498,21 +517,25 @@ L7_RC_t ptin_hapi_l3_ipmc_add(ptin_dtl_ipmc_addr_t *ptin_ipmc)
 
   if (BCM_FAILURE(rv))
   {
-    PT_LOG_ERR(LOG_CTX_HAPI,"Error converting from dtl to bcm: group_index:0x%x rv:%d rv=\"%s\"", bcm_ipmc.group, rv, bcm_errmsg(rv));
+    PT_LOG_ERR(LOG_CTX_HAPI,"Error converting from dtl to bcm: group_index:0x%x rv:%d rv=\"%s\"",
+               bcm_ipmc.group, rv, bcm_errmsg(rv));
     return ptin_bcm_to_fp_error_code(rv);
   }
 
-  rv = bcm_ipmc_add(0, &bcm_ipmc);        
+  /* Run all units */
+  BCM_UNIT_ITER(unit)
+  {
+      rv = bcm_ipmc_add(unit, &bcm_ipmc);
 
-  if (BCM_FAILURE(rv))
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI,"Error adding Channel to IPMC Table: group_index:0x%x rv:%d rv=\"%s\" numberOfIpmcEntries=%u", bcm_ipmc.group, rv, bcm_errmsg(rv), numberOfIpmcEntries);
-    return ptin_bcm_to_fp_error_code(rv);
+      if (BCM_FAILURE(rv))
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI,"Error adding Channel to IPMC Table: group_index:0x%x rv:%d rv=\"%s\" numberOfIpmcEntries=%u",
+                   bcm_ipmc.group, rv, bcm_errmsg(rv), numberOfIpmcEntries);
+        return ptin_bcm_to_fp_error_code(rv);
+      }
   }
-  else
-  {
-    numberOfIpmcEntries++;
-  }
+
+  numberOfIpmcEntries++;
 
   return L7_SUCCESS;
 }
@@ -528,6 +551,7 @@ L7_RC_t ptin_hapi_l3_ipmc_add(ptin_dtl_ipmc_addr_t *ptin_ipmc)
 *********************************************************************/
 L7_RC_t ptin_hapi_l3_ipmc_remove(ptin_dtl_ipmc_addr_t *ptin_ipmc)
 {  
+  int unit;
   bcm_ipmc_addr_t      bcm_ipmc;
   int                  rv = L7_SUCCESS;
 
@@ -535,7 +559,8 @@ L7_RC_t ptin_hapi_l3_ipmc_remove(ptin_dtl_ipmc_addr_t *ptin_ipmc)
 
   if (BCM_FAILURE(rv))
   {
-    PT_LOG_ERR(LOG_CTX_HAPI,"Error converting from dtl to bcm: group_index:0x%x rv:%d rv=\"%s\"", bcm_ipmc.group, rv, bcm_errmsg(rv));
+    PT_LOG_ERR(LOG_CTX_HAPI,"Error converting from dtl to bcm: group_index:0x%x rv:%d rv=\"%s\"",
+               bcm_ipmc.group, rv, bcm_errmsg(rv));
     return ptin_bcm_to_fp_error_code(rv);
   }
 
@@ -544,18 +569,20 @@ L7_RC_t ptin_hapi_l3_ipmc_remove(ptin_dtl_ipmc_addr_t *ptin_ipmc)
 
 //bcm_ipmc.group = 0;
 
-  rv = bcm_ipmc_remove(0, &bcm_ipmc);        
-
-  if (BCM_FAILURE(rv))
+  /* Run all units */
+  BCM_UNIT_ITER(unit)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI,"Error removing Channel from IPMC Table: rv=\"%s\" ipmc_index:0x%x numberOfIpmcEntries:%u", bcm_errmsg(rv), ptin_ipmc->group_index, numberOfIpmcEntries);
-    return ptin_bcm_to_fp_error_code(rv);
-  }
-  else
-  {
-    numberOfIpmcEntries--;
+    rv = bcm_ipmc_remove(unit, &bcm_ipmc);
+
+    if (BCM_FAILURE(rv))
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI,"Error removing Channel from IPMC Table: rv=\"%s\" ipmc_index:0x%x numberOfIpmcEntries:%u",
+                 bcm_errmsg(rv), ptin_ipmc->group_index, numberOfIpmcEntries);
+      return ptin_bcm_to_fp_error_code(rv);
+    }
   }
 
+  numberOfIpmcEntries--;
 
   return L7_SUCCESS;
 }
@@ -584,15 +611,22 @@ L7_RC_t ptin_hapi_l3_ipmc_get(ptin_dtl_ipmc_addr_t *ptin_ipmc)
 *********************************************************************/
 L7_RC_t ptin_hapi_l3_ipmc_reset(void)
 {
+  int   unit;
   int   rv = L7_SUCCESS;
  
   /*Initialize IPMC Table*/   
-  rv = bcm_ipmc_remove_all(0);
-  if (BCM_FAILURE(rv))
+  /* Run all units */
+  BCM_UNIT_ITER(unit)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI,"Error initializing IPMC Table: rv=\"%s\" (rv:%u)", bcm_errmsg(rv));
-    return ptin_bcm_to_fp_error_code(rv);
+      rv = bcm_ipmc_remove_all(unit);
+
+      if (BCM_FAILURE(rv))
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI,"Error initializing IPMC Table: rv=\"%s\" (rv:%u)", bcm_errmsg(rv));
+        return ptin_bcm_to_fp_error_code(rv);
+      }
   }
+
   return rv;
 }
   

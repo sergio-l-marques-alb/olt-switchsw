@@ -53,10 +53,6 @@
 #include "bcm/trunk.h"
 #include "bcm/port.h"
 
-#include "bcmx/lport.h"
-#include "bcmx/trunk.h"
-#include "bcmx/port.h"
-
 #include "l7_usl_bcmx_l2.h"
 #include "l7_usl_bcmx_port.h"
 
@@ -534,10 +530,10 @@ void hapiBroadLagAddRemoveLagFromVlans (DAPI_USP_t *usp,
         {
           hapiPortPtr = HAPI_PORT_GET(&lagMemberSet[i].usp,dapi_g);
 
-          rv = usl_bcmx_port_vlan_member_add (hapiPortPtr->bcmx_lport, &port_command);
+          rv = usl_bcmx_port_vlan_member_add (hapiPortPtr->bcm_gport, &port_command);
           if (L7_BCMX_OK(rv) != L7_TRUE)
           {
-            L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't add port 0x%x to VLANs, rv = %d", hapiPortPtr->bcmx_lport, rv);
+            L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't add port 0x%x to VLANs, rv = %d", hapiPortPtr->bcm_gport, rv);
           }
         }
       }
@@ -607,10 +603,10 @@ void hapiBroadLagAddRemoveLagFromVlans (DAPI_USP_t *usp,
         if (numVlans)
         {
           hapiPortPtr = HAPI_PORT_GET(&lagMemberSet[i].usp,dapi_g);
-          rv = usl_bcmx_port_vlan_member_delete (hapiPortPtr->bcmx_lport, &port_command);
+          rv = usl_bcmx_port_vlan_member_delete (hapiPortPtr->bcm_gport, &port_command);
           if (L7_BCMX_OK(rv) != L7_TRUE)
           {
-            L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't remove port 0x%x from VLANs, rv = %d", hapiPortPtr->bcmx_lport, rv);
+            L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't remove port 0x%x from VLANs, rv = %d", hapiPortPtr->bcm_gport, rv);
           } 
         }
       }
@@ -677,10 +673,10 @@ static void hapiBroadAddRemovePortFromLagVlans (DAPI_USP_t *usp,
   */
   if (port_cmd == 1)
   {
-    rv = usl_bcmx_port_vlan_member_add (hapiPortPtr->bcmx_lport, &port_command);
+    rv = usl_bcmx_port_vlan_member_add (hapiPortPtr->bcm_gport, &port_command);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
-      L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't add port 0x%x to VLANs, rv = %d", hapiPortPtr->bcmx_lport, rv);
+      L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't add port 0x%x to VLANs, rv = %d", hapiPortPtr->bcm_gport, rv);
     }
   }
 
@@ -717,10 +713,10 @@ static void hapiBroadAddRemovePortFromLagVlans (DAPI_USP_t *usp,
 
   if (port_cmd == 0)
   {
-    rv = usl_bcmx_port_vlan_member_delete (hapiPortPtr->bcmx_lport, &port_command);
+    rv = usl_bcmx_port_vlan_member_delete (hapiPortPtr->bcm_gport, &port_command);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
-      L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't remove port 0x%x from VLANs, rv = %d", hapiPortPtr->bcmx_lport, rv);
+      L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't remove port 0x%x from VLANs, rv = %d", hapiPortPtr->bcm_gport, rv);
     }
   }
 
@@ -982,7 +978,7 @@ L7_RC_t hapiBroadLagCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *
   }
   PT_LOG_DEBUG(LOG_CTX_TRUNKS, "LAG {%d.%d.%d} => New trunk created: tid=%u", usp->unit, usp->slot, usp->port, tid);
   hapiPortPtr->hapiModeparm.lag.tgid = tid;
-  BCM_GPORT_TRUNK_SET(hapiPortPtr->bcmx_lport, tid);
+  BCM_GPORT_TRUNK_SET(hapiPortPtr->bcm_gport, tid);
 
   /* Need to apply learn mode now that we have a tgid */
   usl_bcmx_trunk_learn_mode_set(usp->port, tid, hapiPortPtr->locked);
@@ -1090,7 +1086,7 @@ L7_RC_t hapiBroadLagPortAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
   int                           rc;
   bcm_port_discard_t            mode;
   bcm_trunk_add_info_t          bcmTrunkInfo;
-  bcmx_lport_t                  lport;
+  bcm_gport_t                   gport;
   bcm_trunk_t                   tid;
   usl_bcm_port_priority_t      priority;
   L7_BOOL                       lag_has_members;
@@ -1296,23 +1292,23 @@ L7_RC_t hapiBroadLagPortAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
     hapiLagMemberPortPtr = HAPI_PORT_GET(&cmdLagPortAdd->cmdData.lagPortAdd.memberSet[entry],dapi_g);
 
     /* Get the logical port */
-    lport = hapiLagMemberPortPtr->bcmx_lport;
+    gport = hapiLagMemberPortPtr->bcm_gport;
 
 
     /* update LAG ports maxFrameSize */
     maxFrameSize = cmdLagPortAdd->cmdData.lagPortAdd.maxFrameSize;
-    rc = usl_bcmx_port_frame_max_set(lport, maxFrameSize);
+    rc = usl_bcmx_port_frame_max_set(gport, maxFrameSize);
 
-    PT_LOG_TRACE(LOG_CTX_TRUNKS, "usp{%d,%d,%d}: maxFrameSize %u applied over lport=0x%x (bcm_port=%u): rc=%d",
-                 usp->unit, usp->slot, usp->port, maxFrameSize, lport, hapiLagMemberPortPtr->bcm_port, rc);
+    PT_LOG_TRACE(LOG_CTX_TRUNKS, "usp{%d,%d,%d}: maxFrameSize %u applied over gport=0x%x (bcm_port=%u): rc=%d",
+                 usp->unit, usp->slot, usp->port, maxFrameSize, gport, hapiLagMemberPortPtr->bcm_port, rc);
 
     /* Port Priority 
     */
     priority = hapiLagPortPtr->priority;
-    rc = usl_bcmx_port_untagged_priority_set(lport, priority);
+    rc = usl_bcmx_port_untagged_priority_set(gport, priority);
     if (L7_BCMX_OK(rc) != L7_TRUE)
     {
-      L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set priority for port 0x%x, rv = %d", lport, rc);
+      L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set priority for port 0x%x, rv = %d", gport, rc);
     }
 
     /* PVID - applied to LAG below, not individual physical ports as they are acquired
@@ -1337,19 +1333,19 @@ L7_RC_t hapiBroadLagPortAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
 
     }
 
-    rc = usl_bcmx_port_discard_set(lport, mode);
+    rc = usl_bcmx_port_discard_set(gport, mode);
     if (L7_BCMX_OK(rc) != L7_TRUE)
     {
-      L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set discard mode for port 0x%x, rv = %d", lport, rc);
+      L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set discard mode for port 0x%x, rv = %d", gport, rc);
     }
 
     /* Ingress Filtering.
     */
-    result = hapiBroadVlanIngressFilterSet(lport,hapiLagPortPtr->ingressFilteringEnabled);
+    result = hapiBroadVlanIngressFilterSet(gport,hapiLagPortPtr->ingressFilteringEnabled);
 
     if (result != L7_SUCCESS)
     {
-      L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set ingress filter mode for port 0x%x, rv = %d", lport, result);
+      L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set ingress filter mode for port 0x%x, rv = %d", gport, result);
     }
 
     /* Protocol based VLANs */
@@ -1385,7 +1381,7 @@ L7_RC_t hapiBroadLagPortAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
       hapiLagMemberPortPtr = HAPI_PORT_GET(&lagMemberSet[searchEntry].usp,dapi_g);
       bcmTrunkInfo.tm[memberCount] = hapiLagMemberPortPtr->bcm_modid;
 
-      bcmTrunkInfo.tp[memberCount] = BCMX_LPORT_MODPORT(hapiLagMemberPortPtr->bcmx_lport);
+      bcmTrunkInfo.tp[memberCount] = BCMY_GPORT_MODPORT(hapiLagMemberPortPtr->bcm_gport);
       memberCount++;
     }
   }
@@ -1427,7 +1423,7 @@ L7_RC_t hapiBroadLagPortAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
         L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't create trunk ID %d, rv = %d", usp->port, rc);
       }
       hapiLagPortPtr->hapiModeparm.lag.tgid = tid;
-      BCM_GPORT_TRUNK_SET(hapiLagPortPtr->bcmx_lport, tid);
+      BCM_GPORT_TRUNK_SET(hapiLagPortPtr->bcm_gport, tid);
 
       /* Need to apply learn mode now that we have a tgid */
       usl_bcmx_trunk_learn_mode_set(usp->port, tid, hapiLagPortPtr->locked);
@@ -1533,12 +1529,11 @@ L7_RC_t hapiBroadLagPortAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
     {
       hapiLagPortPtr = HAPI_PORT_GET(usp,dapi_g);
 
-      lport = hapiLagMemberPortPtr->bcmx_lport;
-
-      rc = bcmx_port_stp_set(lport, hapiLagPortPtr->hw_stp_state);
+      rc = bcm_port_stp_set(hapiLagMemberPortPtr->bcm_unit, hapiLagMemberPortPtr->bcm_port, hapiLagPortPtr->hw_stp_state);
       if (L7_BCMX_OK(rc) != L7_TRUE)
       {
-        L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set STP state for port %d, rv = %d", lport, rc);
+        L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set STP state for unit %d port %d, rv = %d",
+                hapiLagMemberPortPtr->bcm_unit, hapiLagMemberPortPtr->bcm_port, rc);
       }
     } else
     {
@@ -1649,7 +1644,7 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
   int                           rc;
   bcm_port_discard_t            mode;
   bcm_trunk_add_info_t          bcmTrunkInfo;
-  bcmx_lport_t                  lport;
+  bcm_gport_t                   gport;
   bcm_trunk_t                   tid;
   usl_bcm_port_priority_t      priority;
   L7_BOOL                       member_found;
@@ -1915,7 +1910,7 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
     {
       hapiLagMemberPortPtr = HAPI_PORT_GET(&lagMemberSet[searchEntry].usp, dapi_g);
       bcmTrunkInfo.tm[memberCount] = hapiLagMemberPortPtr->bcm_modid;
-      bcmTrunkInfo.tp[memberCount] = BCMX_LPORT_MODPORT(hapiLagMemberPortPtr->bcmx_lport);
+      bcmTrunkInfo.tp[memberCount] = BCMY_GPORT_MODPORT(hapiLagMemberPortPtr->bcm_gport);
 
       memberCount++;
     }
@@ -1966,7 +1961,7 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
       }
       PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Trunk ID# %d is alive again :-)", tid);
       hapiLagPortPtr->hapiModeparm.lag.tgid = tid;
-      BCM_GPORT_TRUNK_SET(hapiLagPortPtr->bcmx_lport, tid);
+      BCM_GPORT_TRUNK_SET(hapiLagPortPtr->bcm_gport, tid);
 
       /* Need to apply learn mode now that we have a tgid */
       usl_bcmx_trunk_learn_mode_set(usp->port, tid, hapiLagPortPtr->locked);
@@ -1979,7 +1974,7 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
 //    hapiLagPortPtr->hapiModeparm.lag.isolatePending = L7_FALSE;
 //    hapiLagPortPtr->hapiModeparm.lag.lastValidTgid = hapiLagPortPtr->hapiModeparm.lag.tgid;
 //    hapiLagPortPtr->hapiModeparm.lag.tgid = -1;
-//    hapiLagPortPtr->bcmx_lport = 0;
+//    hapiLagPortPtr->bcm_gport = 0;
     }
     /* otherwise set the membership to the remaining members */
     else
@@ -2003,7 +1998,7 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
     hapiLagMemberPortPtr = HAPI_PORT_GET(&cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry],dapi_g);
 
     /* Get the logical port */
-    lport = hapiLagMemberPortPtr->bcmx_lport;
+    gport = hapiLagMemberPortPtr->bcm_gport;
 
     /* update port config maxFrameSize */
     #if 1
@@ -2011,14 +2006,14 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
     #else
     maxFrameSize = cmdLagPortDelete->cmdData.lagPortDelete.maxFrameSize;
     #endif
-    rc = usl_bcmx_port_frame_max_set(lport, maxFrameSize);
+    rc = usl_bcmx_port_frame_max_set(gport, maxFrameSize);
 
-    PT_LOG_TRACE(LOG_CTX_HAPI, "usp{%d,%d,%d}: maxFrameSize %u applied over lport=0x%x (bcm_port=%u): rc=%d",
-                 usp->unit, usp->slot, usp->port, maxFrameSize, lport, hapiLagMemberPortPtr->bcm_port, rc);
+    PT_LOG_TRACE(LOG_CTX_HAPI, "usp{%d,%d,%d}: maxFrameSize %u applied over gport=0x%x (bcm_port=%u): rc=%d",
+                 usp->unit, usp->slot, usp->port, maxFrameSize, gport, hapiLagMemberPortPtr->bcm_port, rc);
 
     if (L7_BCMX_OK(rc) != L7_TRUE)
     {
-      PT_LOG_ERR(LOG_CTX_TRUNKS, "Failed to set max frame on %d",lport);
+      PT_LOG_ERR(LOG_CTX_TRUNKS, "Failed to set max frame on %d",gport);
 
       hapiBroadLagCritSecExit ();
 
@@ -2045,10 +2040,10 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
     */
     if (L7_BRIDGE_SPEC_SUPPORTED == L7_BRIDGE_SPEC_802DOT1D)
     {
-      rc = bcmx_port_stp_set(hapiLagMemberPortPtr->bcmx_lport, hapiLagMemberPortPtr->hw_stp_state);
+      rc = bcm_port_stp_set(hapiLagMemberPortPtr->bcm_unit, hapiLagMemberPortPtr->bcm_port, hapiLagMemberPortPtr->hw_stp_state);
       if (L7_BCMX_OK(rc) != L7_TRUE)
       {
-        L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set STP state for port 0x%x, rv = %d", hapiLagMemberPortPtr->bcmx_lport, rc);
+        L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set STP state for port 0x%x, rv = %d", hapiLagMemberPortPtr->bcm_gport, rc);
       }
     } else
     {
@@ -2060,10 +2055,10 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
     /* Port Priority 
     */
     priority = hapiLagMemberPortPtr->priority;
-    rc = usl_bcmx_port_untagged_priority_set(lport, priority);
+    rc = usl_bcmx_port_untagged_priority_set(gport, priority);
     if (L7_BCMX_OK(rc) != L7_TRUE)
     {
-      L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set priority for port 0x%x, rv = %d", lport, rc);
+      L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set priority for port 0x%x, rv = %d", gport, rc);
     }
 
     /* PVID
@@ -2111,19 +2106,19 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
 
     }
 
-    rc = usl_bcmx_port_discard_set(lport, mode);
+    rc = usl_bcmx_port_discard_set(gport, mode);
     if (L7_BCMX_OK(rc) != L7_TRUE)
     {
-      L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set discard mode for port 0x%x, rv = %d", lport, rc);
+      L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set discard mode for port 0x%x, rv = %d", gport, rc);
     }
 
     /* Ingress Filtering.
     */
-    result = hapiBroadVlanIngressFilterSet(lport, hapiLagMemberPortPtr->ingressFilteringEnabled);
+    result = hapiBroadVlanIngressFilterSet(gport, hapiLagMemberPortPtr->ingressFilteringEnabled);
 
     if (result != L7_SUCCESS)
     {
-      L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set ingress filtering mode for port 0x%x, rv = %d", lport, result);
+      L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set ingress filtering mode for port 0x%x, rv = %d", gport, result);
     }
 
     /* Protocol based VLANs */
@@ -2369,7 +2364,7 @@ L7_RC_t hapiBroadLagDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *
     hapiLagPortPtr->hapiModeparm.lag.isolatePending = L7_FALSE;
     hapiLagPortPtr->hapiModeparm.lag.lastValidTgid = hapiLagPortPtr->hapiModeparm.lag.tgid;
     hapiLagPortPtr->hapiModeparm.lag.tgid = -1;
-    hapiLagPortPtr->bcmx_lport = 0;
+    hapiLagPortPtr->bcm_gport = 0;
   
     hapiBroadLagCritSecExit ();
 
@@ -2680,17 +2675,18 @@ L7_RC_t hapiBroadProtocolVlanLagPortDeleteNotify(DAPI_USP_t *memberUsp, DAPI_USP
   return L7_SUCCESS;
 }
 
-
+/* PTin removed: BCMX */
 /**********************************
 **  Swap two LAG members. 
 **  This function is used for testing traffic distribution.
 **********************************/
+#if 0
 L7_uint32 hapiBroadDebugLagSwap (L7_uint32 lag_id)
 {
   int rv;
   bcmx_trunk_add_info_t trunk_info;
   L7_uint32  list_size;
-  bcmx_lport_t port1, port2;
+  bcm_gport_t port1, port2;
 
   bcmx_lplist_init(&trunk_info.ports, L7_MAX_MEMBERS_PER_LAG, BCMX_LP_UNIQ);
 
@@ -2746,3 +2742,5 @@ L7_uint32 hapiBroadDebugLagSwap (L7_uint32 lag_id)
 
   return 0;
 }
+#endif
+

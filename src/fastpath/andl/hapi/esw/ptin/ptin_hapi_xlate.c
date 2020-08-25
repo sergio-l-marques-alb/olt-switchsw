@@ -1,6 +1,4 @@
 #include <bcm/error.h>
-#include <bcmx/vlan.h>
-#include <bcmx/port.h>
 
 #include "broad_policy.h"
 #include "ptin_hapi_xlate.h"
@@ -202,10 +200,10 @@ L7_RC_t ptin_hapi_xlate_singletag_action_add(ptin_dapi_port_t *dapiPort, L7_uint
 
   action.new_outer_vlan = newOVlanId;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_add(0, 0x%08X[%d], %u, %u, %u, &action)",
-            hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_port, keyType, oVlanId, 0);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_add(unit=%u, port=%u, keyType=%u, ovlan=%u, ivlan=%u, &action)",
+               hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, keyType, oVlanId, 0);
 
-  error = bcmx_vlan_translate_action_add(hapiPortPtr->bcmx_lport, keyType, oVlanId, 0, &action);
+  error = bcm_vlan_translate_action_add(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, keyType, oVlanId, 0, &action);
 
   if (error == BCM_E_EXISTS)
   {
@@ -270,10 +268,10 @@ L7_RC_t ptin_hapi_xlate_singletag_action_delete(ptin_dapi_port_t *dapiPort, L7_u
 
   keyType = bcmVlanTranslateKeyPortOuter;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_delete(0, 0x%08X[%d], %u, %u, %u)",
-            hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_port, keyType, oVlanId, 0);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_delete(unit=%u, port=%u, keyType=%u, oVlan=%u, ivlan=%u)",
+               hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, keyType, oVlanId, 0);
 
-  error = bcmx_vlan_translate_action_delete(hapiPortPtr->bcmx_lport, keyType, oVlanId, 0);
+  error = bcm_vlan_translate_action_delete(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, keyType, oVlanId, 0);
 
   if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND )
   {
@@ -344,10 +342,10 @@ L7_RC_t ptin_hapi_xlate_doubletag_action_add(ptin_dapi_port_t *dapiPort, L7_uint
 
   action.new_outer_vlan = newOVlanId;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_add(0, 0x%08X[%d], %u, %u, %u, &action)",
-            hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_port, keyType, oVlanId, iVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_add(unit=%u, port%u, keyType=%u, ovlan=%u, ivlan=%u, &action)",
+               hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, keyType, oVlanId, iVlanId);
 
-  error = bcmx_vlan_translate_action_add(hapiPortPtr->bcmx_lport, keyType, oVlanId, iVlanId, &action);
+  error = bcm_vlan_translate_action_add(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, keyType, oVlanId, iVlanId, &action);
 
   if (error == BCM_E_EXISTS)
   {
@@ -413,10 +411,10 @@ L7_RC_t ptin_hapi_xlate_doubletag_action_delete(ptin_dapi_port_t *dapiPort, L7_u
 
   keyType = bcmVlanTranslateKeyPortDouble;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_delete(0, 0x%08X[%d], %u, %u, %u)",
-            hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_port, keyType, oVlanId, iVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_delete(unit=%u, port=%u, keyType=%u, ovlan=%u, ivlan=%u)",
+               hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, keyType, oVlanId, iVlanId);
 
-  error = bcmx_vlan_translate_action_delete(hapiPortPtr->bcmx_lport, keyType, oVlanId, iVlanId);
+  error = bcm_vlan_translate_action_delete(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, keyType, oVlanId, iVlanId);
 
   if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND )
   {
@@ -492,10 +490,10 @@ L7_RC_t ptin_hapi_xlate_ingress_action_get(ptin_dapi_port_t *dapiPort, L7_uint16
 
   bcm_vlan_action_set_t_init(&action);
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_get(0, 0x%08X[%d], %u, %u, %u, &action)",
-            hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_port, keyType, oVlanId, iVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_get(unit=%u, port=%u, keyType=%u, ovlan=%u, ivlan=%u, &action)",
+               hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, keyType, oVlanId, iVlanId);
 
-  error = bcmx_vlan_translate_action_get(hapiPortPtr->bcmx_lport, keyType, oVlanId, iVlanId, &action);
+  error = bcm_vlan_translate_action_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, keyType, oVlanId, iVlanId, &action);
 
   if (error != BCM_E_NONE)
   {
@@ -574,10 +572,10 @@ L7_RC_t ptin_hapi_xlate_ingress_action_add(ptin_dapi_port_t *dapiPort, L7_uint16
 
   action.new_outer_vlan = newOVlanId;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_add(0, 0x%08X[%d], %u, %u, %u, &action)",
-            hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_port, keyType, oVlanId, iVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_add(unit=%u, port=%u, keyType=%u, ovlan=%u, ivlan=%u, &action)",
+               hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, keyType, oVlanId, iVlanId);
 
-  error = bcmx_vlan_translate_action_add(hapiPortPtr->bcmx_lport, keyType, oVlanId, iVlanId, &action);
+  error = bcm_vlan_translate_action_add(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, keyType, oVlanId, iVlanId, &action);
 
   if (error == BCM_E_EXISTS)
   {
@@ -652,10 +650,10 @@ L7_RC_t ptin_hapi_xlate_ingress_action_delete(ptin_dapi_port_t *dapiPort, L7_uin
     keyType = bcmVlanTranslateKeyPortOuter;
   }
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_delete(0, 0x%08X[%d], %u, %u, %u)",
-            hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_port, keyType, oVlanId, iVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_delete(unit=%u, port=%u, keyType=%u, ovlan=%u, ivlan=%u)",
+               hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, keyType, oVlanId, iVlanId);
 
-  error = bcmx_vlan_translate_action_delete(hapiPortPtr->bcmx_lport, keyType, oVlanId, iVlanId);
+  error = bcm_vlan_translate_action_delete(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, keyType, oVlanId, iVlanId);
 
   if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND )
   {
@@ -678,7 +676,8 @@ L7_RC_t ptin_hapi_xlate_ingress_action_delete(ptin_dapi_port_t *dapiPort, L7_uin
 /**
  * Get egress translation configuration for a given class id, 
  * outer vlan and inner vlan 
- * 
+ *  
+ * @param unit : bcm_unit 
  * @param portgroup: port class id
  * @param oVlanId: outer vlan id 
  * @param iVlanId: inner vlan id (0 to not use inner vlan)
@@ -686,18 +685,20 @@ L7_RC_t ptin_hapi_xlate_ingress_action_delete(ptin_dapi_port_t *dapiPort, L7_uin
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_hapi_xlate_egress_action_get(L7_uint32 portgroup, L7_uint16 oVlanId, L7_uint16 iVlanId, L7_uint16 *newOVlanId)
+L7_RC_t ptin_hapi_xlate_egress_action_get(int unit, L7_uint32 portgroup, L7_uint16 oVlanId, L7_uint16 iVlanId, L7_uint16 *newOVlanId)
 {
   int error;
   bcm_vlan_action_set_t action;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "portgroup=%u oVlanId=%u iVlanId=%u", portgroup, oVlanId, iVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "unit=%u portgroup=%u oVlanId=%u iVlanId=%u",
+               unit, portgroup, oVlanId, iVlanId);
 
   bcm_vlan_action_set_t_init(&action);
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_egress_action_add(0, %d, %u, %u, &action)", portgroup, oVlanId, iVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_egress_action_add(unit=%u, portgroup=%u, ovlan=%u, ivlan=%u, &action)",
+               unit, portgroup, oVlanId, iVlanId);
 
-  error = bcmx_vlan_translate_egress_action_get(portgroup, oVlanId, iVlanId, &action);
+  error = bcm_vlan_translate_egress_action_get(unit, portgroup, oVlanId, iVlanId, &action);
 
   if (error != BCM_E_NONE)
   {
@@ -718,7 +719,8 @@ L7_RC_t ptin_hapi_xlate_egress_action_get(L7_uint32 portgroup, L7_uint16 oVlanId
 /**
  * Translate single or double-tagged packets to another 
  * outer-vlan at the egress stage 
- * 
+ *  
+ * @param unit : bcm_unit 
  * @param portgroup: port class id
  * @param oVlanId: outer vlan id 
  * @param iVlanId: inner vlan id (0 to not use inner vlan)
@@ -726,12 +728,13 @@ L7_RC_t ptin_hapi_xlate_egress_action_get(L7_uint32 portgroup, L7_uint16 oVlanId
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_hapi_xlate_egress_action_add(L7_uint32 portgroup, L7_uint16 oVlanId, L7_uint16 iVlanId, L7_uint16 newOVlanId)
+L7_RC_t ptin_hapi_xlate_egress_action_add(int unit, L7_uint32 portgroup, L7_uint16 oVlanId, L7_uint16 iVlanId, L7_uint16 newOVlanId)
 {
   int error;
   bcm_vlan_action_set_t action;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "portgroup=%u oVlanId=%u iVlanId=%u newOVlanId=%u", portgroup, oVlanId, iVlanId, newOVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "unit=%u portgroup=%u oVlanId=%u iVlanId=%u newOVlanId=%u",
+               unit, portgroup, oVlanId, iVlanId, newOVlanId);
 
   /* Add translation entry */
   bcm_vlan_action_set_t_init(&action);
@@ -746,9 +749,10 @@ L7_RC_t ptin_hapi_xlate_egress_action_add(L7_uint32 portgroup, L7_uint16 oVlanId
 
   action.new_outer_vlan = newOVlanId;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_egress_action_add(0, %d, %u, %u, &action)", portgroup, oVlanId, iVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_egress_action_add(unit=%d, portgroup=%u, ovlan=%u, ivlan=%u, &action)",
+               unit, portgroup, oVlanId, iVlanId);
 
-  error = bcmx_vlan_translate_egress_action_add(portgroup, oVlanId, iVlanId, &action);
+  error = bcm_vlan_translate_egress_action_add(unit, portgroup, oVlanId, iVlanId, &action);
 
   if (error == BCM_E_EXISTS)
   {
@@ -780,22 +784,25 @@ L7_RC_t ptin_hapi_xlate_egress_action_add(L7_uint32 portgroup, L7_uint16 oVlanId
 
 /**
  * Remove a single/double-vlan translation at the egress stage
- * 
+ *  
+ * @param unit : bcm_unit 
  * @param portgroup: port class id
  * @param oVlanId: outer vlan id 
  * @param iVlanId: inner vlan id (use 0 for single vlan) 
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_hapi_xlate_egress_action_delete(L7_uint32 portgroup, L7_uint16 oVlanId, L7_uint16 iVlanId)
+L7_RC_t ptin_hapi_xlate_egress_action_delete(int unit, L7_uint32 portgroup, L7_uint16 oVlanId, L7_uint16 iVlanId)
 {
   int error;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI,"portgroup=%u oVlanId=%u iVlanId=%u", portgroup, oVlanId, iVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"unit=%u portgroup=%u oVlanId=%u iVlanId=%u",
+               unit, portgroup, oVlanId, iVlanId);
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_egress_action_delete(0,%d,%u,%u)", portgroup, oVlanId, iVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_egress_action_delete(unit=%u, portgroup=%u, ovlan=%u, ivlan=%u)",
+               unit, portgroup, oVlanId, iVlanId);
 
-  error = bcmx_vlan_translate_egress_action_delete(portgroup, oVlanId, iVlanId);
+  error = bcm_vlan_translate_egress_action_delete(unit, portgroup, oVlanId, iVlanId);
 
   if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND )
   {
@@ -814,14 +821,15 @@ L7_RC_t ptin_hapi_xlate_egress_action_delete(L7_uint32 portgroup, L7_uint16 oVla
 
 /**
  * Remove all ingress translations
- * 
+ *  
+ * @param unit : bcm_unit 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_hapi_xlate_ingress_action_delete_all(void)
+L7_RC_t ptin_hapi_xlate_ingress_action_delete_all(int unit)
 {
   int error;
 
-  error = bcmx_vlan_translate_delete_all();
+  error = bcm_vlan_translate_delete_all(unit);
 
   if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND )
   {
@@ -839,14 +847,16 @@ L7_RC_t ptin_hapi_xlate_ingress_action_delete_all(void)
 
 /**
  * Remove all egress translations
- * 
+ *  
+ * @param unit : bcm_unit 
+ *  
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_hapi_xlate_egress_action_delete_all(void)
+L7_RC_t ptin_hapi_xlate_egress_action_delete_all(int unit)
 {
   int error;
 
-  error = bcmx_vlan_translate_egress_delete_all();
+  error = bcm_vlan_translate_egress_delete_all(unit);
 
   if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND )
   {
@@ -927,10 +937,10 @@ L7_RC_t ptin_hapi_xlate_ingress_replaceOVid_addIVid(ptin_dapi_port_t *dapiPort, 
   action.new_outer_vlan = newOVlanId;
   action.new_inner_vlan = newIVlanId;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_add(0, 0x%08X[%d], %u, %u, %u, &action)",
-            hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_port, keyType, oVlanId, 0);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_add(unit=%u, port=%u, keyType=%u, ovlan=%u, ivlan=%u, &action)",
+               hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, keyType, oVlanId, 0);
 
-  error = bcmx_vlan_translate_action_add(hapiPortPtr->bcmx_lport, keyType, oVlanId, 0, &action);
+  error = bcm_vlan_translate_action_add(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, keyType, oVlanId, 0, &action);
 
   if (error == BCM_E_EXISTS)
   {
@@ -963,7 +973,8 @@ L7_RC_t ptin_hapi_xlate_ingress_replaceOVid_addIVid(ptin_dapi_port_t *dapiPort, 
 
 /**
  * Replace Outer VID and remove inner VID
- * 
+ *  
+ * @param unit : bcm_unit 
  * @param portgroup: port class id
  * @param oVlanId: outer vlan id 
  * @param iVlanId: inner vlan id (0 to not use inner vlan)
@@ -971,12 +982,13 @@ L7_RC_t ptin_hapi_xlate_ingress_replaceOVid_addIVid(ptin_dapi_port_t *dapiPort, 
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_hapi_xlate_egress_replaceOVid_deleteIVid(L7_uint32 portgroup, L7_uint16 oVlanId, L7_uint16 iVlanId, L7_uint16 newOVlanId)
+L7_RC_t ptin_hapi_xlate_egress_replaceOVid_deleteIVid(int unit, L7_uint32 portgroup, L7_uint16 oVlanId, L7_uint16 iVlanId, L7_uint16 newOVlanId)
 {
   int error;
   bcm_vlan_action_set_t action;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "portgroup=%u oVlanId=%u iVlanId=%u newOVlanId=%u", portgroup, oVlanId, iVlanId, newOVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "unit=%u portgroup=%u oVlanId=%u iVlanId=%u newOVlanId=%u",
+               unit, portgroup, oVlanId, iVlanId, newOVlanId);
 
   /* Add translation entry */
   bcm_vlan_action_set_t_init(&action);
@@ -991,9 +1003,10 @@ L7_RC_t ptin_hapi_xlate_egress_replaceOVid_deleteIVid(L7_uint32 portgroup, L7_ui
 
   action.new_outer_vlan = newOVlanId;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_egress_action_add(0, %d, %u, %u, &action)", portgroup, oVlanId, iVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_egress_action_add(unit=%u, port=%d, ovlan=%u, ivlan=%u, &action)",
+               unit, portgroup, oVlanId, iVlanId);
 
-  error = bcmx_vlan_translate_egress_action_add(portgroup, oVlanId, iVlanId, &action);
+  error = bcm_vlan_translate_egress_action_add(unit, portgroup, oVlanId, iVlanId, &action);
 
   if (error == BCM_E_EXISTS)
   {
@@ -1077,10 +1090,10 @@ L7_RC_t ptin_hapi_xlate_ingress_get(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
 
   bcm_vlan_action_set_t_init(&action);
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_get(0, 0x%08X[%d], %u, %u, %u, &action)",
-            hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_port, keyType, xlate->outerVlanId, xlate->innerVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_get(unit=%u, port=%u, keyType=%u, ovlan=%u, ivlan=%u, &action)",
+               hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, keyType, xlate->outerVlanId, xlate->innerVlanId);
 
-  error = bcmx_vlan_translate_action_get(hapiPortPtr->bcmx_lport, keyType, xlate->outerVlanId, xlate->innerVlanId, &action);
+  error = bcm_vlan_translate_action_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, keyType, xlate->outerVlanId, xlate->innerVlanId, &action);
 
   if (error != BCM_E_NONE)
   {
@@ -1166,7 +1179,7 @@ L7_RC_t ptin_hapi_xlate_ingress_add(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
 
 #if 0
   /* Check if this entry already exists */
-  if (bcmx_vlan_translate_action_get(hapiPortPtr->bcmx_lport, keyType, xlate->outerVlanId, xlate->innerVlanId, &action) == BCM_E_NONE)
+  if (bcm_vlan_translate_action_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, keyType, xlate->outerVlanId, xlate->innerVlanId, &action) == BCM_E_NONE)
   {
     PT_LOG_WARN(LOG_CTX_HAPI, "This entry already exists");
     return L7_ALREADY_CONFIGURED;
@@ -1195,8 +1208,8 @@ L7_RC_t ptin_hapi_xlate_ingress_add(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
   action.priority           = xlate->newOuterPrio;
   action.new_inner_pkt_prio = xlate->newInnerPrio;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_add(0, 0x%08X[%d], %u, %u, %u, &action)",
-            hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_port, keyType, xlate->outerVlanId, xlate->innerVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_add(unit=%u, port=%u, keyType=%u, ovlan=%u, ivlan=%u, &action)",
+               hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, keyType, xlate->outerVlanId, xlate->innerVlanId);
 
   PT_LOG_TRACE(LOG_CTX_HAPI,"action.new_outer_vlan     = %u", action.new_outer_vlan);
   PT_LOG_TRACE(LOG_CTX_HAPI,"action.new_inner_vlan     = %u", action.new_inner_vlan);
@@ -1223,7 +1236,7 @@ L7_RC_t ptin_hapi_xlate_ingress_add(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
   PT_LOG_TRACE(LOG_CTX_HAPI,"action.ut_outer_prio      = %u", action.ut_outer_pkt_prio);
   PT_LOG_TRACE(LOG_CTX_HAPI,"action.ut_inner_pkt_prio  = %u", action.ut_inner_pkt_prio);
 
-  error = bcmx_vlan_translate_action_add(hapiPortPtr->bcmx_lport, keyType, xlate->outerVlanId, xlate->innerVlanId, &action);
+  error = bcm_vlan_translate_action_add(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, keyType, xlate->outerVlanId, xlate->innerVlanId, &action);
 
   if (error == BCM_E_EXISTS)
   {
@@ -1302,10 +1315,10 @@ L7_RC_t ptin_hapi_xlate_ingress_delete(ptin_dapi_port_t *dapiPort, ptin_hapi_xla
     keyType = bcmVlanTranslateKeyPortOuter;
   }
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_delete(0, 0x%08X[%d], %u, %u, %u)",
-            hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_port, keyType, xlate->outerVlanId, xlate->innerVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_delete(unit=%u, port=%u, keyType=%u, ovlan=%u, ivlan=%u)",
+               hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, keyType, xlate->outerVlanId, xlate->innerVlanId);
 
-  error = bcmx_vlan_translate_action_delete(hapiPortPtr->bcmx_lport, keyType, xlate->outerVlanId, xlate->innerVlanId);
+  error = bcm_vlan_translate_action_delete(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, keyType, xlate->outerVlanId, xlate->innerVlanId);
 
   if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND )
   {
@@ -1327,14 +1340,16 @@ L7_RC_t ptin_hapi_xlate_ingress_delete(ptin_dapi_port_t *dapiPort, ptin_hapi_xla
 
 /**
  * Remove all ingress translations
- * 
+ *  
+ * @param unit : bcm_unit 
+ *  
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_hapi_xlate_ingress_delete_all(void)
+L7_RC_t ptin_hapi_xlate_ingress_delete_all(int unit)
 {
   int error;
 
-  error = bcmx_vlan_translate_delete_all();
+  error = bcm_vlan_translate_delete_all(unit);
 
   if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND )
   {
@@ -1353,24 +1368,27 @@ L7_RC_t ptin_hapi_xlate_ingress_delete_all(void)
 /**
  * Get egress translation configuration for a given class id, 
  * outer vlan and inner vlan 
- * 
+ *  
+ * @param unit : bcm_unit 
  * @param portgroup: port class id
  * @param xlate : vlans and actions
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_hapi_xlate_egress_get(L7_uint32 portgroup, ptin_hapi_xlate_t *xlate)
+L7_RC_t ptin_hapi_xlate_egress_get(int unit, L7_uint32 portgroup, ptin_hapi_xlate_t *xlate)
 {
   int error;
   bcm_vlan_action_set_t action;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "portgroup=%u oVlanId=%u iVlanId=%u", portgroup, xlate->outerVlanId, xlate->innerVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "unit=%u portgroup=%u oVlanId=%u iVlanId=%u",
+               unit, portgroup, xlate->outerVlanId, xlate->innerVlanId);
 
   bcm_vlan_action_set_t_init(&action);
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_egress_action_add(0, %d, %u, %u, &action)", portgroup, xlate->outerVlanId, xlate->innerVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_egress_action_add(unit=%u, port=%u, ovlan=%u, ivlan=%u, &action)",
+               unit, portgroup, xlate->outerVlanId, xlate->innerVlanId);
 
-  error = bcmx_vlan_translate_egress_action_get(portgroup, xlate->outerVlanId, xlate->innerVlanId, &action);
+  error = bcm_vlan_translate_egress_action_get(unit, portgroup, xlate->outerVlanId, xlate->innerVlanId, &action);
 
   if (error != BCM_E_NONE)
   {
@@ -1402,21 +1420,23 @@ L7_RC_t ptin_hapi_xlate_egress_get(L7_uint32 portgroup, ptin_hapi_xlate_t *xlate
 /**
  * Translate single or double-tagged packets to another 
  * outer-vlan at the egress stage 
- * 
+ *  
+ * @param unit : bcm_unit 
  * @param portgroup: port class id
  * @param xlate : vlans and actions
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_hapi_xlate_egress_add(L7_uint32 portgroup, ptin_hapi_xlate_t *xlate)
+L7_RC_t ptin_hapi_xlate_egress_add(int unit, L7_uint32 portgroup, ptin_hapi_xlate_t *xlate)
 {
   int error;
   bcm_vlan_action_set_t action;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "portgroup=%u oVlanId=%u iVlanId=%u newOVlanId=%u(%u) newIVlanId=%u(%u)",portgroup,
-            xlate->outerVlanId,xlate->innerVlanId,
-            xlate->newOuterVlanId,xlate->outerVlanAction,
-            xlate->newInnerVlanId,xlate->innerVlanAction);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "unit=%u portgroup=%u oVlanId=%u iVlanId=%u newOVlanId=%u(%u) newIVlanId=%u(%u)",
+               unit, portgroup,
+               xlate->outerVlanId,xlate->innerVlanId,
+               xlate->newOuterVlanId,xlate->outerVlanAction,
+               xlate->newInnerVlanId,xlate->innerVlanAction);
 
   /* Do not allow ADD operation for double-tagged packets */
 //if (xlate->innerVlanId!=0 &&
@@ -1428,7 +1448,7 @@ L7_RC_t ptin_hapi_xlate_egress_add(L7_uint32 portgroup, ptin_hapi_xlate_t *xlate
 
 #if 0
   /* Check if this entry already exists */
-  if (bcmx_vlan_translate_egress_action_get(portgroup, xlate->outerVlanId, xlate->innerVlanId, &action) == BCM_E_NONE)
+  if (bcm_vlan_translate_egress_action_get(unit, portgroup, xlate->outerVlanId, xlate->innerVlanId, &action) == BCM_E_NONE)
   {
     PT_LOG_WARN(LOG_CTX_HAPI, "This entry already exists");
     return L7_ALREADY_CONFIGURED;
@@ -1455,9 +1475,10 @@ L7_RC_t ptin_hapi_xlate_egress_add(L7_uint32 portgroup, ptin_hapi_xlate_t *xlate
   action.priority           = xlate->newOuterPrio;
   action.new_inner_pkt_prio = xlate->newInnerPrio;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_egress_action_add(0, %d, %u.%u, %u.%u, &action)", portgroup,
-            xlate->outerVlanId, xlate->outerPrio,
-            xlate->innerVlanId, xlate->innerPrio);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_egress_action_add(unit=%u, portgroup=%u, %u.%u, %u.%u, &action)",
+               unit, portgroup,
+               xlate->outerVlanId, xlate->outerPrio,
+               xlate->innerVlanId, xlate->innerPrio);
 
   PT_LOG_TRACE(LOG_CTX_HAPI,"action.new_outer_vlan     = %d", action.new_outer_vlan);
   PT_LOG_TRACE(LOG_CTX_HAPI,"action.new_inner_vlan     = %d", action.new_inner_vlan);
@@ -1484,7 +1505,7 @@ L7_RC_t ptin_hapi_xlate_egress_add(L7_uint32 portgroup, ptin_hapi_xlate_t *xlate
   PT_LOG_TRACE(LOG_CTX_HAPI,"action.ut_outer_prio      = %u", action.ut_outer_pkt_prio);
   PT_LOG_TRACE(LOG_CTX_HAPI,"action.ut_inner_pkt_prio  = %u", action.ut_inner_pkt_prio);
 
-  error = bcmx_vlan_translate_egress_action_add(portgroup, xlate->outerVlanId, xlate->innerVlanId, &action);
+  error = bcm_vlan_translate_egress_action_add(unit, portgroup, xlate->outerVlanId, xlate->innerVlanId, &action);
 
   if (error == BCM_E_EXISTS)
   {
@@ -1521,21 +1542,24 @@ L7_RC_t ptin_hapi_xlate_egress_add(L7_uint32 portgroup, ptin_hapi_xlate_t *xlate
 
 /**
  * Remove a single/double-vlan translation at the egress stage
- * 
+ *  
+ * @param unit : bcm_unit 
  * @param portgroup: port class id
  * @param xlate : vlans and actions
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_hapi_xlate_egress_delete(L7_uint32 portgroup, ptin_hapi_xlate_t *xlate)
+L7_RC_t ptin_hapi_xlate_egress_delete(int unit, L7_uint32 portgroup, ptin_hapi_xlate_t *xlate)
 {
   int error;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI,"portgroup=%u oVlanId=%u iVlanId=%u", portgroup, xlate->outerVlanId, xlate->innerVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"unit=%u portgroup=%u oVlanId=%u iVlanId=%u",
+               unit, portgroup, xlate->outerVlanId, xlate->innerVlanId);
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_egress_action_delete(0,%d,%u,%u)", portgroup, xlate->outerVlanId, xlate->innerVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_egress_action_delete(unit=%u, port=%u, ovlan=%u, ivlan=%u)",
+               unit, portgroup, xlate->outerVlanId, xlate->innerVlanId);
 
-  error = bcmx_vlan_translate_egress_action_delete(portgroup, xlate->outerVlanId, xlate->innerVlanId);
+  error = bcm_vlan_translate_egress_action_delete(unit, portgroup, xlate->outerVlanId, xlate->innerVlanId);
 
   if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND )
   {
@@ -1554,14 +1578,16 @@ L7_RC_t ptin_hapi_xlate_egress_delete(L7_uint32 portgroup, ptin_hapi_xlate_t *xl
 
 /**
  * Remove all egress translations
- * 
+ *  
+ * @param unit : bcm_unit 
+ *  
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_hapi_xlate_egress_delete_all(void)
+L7_RC_t ptin_hapi_xlate_egress_delete_all(int unit)
 {
   int error;
 
-  error = bcmx_vlan_translate_egress_delete_all();
+  error = bcm_vlan_translate_egress_delete_all(unit);
 
   if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND )
   {
@@ -1606,7 +1632,7 @@ L7_RC_t ptin_hapi_xlate_egress_portsGroup_set(L7_uint32 portgroup, DAPI_USP_t *u
   L7_RC_t rc = L7_SUCCESS;
 
   PT_LOG_TRACE(LOG_CTX_HAPI,"portgroup=%u usp_list[0]={%d,%d,%d} usp_list_size=%u",
-            portgroup, usp_list[0]->unit, usp_list[0]->slot, usp_list[0]->port, usp_list_size);
+               portgroup, usp_list[0]->unit, usp_list[0]->slot, usp_list[0]->port, usp_list_size);
 
   /* If group is empty, there is nothing to be done */
   if (usp_list_size==0)
@@ -1638,8 +1664,8 @@ L7_RC_t ptin_hapi_xlate_egress_portsGroup_set(L7_uint32 portgroup, DAPI_USP_t *u
     }
 
     PT_LOG_TRACE(LOG_CTX_HAPI, "Setting class id %d to single port {%d,%d,%d}",
-              portgroup, usp_list[index]->unit, usp_list[index]->slot, usp_list[index]->port);
-    if (bcmx_port_class_set(hapiPortPtr->bcmx_lport, bcmPortClassVlanTranslateEgress, (L7_uint32) portgroup ) != BCM_E_NONE)
+                 portgroup, usp_list[index]->unit, usp_list[index]->slot, usp_list[index]->port);
+    if (bcm_port_class_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmPortClassVlanTranslateEgress, (L7_uint32) portgroup ) != BCM_E_NONE)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error setting class id %d to single port {%d,%d,%d} [VLAN XLATE]",
               portgroup, usp_list[index]->unit, usp_list[index]->slot, usp_list[index]->port);
@@ -1648,7 +1674,7 @@ L7_RC_t ptin_hapi_xlate_egress_portsGroup_set(L7_uint32 portgroup, DAPI_USP_t *u
     }
     /* PTin removed: Let Fastpath to manage EFP Class ids */
     #if 0
-    if (bcmx_port_class_set(hapiPortPtr->bcmx_lport, bcmPortClassFieldEgress, (L7_uint32) portgroup + EFP_STD_CLASS_ID_MAX) != BCM_E_NONE)
+    if (bcm_port_class_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmPortClassFieldEgress, (L7_uint32) portgroup + EFP_STD_CLASS_ID_MAX) != BCM_E_NONE)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error setting class id %d to single port {%d,%d,%d} [ECAP]",
               portgroup, usp_list[index]->unit, usp_list[index]->slot, usp_list[index]->port);
@@ -1697,7 +1723,7 @@ L7_RC_t ptin_hapi_xlate_egress_portsGroup_get(L7_uint32 *portgroup, DAPI_USP_t *
   }
 
   /* Extract class id */
-  if (bcmx_port_class_get(hapiPortPtr->bcmx_lport, bcmPortClassVlanTranslateEgress, &classId ) != BCM_E_NONE)
+  if (bcm_port_class_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmPortClassVlanTranslateEgress, &classId ) != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error getting class id from port {%d,%d,%d}", usp->unit, usp->slot, usp->port);
     return L7_FAILURE;

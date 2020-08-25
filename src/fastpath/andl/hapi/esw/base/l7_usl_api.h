@@ -23,7 +23,7 @@
 #define L7_USL_API_H
 
 #include "l7_common.h"
-#include "bcmx/lplist.h"
+#include "bcmy_gport_api.h"
 #include "appl/cpudb/cpudb.h"
 
 

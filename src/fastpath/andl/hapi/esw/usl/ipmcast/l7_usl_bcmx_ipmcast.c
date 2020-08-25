@@ -368,7 +368,7 @@ int usl_bcmx_ipmc_set_l2_ports(usl_bcm_ipmc_addr_t *ipmcAddress)
 /*********************************************************************
 * @purpose  Set a port in L2 bitmap for a number of groups
 *
-* @param   port        {(input)}  BCMX Lport
+* @param   port        {(input)}  BCM Gport
 * @param   *index      {(input)}  List of IPMC indexes to modify with this call.
 * @param   num_groups  {(input)}  Number of IPMC groups in the *index array.
 * @param   vlan_id     {(input)} VLAN affected by this call.
@@ -383,7 +383,7 @@ int usl_bcmx_ipmc_set_l2_ports(usl_bcm_ipmc_addr_t *ipmcAddress)
 *
 * @end
 *********************************************************************/
-int usl_bcmx_ipmc_add_l2_port_groups (bcmx_lport_t port,
+int usl_bcmx_ipmc_add_l2_port_groups (bcm_gport_t  port,
                                       L7_uint32    *ipmc_index,
                                       L7_uint32    num_groups,
                                       L7_uint32    vlan_id,
@@ -440,7 +440,7 @@ int usl_bcmx_ipmc_add_l2_port_groups (bcmx_lport_t port,
   if (L7_BCMX_OK(rv) != L7_TRUE)
   {
     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, 
-            "Failed to set lport 0x%x to IPMC groups, hwRv %d dbRv %d\n",
+            "Failed to set gport 0x%x to IPMC groups, hwRv %d dbRv %d\n",
             port, hwRv, dbRv);
   }
 
@@ -452,7 +452,7 @@ int usl_bcmx_ipmc_add_l2_port_groups (bcmx_lport_t port,
 /*********************************************************************
 * @purpose  Delete a port from L2 bitmap for a number of groups
 *
-* @param   port        {(input)}  BCMX Lport
+* @param   port        {(input)}  BCM Gport
 * @param   *index      {(input)}  List of IPMC indexes to modify with this call.
 * @param   num_groups  {(input)}  Number of IPMC groups in the *index array.
 * @param   vlan_id     {(input)} VLAN affected by this call. 
@@ -466,7 +466,7 @@ int usl_bcmx_ipmc_add_l2_port_groups (bcmx_lport_t port,
 *
 * @end
 *********************************************************************/
-int usl_bcmx_ipmc_delete_l2_port_groups (bcmx_lport_t port,
+int usl_bcmx_ipmc_delete_l2_port_groups (bcm_gport_t  port,
                                          L7_uint32    *ipmc_index,
                                          L7_uint32    num_groups,
                                          L7_uint32    vlan_id,
@@ -521,7 +521,7 @@ int usl_bcmx_ipmc_delete_l2_port_groups (bcmx_lport_t port,
   if (L7_BCMX_OK(rv) != L7_TRUE)
   {
     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, 
-            "Failed to delete lport 0x%x from IPMC groups, hwRv %d dbRv %d\n", 
+            "Failed to delete gport 0x%x from IPMC groups, hwRv %d dbRv %d\n", 
             port, hwRv, dbRv);
   }
 
@@ -533,7 +533,7 @@ int usl_bcmx_ipmc_delete_l2_port_groups (bcmx_lport_t port,
 /*********************************************************************
 * @purpose  Set a port in L3 bitmap for a number of groups
 *
-* @param   port        {(input)}  BCMX Lport
+* @param   port        {(input)}  BCM Gport
 * @param   *index      {(input)}  List of IPMC indexes to modify with this call.
 * @param   num_groups  {(input)}  Number of IPMC groups in the *index array.
 * @param   vlan_id     {(input)} VLAN affected by this call.
@@ -551,7 +551,7 @@ int usl_bcmx_ipmc_delete_l2_port_groups (bcmx_lport_t port,
 * @end
 *********************************************************************/
 int
-usl_bcmx_ipmc_add_l3_port_groups (bcmx_lport_t port,
+usl_bcmx_ipmc_add_l3_port_groups (bcm_gport_t  port,
                                   L7_uint32    *ipmc_index,
                                   L7_uint32    num_groups,
                                   L7_uint32    vlan_id,
@@ -637,7 +637,7 @@ usl_bcmx_ipmc_add_l3_port_groups (bcmx_lport_t port,
   if (L7_BCMX_OK(rv) != L7_TRUE)
   {
     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, 
-            "Failed to add lport 0x%x to IPMC groups, hwRv %d dbRv %d\n", 
+            "Failed to add gport 0x%x to IPMC groups, hwRv %d dbRv %d\n", 
             port, hwRv, dbRv);
   }
 
@@ -649,7 +649,7 @@ usl_bcmx_ipmc_add_l3_port_groups (bcmx_lport_t port,
 /*********************************************************************
 * @purpose  Remove a port from L3 bitmap for a number of groups
 *
-* @param   port        {(input)}  BCMX Lport
+* @param   port        {(input)}  BCM Gport
 * @param   *index      {(input)}  List of IPMC indexes to modify with this call.
 * @param   num_groups  {(input)}  Number of IPMC groups in the *index array.
 * @param   vlan_id     {(input)} VLAN affected by this call.
@@ -667,7 +667,7 @@ usl_bcmx_ipmc_add_l3_port_groups (bcmx_lport_t port,
 * @end
 *********************************************************************/
 int
-usl_bcmx_ipmc_delete_l3_port_groups (bcmx_lport_t port,
+usl_bcmx_ipmc_delete_l3_port_groups (bcm_gport_t  port,
                                      L7_uint32    *ipmc_index,
                                      L7_uint32    num_groups,
                                      L7_uint32    vlan_id,
@@ -721,7 +721,7 @@ usl_bcmx_ipmc_delete_l3_port_groups (bcmx_lport_t port,
   if (L7_BCMX_OK(rv) != L7_TRUE)
   {
     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, 
-            "Failed to remove lport 0x%x from IPMC groups, hwRv %d dbRv %d\n", 
+            "Failed to remove gport 0x%x from IPMC groups, hwRv %d dbRv %d\n", 
             port, hwRv, dbRv);
   }
 
@@ -833,13 +833,13 @@ int usl_bcmx_ipmc_wlan_l3_port_add(L7_int32 index, L7_int32 l3a_intf_id,
 
     if (rv != BCM_E_NONE)
     {
-      sysapiPrintf(" bcmx_multicast_egress_add with port %d; rv = %d  mcindex %d \n", 
+      sysapiPrintf(" bcm_multicast_egress_add with port %d; rv = %d  mcindex %d \n", 
              port, rv, index);
     }
   }
   else
   {
-    sysapiPrintf(" usl_bcmx_l3_egress_create / bcmx_l3_egress_find failed  with port %d; rv = %d; mcindex %d egr_rv %d; egrintf %d\n", 
+    sysapiPrintf(" usl_bcmx_l3_egress_create / bcm_l3_egress_find failed  with port %d; rv = %d; mcindex %d egr_rv %d; egrintf %d\n", 
            port, rv, index, egr_rv, egrintf);
 
   }

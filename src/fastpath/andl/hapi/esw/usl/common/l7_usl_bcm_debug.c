@@ -66,23 +66,23 @@ void usl_print_log(L7_BOOL set)
 }
 
 
-void usl_lplist_print(bcmx_lplist_t *list)
+void usl_gplist_print(bcmy_gplist_t *list)
 {
   int i; 
-  bcmx_lport_t port;
+  bcm_gport_t gport;
 
   if (list == L7_NULLPTR)
     return;
 
   /* get the first port in the list */
 
-  for (i=0; i <= list->lp_last; i++)
+  for (i=0; i <= list->gp_last; i++)
   {
-    port = bcmx_lplist_index(list, i);
-    if (port == BCMX_NO_SUCH_LPORT)
+    gport = bcmy_gplist_index(list, i);
+    if (gport == BCM_GPORT_INVALID)
        break;
 
-    sysapiPrintf("%d , ",port);
+    sysapiPrintf("0x%x , ",gport);
   }
 }
 
@@ -96,22 +96,26 @@ void usl_allowed_log_types_set(L7_uint32 types)
   uslAllowedLogTypes = types;
 }
 
-void usl_lport_to_unit_port(bcmx_lport_t lport)
+void usl_gport_to_unit_port(bcm_gport_t gport)
 {
   int unit,port,modid;
-  L7_uint32 uport;
   DAPI_USP_t usp;
   unit = port = modid = ~0;
 
-  uport = (L7_uint32)BCMX_UPORT_GET(lport);
-  HAPI_BROAD_UPORT_TO_USP(uport,&usp);
+  if (bcmy_lut_gport_to_unit_port_get(gport, &unit, &port) != BCMY_E_NONE)
+  {
+    printf("Error converting gport 0x%x to unit/port",  gport);
+    return;
+  }
+  if (bcmy_lut_gport_to_usp_get(gport, &usp) != BCMY_E_NONE)
+  {
+    printf("Error converting gport 0x%x to usp",  gport);
+    return;
+  }
+  modid = bcmy_gport_modid_get(gport);
 
-  bcmx_lport_to_unit_port(lport,&unit,&port);
-  bcmx_lport_to_modid(lport,&modid);
-
-  sysapiPrintf("lport(%d) modid=%d , unit=%d, port=%d\n\n",lport,modid,unit,port);
-  sysapiPrintf("lport(%d) USP=%d.%d.%d , uport=%d\n",
-               lport, usp.unit, usp.slot, usp.port, uport);
+  sysapiPrintf("gport(%d) modid=%d , unit=%d, port=%d, USP=%d.%d.%d\n\n",
+               gport, modid, unit, port, usp.unit, usp.slot, usp.port);
 }
 
 /***

@@ -950,7 +950,7 @@ void hapiBroadL3DebugNhopCheck(void)
 {
   BROAD_L3_NH_KEY_t zero;
   BROAD_L3_NH_ENTRY_t     *pNhopEntry;
-  bcmx_l3_egress_t         egrObj;
+  bcm_l3_egress_t          egrObj;
   int rv;
 
   memset(&zero, 0, sizeof(zero));
@@ -966,7 +966,8 @@ void hapiBroadL3DebugNhopCheck(void)
   {
     if (pNhopEntry->egressId  != HAPI_BROAD_INVALID_L3_INTF_ID)
     {
-      rv = bcmx_l3_egress_get(pNhopEntry->egressId, &egrObj);
+      /* FIXME: Only applied to unit 0 */
+      rv = bcm_l3_egress_get(0 /*unit*/, pNhopEntry->egressId, &egrObj);
       if (rv != BCM_E_NONE)
       {
         sysapiPrintf("hapiBroadL3DebugNhopCheck: Failed for %d, rv %d (%s)\n",
@@ -987,13 +988,13 @@ void hapiBroadL3DebugBulkShow(void)
 #ifdef L7_STACKING_PACKAGE
   L7_uint32 maxRpcLen = hpcHardwareRpcMaxMessageLengthGet();
 
-  sysapiPrintf("\nSize of bcmx_l3_route_t %d, max routes/rpc %d\n",
+  sysapiPrintf("\nSize of bcm_l3_route_t %d, max routes/rpc %d\n",
                sizeof(usl_bcm_l3_route_t), maxRpcLen/sizeof(usl_bcm_l3_route_t));
 
-  sysapiPrintf("Size of bcmx_l3_host_t %d, max hosts/rpc %d\n",
+  sysapiPrintf("Size of bcm_l3_host_t %d, max hosts/rpc %d\n",
                sizeof(usl_bcm_l3_host_t), maxRpcLen/sizeof(usl_bcm_l3_host_t));
 
-  sysapiPrintf("Size of bcmx_l3_egress_t %d, max egress objs/rpc %d\n",
+  sysapiPrintf("Size of bcm_l3_egress_t %d, max egress objs/rpc %d\n",
                sizeof(usl_bcm_l3_egress_t), maxRpcLen/sizeof(usl_bcm_l3_egress_t));
 #endif
 }

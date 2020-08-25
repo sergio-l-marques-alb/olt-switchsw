@@ -355,8 +355,8 @@ L7_RC_t ptin_hapi_ptp_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_search_ptp_
   BROAD_POLICY_RULE_t ruleId;
   T_index _1st_free, i;
   L7_RC_t rc = L7_SUCCESS;
-  bcm_port_t    bcm_port;
-  bcmx_lport_t  lport;
+  bcm_port_t   bcm_port;
+  bcm_gport_t  gport;
 
 
 
@@ -569,9 +569,14 @@ L7_RC_t ptin_hapi_ptp_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_search_ptp_
         //hapiBroadPolicyDelete(policyId);
         //return L7_FAILURE;
     }
-    lport = bcmx_unit_port_to_lport(0, bcm_port);
-    if ((rc=hapiBroadPolicyApplyToIface(policyId, lport)) != L7_SUCCESS) {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error applying to lport %u", lport);
+    /* FIXME: Only applied to unit 0 */
+    if (bcmy_lut_unit_port_to_gport_get(0 /*unit*/, bcm_port, &gport) != BCMY_E_NONE)
+    {
+      printf("Error with unit %d, port %d", 0, bcm_port);
+      return L7_FAILURE;
+    }
+    if ((rc=hapiBroadPolicyApplyToIface(policyId, gport)) != L7_SUCCESS) {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error applying to gport %u", gport);
       break;
       //hapiBroadPolicyDelete(policyId);
       //return L7_FAILURE;
@@ -897,8 +902,8 @@ BROAD_POLICY_t      policyId = BROAD_POLICY_INVALID;
 BROAD_POLICY_RULE_t ruleId;
 T_index _1st_free, i;
 L7_RC_t rc = L7_SUCCESS;
-bcm_port_t    bcm_port;
-bcmx_lport_t  lport;
+bcm_port_t   bcm_port;
+bcm_gport_t  gport;
 
 
 
@@ -1017,9 +1022,14 @@ bcmx_lport_t  lport;
           //hapiBroadPolicyDelete(policyId);
           //return L7_FAILURE;
       }
-      lport = bcmx_unit_port_to_lport(0, bcm_port);
-      if ((rc=hapiBroadPolicyApplyToIface(policyId, lport)) != L7_SUCCESS) {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error applying to lport %u", lport);
+      /* FIXME: Only applied to unit 0 */
+      if (bcmy_lut_unit_port_to_gport_get(0 /*unit*/, bcm_port, &gport) != BCMY_E_NONE)
+      {
+        printf("Error with unit %d, port %d", 0, bcm_port);
+        return L7_FAILURE;
+      }
+      if ((rc=hapiBroadPolicyApplyToIface(policyId, gport)) != L7_SUCCESS) {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error applying to gport %u", gport);
         break;
         //hapiBroadPolicyDelete(policyId);
         //return L7_FAILURE;

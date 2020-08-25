@@ -37,6 +37,7 @@
 #include "broad_llpf.h"
 #include "broad_ptin.h"     /* PTin added: DAPI */
 
+#include "ibde.h"
 #include "bcm/port.h"
 #include "bcm/l2.h"
 #include "bcm/rate.h"
@@ -54,26 +55,7 @@
 #include "soc/mem.h"
 #include "soc/cm.h"
 
-#include "bcmx/l2.h"
-#include "bcmx/port.h"
-#include "bcmx/lport.h"
-#include "bcmx/mirror.h"
-#include "bcmx/rate.h"
-/* PTin removed: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-/* No include */
-#else
-  #include "bcmx/filter.h"
-#endif
-#include "bcmx/switch.h"
-#include "bcmx/bcmx_int.h"
-/* TODO: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-//#include "soc/ea/tk371x/igmp.h"
-#else
-  #include "bcmx/igmp.h"
-#endif
-#include "bcmx/custom.h"
+#include "bcm/custom.h"
 #include "bcm_int/esw/mbcm.h"
 #include "l7_usl_bcmx_l2.h"
 #include "l7_usl_api.h"
@@ -92,10 +74,6 @@
 #include "logger.h"
 #endif
 
-#ifdef PC_LINUX_HOST
-#include "bcmx/bcmx_int.h"
-  extern int _bcm_esw_link_force(int unit, bcm_port_t port, int force, int link);
-#endif
 L7_BOOL hapiBroadRavenCheck ( );
 
 
@@ -345,13 +323,12 @@ L7_RC_t hapiBroadSystemMirroringSet(DAPI_USP_t *fromUsp,
                                     L7_BOOL add,
                                     L7_uint32 probeType)
 {
-
   L7_RC_t               result = L7_SUCCESS;
   DAPI_PORT_t           *dapiPortPtr;
   BROAD_PORT_t          *hapiMirrorFromPortPtr;
   BROAD_PORT_t          *hapiMirrorToPortPtr;
-  bcmx_lport_t          bcmxMirrorFromLport;
-  bcmx_lport_t          bcmxMirrorToLport, lport;
+  bcm_gport_t           bcmMirrorFromGport;
+  bcm_gport_t           bcmMirrorToGport, gport;
   BROAD_PORT_t          *hapiLagMemberPortPtr;
   int                              rv, i;
   usl_bcm_port_mirror_config_t     mirrorConfig;
@@ -365,10 +342,10 @@ L7_RC_t hapiBroadSystemMirroringSet(DAPI_USP_t *fromUsp,
   hapiMirrorFromPortPtr = HAPI_PORT_GET(fromUsp, dapi_g);
   hapiMirrorToPortPtr = HAPI_PORT_GET(toUsp, dapi_g);
 
-  bcmxMirrorFromLport = hapiMirrorFromPortPtr->bcmx_lport;
-  bcmxMirrorToLport = hapiMirrorToPortPtr->bcmx_lport;
+  bcmMirrorFromGport = hapiMirrorFromPortPtr->bcm_gport;
+  bcmMirrorToGport = hapiMirrorToPortPtr->bcm_gport;
 
-  mirrorConfig.probePort = hapiMirrorToPortPtr->bcmx_lport;
+  mirrorConfig.probePort = hapiMirrorToPortPtr->bcm_gport;
   mirrorConfig.stackUnit = toUsp->unit;
 
   if (add == L7_TRUE)
@@ -410,15 +387,15 @@ L7_RC_t hapiBroadSystemMirroringSet(DAPI_USP_t *fromUsp,
         if (dapiPortPtr->modeparm.lag.memberSet[i].inUse == L7_TRUE)
         {
           hapiLagMemberPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
-          lport = hapiLagMemberPortPtr->bcmx_lport;
+          gport = hapiLagMemberPortPtr->bcm_gport;
 
-          rv = usl_bcmx_port_mirror_set(lport, mirrorConfig);
+          rv = usl_bcmx_port_mirror_set(gport, mirrorConfig);
           if (L7_BCMX_OK(rv) != L7_TRUE)
           {
             hapiBroadLagCritSecExit ();
             L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
                     "Failed to apply port mirroring configuration (enable from = NA, to = %d, rv %d)\n",
-                    bcmxMirrorToLport, rv);
+                    bcmMirrorToGport, rv);
 
             return L7_FAILURE;
           }
@@ -428,12 +405,12 @@ L7_RC_t hapiBroadSystemMirroringSet(DAPI_USP_t *fromUsp,
     }
     else
     {
-      rv = usl_bcmx_port_mirror_set(bcmxMirrorFromLport, mirrorConfig);
+      rv = usl_bcmx_port_mirror_set(bcmMirrorFromGport, mirrorConfig);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
                 "Failed to apply port mirroring configuration (enable from = %d, to = %d, rv %d)\n",
-                bcmxMirrorFromLport, bcmxMirrorToLport, rv);
+                bcmMirrorFromGport, bcmMirrorToGport, rv);
 
         return L7_FAILURE;
       }
@@ -450,14 +427,14 @@ L7_RC_t hapiBroadSystemMirroringSet(DAPI_USP_t *fromUsp,
         {
           hapiLagMemberPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
 
-          lport = hapiLagMemberPortPtr->bcmx_lport;
-          rv = usl_bcmx_port_mirror_set(lport, mirrorConfig);
+          gport = hapiLagMemberPortPtr->bcm_gport;
+          rv = usl_bcmx_port_mirror_set(gport, mirrorConfig);
           if (L7_BCMX_OK(rv) != L7_TRUE)
           {
             hapiBroadLagCritSecExit ();
             L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
                     "Failed to apply port mirroring configuration (enable from = NA, to = %d, rv %d)\n",
-                    bcmxMirrorToLport, rv);
+                    bcmMirrorToGport, rv);
 
             return L7_FAILURE;
           }
@@ -467,7 +444,7 @@ L7_RC_t hapiBroadSystemMirroringSet(DAPI_USP_t *fromUsp,
     }
     else
     {
-      rv = usl_bcmx_port_mirror_set(bcmxMirrorFromLport, mirrorConfig);
+      rv = usl_bcmx_port_mirror_set(bcmMirrorFromGport, mirrorConfig);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
         return L7_FAILURE;
@@ -501,7 +478,7 @@ L7_RC_t hapiBroadSystemMirroring(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
   DAPI_SYSTEM_CMD_t   *dapiCmd = (DAPI_SYSTEM_CMD_t*)data;
   L7_int32             i, add; 
   BROAD_PORT_t        *hapiMirrorToPortPtr;
-  bcmx_lport_t         bcmxMirrorToLport;
+  bcm_gport_t          bcmMirrorToGport;
   int                  rv;
   usl_bcm_port_filter_mode_t  mode;
   DAPI_PORT_t         *dapiPortPtr;
@@ -575,34 +552,34 @@ L7_RC_t hapiBroadSystemMirroring(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
    * is supported
    */
   hapiMirrorToPortPtr = HAPI_PORT_GET(&(dapi_g->system->probeUsp), dapi_g);
-  bcmxMirrorToLport = hapiMirrorToPortPtr->bcmx_lport;
+  bcmMirrorToGport = hapiMirrorToPortPtr->bcm_gport;
   if((add == L7_TRUE) && (result == L7_SUCCESS))
   {
      hapiBroadMirrorEnable ();
 
      mode.flags = BCM_PORT_VLAN_MEMBER_INGRESS;
      mode.setFlags = L7_TRUE;
-     rv = usl_bcmx_port_vlan_member_set(bcmxMirrorToLport, mode);
+     rv = usl_bcmx_port_vlan_member_set(bcmMirrorToGport, mode);
      if (L7_BCMX_OK(rv) != L7_TRUE)
      {
-       L7_LOG_ERROR(bcmxMirrorToLport);
+       L7_LOG_ERROR(bcmMirrorToGport);
      }
 
      /* Disable egress filtering. The mirrored packets may not be on the
       * same vlan as the probe port */
      mode.flags = BCM_PORT_VLAN_MEMBER_EGRESS;
      mode.setFlags = L7_FALSE;
-     rv = usl_bcmx_port_vlan_member_set(bcmxMirrorToLport, mode);
+     rv = usl_bcmx_port_vlan_member_set(bcmMirrorToGport, mode);
      if (L7_BCMX_OK(rv) != L7_TRUE)
      {
-       L7_LOG_ERROR(bcmxMirrorToLport);
+       L7_LOG_ERROR(bcmMirrorToGport);
      }
 
 
-     rv = usl_bcmx_port_untagged_vlan_set(bcmxMirrorToLport, HPC_STACKING_VLAN_ID);
+     rv = usl_bcmx_port_untagged_vlan_set(bcmMirrorToGport, HPC_STACKING_VLAN_ID);
      if (L7_BCMX_OK(rv) != L7_TRUE)
      {
-       L7_LOG_ERROR(bcmxMirrorToLport);
+       L7_LOG_ERROR(bcmMirrorToGport);
      }
  
      /*Session can be active only with an active probe*/
@@ -610,27 +587,27 @@ L7_RC_t hapiBroadSystemMirroring(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
   }
   else if((add == L7_FALSE) && (result == L7_SUCCESS))
   {
-     result = hapiBroadVlanIngressFilterSet(bcmxMirrorToLport,hapiMirrorToPortPtr->ingressFilteringEnabled);
+     result = hapiBroadVlanIngressFilterSet(bcmMirrorToGport,hapiMirrorToPortPtr->ingressFilteringEnabled);
 
      if (result != L7_SUCCESS)
      {
-       L7_LOG_ERROR(bcmxMirrorToLport);
+       L7_LOG_ERROR(bcmMirrorToGport);
      }
 
      /* Re-enable egress filtering. */
      mode.flags = BCM_PORT_VLAN_MEMBER_EGRESS;
      mode.setFlags = L7_TRUE;
-     rv = usl_bcmx_port_vlan_member_set(bcmxMirrorToLport, mode);
+     rv = usl_bcmx_port_vlan_member_set(bcmMirrorToGport, mode);
      if (L7_BCMX_OK(rv) != L7_TRUE)
      {
-       L7_LOG_ERROR(bcmxMirrorToLport);
+       L7_LOG_ERROR(bcmMirrorToGport);
      }
 
 
-     rv = usl_bcmx_port_untagged_vlan_set(bcmxMirrorToLport,hapiMirrorToPortPtr->pvid);
+     rv = usl_bcmx_port_untagged_vlan_set(bcmMirrorToGport,hapiMirrorToPortPtr->pvid);
      if (L7_BCMX_OK(rv) != L7_TRUE)
      {
-       L7_LOG_ERROR(bcmxMirrorToLport);
+       L7_LOG_ERROR(bcmMirrorToGport);
      }
 
      dapi_g->system->mirrorEnable = L7_FALSE;
@@ -741,7 +718,7 @@ L7_BOOL hapiBroadSystemMirroringUSPIsProbe(DAPI_USP_t *usp, DAPI_t *dapi_g)
   if(isValidUsp(&dapi_g->system->probeUsp, dapi_g) && dapi_g->system->mirrorEnable)
   {
       hapiMirrorToPortPtr = HAPI_PORT_GET(&dapi_g->system->probeUsp, dapi_g);
-      if(hapiMirrorToPortPtr->bcmx_lport == hapiPortPtr->bcmx_lport)
+      if(hapiMirrorToPortPtr->bcm_gport == hapiPortPtr->bcm_gport)
       {
           result = L7_TRUE;
       }
@@ -805,7 +782,7 @@ L7_RC_t hapiBroadSystemMacAddress(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
   BROAD_SYSTEM_t               *hapiSystemPtr;
   BROAD_PORT_t                 *hapiPortPtr;
   DAPI_USP_t                    cpuUsp;
-  bcmx_l2_addr_t                l2Addr;
+  bcm_l2_addr_t                 l2Addr;
   L7_int32                      rc=0;
   bcm_mac_t                     mgmtMac;
 
@@ -862,7 +839,7 @@ L7_RC_t hapiBroadSystemMacAddress(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
 
   /* Add the system MAC address w/ mgmt vlan id to the ARL 
   */
-  memset(&l2Addr, 0, sizeof (bcmx_l2_addr_t));
+  memset(&l2Addr, 0, sizeof (bcm_l2_addr_t));
   memcpy(l2Addr.mac, dapiCmd->cmdData.systemMacAddress.macAddr.addr, sizeof (mac_addr_t));
   l2Addr.vid = dapiCmd->cmdData.systemMacAddress.vlanId;
 
@@ -877,7 +854,8 @@ L7_RC_t hapiBroadSystemMacAddress(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
   
   hapiPortPtr = HAPI_PORT_GET(&cpuUsp, dapi_g);
   l2Addr.flags = (BCM_L2_STATIC | BCM_L2_REPLACE_DYNAMIC);
-  l2Addr.lport = hapiPortPtr->bcmx_lport;
+  l2Addr.port  = hapiPortPtr->bcm_gport;
+  l2Addr.modid = hapiPortPtr->bcm_modid;
 
   /* Add MAC addr to hw ARL table 
   */
@@ -1116,8 +1094,8 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
   rateLimit.units = units;
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "broadcastControl.type=%u broadcastControl.enable=%u", dapiCmd->cmdData.broadcastControl.type, dapiCmd->cmdData.broadcastControl.enable);
-  PT_LOG_TRACE(LOG_CTX_HAPI, "hapiBroadIntfBroadcastControlModeSet with limit=%llu bucket_size=%u units=%u for bcmx_lport=0x%x",
-            rate, bucket_size, units, hapiPortPtr->bcmx_lport);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "hapiBroadIntfBroadcastControlModeSet with limit=%llu bucket_size=%u units=%u for bcm_gport=0x%x",
+            rate, bucket_size, units, hapiPortPtr->bcm_gport);
 
   switch (dapiCmd->cmdData.broadcastControl.type) 
   {
@@ -1135,9 +1113,9 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
         rateLimit.flags       = 0;
       }
 
-      PT_LOG_TRACE(LOG_CTX_HAPI, "usl_bcmx_rate_bcast_set with limit=%u bucket_size=%u flags=0x%x for bcmx_lport=0x%x",
-                rateLimit.limit, rateLimit.bucket_size, rateLimit.flags, hapiPortPtr->bcmx_lport);
-      rv = usl_bcmx_rate_bcast_set(hapiPortPtr->bcmx_lport, rateLimit);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "usl_bcmx_rate_bcast_set with limit=%u bucket_size=%u flags=0x%x for bcm_gport=0x%x",
+                rateLimit.limit, rateLimit.bucket_size, rateLimit.flags, hapiPortPtr->bcm_gport);
+      rv = usl_bcmx_rate_bcast_set(hapiPortPtr->bcm_gport, rateLimit);
       PT_LOG_TRACE(LOG_CTX_HAPI, "rv=%d", rv);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
@@ -1160,9 +1138,9 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
         rateLimit.flags       = 0;
       }
 
-      PT_LOG_TRACE(LOG_CTX_HAPI, "usl_bcmx_rate_mcast_set with limit=%u bucket_size=%u flags=0x%x for bcmx_lport=0x%x",
-                rateLimit.limit, rateLimit.bucket_size, rateLimit.flags, hapiPortPtr->bcmx_lport);
-      rv = usl_bcmx_rate_mcast_set(hapiPortPtr->bcmx_lport, rateLimit);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "usl_bcmx_rate_mcast_set with limit=%u bucket_size=%u flags=0x%x for bcm_gport=0x%x",
+                rateLimit.limit, rateLimit.bucket_size, rateLimit.flags, hapiPortPtr->bcm_gport);
+      rv = usl_bcmx_rate_mcast_set(hapiPortPtr->bcm_gport, rateLimit);
       PT_LOG_TRACE(LOG_CTX_HAPI, "rv=%d", rv);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
@@ -1185,9 +1163,9 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
         rateLimit.flags       = 0;
       }
 
-      PT_LOG_TRACE(LOG_CTX_HAPI, "usl_bcmx_rate_dlfbc_set with limit=%u bucket_size=%u flags=0x%x for bcmx_lport=0x%x",
-                rateLimit.limit, rateLimit.bucket_size, rateLimit.flags, hapiPortPtr->bcmx_lport);
-      rv = usl_bcmx_rate_dlfbc_set(hapiPortPtr->bcmx_lport, rateLimit);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "usl_bcmx_rate_dlfbc_set with limit=%u bucket_size=%u flags=0x%x for bcm_gport=0x%x",
+                rateLimit.limit, rateLimit.bucket_size, rateLimit.flags, hapiPortPtr->bcm_gport);
+      rv = usl_bcmx_rate_dlfbc_set(hapiPortPtr->bcm_gport, rateLimit);
       PT_LOG_TRACE(LOG_CTX_HAPI, "rv=%d", rv);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
@@ -1304,7 +1282,7 @@ L7_RC_t hapiBroadInterfaceFlowControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *dat
     memcpy (pauseCmd.pauseMacAddr, ((BROAD_SYSTEM_t*)dapi_g->system->hapiSystem)->bridgeMacAddr.addr, sizeof(pauseCmd.pauseMacAddr));
   }
 
-  rv = usl_bcmx_port_flow_control_set(hapiPortPtr->bcmx_lport, pauseCmd);
+  rv = usl_bcmx_port_flow_control_set(hapiPortPtr->bcm_gport, pauseCmd);
   if (L7_BCMX_OK(rv) != L7_TRUE)
   {  
     SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS,
@@ -1574,7 +1552,7 @@ L7_RC_t hapiBroadIntfStpState(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_
         hapiPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp,dapi_g);
 
         /* issue bcm call to set stp state */
-        rv = bcmx_port_stp_set(hapiPortPtr->bcmx_lport, state);
+        rv = bcm_port_stp_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, state);
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
           L7_LOG_ERROR(rv);
@@ -1586,12 +1564,12 @@ L7_RC_t hapiBroadIntfStpState(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_
   else if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr) == L7_TRUE)
   {
     /* issue bcm call to set stp state */
-    rv = bcmx_port_stp_set(hapiPortPtr->bcmx_lport, state);
+    rv = bcm_port_stp_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, state);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       result =  L7_FAILURE;
       SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                     "\n%s %d: In %s call to 'bcmx_port_stp_set' failed!\n",
+                     "\n%s %d: In %s call to 'bcm_port_stp_set' failed!\n",
                      __FILE__, __LINE__, __FUNCTION__);
       return result;
     }
@@ -1649,18 +1627,19 @@ L7_RC_t hapiBroadIntfLoopbackConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
       {
         hapiPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp,dapi_g);
 
-        rv = bcmx_port_loopback_get(hapiPortPtr->bcmx_lport,  &loopback_val);
+        rv = bcm_port_loopback_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &loopback_val);
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
           result =  L7_FAILURE;
           SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                        "\n%s %d: In %s call to 'bcmx_port_loopback_get' failed!\n",
+                        "\n%s %d: In %s call to 'bcm_port_loopback_get' failed!\n",
                         __FILE__, __LINE__, __FUNCTION__);
           return result;
         }
         if(loopback_val != dapiCmd->cmdData.portLoopbackConfig.loopMode)
         {
-          rv = bcmx_port_loopback_set(hapiPortPtr->bcmx_lport, dapiCmd->cmdData.portLoopbackConfig.loopMode);
+          rv = bcm_port_loopback_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
+                                     dapiCmd->cmdData.portLoopbackConfig.loopMode);
           if (L7_BCMX_OK(rv) != L7_TRUE)
           {
             L7_LOG_ERROR(rv);
@@ -1672,24 +1651,25 @@ L7_RC_t hapiBroadIntfLoopbackConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
   }
   else if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr) == L7_TRUE)
   {
-    rv = bcmx_port_loopback_get(hapiPortPtr->bcmx_lport,  &loopback_val);
+    rv = bcm_port_loopback_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &loopback_val);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       result =  L7_FAILURE;
       SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                     "\n%s %d: In %s call to 'bcmx_port_loopback_get' failed!\n",
+                     "\n%s %d: In %s call to 'bcm_port_loopback_get' failed!\n",
                      __FILE__, __LINE__, __FUNCTION__);
       return result;
     }
 
     if(loopback_val != dapiCmd->cmdData.portLoopbackConfig.loopMode)
     {
-      rv = bcmx_port_loopback_set(hapiPortPtr->bcmx_lport, dapiCmd->cmdData.portLoopbackConfig.loopMode);
+      rv = bcm_port_loopback_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,
+                                 dapiCmd->cmdData.portLoopbackConfig.loopMode);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
         result =  L7_FAILURE;
         SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                       "\n%s %d: In %s call to 'bcmx_port_loopback_set' failed!\n",
+                       "\n%s %d: In %s call to 'bcm_port_loopback_set' failed!\n",
                        __FILE__, __LINE__, __FUNCTION__);
         return result;
       }
@@ -1722,10 +1702,6 @@ L7_RC_t hapiBroadIntfIsolatePhyConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *dat
   DAPI_PORT_t          *dapiPortPtr;
   L7_BOOL               enable;
   int                   rv;
-#ifdef PC_LINUX_HOST
-  int unit;
-  bcm_port_t port;
-#endif
 
   dapiPortPtr = DAPI_PORT_GET(usp, dapi_g);
   hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
@@ -1759,7 +1735,7 @@ L7_RC_t hapiBroadIntfIsolatePhyConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *dat
 
   hapiPortPtr->hapiModeparm.physical.admin_enabled = enable;
 
-  rv = usl_bcmx_port_enable_set(hapiPortPtr->bcmx_lport, enable);
+  rv = usl_bcmx_port_enable_set(hapiPortPtr->bcm_gport, enable);
   if (L7_BCMX_OK(rv) != L7_TRUE)
   {
 	L7_LOG_ERROR(rv);
@@ -1781,17 +1757,6 @@ L7_RC_t hapiBroadIntfIsolatePhyConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *dat
     }
   }
 #endif
-
-#ifdef PC_LINUX_HOST
-/* needed in order to set the linke state for simulation,sometimes requires two tries */
-  bcmx_lport_to_unit_port(hapiPortPtr->bcmx_lport, &unit, &port); 
-  (void)_bcm_esw_link_force(unit, port,
-                            1, (dapiCmd->cmdData.portIsolatePhyConfig.enable == L7_FALSE)?1:0);
-
-  (void)_bcm_esw_link_force(unit, port,
-                            1, (dapiCmd->cmdData.portIsolatePhyConfig.enable == L7_FALSE)?1:0);
-#endif
-
 
   return result;
 }
@@ -2357,7 +2322,7 @@ static L7_RC_t hapiBroadHelixConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g
 {
   L7_int32         rv;
   L7_RC_t          rc = L7_SUCCESS;
-
+  int              bcm_unit;
   L7_ushort16             ipV6_ethtype     = L7_ETYPE_IPV6;
   BROAD_POLICY_RULE_t     ruleIdReport     = BROAD_POLICY_RULE_INVALID;
   static BROAD_POLICY_t   mldSnoopId       = BROAD_POLICY_INVALID;
@@ -2468,35 +2433,38 @@ static L7_RC_t hapiBroadHelixConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g
           return L7_FAILURE;
         }
     
-        rv = bcmx_switch_control_set(bcmSwitchMldPktDrop, 1);
-        if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+        /* Run all units */
+        for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
         {
-          rc = L7_FAILURE;
-          L7_LOG_ERROR(rv);
-        }
-    
-        rv = bcmx_switch_control_set(bcmSwitchMldPktToCpu, 1);
-        if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-        {
-          rc = L7_FAILURE;
-          L7_LOG_ERROR(rv);
-        }
-    
-        /* Set the MLD packet priority. This is required only for FB2 platforms.
-         * For other platforms, MLD packets will follow protocol priority.
-         * The return code of E_UNAVAIL is masked by the API.
-         *
-         * NOTE: IGMP packets do not require this setting as we use policy for 
-         * IGMP. MLD packets are copied to CPU using CPU_CONTROL register.
-         */
-        rv = bcmx_switch_control_set(bcmSwitchCpuProtoIgmpPriority,
-                                        HAPI_BROAD_INGRESS_MED_PRIORITY_COS);
-    
-        if (L7_BCMX_OK(rv) != L7_TRUE)
-        {
-          SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                          "\n%s %d: In %s Failed to set bcmSwitchCpuProtoIgmpPriority - %d\n",
-                          __FILE__, __LINE__, __FUNCTION__, rv);
+          rv = bcm_switch_control_set(bcm_unit, bcmSwitchMldPktDrop, 1);
+          if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+          {
+            rc = L7_FAILURE;
+            L7_LOG_ERROR(rv);
+          }
+      
+          rv = bcm_switch_control_set(bcm_unit, bcmSwitchMldPktToCpu, 1);
+          if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+          {
+            rc = L7_FAILURE;
+            L7_LOG_ERROR(rv);
+          }
+      
+          /* Set the MLD packet priority. This is required only for FB2 platforms.
+           * For other platforms, MLD packets will follow protocol priority.
+           * The return code of E_UNAVAIL is masked by the API.
+           *
+           * NOTE: IGMP packets do not require this setting as we use policy for 
+           * IGMP. MLD packets are copied to CPU using CPU_CONTROL register.
+           */
+          rv = bcm_switch_control_set(bcm_unit, bcmSwitchCpuProtoIgmpPriority,
+                                      HAPI_BROAD_INGRESS_MED_PRIORITY_COS);
+          if (L7_BCMX_OK(rv) != L7_TRUE)
+          {
+            SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
+                            "\n%s %d: In %s Failed to set bcmSwitchCpuProtoIgmpPriority - %d\n",
+                            __FILE__, __LINE__, __FUNCTION__, rv);
+          }
         }
     }
   }
@@ -2508,27 +2476,31 @@ static L7_RC_t hapiBroadHelixConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g
       mldSnoopId = BROAD_POLICY_INVALID;
     }
 
-    rv = bcmx_switch_control_set(bcmSwitchMldPktDrop, 0);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+    /* Run all units */
+    for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
     {
-      rc = L7_FAILURE;
-      L7_LOG_ERROR(rv);
-    }
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchMldPktDrop, 0);
+      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+      {
+        rc = L7_FAILURE;
+        L7_LOG_ERROR(rv);
+      }
 
-    rv = bcmx_switch_control_set(bcmSwitchMldPktToCpu, 0);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-    {
-      rc = L7_FAILURE;
-      L7_LOG_ERROR(rv);
-    }
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchMldPktToCpu, 0);
+      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+      {
+        rc = L7_FAILURE;
+        L7_LOG_ERROR(rv);
+      }
 
-    /* Reset the MLD packet priority to default */
-    rv = bcmx_switch_control_set(bcmSwitchCpuProtoIgmpPriority, 0);
-    if (L7_BCMX_OK(rv) != L7_TRUE)
-    {
-      SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                     "\n%s %d: In %s Failed to set bcmSwitchCpuProtoIgmpPriority - %d\n",
-                     __FILE__, __LINE__, __FUNCTION__, rv);
+      /* Reset the MLD packet priority to default */
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchCpuProtoIgmpPriority, 0);
+      if (L7_BCMX_OK(rv) != L7_TRUE)
+      {
+        SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
+                       "\n%s %d: In %s Failed to set bcmSwitchCpuProtoIgmpPriority - %d\n",
+                       __FILE__, __LINE__, __FUNCTION__, rv);
+      }
     }
   }
 
@@ -2553,7 +2525,7 @@ L7_RC_t hapiBroadConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g)
 {
   L7_int32         rv;
   L7_RC_t          rc = L7_SUCCESS;
-
+  int              bcm_unit;
 #if defined(L7_METRO_PACKAGE) && defined(L7_DOT1AD_PACKAGE)
   static BROAD_POLICY_t   mldSnoopId   = BROAD_POLICY_INVALID;
   BROAD_POLICY_RULE_t     ruleId       = BROAD_POLICY_RULE_INVALID;
@@ -2815,33 +2787,37 @@ L7_RC_t hapiBroadConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g)
    else
 #endif
    {
-     rv = bcmx_switch_control_set(bcmSwitchMldPktDrop, 1);
-     if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+     /* Run all units */
+     for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
      {
-       rc = L7_FAILURE;
-       L7_LOG_ERROR(rv);
-     }
-     rv = bcmx_switch_control_set(bcmSwitchMldPktToCpu, 1);
-     if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-     {
-       rc = L7_FAILURE;
-       L7_LOG_ERROR(rv);
-     }
+       rv = bcm_switch_control_set(bcm_unit, bcmSwitchMldPktDrop, 1);
+       if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+       {
+         rc = L7_FAILURE;
+         L7_LOG_ERROR(rv);
+       }
+       rv = bcm_switch_control_set(bcm_unit, bcmSwitchMldPktToCpu, 1);
+       if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+       {
+         rc = L7_FAILURE;
+         L7_LOG_ERROR(rv);
+       }
 
-     /* Set the MLD packet priority. This is required only for FB2 platforms.
-      * For other platforms, MLD packets will follow protocol priority.
-      * The return code of E_UNAVAIL is masked by the API.
-      *
-      * NOTE: IGMP packets do not require this setting as we use policy for 
-      * IGMP. MLD packets are copied to CPU using CPU_CONTROL register.
-      */
-     rv = bcmx_switch_control_set(bcmSwitchCpuProtoIgmpPriority,
-                                    HAPI_BROAD_INGRESS_MED_PRIORITY_COS);
-     if (L7_BCMX_OK(rv) != L7_TRUE)
-     {
-       SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                       "\n%s %d: In %s Failed to set bcmSwitchCpuProtoIgmpPriority - %d\n",
-                       __FILE__, __LINE__, __FUNCTION__, rv);
+       /* Set the MLD packet priority. This is required only for FB2 platforms.
+        * For other platforms, MLD packets will follow protocol priority.
+        * The return code of E_UNAVAIL is masked by the API.
+        *
+        * NOTE: IGMP packets do not require this setting as we use policy for 
+        * IGMP. MLD packets are copied to CPU using CPU_CONTROL register.
+        */
+       rv = bcm_switch_control_set(bcm_unit, bcmSwitchCpuProtoIgmpPriority,
+                                   HAPI_BROAD_INGRESS_MED_PRIORITY_COS);
+       if (L7_BCMX_OK(rv) != L7_TRUE)
+       {
+         SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
+                         "\n%s %d: In %s Failed to set bcmSwitchCpuProtoIgmpPriority - %d\n",
+                         __FILE__, __LINE__, __FUNCTION__, rv);
+       }
      }
    }
   }
@@ -2856,32 +2832,36 @@ L7_RC_t hapiBroadConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g)
         mldSnoopId = BROAD_POLICY_INVALID;
       }
     }
-   else
+    else
 #endif
-  {
-    rv = bcmx_switch_control_set(bcmSwitchMldPktDrop, 0);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
     {
-      rc = L7_FAILURE;
-      L7_LOG_ERROR(rv);
-    }
+      /* Run all units */
+      for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
+      {
+        rv = bcm_switch_control_set(bcm_unit, bcmSwitchMldPktDrop, 0);
+        if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+        {
+          rc = L7_FAILURE;
+          L7_LOG_ERROR(rv);
+        }
 
-    rv = bcmx_switch_control_set(bcmSwitchMldPktToCpu, 0);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-    {
-      rc = L7_FAILURE;
-      L7_LOG_ERROR(rv);
-    }
+        rv = bcm_switch_control_set(bcm_unit, bcmSwitchMldPktToCpu, 0);
+        if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+        {
+          rc = L7_FAILURE;
+          L7_LOG_ERROR(rv);
+        }
 
-    /* Reset the MLD packet priority to default */
-    rv = bcmx_switch_control_set(bcmSwitchCpuProtoIgmpPriority, 0);
-    if (L7_BCMX_OK(rv) != L7_TRUE)
-    {
-      SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
-                     "\n%s %d: In %s Failed to set bcmSwitchCpuProtoIgmpPriority - %d\n",
-                     __FILE__, __LINE__, __FUNCTION__, rv);
+        /* Reset the MLD packet priority to default */
+        rv = bcm_switch_control_set(bcm_unit, bcmSwitchCpuProtoIgmpPriority, 0);
+        if (L7_BCMX_OK(rv) != L7_TRUE)
+        {
+          SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
+                         "\n%s %d: In %s Failed to set bcmSwitchCpuProtoIgmpPriority - %d\n",
+                         __FILE__, __LINE__, __FUNCTION__, rv);
+        }
+      }
     }
-  }
   }
   return rc;
 }
@@ -2892,103 +2872,107 @@ L7_RC_t hapiBroadConfigIgmpFilterRaptor(enableFilter)
   L7_RC_t          rc = L7_SUCCESS;
 #ifdef BCM_RAPTOR_SUPPORT
   L7_int32         rv;
+  int              bcm_unit;
 
-  if (enableFilter == L7_TRUE)
+  /* Run all units */
+  for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
   {
+    if (enableFilter == L7_TRUE)
+    {
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchIgmpReportLeaveDrop, 1);
+      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+      {
+        rc = L7_FAILURE;
+        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
+                "%s:%d bcm_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
+      }
+
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchIgmpReportLeaveToCpu, 1);
+      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+      {
+        rc = L7_FAILURE;
+        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
+                "%s:%d bcm_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
+      }
+
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchIgmpQueryDrop, 1);
+      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+      {
+        rc = L7_FAILURE;
+        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
+                "%s:%d bcm_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
+      }
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchIgmpQueryToCpu, 1);
+      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+      {
+        rc = L7_FAILURE;
+        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
+                "%s:%d bcm_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
+      }
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchIgmpUnknownDrop, 1);
+      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+      {
+        rc = L7_FAILURE;
+        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
+                "%s:%d bcm_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
+      }
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchIgmpUnknownToCpu, 1);
+      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+      {
+        rc = L7_FAILURE;
+        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
+                "%s:%d bcm_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
+      }
     
-    rv = bcmx_switch_control_set(bcmSwitchIgmpReportLeaveDrop, 1);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-    {
-      rc = L7_FAILURE;
-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-              "%s:%d bcmx_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
     }
+    else
+    {
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchIgmpReportLeaveDrop, 0);
+      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+      {
+        rc = L7_FAILURE;
+        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
+                "%s:%d bcm_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
+      }
 
-    rv = bcmx_switch_control_set(bcmSwitchIgmpReportLeaveToCpu, 1);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-    {
-      rc = L7_FAILURE;
-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-              "%s:%d bcmx_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
-    }
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchIgmpReportLeaveToCpu, 0);
+      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+      {
+        rc = L7_FAILURE;
+        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
+                "%s:%d bcm_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
+      }
 
-    rv = bcmx_switch_control_set(bcmSwitchIgmpQueryDrop, 1);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-    {
-      rc = L7_FAILURE;
-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-              "%s:%d bcmx_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
-    }
-    rv = bcmx_switch_control_set(bcmSwitchIgmpQueryToCpu, 1);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-    {
-      rc = L7_FAILURE;
-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-              "%s:%d bcmx_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
-    }
-    rv = bcmx_switch_control_set(bcmSwitchIgmpUnknownDrop, 1);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-    {
-      rc = L7_FAILURE;
-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-              "%s:%d bcmx_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
-    }
-    rv = bcmx_switch_control_set(bcmSwitchIgmpUnknownToCpu, 1);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-    {
-      rc = L7_FAILURE;
-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-              "%s:%d bcmx_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
-    }
-  
-  }
-  else
-  {
-    rv = bcmx_switch_control_set(bcmSwitchIgmpReportLeaveDrop, 0);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-    {
-      rc = L7_FAILURE;
-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-              "%s:%d bcmx_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
-    }
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchIgmpQueryDrop, 0);
+      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+      {
+        rc = L7_FAILURE;
+        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
+                "%s:%d bcm_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
+      }
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchIgmpQueryToCpu, 0);
+      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+      {
+        rc = L7_FAILURE;
+        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
+                "%s:%d bcm_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
+      }
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchIgmpUnknownDrop, 0);
+      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+      {
+        rc = L7_FAILURE;
+        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
+                "%s:%d bcm_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
+      }
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchIgmpUnknownToCpu, 0);
+      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
+      {
+        rc = L7_FAILURE;
+        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
+                "%s:%d bcm_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
+      }
 
-    rv = bcmx_switch_control_set(bcmSwitchIgmpReportLeaveToCpu, 0);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-    {
-      rc = L7_FAILURE;
-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-              "%s:%d bcmx_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
     }
-
-    rv = bcmx_switch_control_set(bcmSwitchIgmpQueryDrop, 0);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-    {
-      rc = L7_FAILURE;
-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-              "%s:%d bcmx_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
-    }
-    rv = bcmx_switch_control_set(bcmSwitchIgmpQueryToCpu, 0);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-    {
-      rc = L7_FAILURE;
-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-              "%s:%d bcmx_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
-    }
-    rv = bcmx_switch_control_set(bcmSwitchIgmpUnknownDrop, 0);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-    {
-      rc = L7_FAILURE;
-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-              "%s:%d bcmx_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
-    }
-    rv = bcmx_switch_control_set(bcmSwitchIgmpUnknownToCpu, 0);
-    if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
-    {
-      rc = L7_FAILURE;
-      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
-              "%s:%d bcmx_switch_control_set failed: rv %d\n", __FUNCTION__, __LINE__, rv);
-    }
-
   }
 #endif
   return rc;
@@ -5562,7 +5546,7 @@ L7_RC_t hapiBroadIntfMaxFrameSizeConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
   /* Max Frame Size is allowed only on physical ports */
   if (IS_PORT_TYPE_PHYSICAL (dapiPortPtr) == L7_TRUE)
   {
-    rc = usl_bcmx_port_frame_max_set(hapiPortPtr->bcmx_lport, maxFrameSize);
+    rc = usl_bcmx_port_frame_max_set(hapiPortPtr->bcm_gport, maxFrameSize);
     if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc!=BCM_E_UNAVAIL))
     {
       result = L7_FAILURE;
@@ -5581,7 +5565,7 @@ L7_RC_t hapiBroadIntfMaxFrameSizeConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
       {
         hapiPortPtr_member = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[index].usp, dapi_g);
 
-        rc = usl_bcmx_port_frame_max_set(hapiPortPtr_member->bcmx_lport, maxFrameSize);
+        rc = usl_bcmx_port_frame_max_set(hapiPortPtr_member->bcm_gport, maxFrameSize);
         if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc!=BCM_E_UNAVAIL))
         {
           result = L7_FAILURE;
@@ -6064,7 +6048,7 @@ L7_RC_t hapiBroadIntfCableTest(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
   }
 
   /* run diag */
-  rv = usl_bcmx_port_copper_diag_get(hapiPortPtr->bcmx_lport, &cd);
+  rv = usl_bcmx_port_copper_diag_get(hapiPortPtr->bcm_gport, &cd);
   /* The api can return values > 0. So check for negative error codes only. */
   if (rv < BCM_E_NONE)
   {
@@ -6156,7 +6140,7 @@ L7_RC_t hapiBroadIntfCableTest(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
    */
   if (hapiPortPtr->hapiModeparm.physical.admin_enabled == L7_FALSE)
   {
-    rv = usl_bcmx_port_enable_set(hapiPortPtr->bcmx_lport, 
+    rv = usl_bcmx_port_enable_set(hapiPortPtr->bcm_gport, 
                                   hapiPortPtr->hapiModeparm.physical.admin_enabled);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
@@ -6188,14 +6172,14 @@ L7_RC_t hapiBroadIntfCableTest(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
 L7_RC_t hapiBroadSystemDosPingFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, void *data, 
                                             L7_uint32 enableFilter)
 {
-      /* Any Destination Ip */
+  /* Any Destination Ip */
   DAPI_PORT_t          *dapiPortPtr;
   BROAD_PORT_t         *hapiPortPtr;
   DAPI_SYSTEM_CMD_t     *dapiCmd     = (DAPI_SYSTEM_CMD_t*)data;
   static BROAD_POLICY_t pingFlood_id=BROAD_POLICY_INVALID;
   static BROAD_POLICY_RULE_t   rule_id = BROAD_POLICY_RULE_INVALID;
   L7_RC_t               result = L7_SUCCESS;
-  bcmx_lport_t          lport;
+  bcm_gport_t           gport;
   L7_ushort16           ip_ethtype = L7_ETYPE_IP;
   L7_uchar8             icmp_proto[]  = {IP_PROT_ICMP}; 
   L7_uchar8             exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
@@ -6223,7 +6207,7 @@ L7_RC_t hapiBroadSystemDosPingFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, vo
   meterDef.cbs = 128;
  
   /* Get the logical BCMX port */
-  lport  = hapiPortPtr->bcmx_lport;
+  gport  = hapiPortPtr->bcm_gport;
 
   if(pingFlood_id == BROAD_POLICY_INVALID)
   {
@@ -6232,7 +6216,7 @@ L7_RC_t hapiBroadSystemDosPingFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, vo
       int              bcm_unit;
       bcm_port_t       bcm_port;
       rate = meterDef.cir;
-      if (BCM_E_NONE != bcmx_lport_to_unit_port(lport, &bcm_unit, &bcm_port))
+      if (BCMY_E_NONE != bcmy_lut_gport_to_unit_port_get(gport, &bcm_unit, &bcm_port))
       {
          return L7_FAILURE;
       }
@@ -6251,7 +6235,7 @@ L7_RC_t hapiBroadSystemDosPingFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, vo
       result = hapiBroadPolicyCommit(&pingFlood_id);
       if (L7_SUCCESS == result)
       {
-        result = hapiBroadPolicyApplyToIface(pingFlood_id, hapiPortPtr->bcmx_lport);
+        result = hapiBroadPolicyApplyToIface(pingFlood_id, hapiPortPtr->bcm_gport);
         if (L7_SUCCESS == result)
         {
           hapiPortPtr->pingFloodPolicyApplied = L7_TRUE;
@@ -6297,7 +6281,7 @@ L7_RC_t hapiBroadSystemDosPingFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, vo
       {
         if (hapiPortPtr->pingFloodPolicyApplied == L7_FALSE)
         {
-          result = hapiBroadPolicyApplyToIface(pingFlood_id, hapiPortPtr->bcmx_lport);
+          result = hapiBroadPolicyApplyToIface(pingFlood_id, hapiPortPtr->bcm_gport);
           if (result == L7_SUCCESS)
           {
             hapiPortPtr->pingFloodPolicyApplied = L7_TRUE;
@@ -6310,7 +6294,7 @@ L7_RC_t hapiBroadSystemDosPingFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, vo
     {
       if (hapiPortPtr->pingFloodPolicyApplied == L7_TRUE)
       {
-        result = hapiBroadPolicyRemoveFromIface(pingFlood_id, hapiPortPtr->bcmx_lport);
+        result = hapiBroadPolicyRemoveFromIface(pingFlood_id, hapiPortPtr->bcm_gport);
         if(result == L7_SUCCESS)
         {
           hapiPortPtr->pingFloodPolicyApplied = L7_FALSE;
@@ -6402,7 +6386,7 @@ L7_RC_t hapiBroadSystemDosSmurfAttackFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, voi
       result = hapiBroadPolicyCommit(&smurfPolicy_id);
       if (L7_SUCCESS == result)
       {
-        result = hapiBroadPolicyApplyToIface(smurfPolicy_id, hapiPortPtr->bcmx_lport);
+        result = hapiBroadPolicyApplyToIface(smurfPolicy_id, hapiPortPtr->bcm_gport);
         if (L7_SUCCESS == result)
         {
           hapiPortPtr->smurfAttackPolicyApplied = L7_TRUE;
@@ -6425,7 +6409,7 @@ L7_RC_t hapiBroadSystemDosSmurfAttackFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, voi
     {
       if (hapiPortPtr->smurfAttackPolicyApplied == L7_FALSE)
       {
-        result = hapiBroadPolicyApplyToIface(smurfPolicy_id, hapiPortPtr->bcmx_lport);
+        result = hapiBroadPolicyApplyToIface(smurfPolicy_id, hapiPortPtr->bcm_gport);
         if (result == L7_SUCCESS)
         {
           hapiPortPtr->smurfAttackPolicyApplied = L7_TRUE;
@@ -6437,7 +6421,7 @@ L7_RC_t hapiBroadSystemDosSmurfAttackFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, voi
     {
       if (hapiPortPtr->smurfAttackPolicyApplied == L7_TRUE)
       {
-        result = hapiBroadPolicyRemoveFromIface(smurfPolicy_id, hapiPortPtr->bcmx_lport);
+        result = hapiBroadPolicyRemoveFromIface(smurfPolicy_id, hapiPortPtr->bcm_gport);
         if(result == L7_SUCCESS)
         {
           hapiPortPtr->smurfAttackPolicyApplied = L7_FALSE;
@@ -6483,7 +6467,7 @@ L7_RC_t hapiBroadSystemDosSynAckFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, 
   static BROAD_POLICY_t        synFlood_id = BROAD_POLICY_INVALID;
   static BROAD_POLICY_RULE_t   rule_id = BROAD_POLICY_RULE_INVALID;
   L7_uint32             result = L7_SUCCESS;
-  bcmx_lport_t          lport;
+  bcm_gport_t           gport;
   int                   bcm_unit;
   bcm_port_t            bcm_port;
   L7_uchar8             ip_ethtype[]  = {0x08, 0x00};
@@ -6517,14 +6501,14 @@ L7_RC_t hapiBroadSystemDosSynAckFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, 
   meterDef.cbs = 128;
 
   /* Get the logical BCMX port */
-  lport  = hapiPortPtr->bcmx_lport;
+  gport  = hapiPortPtr->bcm_gport;
 
   if( synFlood_id  == BROAD_POLICY_INVALID )
   {
     if (enableFilter == L7_ENABLE) 
     {
       rate =  meterDef.cir;
-      if (BCM_E_NONE != bcmx_lport_to_unit_port(lport, &bcm_unit, &bcm_port))
+      if (BCMY_E_NONE != bcmy_lut_gport_to_unit_port_get(gport, &bcm_unit, &bcm_port))
       {  
         return L7_FAILURE;
       }
@@ -6547,7 +6531,7 @@ L7_RC_t hapiBroadSystemDosSynAckFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, 
       result = hapiBroadPolicyCommit(&synFlood_id );
       if (L7_SUCCESS == result)
       {
-        result = hapiBroadPolicyApplyToIface(synFlood_id , hapiPortPtr->bcmx_lport);
+        result = hapiBroadPolicyApplyToIface(synFlood_id , hapiPortPtr->bcm_gport);
         if (L7_SUCCESS == result)
         {
           hapiPortPtr->synAckPolicyApplied = L7_TRUE;
@@ -6593,7 +6577,7 @@ L7_RC_t hapiBroadSystemDosSynAckFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, 
       {
         if (hapiPortPtr->synAckPolicyApplied == L7_FALSE)
        {
-         result = hapiBroadPolicyApplyToIface(synFlood_id, hapiPortPtr->bcmx_lport);
+         result = hapiBroadPolicyApplyToIface(synFlood_id, hapiPortPtr->bcm_gport);
           if (result == L7_SUCCESS)
          {
             hapiPortPtr->synAckPolicyApplied = L7_TRUE;
@@ -6606,7 +6590,7 @@ L7_RC_t hapiBroadSystemDosSynAckFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, 
     {
       if (hapiPortPtr->synAckPolicyApplied == L7_TRUE)
       {
-        result = hapiBroadPolicyRemoveFromIface(synFlood_id , hapiPortPtr->bcmx_lport);
+        result = hapiBroadPolicyRemoveFromIface(synFlood_id , hapiPortPtr->bcm_gport);
         if(result == L7_SUCCESS)
         {
           hapiPortPtr->synAckPolicyApplied = L7_FALSE;
@@ -6651,6 +6635,7 @@ L7_RC_t hapiBroadSystemCpuSamplePriority(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *
   L7_RC_t              result  = L7_SUCCESS;
   DAPI_SYSTEM_CMD_t    *dapiCmd = (DAPI_SYSTEM_CMD_t*)data;
   int                  rv;
+  int                  bcm_unit;
 
   if (dapiCmd->cmdData.sFlowConfig.getOrSet != DAPI_CMD_SET)
   {
@@ -6661,10 +6646,14 @@ L7_RC_t hapiBroadSystemCpuSamplePriority(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *
     return result;
   }
 
-  rv = bcmx_switch_control_set(bcmSwitchCpuSamplePrio, dapiCmd->cmdData.sFlowConfig.sampleCpuPrio);
-  if (L7_BCMX_OK(rv) != L7_TRUE)
+  /* Run all units */
+  for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
   {
-    L7_LOG_ERROR(bcmSwitchCpuSamplePrio);
+    rv = bcm_switch_control_set(bcm_unit, bcmSwitchCpuSamplePrio, dapiCmd->cmdData.sFlowConfig.sampleCpuPrio);
+    if (L7_BCMX_OK(rv) != L7_TRUE)
+    {
+      L7_LOG_ERROR(bcmSwitchCpuSamplePrio);
+    }
   }
 
   /* Upon failure, the error is logged.
@@ -6696,6 +6685,7 @@ L7_RC_t hapiBroadSystemSampleRandomSeed(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
   L7_RC_t              result  = L7_SUCCESS;
   DAPI_SYSTEM_CMD_t    *dapiCmd = (DAPI_SYSTEM_CMD_t*)data;
   int                  rv;
+  int                  bcm_unit;
 
   if (dapiCmd->cmdData.sFlowConfig.getOrSet != DAPI_CMD_SET)
   {
@@ -6706,24 +6696,27 @@ L7_RC_t hapiBroadSystemSampleRandomSeed(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
     return result;
   }
 
-  if (dapiCmd->cmdData.sFlowConfig.direction == 0)
+  /* Run all units */
+  for (bcm_unit = 0; bcm_unit < bde->num_devices(BDE_SWITCH_DEVICES); bcm_unit++)
   {
-    rv = bcmx_switch_control_set(bcmSwitchSampleIngressRandomSeed, dapiCmd->cmdData.sFlowConfig.RandomSeed);
-    if (L7_BCMX_OK(rv) != L7_TRUE)
+    if (dapiCmd->cmdData.sFlowConfig.direction == 0)
     {
-      L7_LOG_ERROR(bcmSwitchSampleIngressRandomSeed);
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchSampleIngressRandomSeed, dapiCmd->cmdData.sFlowConfig.RandomSeed);
+      if (L7_BCMX_OK(rv) != L7_TRUE)
+      {
+        L7_LOG_ERROR(bcmSwitchSampleIngressRandomSeed);
+      }
+    }
+
+    if (dapiCmd->cmdData.sFlowConfig.direction == 1)
+    {
+      rv = bcm_switch_control_set(bcm_unit, bcmSwitchSampleEgressRandomSeed, dapiCmd->cmdData.sFlowConfig.RandomSeed);
+      if (L7_BCMX_OK(rv) != L7_TRUE)
+      {
+        L7_LOG_ERROR(bcmSwitchSampleEgressRandomSeed);
+      }
     }
   }
-
-  if (dapiCmd->cmdData.sFlowConfig.direction == 1)
-  {
-    rv = bcmx_switch_control_set(bcmSwitchSampleEgressRandomSeed, dapiCmd->cmdData.sFlowConfig.RandomSeed);
-    if (L7_BCMX_OK(rv) != L7_TRUE)
-    {
-      L7_LOG_ERROR(bcmSwitchSampleEgressRandomSeed);
-    }
-  }
-
 
   /* Upon failure, the error is logged.
    * Return quietly so that we don't cause the device
@@ -6773,7 +6766,7 @@ L7_RC_t hapiBroadIntfSampleRate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAP
   {
     sflowConfig.ingressSamplingRate = dapiCmd->cmdData.sFlowConfig.ingressSamplingRate;
     sflowConfig.egressSamplingRate =  dapiCmd->cmdData.sFlowConfig.egressSamplingRate;
-    rv = usl_bcmx_port_sample_rate_set(hapiPortPtr->bcmx_lport, &sflowConfig);
+    rv = usl_bcmx_port_sample_rate_set(hapiPortPtr->bcm_gport, &sflowConfig);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       result = L7_FAILURE;
@@ -6782,7 +6775,7 @@ L7_RC_t hapiBroadIntfSampleRate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAP
   else
   {
     /* get configured rate */
-    rv = usl_bcmx_port_sample_rate_get(hapiPortPtr->bcmx_lport, &sflowConfig);
+    rv = usl_bcmx_port_sample_rate_get(hapiPortPtr->bcm_gport, &sflowConfig);
                                       
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
@@ -6841,7 +6834,7 @@ L7_RC_t hapiBroadIntfFiberDiagTest(DAPI_USP_t *usp,
   {
     if (dapiCmd->cmdData.cableFiberDiag.getOrSet == DAPI_CMD_GET)
     {
-      if (BCM_E_NONE == usl_bcmx_port_sfp_diag_get(hapiPortPtr->bcmx_lport,
+      if (BCM_E_NONE == usl_bcmx_port_sfp_diag_get(hapiPortPtr->bcm_gport,
                                                    &temperature,
                                                    &voltage,
                                                    &current,
@@ -6890,8 +6883,8 @@ L7_RC_t hapiBroadIntfFiberDiagTest(DAPI_USP_t *usp,
 *
 * @returns L7_RC_t result
 *
-* @notes   Uses customx port infra-structure to send the message to the 
-*          appropriate unit. The port number in the customx call is
+* @notes   Uses custom port infra-structure to send the message to the 
+*          appropriate unit. The port number in the custom call is
 *          dummy parameter.
 *
 * @end
@@ -6901,14 +6894,15 @@ L7_RC_t hapiBroadSystemCardPortsAdminModeSet(L7_uint32 unit, L7_uint32 slot,
                                              L7_BOOL forceMode, L7_BOOL forcedAdminMode,
                                              DAPI_t *dapi_g)
 {
-  DAPI_USP_t                                       usp;
-  BROAD_PORT_t                                    *hapiPortPtr;
-  L7_uint32                                        maxElems, numElems;
-  L7_uchar8                                       *msg, *msgPtr;
-  L7_RC_t                                          result = L7_SUCCESS;
-  usl_bcm_port_admin_mode_t         element;
-  uint32                                           args[BCM_CUSTOM_ARGS_MAX];
-  int                                              localBcmUnitNum, rv, dummyLport = BCMX_LPORT_INVALID;
+  DAPI_USP_t                usp;
+  BROAD_PORT_t             *hapiPortPtr;
+  L7_uint32                 maxElems, numElems;
+  L7_uchar8                *msg, *msgPtr;
+  L7_RC_t                   result = L7_SUCCESS;
+  usl_bcm_port_admin_mode_t element;
+  uint32                    args[BCM_CUSTOM_ARGS_MAX];
+  int                       localBcmUnitNum, rv;
+  int                       dummy_bcm_unit=-1, dummy_bcm_port=-1;
   
   usp.unit = unit;
   usp.slot = slot; 
@@ -6942,9 +6936,10 @@ L7_RC_t hapiBroadSystemCardPortsAdminModeSet(L7_uint32 unit, L7_uint32 slot,
     }
 
     /* If dummyLport is unassigned, populate it */
-    if (dummyLport == BCMX_LPORT_INVALID) 
+    if (dummy_bcm_unit < 0 || dummy_bcm_port < 0) 
     {
-      dummyLport = hapiPortPtr->bcmx_lport;
+      dummy_bcm_unit = hapiPortPtr->bcm_unit;
+      dummy_bcm_port = hapiPortPtr->bcm_port;
     }
 
     memset(&element, 0, sizeof(element));
@@ -6956,7 +6951,7 @@ L7_RC_t hapiBroadSystemCardPortsAdminModeSet(L7_uint32 unit, L7_uint32 slot,
     }
     else
     {
-    element.adminMode =  hapiPortPtr->hapiModeparm.physical.admin_enabled;
+      element.adminMode =  hapiPortPtr->hapiModeparm.physical.admin_enabled;
     }
  
     /* Copy this element in the message */
@@ -6970,9 +6965,9 @@ L7_RC_t hapiBroadSystemCardPortsAdminModeSet(L7_uint32 unit, L7_uint32 slot,
       *(L7_uint32 *)&msg[0] = numElems;
       /* PTin modified: SDK 6.3.0 */
       #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-      rv = bcmx_custom_port_set(dummyLport, USL_BCMX_PORT_ADMIN_MODE_SET, (sizeof(L7_uint32)+sizeof(element)*numElems)/sizeof(L7_uint32), args);
+      rv = bcm_custom_port_set(dummy_bcm_unit, dummy_bcm_port, USL_BCMX_PORT_ADMIN_MODE_SET, (sizeof(L7_uint32)+sizeof(element)*numElems)/sizeof(L7_uint32), args);
       #else
-      rv = bcmx_custom_port_set(dummyLport, USL_BCMX_PORT_ADMIN_MODE_SET, args);
+      rv = bcm_custom_port_set(dummy_bcm_unit, dummy_bcm_port, USL_BCMX_PORT_ADMIN_MODE_SET, args);
       #endif
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
@@ -6994,9 +6989,9 @@ L7_RC_t hapiBroadSystemCardPortsAdminModeSet(L7_uint32 unit, L7_uint32 slot,
     *(L7_uint32 *)&msg[0] = numElems;
     /* PTin modified: SDK 6.3.0 */
     #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-    rv = bcmx_custom_port_set(dummyLport, USL_BCMX_PORT_ADMIN_MODE_SET, (sizeof(L7_uint32)+sizeof(element)*numElems)/sizeof(L7_uint32), args);
+    rv = bcm_custom_port_set(dummy_bcm_unit, dummy_bcm_port, USL_BCMX_PORT_ADMIN_MODE_SET, (sizeof(L7_uint32)+sizeof(element)*numElems)/sizeof(L7_uint32), args);
     #else
-    rv = bcmx_custom_port_set(dummyLport, USL_BCMX_PORT_ADMIN_MODE_SET, args);
+    rv = bcm_custom_port_set(dummy_bcm_unit, dummy_bcm_port, USL_BCMX_PORT_ADMIN_MODE_SET, args);
     #endif
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
@@ -7107,7 +7102,7 @@ L7_RC_t hapiBroadSystemCardPortLinkupGenerate(L7_uint32 unit, L7_uint32 slot,
           (dapiPortPtr->modeparm.physical.isLinkUp == L7_FALSE))
       {
         portInfo.linkstatus = L7_TRUE;
-        hapiBroadPortLinkStatusChange(hapiPortPtr->bcmx_lport, &portInfo);
+        hapiBroadPortLinkStatusChange(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &portInfo);
       }
     }
   }
@@ -7274,7 +7269,7 @@ L7_RC_t hapiBroadIntfPfcConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
     if (hapiPortPtr == L7_NULLPTR) break;
 
     rc = usl_portdb_pfc_config_get(USL_CURRENT_DB, 
-                                   hapiPortPtr->bcmx_lport, 
+                                   hapiPortPtr->bcm_gport, 
                                    &currPfcConfig);
 
     if (rc != BCM_E_NONE) 
@@ -7303,7 +7298,7 @@ L7_RC_t hapiBroadIntfPfcConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
       break;
     }
 
-    rv = usl_bcmx_port_pfc_config_set(hapiPortPtr->bcmx_lport, pfcConfig); 
+    rv = usl_bcmx_port_pfc_config_set(hapiPortPtr->bcm_gport, pfcConfig); 
 
     if (L7_BCMX_OK(rv) != L7_TRUE) break;
 
@@ -7381,7 +7376,7 @@ L7_RC_t hapiBroadIntfPfcStatGet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAP
   }
 
   if (rv == BCM_E_NONE && rc == L7_SUCCESS)
-    rv = usl_bcmx_port_pfc_stat_get(hapiPortPtr->bcmx_lport,&stat);
+    rv = usl_bcmx_port_pfc_stat_get(hapiPortPtr->bcm_gport,&stat);
 
   if (rv == BCM_E_UNAVAIL) rc =  L7_NOT_SUPPORTED;
   else if (L7_BCMX_OK(rv) != L7_TRUE) rc = L7_FAILURE;
@@ -7417,7 +7412,7 @@ L7_RC_t hapiBroadIntfPfcStatsClear(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
   hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
   if (hapiPortPtr == L7_NULLPTR) return L7_FAILURE;;
 
-  rv = usl_bcmx_port_pfc_stats_clear(hapiPortPtr->bcmx_lport);
+  rv = usl_bcmx_port_pfc_stats_clear(hapiPortPtr->bcm_gport);
 
   if (rv == BCM_E_UNAVAIL) rc =  L7_NOT_SUPPORTED;
   else if (L7_BCMX_OK(rv) != L7_TRUE) rc = L7_FAILURE;
@@ -7504,7 +7499,7 @@ L7_RC_t hapiBroadIsdpPortUpdate(DAPI_USP_t *usp,
 {
   L7_RC_t         rc = L7_SUCCESS;
   BROAD_PORT_t   *hapiPortPtr;
-  bcmx_lport_t    lport;
+  bcm_gport_t     gport;
   L7_ushort16     temp16;
   BROAD_SYSTEM_t *hapiSystem;
   BROAD_POLICY_t  llpfPolicyId, isdpPolicyId;
@@ -7512,7 +7507,7 @@ L7_RC_t hapiBroadIsdpPortUpdate(DAPI_USP_t *usp,
   hapiSystem  = (BROAD_SYSTEM_t *)dapi_g->system->hapiSystem;
   hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
 
-  lport = hapiPortPtr->bcmx_lport;
+  gport = hapiPortPtr->bcm_gport;
 
   isdpPolicyId = hapiSystem->isdpSysId;
 #ifdef L7_LLPF_PACKAGE
@@ -7542,7 +7537,7 @@ L7_RC_t hapiBroadIsdpPortUpdate(DAPI_USP_t *usp,
     /* Add this port to the ISDP policy. */
     if (isdpPolicyId != BROAD_POLICY_INVALID)
     {
-      rc = hapiBroadPolicyApplyToIface(isdpPolicyId, lport);
+      rc = hapiBroadPolicyApplyToIface(isdpPolicyId, gport);
     }
     break;
 
@@ -7551,7 +7546,7 @@ L7_RC_t hapiBroadIsdpPortUpdate(DAPI_USP_t *usp,
     /* Remove this port from the ISDP policy. */
     if (isdpPolicyId != BROAD_POLICY_INVALID)
     {
-      rc = hapiBroadPolicyRemoveFromIface(isdpPolicyId, lport);
+      rc = hapiBroadPolicyRemoveFromIface(isdpPolicyId, gport);
     }
     break;
 
@@ -7559,7 +7554,7 @@ L7_RC_t hapiBroadIsdpPortUpdate(DAPI_USP_t *usp,
     /* Add this port to the LLPF policy. */
     if (llpfPolicyId != BROAD_POLICY_INVALID)
     {
-      rc = hapiBroadPolicyApplyToIface(llpfPolicyId, lport);
+      rc = hapiBroadPolicyApplyToIface(llpfPolicyId, gport);
     }
     break;
 
@@ -7567,7 +7562,7 @@ L7_RC_t hapiBroadIsdpPortUpdate(DAPI_USP_t *usp,
     /* Remove this port from the LLPF policy. */
     if (llpfPolicyId != BROAD_POLICY_INVALID)
     {
-      rc = hapiBroadPolicyRemoveFromIface(llpfPolicyId, lport);
+      rc = hapiBroadPolicyRemoveFromIface(llpfPolicyId, gport);
     }
     break;
 
@@ -7576,14 +7571,14 @@ L7_RC_t hapiBroadIsdpPortUpdate(DAPI_USP_t *usp,
     /* Remove this port from the ISDP policy. */
     if (isdpPolicyId != BROAD_POLICY_INVALID)
     {
-      rc = hapiBroadPolicyRemoveFromIface(isdpPolicyId, lport);
+      rc = hapiBroadPolicyRemoveFromIface(isdpPolicyId, gport);
     }
     if (rc == L7_SUCCESS)
     {
       /* Add this port to the LLPF policy. */
       if (llpfPolicyId != BROAD_POLICY_INVALID)
       {
-        rc = hapiBroadPolicyApplyToIface(llpfPolicyId, lport);
+        rc = hapiBroadPolicyApplyToIface(llpfPolicyId, gport);
       }
     }
     break;
@@ -7593,14 +7588,14 @@ L7_RC_t hapiBroadIsdpPortUpdate(DAPI_USP_t *usp,
     /* Remove this port from the LLPF policy. */
     if (llpfPolicyId != BROAD_POLICY_INVALID)
     {
-      rc = hapiBroadPolicyRemoveFromIface(llpfPolicyId, lport);
+      rc = hapiBroadPolicyRemoveFromIface(llpfPolicyId, gport);
     }
     if (rc == L7_SUCCESS)
     {
       /* Add this port to the ISDP policy. */
       if (isdpPolicyId != BROAD_POLICY_INVALID)
       {
-        rc = hapiBroadPolicyApplyToIface(isdpPolicyId, lport);
+        rc = hapiBroadPolicyApplyToIface(isdpPolicyId, gport);
       }
     }
     break;
@@ -7676,3 +7671,66 @@ L7_RC_t hapiBroadIsdpPolicySet(DAPI_USP_t *usp,
 
   return rc;
 }
+
+/*********************************************************************
+*
+* @purpose Prints hapiPortPtr descriptor
+*
+* @param   L7_int8    unit  - management unit assigned to ports (e.g. 1)
+* @param   L7_int8    slot  - slot (0 - physical ports | 1 - other ports such as LAGs)
+* @param   L7_short16 port  - port number/portNum (starts at 0)
+*
+* @returns void
+*
+* @notes   none
+*
+* @end
+*
+*********************************************************************/
+void hapiPortPtr_dump(void)
+{
+  L7_uint32 unitMgr, i;
+  DAPI_USP_t usp;
+  BROAD_PORT_t *hapiPortPtr;
+  SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
+  DAPI_CARD_ENTRY_t            *dapiCardInfoPtr;
+
+  unitMgrNumberGet(&unitMgr);
+
+  sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(dapi_g->unit[unitMgr]->slot[0]->cardId);
+  dapiCardInfoPtr = (DAPI_CARD_ENTRY_t *) sysapiHpcCardInfoPtr->dapiCardInfo;
+
+  for (i = 0; i < dapiCardInfoPtr->numOfSlotMapEntries; i++)
+  {
+    usp.unit = unitMgr;
+    usp.slot = 0;
+    usp.port = i;
+
+    hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+
+    printf("hapiPortPtr: usp={%d,%d,%d}\r\n", usp.unit, usp.slot, usp.port);
+    printf("   bcm_gport     = 0x%08X\r\n", hapiPortPtr->bcm_gport);
+    printf("   bcm_unit      = %d\r\n", hapiPortPtr->bcm_unit);
+    printf("   bcm_modid     = %d\r\n", hapiPortPtr->bcm_modid);
+    printf("   bcm_port      = %d\r\n", hapiPortPtr->bcm_port);
+  }
+
+  sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(dapi_g->unit[unitMgr]->slot[L7_CPU_SLOT_NUM]->cardId);
+  dapiCardInfoPtr = (DAPI_CARD_ENTRY_t *) sysapiHpcCardInfoPtr->dapiCardInfo;
+
+  for (i = 0; i < dapiCardInfoPtr->numOfSlotMapEntries; i++)
+  {
+    usp.unit = unitMgr;
+    usp.slot = L7_CPU_SLOT_NUM;
+    usp.port = i;
+
+    hapiPortPtr = HAPI_PORT_GET(&usp, dapi_g);
+
+    printf("hapiPortPtr: usp={%d,%d,%d}\r\n", usp.unit, usp.slot, usp.port);
+    printf("   bcm_gport     = 0x%08X\r\n", hapiPortPtr->bcm_gport);
+    printf("   bcm_unit      = %d\r\n", hapiPortPtr->bcm_unit);
+    printf("   bcm_modid     = %d\r\n", hapiPortPtr->bcm_modid);
+    printf("   bcm_port      = %d\r\n", hapiPortPtr->bcm_port);
+  }
+}
+

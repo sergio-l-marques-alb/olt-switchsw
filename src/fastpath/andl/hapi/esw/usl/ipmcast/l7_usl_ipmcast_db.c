@@ -34,9 +34,9 @@
 #include "l7_usl_ipmcast_db_int.h"
 #include "sysapi.h"
 #include "l7_usl_trace.h"
-#include "bcmx/bcmx_int.h"
 #include "unitmgr_api.h"
 #include "zlib.h"
+#include "bcm/stack.h"
 
 #ifdef L7_WIRELESS_PACKAGE
 #include "wireless_exports.h"
@@ -584,7 +584,7 @@ L7_RC_t usl_ipmc_port_db_handle_set(USL_DB_TYPE_t dbType)
 *
 * @notes    If the system has been operational for a while, the caller should
 *           have called the usl_invalidate_ipmc_db before calling this
-*           in order to insure that the lplists have been properly freed
+*           in order to insure that the gplists have been properly freed
 *
 * @end
 *********************************************************************/
@@ -900,7 +900,7 @@ L7_RC_t usl_ipmc_db_init()
 
         avlCreateAvlTree(&uslIpMcastWlanPortTreeData, pUslIpMcastWlanPortTreeHeap, pUslIpMcastWlanPortDataHeap,
                          USL_PORT_DB_TREE_SIZE, sizeof(usl_ipmc_wlan_port_elem_t), 0x10,
-                         sizeof(bcm_if_t)+sizeof(bcm_vlan_t)+sizeof(bcmx_lport_t));
+                         sizeof(bcm_if_t)+sizeof(bcm_vlan_t)+sizeof(bcm_gport_t));
       }
 #endif
    }
@@ -3474,7 +3474,7 @@ L7_RC_t usl_db_ipmc_wlan_l3_find_delete(L7_uint32 l3_intf_id, bcm_gport_t wlanvp
 
   memset((void *)&data, 0, sizeof(usl_ipmc_wlan_port_elem_t));
   data.intf = l3_intf_id;
-  data.lport = wlanvp;
+  data.gport = wlanvp;
   data.vlan = vlan_id;
 
   pData = avlSearchLVL7(&uslIpMcastWlanPortTreeData, &data ,AVL_EXACT);
@@ -3502,7 +3502,7 @@ L7_RC_t usl_db_ipmc_wlan_l3_find_add(L7_uint32 l3_intf_id, bcm_gport_t wlanvp,
 
   memset((void *)&data, 0, sizeof(usl_ipmc_wlan_port_elem_t));
   data.intf = l3_intf_id;
-  data.lport = wlanvp;
+  data.gport = wlanvp;
   data.vlan = vlan_id;
 
   pData = avlSearchLVL7(&uslIpMcastWlanPortTreeData, &data ,AVL_EXACT);
@@ -3528,7 +3528,7 @@ L7_RC_t usl_db_ipmc_wlan_l3_insert(L7_uint32 mc_index, L7_uint32 l3_intf_id, bcm
 
   memset((void *)&data, 0, sizeof(usl_ipmc_wlan_port_elem_t));
   data.intf = l3_intf_id;
-  data.lport = wlanvp;
+  data.gport = wlanvp;
   data.vlan = vlan_id;
   data.egrintf = egrintf;
   data.mc_index = mc_index;
@@ -3570,7 +3570,7 @@ L7_RC_t usl_db_ipmc_wlan_l3_delete(L7_uint32 l3_intf_id, bcm_gport_t wlanvp,
 
   memset((void *)&data, 0, sizeof(usl_ipmc_wlan_port_elem_t));
   data.intf = l3_intf_id;
-  data.lport = wlanvp;
+  data.gport = wlanvp;
   data.vlan = vlan_id;
   data.egrintf = egrintf;
 
@@ -3736,7 +3736,7 @@ void usl_print_ipmc_wlan_port_db_elem(void *item, L7_uchar8 *buffer, L7_uint32 s
   usl_ipmc_wlan_port_elem_t  *pUslIpmcPortEntry = item;
 
   osapiSnprintf(buffer, size, "intf: %d\n", pUslIpmcPortEntry->intf);
-  osapiSnprintfcat(buffer, size, "wlan gport: %d\n", pUslIpmcPortEntry->lport);
+  osapiSnprintfcat(buffer, size, "wlan gport: %d\n", pUslIpmcPortEntry->gport);
   osapiSnprintfcat(buffer, size, "vlan: %d\n", pUslIpmcPortEntry->vlan);
   osapiSnprintfcat(buffer, size, "egrintf: %d\n", pUslIpmcPortEntry->egrintf);
   osapiSnprintfcat(buffer, size, "mc_index: %d\n", pUslIpmcPortEntry->mc_index);

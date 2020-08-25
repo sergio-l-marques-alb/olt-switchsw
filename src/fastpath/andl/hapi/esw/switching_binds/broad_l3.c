@@ -32,10 +32,6 @@
 
 #include "bcm/port.h"
 #include "bcm/vlan.h"
-#include "bcm/l3.h"
-#include "bcmx/l2.h"
-#include "bcmx/l3.h"
-#include "bcmx/vlan.h"
 #include "soc/drv.h"
  
 /*********************************************************************

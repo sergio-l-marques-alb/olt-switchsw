@@ -664,17 +664,17 @@ L7_RC_t ptin_hapi_qos_egress_pbits_remark(ptin_dapi_port_t *dapiPort, L7_BOOL en
   /* Port is physical? */
   if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
   {
-    rv = bcm_port_control_set(0, hapiPortPtr->bcm_port, bcmPortControlEgressVlanPriUsesPktPri, !enable);
+    rv = bcm_port_control_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmPortControlEgressVlanPriUsesPktPri, !enable);
     if (rv != BCM_E_NONE)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmPortControlEgressVlanPriUsesPktPri in port {%d,%d,%d} to %u (rv=%d)",
-              dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, !enable, rv);
+                 dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, !enable, rv);
       return L7_FAILURE;
     }
     else
     {
       PT_LOG_TRACE(LOG_CTX_HAPI, "bcmPortControlEgressVlanPriUsesPktPri of port {%d,%d,%d} set to %u",
-                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, !enable);
+                   dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, !enable);
     }
   }
   else
@@ -688,29 +688,29 @@ L7_RC_t ptin_hapi_qos_egress_pbits_remark(ptin_dapi_port_t *dapiPort, L7_BOOL en
       if (hapiPortPtr_member==L7_NULLPTR)
       {
         PT_LOG_ERR(LOG_CTX_HAPI, "Error getting HAPI_PORT_GET for usp={%d,%d,%d}",
-                dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
-                dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
-                dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
+                   dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
+                   dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
+                   dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
         return L7_FAILURE;
       }
       /* Get enable status for member port */
-      rv = bcm_port_control_set(0, hapiPortPtr_member->bcm_port, bcmPortControlEgressVlanPriUsesPktPri, !enable);
+      rv = bcm_port_control_set(hapiPortPtr_member->bcm_unit, hapiPortPtr_member->bcm_port, bcmPortControlEgressVlanPriUsesPktPri, !enable);
       if (rv != BCM_E_NONE)
       {
         PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmPortControlEgressVlanPriUsesPktPri in port {%d,%d,%d} to %u (rv=%d)",
-                dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
-                dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
-                dapiPortPtr->modeparm.lag.memberSet[i].usp.port,
-                !enable, rv);
+                   dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
+                   dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
+                   dapiPortPtr->modeparm.lag.memberSet[i].usp.port,
+                   !enable, rv);
         return L7_FAILURE;
       }
       else
       {
         PT_LOG_TRACE(LOG_CTX_HAPI, "bcmPortControlEgressVlanPriUsesPktPri of port {%d,%d,%d} set to %u",
-                  dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
-                  dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
-                  dapiPortPtr->modeparm.lag.memberSet[i].usp.port,
-                  !enable);
+                     dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
+                     dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
+                     dapiPortPtr->modeparm.lag.memberSet[i].usp.port,
+                     !enable);
       }
     }
   }
@@ -819,9 +819,9 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
   /* If trust mode was not provided, reconfigure all rules with newer port bitmap */
   if (qos_cfg->trust_mode < 0)
   {
-    bcm_port_t    bcm_port;
-    bcmx_lport_t  bcmx_lport;
-    bcm_pbmp_t    pbmp_result;
+    bcm_port_t   bcm_port;
+    bcm_gport_t  gport;
+    bcm_pbmp_t   pbmp_result;
 
     /* To reconfigure an entry should be found */
     if (qos_entry == L7_NULLPTR)
@@ -844,10 +844,16 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
         /* Add new bitmap */
         BCM_PBMP_ITER(pbmp_result, bcm_port)
         {
-          bcmx_lport = bcmx_unit_port_to_lport(0, bcm_port);
+          /* FIXME: Only applied to unit 0 */
+          if (bcmy_lut_unit_port_to_gport_get(0 /*unit*/, bcm_port, &gport) != BCMY_E_NONE)
+          {
+            printf("Error with unit %d, port %d", 0, bcm_port);
+            return L7_FAILURE;
+          }
+
           if (BCM_PBMP_MEMBER(pbm, bcm_port) && !BCM_PBMP_MEMBER(qos_entry->port_bmp, bcm_port))
           {
-            if (hapiBroadPolicyApplyToIface(qos_entry->rule[rule].policyId_icap, bcmx_lport) != L7_SUCCESS) 
+            if (hapiBroadPolicyApplyToIface(qos_entry->rule[rule].policyId_icap, gport) != L7_SUCCESS) 
             {
               PT_LOG_ERR(LOG_CTX_HAPI, "Error adding bcm_port %u to rule %u", bcm_port, rule);
               return L7_FAILURE;
@@ -855,7 +861,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
           }
           else if (!BCM_PBMP_MEMBER(pbm, bcm_port) && BCM_PBMP_MEMBER(qos_entry->port_bmp, bcm_port))
           {
-            if (hapiBroadPolicyRemoveFromIface(qos_entry->rule[rule].policyId_icap, bcmx_lport) != L7_SUCCESS) 
+            if (hapiBroadPolicyRemoveFromIface(qos_entry->rule[rule].policyId_icap, gport) != L7_SUCCESS) 
             {
               PT_LOG_ERR(LOG_CTX_HAPI, "Error removing bcm_port %u from rule %u", bcm_port, rule);
               return L7_FAILURE;
@@ -1407,7 +1413,8 @@ L7_RC_t ptin_hapi_qos_dump(void)
     {
       printf("  [PolicyId(VCAP)=%d ", classid_entry->policyId_vcap);
 
-      if (l7_bcm_policy_hwInfo_get(0, classid_entry->policyId_vcap, 0, &group_id, &entry_id, L7_NULLPTR, L7_NULLPTR) == L7_SUCCESS) 
+      /* FIXME: Only applied to unit 0 */
+      if (l7_bcm_policy_hwInfo_get(0 /*unit*/, classid_entry->policyId_vcap, 0, &group_id, &entry_id, L7_NULLPTR, L7_NULLPTR) == L7_SUCCESS) 
       {
         printf("gid=%-2d eid=%-4d", group_id, entry_id);
       }
@@ -1450,8 +1457,9 @@ L7_RC_t ptin_hapi_qos_dump(void)
       if (qos_entry->rule[rule].policyId_icap != BROAD_POLICY_INVALID)
       {
         printf("  [PolicyId(ICAP)=%-4d ", qos_entry->rule[rule].policyId_icap);
-         
-        if (l7_bcm_policy_hwInfo_get(0, qos_entry->rule[rule].policyId_icap, 0, &group_id, &entry_id, L7_NULLPTR, L7_NULLPTR) == L7_SUCCESS) 
+        
+        /* FIXME: Only applied to unit 0 */
+        if (l7_bcm_policy_hwInfo_get(0 /*unit*/, qos_entry->rule[rule].policyId_icap, 0, &group_id, &entry_id, L7_NULLPTR, L7_NULLPTR) == L7_SUCCESS) 
         {
           printf("gid=%-2d eid=%-4d", group_id, entry_id);
         }

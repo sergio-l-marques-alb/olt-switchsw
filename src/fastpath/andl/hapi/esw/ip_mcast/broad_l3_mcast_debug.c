@@ -26,12 +26,6 @@
 #include "broad_l3_mcast.h"
 #include "broad_l3_mcast_debug.h"
 
-#include "bcmx/ipmc.h"
-/* PTin added: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-#include "bcmx/multicast.h"
-#endif
-
 #define MCAST_PRINT(fmt,args...)  {printf("\n%s [%d]: ", __FUNCTION__,__LINE__);printf(fmt,##args);}
 
 extern DAPI_t    *dapi_g;
@@ -192,7 +186,7 @@ L7_RC_t hapiBroadDebugL3McastRepl(ip_addr_t  groupIp,
                                   L7_uint32  port)
 {
     DAPI_USP_t       usp;
-    bcmx_ipmc_addr_t ipmc_data;
+    bcm_ipmc_addr_t  ipmc_data;
     L7_uint32        i;
     L7_uint32        rv;
     bcm_vlan_vector_t ipmc_vlan_vec;
@@ -211,28 +205,30 @@ L7_RC_t hapiBroadDebugL3McastRepl(ip_addr_t  groupIp,
     ipmc_data.vid         = vid;
     ipmc_data.s_ip_addr   = srcAddr;
     ipmc_data.mc_ip_addr  = groupIp;
-    rv = bcmx_ipmc_find(&ipmc_data);
+    rv = bcm_ipmc_find(hapiPortPtr->bcm_unit, &ipmc_data);
     #else
-    rv = bcmx_ipmc_get(srcAddr, groupIp, vid, &ipmc_data);
+    rv = bcm_ipmc_get(hapiPortPtr->bcm_unit, srcAddr, groupIp, vid, &ipmc_data);
     #endif
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
-      bcmx_ipmc_addr_free(&ipmc_data);
       return L7_SUCCESS;
     }
     /* PTin modified: SDK 6.3.0 */
     #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-    rv = bcmx_multicast_repl_get(ipmc_data.ipmc_index, hapiPortPtr->bcmx_lport,
-                                 ipmc_vlan_vec);
+    rv = bcm_multicast_repl_get(hapiPortPtr->bcm_unit,
+                                ipmc_data.group,
+                                hapiPortPtr->bcm_port,
+                                ipmc_vlan_vec);
     #else
-    rv = bcmx_ipmc_repl_get(ipmc_data.ipmc_index, hapiPortPtr->bcmx_lport,
-                            ipmc_vlan_vec);
+    rv = bcm_ipmc_repl_get(hapiPortPtr->bcm_unit,
+                           ipmc_data.group,
+                           hapiPortPtr->bcm_port,
+                           ipmc_vlan_vec);
     #endif
     if (rv != BCM_E_UNAVAIL)
     {
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
-        bcmx_ipmc_addr_free(&ipmc_data);
         return L7_SUCCESS;
       }
       printf("For group %x, source %x, usp = %d %d %d, replication enabled on vlans:\n",
@@ -246,7 +242,6 @@ L7_RC_t hapiBroadDebugL3McastRepl(ip_addr_t  groupIp,
       }
     }
     printf("\n");
-    bcmx_ipmc_addr_free(&ipmc_data);
 
     return L7_SUCCESS;
 }

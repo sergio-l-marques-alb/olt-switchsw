@@ -62,7 +62,8 @@ L7_RC_t ptin_hapi_policy_resources_get(st_ptin_policy_resources *resources)
       resources->cap[group_idx][stage_idx].inUse = L7_FALSE;
 
       /* Get group information */
-      gtable = policy_group_count_rules(0,group_idx,stage_idx);
+      /* FIXME: Only applied to unit 0 */
+      gtable = policy_group_count_rules(0 /*unit*/, group_idx, stage_idx);
       if (gtable==L7_NULLPTR)
       {
         memset(&resources->cap[group_idx][stage_idx],0x00,sizeof(st_ptin_ffp_rules));
@@ -79,7 +80,8 @@ L7_RC_t ptin_hapi_policy_resources_get(st_ptin_policy_resources *resources)
       PT_LOG_TRACE(LOG_CTX_HAPI,"Analysing group index %u / stage=%d: gid=%d (flags=0x%08x)",group_idx,stage_idx,gtable->gid,gtable->flags);
 
       /* Get group details */
-      error = bcm_field_group_status_get(0, gtable->gid, &group_status);
+      /* FIXME: Only applied to unit 0 */
+      error = bcm_field_group_status_get(0 /*unit*/, gtable->gid, &group_status);
       if (error==BCM_E_NOT_FOUND)
       {
         PT_LOG_TRACE(LOG_CTX_HAPI,"Group %u (stage=%d) does not exist",gtable->gid,stage_idx);
