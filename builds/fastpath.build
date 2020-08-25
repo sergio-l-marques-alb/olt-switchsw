@@ -9,18 +9,20 @@ BUILDS_FOLDER=./output
 APPS_PATH=./apps
 TMP_PATH=./tmp
 
-USERNAME=olt
-DST_IPADDR=10.112.15.243
-DST_PATH=/home/olt/fastpath_builds/fastpath
+#USERNAME=olt
+#DST_IPADDR=10.112.15.243
+DST_PATH=$BUILDS_FOLDER
+
+MAIN_BIN=switchdrvr
 
 n_args=$#
 
-svn_rev=`svnversion -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
-version=$1-r$svn_rev
+version=$1
+svn_rev=`svnversion .. -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
 
-image_tgz=$MODULE.image-v$version.tgz
-backup_tgz=$MODULE.backup-v$version.tgz
-relnotes_file=$MODULE.releasenotes-v$version.txt
+image_tgz=$MODULE.image-v$version-r$svn_rev.tgz
+#backup_7z=$MODULE.backup-v$version-r$svn_rev.7z
+relnotes_file=$MODULE.releasenotes-v$version-r$svn_rev.txt
 
 colorNotice="\033[1m\033[34m"
 colorWarn="\033[1m\033[33m"
@@ -39,10 +41,15 @@ if [ $n_args -lt 1 ]
   exit;
 fi
 
+# Update destination path
+if [ $# -ge 2 ]; then
+  DST_PATH=$2
+fi
+
 mkdir $BUILDS_FOLDER
 
 echo -en $colorTitle
-echo "Building $MODULE version $version ..."
+echo "Building $MODULE version $version-r$svn_rev ..."
 echo -en $colorReset
 
 DATE=`date`
@@ -61,12 +68,12 @@ if [ ! -e $APPS_PATH/image ]; then
   exit 1;
 fi
 
-echo echo Modular OLT $MODULE $version > ./$APPLICATION.ver
+echo echo Modular OLT $MODULE $version-r$svn_rev > ./$APPLICATION.ver
 echo echo $DATE >> ./$APPLICATION.ver
 chmod 777 ./$APPLICATION.ver
 
 if [ -e ./$APPLICATION.releasenotes ]; then
-  echo "=== FASTPATH $version RELEASE NOTES ===================================" > ./$APPLICATION.releasenotes.txt
+  echo "=== FASTPATH $version-r$svn_rev RELEASE NOTES ===================================" > ./$APPLICATION.releasenotes.txt
   cat ./$APPLICATION.releasenotes >> ./$APPLICATION.releasenotes.txt
   echo "============================================================================" >> ./$APPLICATION.releasenotes.txt
   echo "Generation date: $DATE" >> ./$APPLICATION.releasenotes.txt
@@ -84,13 +91,13 @@ echo -en $colorReset
 
 for plat in $PLATFORMS; do
   cp ./$APPLICATION.ver $APPS_PATH/image/$plat/rootfs/usr/local/ptin/sbin
+  echo "echo OLTSWITCH md5sum: "`md5sum $APPS_PATH/image/$plat/rootfs/usr/local/ptin/sbin/$MAIN_BIN | awk '{print $1}'` >> $APPS_PATH/image/$plat/rootfs/usr/local/ptin/sbin/$APPLICATION.ver
 done
 
-echo -en $colorNotice
-echo "Replacing some files by backup ones..."
-echo -en $colorReset
-
-cp -r $TMP_PATH/* $APPS_PATH/image
+#echo -en $colorNotice
+#echo "Replacing some files by backup ones..."
+#echo -en $colorReset
+#cp -r $TMP_PATH/* $APPS_PATH/image
 
 sync
 
@@ -106,21 +113,6 @@ tar czpvf $image_tgz $PLATFORMS --owner=root --group=root
 cd -
 mv $APPS_PATH/image/$image_tgz $BUILDS_FOLDER
 
-# Only if backup exists
-if [ -e $APPS_PATH/backup ]; then
-  rm -f $BUILDS_FOLDER/$backup_tgz
-  for plat in $PLATFORMS; do
-    rm -f $APPS_PATH/backup/$plat/*.ver $APPS_PATH/backup/$plat/*.releasenotes.txt
-    cp ./$APPLICATION.ver ./$APPLICATION.releasenotes.txt $APPS_PATH/backup/$plat
-  done
-  sync
-  cd $APPS_PATH/backup
-  rm -f *.tgz
-  tar czvf $backup_tgz $PLATFORMS
-  cd -
-  mv $APPS_PATH/backup/$backup_tgz $BUILDS_FOLDER
-fi
-
 echo -en $colorNotice
 echo "Saving release notes..."
 echo -en $colorReset
@@ -129,27 +121,71 @@ rm -f $BUILDS_FOLDER/$relnotes_file
 cp ./$APPLICATION.releasenotes.txt $BUILDS_FOLDER/$relnotes_file
 
 echo -en $colorNotice
-echo "Cleaning..."
+echo "Transferring image tarball to final destination..."
 echo -en $colorReset
-rm ./$APPLICATION.ver ./$APPLICATION.releasenotes.txt
+#echo -en $colorReq
+#echo -en "What is your username on $DST_IPADDR machine?"
+#echo -en $colorReset
+#echo -en " "
+#read USERNAME
+#if [ -z $USERNAME ]; then
+#  USERNAME=`whoami`
+#  echo -en $colorReq
+#  echo "Using '$USERNAME' user name."
+#  echo -en $colorReset
+#fi
 
-echo -en $colorNotice
-echo "Transferring tarballs to final destination..."
-echo -en $colorReset
-echo -en $colorReq
-echo -en "What is your username on $DST_IPADDR machine?"
-echo -en $colorReset
-echo -en " "
-read USERNAME
-if [ -z $USERNAME ]; then
-  USERNAME=`whoami`
-  echo -en $colorReq
-  echo "Using '$USERNAME' user name."
-  echo -en $colorReset
-fi
-
-scp $BUILDS_FOLDER/$image_tgz $BUILDS_FOLDER/$backup_tgz $BUILDS_FOLDER/$relnotes_file $USERNAME@$DST_IPADDR:$DST_PATH
+#scp $BUILDS_FOLDER/$image_tgz $BUILDS_FOLDER/$relnotes_file $USERNAME@$DST_IPADDR:$DST_PATH
+mv -v $BUILDS_FOLDER/$image_tgz $BUILDS_FOLDER/$relnotes_file $DST_PATH
 
 echo -en $colorOk
 echo "DONE!"
 echo -en $colorReset
+
+
+# Only if backup exists
+#if [ -e $APPS_PATH/backup ]; then
+#  echo -en $colorNotice
+#  echo "Saving unstripped binaries..."
+#  echo -en $colorReset
+#
+#  rm -f $BUILDS_FOLDER/$backup_7z
+#  for plat in $PLATFORMS; do
+#    rm -f $APPS_PATH/backup/$plat/*.ver $APPS_PATH/backup/$plat/*.releasenotes.txt
+#    cp ./$APPLICATION.ver ./$APPLICATION.releasenotes.txt $APPS_PATH/backup/$plat
+#  done
+#  sync
+#  cd $APPS_PATH/backup
+#  rm -f *.tgz
+#  7z a $backup_7z $PLATFORMS
+#  cd -
+#  mv $APPS_PATH/backup/$backup_7z $BUILDS_FOLDER
+#fi
+
+echo -en $colorNotice
+echo "Cleaning..."
+echo -en $colorReset
+rm ./$APPLICATION.ver ./$APPLICATION.releasenotes.txt
+
+#echo -en $colorNotice
+#echo "Transferring backup tarball to final destination..."
+#echo -en $colorReset
+#echo -en $colorReq
+#echo -en "What is your username on $DST_IPADDR machine?"
+#echo -en $colorReset
+#echo -en " "
+#read USERNAME
+#if [ -z $USERNAME ]; then
+#  USERNAME=`whoami`
+#  echo -en $colorReq
+#  echo "Using '$USERNAME' user name."
+#  echo -en $colorReset
+#fi
+
+#scp $BUILDS_FOLDER/$backup_7z $USERNAME@$DST_IPADDR:$DST_PATH
+#mv $BUILDS_FOLDER/$backup_7z $DST_PATH
+
+echo -en $colorOk
+echo "DONE!"
+echo -en $colorReset
+
