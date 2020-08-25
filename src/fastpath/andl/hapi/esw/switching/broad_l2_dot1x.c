@@ -2207,28 +2207,9 @@ L7_RC_t hapiBroadIntfDot1xClientUnblock(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
 
 void hapiBroadDot1xAuthMacUpdate(BROAD_PORT_t *hapiPortPtr, DAPI_t *dapi_g)
 {
-  uint8                    mac_zero[6]={0x00,0x00,0x00,0x00,0x00,0x00};
   BROAD_SYSTEM_t          *hapiSystemPtr;
 
   hapiSystemPtr = (BROAD_SYSTEM_t *)dapi_g->system->hapiSystem;
-
-  /* In 53115 platforms EAPOL packets are identified only by 
-     destination mac address and not by type field. Becaue of 
-     this EAPOL Frames having Reserved multicast addresses in DA
-     filed are only received by the CPU. To receive even the unicast
-     packets of EAP type we are populating the EAP configuration 
-     registed with the unicast address. */
-  if(hapiBroadRoboVariantCheck() == __BROADCOM_53115_ID)
-  {
-    if (HAPI_DOT1X_PORT_IS_AUTHORIZED(hapiPortPtr))
-    {
-      bcmx_auth_mac_delete(hapiPortPtr->bcmx_lport,mac_zero);
-    }
-    else
-    {
-      bcmx_auth_mac_add (hapiPortPtr->bcmx_lport,hapiSystemPtr->bridgeMacAddr.addr);
-    }
-  }
 }
 
 /*********************************************************************

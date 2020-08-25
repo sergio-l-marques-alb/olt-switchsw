@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Pure SW Logical Tables:
+    This xml contains the pure sw logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    ******************************************************
+    This files describes serves to introduce Layer 
+    Qualifiers fields
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="sw_state_schema.xsd">
+
+    <AppDB Name="ETH_LAYER_QUALIFIER">
+        <OneLineDescription>Pure SW table - container to define Layer Record Field IDs</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="LOW" Jira="SDK-119629"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ETH_IS_DA_MC"                Type="BOOL"/>
+                <Field Name="ETH_IS_DA_BC"                Type="BOOL"/>
+                <Field Name="ETH_1ST_TPID_EXIST"          Type="BOOL"/>
+                <Field Name="ETH_1ST_TPID_INDEX"          Type="UINT"/>
+                <Field Name="ETH_2ND_TPID_EXIST"          Type="BOOL"/>
+                <Field Name="ETH_2ND_TPID_INDEX"          Type="UINT"/>
+                <Field Name="ETH_3RD_TPID_EXIST"          Type="BOOL"/>
+                <Field Name="ETH_3RD_TPID_INDEX"          Type="UINT"/>
+            </Key>
+            <Result><Field Name="UINT"/></Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping><CoreMode Mode="SBC"/></AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IPv4_LAYER_QUALIFIER">
+        <OneLineDescription>Pure SW table - container to define Layer Record Field IDs</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="LOW" Jira="SDK-119629"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="IPV4_IS_MC"                  Type="BOOL"/>
+                <Field Name="IPV4_HAS_OPTION"             Type="BOOL"/>
+                <Field Name="IPV4_IS_FRAGMENTED"          Type="BOOL"/>
+                <Field Name="IPV4_IS_1ST_FRAGMENT"        Type="BOOL"/>
+                <Field Name="IPV4_1ST_ADD_HEADER_EXIST"   Type="BOOL"/>
+                <Field Name="IPV4_1ST_ADD_HEADER"         Type="IPV4_ADDITIONAL_HEADER"/>
+                <Field Name="IPV4_2ND_ADD_HEADER_EXISTS"  Type="BOOL"/>
+                <Field Name="IPV4_TUNNEL_TYPE"            Type="IPV4_QUALIFIER_TUNNEL_TYPE"/>
+                <Field Name="IPV4_RESERVED"               Type="UINT"/>
+            </Key>
+            <Result><Field Name="UINT"/></Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping><CoreMode Mode="SBC"/></AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IPV6_LAYER_QUALIFIER">
+        <OneLineDescription>Pure SW table - container to define Layer Record Field IDs</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="LOW" Jira="SDK-119629"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="IPV6_IS_MC"                  Type="BOOL"/>
+                <Field Name="IPV6_1ST_ADD_HEADER_EXIST"   Type="BOOL"/>
+                <Field Name="IPV6_1ST_ADD_HEADER"         Type="IPV6_ADDITIONAL_HEADER"/>
+                <Field Name="IPV6_2ND_ADD_HEADER_EXISTS"  Type="BOOL"/>
+                <Field Name="IPV6_2ND_ADD_HEADER"         Type="IPV6_ADDITIONAL_HEADER"/>
+                <Field Name="IPV6_3RD_ADD_HEADER_EXISTS"  Type="BOOL"/>
+                <Field Name="IPV6_VALUE_1"                Type="UINT"/>
+            </Key>
+            <Result><Field Name="UINT"/></Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping><CoreMode Mode="SBC"/></AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SRV6_LAYER_QUALIFIER">
+        <OneLineDescription>Pure SW table - container to define Layer Record Field IDs</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="LOW" Jira="SDK-119629"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="SRV6_SEGMENT_LEFT"           Type="UINT"/>
+                <Field Name="SRV6_C_FLAG"                 Type="BOOL"/>
+                <Field Name="SRV6_P_FLAG"                 Type="BOOL"/>
+                <Field Name="SRV6_O_FLAG"                 Type="BOOL"/>
+                <Field Name="SRV6_A_FLAG"                 Type="BOOL"/>
+                <Field Name="SRV6_H_FLAG"                 Type="BOOL"/>
+            </Key>
+            <Result><Field Name="UINT"/></Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping><CoreMode Mode="SBC"/></AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SRV6_EPT_LAYER_QUALIFIER">
+        <OneLineDescription>Pure SW table - container to define Layer Record Field IDs</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="LOW" Jira="SDK-119629"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="SRV6_EP_SEGMENT_LEFT_MINUS_ONE"      Type="UINT"/>
+            </Key>
+            <Result><Field Name="UINT"/></Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping><CoreMode Mode="SBC"/></AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="MPLS_LAYER_QUALIFIER">
+        <OneLineDescription>Pure SW table - container to define Layer Record Field IDs</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="LOW" Jira="SDK-119629"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="MPLS_NOF_LABELS"             Type="UINT"/>
+            </Key>
+            <Result><Field Name="UINT"/></Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping><CoreMode Mode="SBC"/></AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="BIER_TI_QUALIFIER">
+        <OneLineDescription>Pure SW table - container to define Layer Record Field IDs</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="LOW" Jira="SDK-119629"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="BIER_BITSTRINGLENGTH"        Type="UINT"/>
+            </Key>
+            <Result><Field Name="UINT"/></Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping><CoreMode Mode="SBC"/></AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="BIER_MPLS_QUALIFIER">
+        <OneLineDescription>Pure SW table - container to define Layer Record Field IDs</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="LOW" Jira="SDK-119629"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="BIER_BITSTRINGLENGTH"        Type="UINT"/>
+            </Key>
+            <Result><Field Name="UINT"/></Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping><CoreMode Mode="SBC"/></AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FCOE_QUALIFIER">
+        <OneLineDescription>Pure SW table - container to define Layer Record Field IDs</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="LOW" Jira="SDK-119629"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FCOE_IS_FIP"                 Type="BOOL"/>
+                <Field Name="FCOE_IS_ENCAP"               Type="BOOL"/>
+                <Field Name="FCOE_VFT_EXIST"              Type="BOOL"/>
+            </Key>
+            <Result><Field Name="UINT"/></Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping><CoreMode Mode="SBC"/></AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ITMH_QUALIFIER">
+        <OneLineDescription>Pure SW table - container to define Layer Record Field IDs</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="LOW" Jira="SDK-119629"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ITMH_PPH_TYPE" Type="UINT"/>
+            </Key>
+            <Result><Field Name="UINT"/></Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping><CoreMode Mode="SBC"/></AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

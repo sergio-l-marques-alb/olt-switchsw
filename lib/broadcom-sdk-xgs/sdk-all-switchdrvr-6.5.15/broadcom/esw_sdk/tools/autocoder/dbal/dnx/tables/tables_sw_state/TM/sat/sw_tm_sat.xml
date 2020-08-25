@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../../sw_state_schema.xsd">
+
+    <AppDB Name="SAT_STATE_SW">
+        <OneLineDescription>sw state table - SAT global information</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="CTF_TRAP_ID" Size="16" Type="ARRAY32" Description="Ctf trap id." NofInstances="3"/>
+                <Field Name="GTF_HEADER_ID" Size="8" Type="ARRAY32" Description="gtf header id." NofInstances="64"/>
+                <Field Name="RATE_MODE" Size="8" Type="UINT" Description=" 1: bps 2:pps "/>
+                <Field Name="GRANULARITY_SET" Size="1" Type="UINT" Description=" flag for granularity "/>
+            </Result>
+            <TableLabels>SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_TRAP_DATA_SW">
+        <OneLineDescription>sw state table - SAT trap information</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TRAP_INDEX" Type="UINT" Size="6"/>
+            </Key>
+            <Result>
+                <Field Name="CTF_TRAP_DATA" Size="16" Type="UINT" Description=" SAT trap data "/>
+                <Field Name="CTF_TRAP_MASK" Size="16" Type="UINT" Description=" SAT trap mask "/>
+                <Field Name="SSID" Size="8" Type="UINT" Description=" SAT session ID "/>
+            </Result>
+            <TableLabels>SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SAT_TX_STAT_SW">
+        <OneLineDescription>sw state table - stp state per {port, topology_id} from application where 5 states exist versus 3 states in hardware. </OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TX_FLOW_ID" Type="UINT" Size="6"/>
+            </Key>
+            <Result>
+                <Field Name="PKT_CNT" Type="ARRAY32" Size="64" Description="Transmitted packet counters."/>
+                <Field Name="BYTE_CNT" Type="ARRAY32" Size="64" Description="Transmitted byte counters."/>
+            </Result>
+            <TableLabels>SAT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB> 
+
+</AppDbCatalog>
+

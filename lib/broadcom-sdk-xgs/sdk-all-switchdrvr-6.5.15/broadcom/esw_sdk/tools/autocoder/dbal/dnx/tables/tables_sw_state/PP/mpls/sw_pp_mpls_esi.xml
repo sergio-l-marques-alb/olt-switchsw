@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL SW state Logical Tables:
+    This xml contains the sw-state logical DB for the DBAL.
+    The data is loaded to sw-state during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../../sw_state_schema.xsd">
+    
+    <AppDB Name="MPLS_LABEL_RANGE_INFO_SW">
+        <OneLineDescription>SW-State: MPLS Label range sw saved DB</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="RANGE_PROFILE" Type="UINT" Size="DNX_DATA.mpls.general.log_nof_mpls_range_elements"/>
+            </Key>
+            <Result>
+                <Field Name="MPLS_LABEL_LOW" Type="MPLS_LABEL"/>
+                <Field Name="MPLS_LABEL_HIGH" Type="MPLS_LABEL"/>
+            </Result>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <TableProperties Size="DNX_DATA.mpls.general.nof_mpls_range_elements"/>
+        </AppToPhyDbMapping>
+    </AppDB>    
+</AppDbCatalog>
+

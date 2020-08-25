@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="ingr_reassembly" bsl_flag="BSL_LS_BCMDNX_PORT">
+    <includes>
+        <include>bcm_int/dnx/algo/port/algo_port_mgmt.h</include>
+    </includes>
+
+    <sub_module name="context" doc="Ingress context data">
+        
+        <features>
+            <feature name="base_addr_for_nif_only" doc="Base address table is used for NIF ports only"></feature>
+        </features>
+        
+        <defines>
+            <define name="nof_contexts" doc="Number of ingress reassembly contexts per core"></define>
+            <define name="invalid_context" doc="Invalid reassembly context"></define>
+        </defines>
+
+        <numerics>
+        </numerics>        
+        
+        <tables>
+            <table name="context_map" doc="Context Map configuration information per port type ">
+                <key name="port_type" doc="interface type"></key>
+                <value name="start_index" type="uint32" doc="index of start of specific interface type in reassembly table"></value>
+            </table>
+        </tables>
+    </sub_module>
+    <sub_module name="ilkn" doc="Interlaken data">
+        <features>
+            <feature name="is_supported" doc="set if device supports ILKN ports (not including ELK)"></feature>
+        </features>
+        
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>        
+        
+        <tables>
+            <table name="dedicated_tdm_context" doc="Is this interface works in dedicated TDM context mode">
+                <key name="ilkn_id" doc="interlaken id"></key>
+                <value name="is_dedicated" type="uint32"  doc="enable/disable dedicated tdm mode"></value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="priority" doc="information about priorities">
+        <features>
+        </features>
+        
+        <defines>
+            <define name="nif_eth_priorities_nof" doc="Number of priorities for NIF ETH port"></define>
+            <define name="mirror_priorities_nof" doc="Number of priorities for mirror channel"></define>
+            <define name="rcy_priorities_nof" doc="Number of priorities (groups) for RCY interface"></define>
+            <define name="priorities_nof" doc="Number of priorities (groups) for any interface type"></define>
+            <define name="cgm_priorities_nof" doc="Number of priorities (groups) for any interface type as considered by CGM module"></define>
+        </defines>
+
+        <numerics>
+        </numerics>        
+        
+        <tables>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="dbal" doc="information required for dbal">
+        
+         <defines>
+            <define name="reassembly_context_bits" doc="number of bits in reassembly context"></define>
+
+            <define name="interface_bits" doc="number of bits in ingress reassembly interface ID"></define>
+            <define name="interface_max" doc="maximal ingress reassembly interface ID"></define>
+
+            <define name="context_map_base_address_bits" doc="number of bits in context_map_base_address"></define>
+            <define name="context_map_base_address_max" doc="maximal value of context_map_base_address"></define>
+
+            <define name="interleaved_interface_bits" doc="number of bits in interleaved interface ID"></define>
+            <define name="interleaved_interface_max" doc="maximal interleaved interface ID"></define>
+        </defines>
+
+    </sub_module>
+
+</device_data>
+
+
+
+

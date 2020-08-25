@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="device" bsl_flag="BSL_LS_BCMDNX_DEVICE">
+
+    <sub_module name="general" doc="General attributes">
+
+        <features>
+            <feature name="hard_reset_disable" doc="Init the device without hard reset."></feature>
+        </features>
+
+        <defines>
+            <define name="max_nof_cores" doc="Max number of cores in the device."></define>
+            <define name="max_nof_system_ports" doc="Max number of system ports, may use software to indicate invalid system port"></define>
+            <define name="invalid_system_port" doc="invalid system port - defined as the last system port"></define>
+            <define name="fmq_system_port" doc="FMQ reserved system port"></define>
+            <define name="invalid_fap_id" doc="invalid FAP id - defined as the last FAP id"></define>
+        </defines>
+
+        <numerics>
+            <numeric name="nof_cores" doc="Number of cores in the device."></numeric>
+            <numeric name="core_max_nof_bits" doc="Max number of cores bits to represent core. should be log2(nof_cores)"></numeric>
+            <numeric name="core_clock_khz" doc="Core clock frequency [KHZ]"></numeric>
+            <numeric name="system_ref_core_clock_khz" doc="Specifies system reference clock speed in kHz."> </numeric>
+            <numeric name="bus_size_in_bits" doc="Core bus size in bits"></numeric>
+            <numeric name="packet_per_clock" doc="Core packets per clock"></numeric>
+            <numeric name="nof_faps" doc="Number of supported faps in the system."></numeric>
+            <numeric name="device_id" doc="BCM Device ID (8XXX)"></numeric>
+            <numeric name="emulation_system" doc="Checking if the device is ran on emulation."></numeric>
+            <numeric name="bist_enable" doc="Determines if to run Memory Built-In Self-Test (MBIST) of internal memories (tables) during startup.">  </numeric>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="regression" doc="regression attributes">
+        <tables>
+            <table name="regression_parms" doc="system mode SoC property">
+                <value name="system_mode_name" type="char *" doc="The system mode name"></value>
+            </table>
+        </tables>
+    </sub_module>
+</device_data>

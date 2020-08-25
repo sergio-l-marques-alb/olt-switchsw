@@ -4362,9 +4362,6 @@ L7_RC_t hapiBroadMmuConfigModify(L7_uint32 unit)
     }
   }
 
-#ifdef BCM_ROBO_SUPPORT
-  return L7_SUCCESS; /* Presently it doesn't do anything for robo */
-#else 
 #if defined (BCM_BRADLEY_SUPPORT) || defined (BCM_HAWKEYE_SUPPORT)
   if (SOC_IS_BRADLEY(unit) || SOC_IS_HAWKEYE(unit))
   {
@@ -4446,7 +4443,6 @@ L7_RC_t hapiBroadMmuConfigModify(L7_uint32 unit)
     /* No supported chip */
     rc = BCM_E_FAIL;
   }
-#endif /* !ROBO */
 
   if (rc != BCM_E_NONE) 
   {
@@ -4650,13 +4646,9 @@ int hapiBroadFlowControlModeSet(L7_uint32 mode,L7_uchar8 *mac)
             jam = L7_FALSE;
           }
 
-          /* pause_addr_set is not supported for RoBo */
-          if(hapiBroadRoboCheck() != L7_TRUE)
-          {
-            tmpRv = bcm_port_pause_addr_set(unit, port, mac);
-            if (tmpRv != BCM_E_NONE)
-              rv = tmpRv;
-          }
+          tmpRv = bcm_port_pause_addr_set(unit, port, mac);
+          if (tmpRv != BCM_E_NONE)
+            rv = tmpRv;
           tmpRv = bcm_port_advert_set(unit, port, ability_mask);
           if (tmpRv != BCM_E_NONE)
             rv = tmpRv;

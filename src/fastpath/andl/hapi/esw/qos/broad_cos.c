@@ -40,9 +40,6 @@
 extern L7_uint32 wrr_default_weights[];
 
 extern DAPI_t *dapi_g;
-#ifdef L7_ROBO_SUPPORT
-extern int bcm_robo_port_dot1p_map_mode_set(int unit, bcm_port_t port, int mode);
-#endif
 
 /* When using WDRR, the weights are specified in Kbytes (vs packets for WRR).
    Use the MTU quanta of 16 Kbytes as a multiplier for the weights
@@ -360,29 +357,6 @@ static L7_RC_t hapiBroadQosCosIntfUntrusted(BROAD_PORT_t *hapiPortPtr, L7_uchar8
      * is a composite of the default TC and L2 flag for lookup purposes.
      */
      
-    if(hapiBroadRoboCheck() == L7_TRUE)
-    {
-#ifdef L7_ROBO_SUPPORT
-        {
-          int rv;
-          int              bcm_unit;
-          bcm_port_t       bcm_port;
-
-          if (BCM_E_NONE != bcmx_lport_to_unit_port(hapiPortPtr->bcmx_lport, &bcm_unit, &bcm_port))
-          {
-            return L7_FAILURE;
-          }
-
-          rv = bcm_robo_port_dot1p_map_mode_set( bcm_unit, bcm_port, 2);
-          if (L7_BCMX_OK(rv) == L7_FALSE)
-          {
-            result = L7_FAILURE;
-          }
-        }
-      return L7_SUCCESS;
-#endif
-    }
-
     ruleComposite = defTc << 16 | l2Only;
     if (hapiBroadCosPolicyUtilLookup((L7_uchar8*)&ruleComposite, sizeof(ruleComposite), &cosqId) == L7_TRUE)
     {
@@ -448,47 +422,9 @@ static L7_RC_t hapiBroadQosCosIntfUntrusted(BROAD_PORT_t *hapiPortPtr, L7_uchar8
  */
 static L7_RC_t hapiBroadQosCosIntfTrustDot1p(BROAD_PORT_t *hapiPortPtr, L7_uchar8 *dot1pMap)
 {
-    L7_RC_t result;
     /* Call common code for dot1p mapping as it needed for non-QoS builds also. */
 
-    if (!(hapiBroadRoboCheck() == L7_TRUE))
-    {
-      result = hapiBroadCosCommitDot1pParams(hapiPortPtr, dot1pMap);
-      return result;
-    }
-#if L7_ROBO_SUPPORT
-    {
-    L7_int32 i, cosq;
-    int       rv;
-    int              bcm_unit;
-    bcm_port_t       bcm_port;
-
-    if (BCM_E_NONE != bcmx_lport_to_unit_port(hapiPortPtr->bcmx_lport, &bcm_unit, &bcm_port))
-    {
-      return L7_FAILURE;
-    }
-
-    rv = bcm_robo_port_dot1p_map_mode_set( bcm_unit,
-                                           bcm_port, 1 );
-                            /* last parameter enable/disable */
-
-    if (L7_BCMX_OK(rv) != L7_TRUE)
-    { 
-        result = L7_FAILURE;
-        return result;
-    }
-    for (i = 0; i < L7_DOT1P_MAX_PRIORITY+1; i++)
-    {
-      if (dot1pMap[i] <= L7_DOT1P_MAX_PRIORITY)
-      {
-        cosq = (L7_int32)dot1pMap[i];
-        bcmx_cosq_port_mapping_set(hapiPortPtr->bcmx_lport, i, cosq);
-      }
-    }
-
-    }
-#endif
-    return L7_SUCCESS;
+    return hapiBroadCosCommitDot1pParams(hapiPortPtr, dot1pMap);
 }
 
 /* This function removes the IP Prec mapping from ports that no longer trust ip-prec. */
@@ -657,10 +593,7 @@ static L7_RC_t hapiBroadQosCosIntfTrustIpDscp(BROAD_PORT_t *hapiPortPtr, L7_ucha
   L7_RC_t   result = L7_SUCCESS;
 
   /* set default for L2-only frames (and remove any dot1p policies that might be in effect) */
-  if (hapiBroadRoboCheck()!= L7_TRUE)
-  {
-    result = hapiBroadQosCosIntfUntrusted(hapiPortPtr, defTc, L7_TRUE);
-  }
+  result = hapiBroadQosCosIntfUntrusted(hapiPortPtr, defTc, L7_TRUE);
 
   if ( result == L7_SUCCESS)
   {
@@ -671,7 +604,7 @@ static L7_RC_t hapiBroadQosCosIntfTrustIpDscp(BROAD_PORT_t *hapiPortPtr, L7_ucha
 
   if (result == L7_SUCCESS)
   {
-    if ((remap == L7_TRUE) || (hapiBroadRoboCheck() == L7_TRUE) )
+    if ((remap == L7_TRUE))
     {
       /* set dscp map table for L3 frames */
       for (dscp = 0; dscp < L7_QOS_COS_MAP_NUM_IPDSCP; dscp++)
@@ -866,8 +799,6 @@ static L7_RC_t hapiBroadQosCosQueueWeightsConfig(BROAD_PORT_t *dstPortPtr, HAPI_
   int           NO_DELAY = 0;
   L7_RC_t       result = L7_SUCCESS;
   L7_BOOL       weightedSchd = L7_FALSE; /* Set to L7_TRUE if atleast one queue is of type WEIGHTED */
-  L7_BOOL       allWeightedStrict = L7_FALSE; /* Set to L7_TRUE if atleast one queue is of type WEIGHTED */
-  L7_uint32     numOfStrictQs = 0;
   usl_bcm_port_cosq_sched_config_t  cosqSchedConfig;
   /* PTin added: COS */
   #if 1
@@ -929,63 +860,6 @@ static L7_RC_t hapiBroadQosCosQueueWeightsConfig(BROAD_PORT_t *dstPortPtr, HAPI_
     }
   }
 
-  if (hapiBroadRoboVariantCheck() == __BROADCOM_53115_ID)
-  {
-    for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
-    {
-      if (weights[i] == BCM_COSQ_WEIGHT_STRICT)
-      {
-        numOfStrictQs++;
-      }
-
-    }
-    if (numOfStrictQs == L7_MAX_CFG_QUEUES_PER_PORT)
-    {
-      allWeightedStrict = L7_TRUE;
-    }
-    switch (numOfStrictQs)
-    {
-    case 1:  /* Q3 strict - q2/q1/q0 should be WRR */
-      if (weights[L7_MAX_CFG_QUEUES_PER_PORT-1]!= BCM_COSQ_WEIGHT_STRICT)
-      {
-        return L7_FAILURE;
-      }
-      break;
-
-    case 2:  /* Q3/q2 strict - q1/q0 should be WRR */
-      if ((weights[L7_MAX_CFG_QUEUES_PER_PORT-1]!= BCM_COSQ_WEIGHT_STRICT) ||
-          (weights[L7_MAX_CFG_QUEUES_PER_PORT-2]!= BCM_COSQ_WEIGHT_STRICT)
-         )
-      {
-        return L7_FAILURE;
-      }
-      break;
-
-    case 3: /* This case is not supported in the HW*/
-      /* But Kept here to support the q3/q2/q1/q0 case for now */
-      if ((weights[L7_MAX_CFG_QUEUES_PER_PORT-1] == BCM_COSQ_WEIGHT_STRICT) && 
-          (weights[L7_MAX_CFG_QUEUES_PER_PORT-2] == BCM_COSQ_WEIGHT_STRICT) &&
-          (weights[L7_MAX_CFG_QUEUES_PER_PORT-3] == BCM_COSQ_WEIGHT_STRICT)
-         )
-      {
-        return L7_SUCCESS;
-      }
-      else
-      {
-        return L7_FAILURE;
-      }
-
-      break;
-
-    case L7_MAX_CFG_QUEUES_PER_PORT: /* q3/q2/q1/q0 should be Strict */
-      allWeightedStrict = L7_TRUE;
-      break;
-
-    default:
-      break;
-
-    }
-  }
   /* bw guarantees are configured in % so normalize weights accordingly */
   if (weightedSchd == L7_TRUE)
     hapiBroadQosCosQueueNormalize(weights, 100);
@@ -1050,22 +924,8 @@ static L7_RC_t hapiBroadQosCosQueueWeightsConfig(BROAD_PORT_t *dstPortPtr, HAPI_
     memcpy(&(cosqSchedConfig.minKbps), minKbps, sizeof(cosqSchedConfig.minKbps));
     memcpy(&(cosqSchedConfig.maxKbps), maxKbps, sizeof(cosqSchedConfig.maxKbps));
 
-    if (hapiBroadRoboVariantCheck() == __BROADCOM_53115_ID)
-    {
-      if (allWeightedStrict == L7_TRUE)
-      {
-        cosqSchedConfig.mode = BCM_COSQ_STRICT;
-      }
-      else
-      {
-        cosqSchedConfig.mode = BCM_COSQ_WEIGHTED_ROUND_ROBIN;
-      } 
-    }
-    else
-    {
-      /* apply the scheduling policy to the port */
-      cosqSchedConfig.mode = hapiBroadCosQueueWDRRSupported() ? BCM_COSQ_DEFICIT_ROUND_ROBIN : BCM_COSQ_WEIGHTED_ROUND_ROBIN;
-    }
+    /* apply the scheduling policy to the port */
+    cosqSchedConfig.mode = hapiBroadCosQueueWDRRSupported() ? BCM_COSQ_DEFICIT_ROUND_ROBIN : BCM_COSQ_WEIGHTED_ROUND_ROBIN;
 
     printf("%s(%d) I was here: weights={%u,%u,%u,%u,%u,%u,%u,%u}\r\n",__FUNCTION__,__LINE__,
            cosqSchedConfig.weights[0],cosqSchedConfig.weights[1],cosqSchedConfig.weights[2],cosqSchedConfig.weights[3],cosqSchedConfig.weights[4],cosqSchedConfig.weights[5],cosqSchedConfig.weights[6],cosqSchedConfig.weights[7]);
@@ -1118,27 +978,6 @@ static L7_RC_t hapiBroadQosCosApplyPolicy(BROAD_PORT_t *dstPortPtr, BROAD_PORT_t
     {
     case DAPI_QOS_COS_INTF_MODE_UNTRUSTED:
         hapiBroadQosCosResetDscpMapping(dstPortPtr->bcmx_lport);
-        if(hapiBroadRoboCheck() == L7_TRUE)
-        {
-#ifdef L7_ROBO_SUPPORT
-        {
-          int rv;
-          int              bcm_unit;
-          bcm_port_t       bcm_port;
-
-          if (BCM_E_NONE != bcmx_lport_to_unit_port(dstPortPtr->bcmx_lport, &bcm_unit, &bcm_port))
-          {
-            return L7_FAILURE;
-          }
-
-          rv = bcm_robo_port_dot1p_map_mode_set( bcm_unit, bcm_port, 0);
-          if (L7_BCMX_OK(rv) == L7_FALSE)
-          {
-            result = L7_FAILURE;
-          }
-        }
-#endif
-        }  
         hapiBroadQosCosRemoveIpPrec(dstPortPtr);
         result = hapiBroadQosCosIntfUntrusted(dstPortPtr, qosPortPtr->cos.defaultCos, L7_FALSE);
         break;
@@ -1181,27 +1020,6 @@ static L7_RC_t hapiBroadQosCosApplyPolicy(BROAD_PORT_t *dstPortPtr, BROAD_PORT_t
         qosPortPtr->cos.trustMode = DAPI_QOS_COS_INTF_MODE_UNTRUSTED;
          break;
     case DAPI_QOS_COS_INTF_MODE_TRUST_UNSET_DOT1P:
-        if(hapiBroadRoboCheck() == L7_TRUE)
-        {
-#ifdef L7_ROBO_SUPPORT
-        {
-          int rv;
-          int              bcm_unit;
-          bcm_port_t       bcm_port;
-
-          if (BCM_E_NONE != bcmx_lport_to_unit_port(dstPortPtr->bcmx_lport, &bcm_unit, &bcm_port))
-          {
-            return L7_FAILURE;
-          }
-
-          rv = bcm_robo_port_dot1p_map_mode_set( bcm_unit, bcm_port, 0);
-          if (L7_BCMX_OK(rv) == L7_FALSE)
-          {
-            result = L7_FAILURE;
-          }
-        }
-#endif
-        }
         qosPortPtr->cos.trustMode = DAPI_QOS_COS_INTF_MODE_UNTRUSTED;
         break;
 #endif

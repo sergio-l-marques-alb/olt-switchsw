@@ -1,0 +1,3556 @@
+<html>
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      <link rel="stylesheet" href="Manual_CSS.css" type="text/css">
+      <title>DNX Shell Commands</title>
+   <style>
+      body {font-family: Arial;}
+      h1 {font-size: 18pt; font-weight: bold;}
+      h2 {font-size: 16pt; font-weight: bold;}
+      h3 {font-size: 14pt; font-weight: bold;}
+      h4 {font-size: 12pt; font-weight: bold;}
+      h5 {font-size: 11pt; font-weight: bold;}
+      p {font-size: 10pt;}
+      th {font-size: 9pt; font-weight: bold;}
+      td {font-size: 9pt;}
+    </style>
+    </head>
+   <body>
+      <p align="center">
+         			Shell Commands
+         		
+      </p>
+      <p>This document provides a list of DNX SDK shell command. Each commands has a section
+         that includes an overview, description, command options and command examples.
+      </p><a name="tocLink">
+         <h1><font color="CC092F">Table of Contents</font></h1></a><table style="width:30%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Commands</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td><a href="#General">General</a></td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td><a href="#ACCess">ACCess</a></td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td><a href="#APPLication">APPLication</a></td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td><a href="#AVS">AVS</a></td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td><a href="#CLear">CLear</a></td>
+         </tr>
+         <tr>
+            <td>6.</td>
+            <td><a href="#counter">counter</a></td>
+         </tr>
+         <tr>
+            <td>7.</td>
+            <td><a href="#DaTa">DaTa</a></td>
+         </tr>
+         <tr>
+            <td>8.</td>
+            <td><a href="#DIAG">DIAG</a></td>
+         </tr>
+         <tr>
+            <td>9.</td>
+            <td><a href="#Fabric">Fabric</a></td>
+         </tr>
+         <tr>
+            <td>10.</td>
+            <td><a href="#init_dnx">init_dnx</a></td>
+         </tr>
+         <tr>
+            <td>11.</td>
+            <td><a href="#INTeRrupt">INTeRrupt</a></td>
+         </tr>
+         <tr>
+            <td>12.</td>
+            <td><a href="#linkscan">linkscan</a></td>
+         </tr>
+         <tr>
+            <td>13.</td>
+            <td><a href="#MBIST">MBIST</a></td>
+         </tr>
+         <tr>
+            <td>14.</td>
+            <td><a href="#pbmp">pbmp</a></td>
+         </tr>
+         <tr>
+            <td>15.</td>
+            <td><a href="#PHY">PHY</a></td>
+         </tr>
+         <tr>
+            <td>16.</td>
+            <td><a href="#Port">Port</a></td>
+         </tr>
+         <tr>
+            <td>17.</td>
+            <td><a href="#SHOW">SHOW</a></td>
+         </tr>
+         <tr>
+            <td>18.</td>
+            <td><a href="#soc">soc</a></td>
+         </tr>
+         <tr>
+            <td>19.</td>
+            <td><a href="#WarmBoot">WarmBoot</a></td>
+         </tr>
+         <tr>
+            <td>20.</td>
+            <td><a href="#FRameWork">FRameWork</a></td>
+         </tr>
+      </table>
+      
+      <h1><font color="CC092F">1.  <a name="General">General</a></font></h1>
+      <p><strong>Overview
+            				</strong></p>
+      <p>This document presents description of all shell commands written in the context of
+         framework,that provides unified approach in command invocation and usage.All commands
+         are organized in command tree, where leaves are actual executable commands.Manual
+         presents description, synopsis, arguments and examples per each leaf.Each argument
+         has certain type which defines input format, as may be see from argument descriptionArgument
+         may have default and thus not required on command line, if there is no default(tagged
+         by 'None' in usage)user must provide it.All arguments should be provided in arg=&lt;value&gt;
+         paradigm with 2 exceptions:1. Boolean argument provided without value imply 'TRUE',
+         2. Argument with 'free' tag allows omitting argument name, providing values only.
+         Values without argument names will be associated with free argument according to the
+         order. 1st nameless argument to the 1st free one,2nd to the second and so onBesides
+         the arguments presented per command, there are system arguments that may be used with
+         any leaf,There are also system commands which may be invoked after each branch or
+         leaf, see details below
+      </p>
+      
+      <h2>1.1. General &gt; System_Arguments</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Options available for all commands</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>columns</td>
+            <td>string</td>
+            <td>all</td>
+            <td>Comma-separated list of PRT columns to show</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>core</td>
+            <td>int32</td>
+            <td>all</td>
+            <td>Core ID for multi-core devices<strong><br>
+                  <br>Enum Values
+                  								</strong><br>max - 
+               								max core ID<br>all - 
+               								all cores<br></td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>file</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>File name where command output will be placed</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>gold</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Save PRT XML output file under the DB gold result folder</td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td>new</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Overwrite output file with the new one</td>
+         </tr>
+         <tr>
+            <td>6.</td>
+            <td>xpath</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>XPath in output file, relative to top, where output will be added</td>
+         </tr>
+         <tr>
+            <td>7.</td>
+            <td>folder</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Directory name where command output will be placed</td>
+         </tr>
+         <tr>
+            <td>8.</td>
+            <td>silence</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Deprecate certain info messages from tabular printing</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p></p>
+      
+      
+      
+      
+      
+      <h2>1.2. General &gt; System_Commands</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Commands applicable after each regular command</p>
+      
+      <h3>1.2.1. General &gt; System_Commands &gt; usage</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Print list of commands available</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>column</td>
+            <td>int32</td>
+            <td>120</td>
+            <td>Maximum columns number for output</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>margin</td>
+            <td>int32</td>
+            <td>6</td>
+            <td>Left&amp;Right margin of defined display width</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>tabular</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Print usage in tabular view</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>all</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Show all including system ones</td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td>list</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Show usage of all leafs inside the branch</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>USaGe</p>
+      
+      
+      
+      
+      
+      <h3>1.2.2. General &gt; System_Commands &gt; help</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Print list of commands available</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>column</td>
+            <td>int32</td>
+            <td>120</td>
+            <td>Maximum columns number for output</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>margin</td>
+            <td>int32</td>
+            <td>6</td>
+            <td>Left&amp;Right margin of defined display width</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>tabular</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Print usage in tabular view</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>all</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Show all including system ones</td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td>list</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Show usage of all leafs inside the branch</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>Help</p>
+      
+      
+      
+      
+      
+      <h3>1.2.3. General &gt; System_Commands &gt; manual</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Export usage to xml file. By default it will be manual.xml placed in $PWD.Argument
+         'file' may be used to assign any other name or/and path
+      </p>
+      <p><strong>Examples
+            				</strong></p>
+      <p>MANual file=Full_UM.xml</p>
+      <p>MANual </p>
+      
+      
+      
+      
+      <h3>1.2.4. General &gt; System_Commands &gt; exec</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Perform all commands under the node</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>all</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Execute all shell commands ignoring errors</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>logger</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Log all commands execution as it happens</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>failed</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Results table will show only failed tests</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>force</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Execute all shell commands ignoring SKIP flag</td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td>quiet</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>DO not print regular command log - only the resulting table</td>
+         </tr>
+         <tr>
+            <td>6.</td>
+            <td>write</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Save command output to XML file under the name of the command</td>
+         </tr>
+         <tr>
+            <td>7.</td>
+            <td>memory</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Verify the example frees all allocated memory</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>EXec</p>
+      
+      
+      
+      
+      
+      <h3>1.2.5. General &gt; System_Commands &gt; UsageTEST</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Verifies command definition</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>all</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Performs additional checks on usage</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>UsageTEST</p>
+      
+      
+      
+      
+      
+      
+      <p><a href="#tocLink">Table of Contents</a></p>
+      
+      <h1><font color="CC092F">2.  <a name="ACCess">ACCess</a></font></h1>
+      <p><strong>Overview
+            				</strong></p>
+      <p>List/Read/Modify registers&amp;memories</p>
+      
+      <h2>2.1. ACCess &gt; blocks</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Lists blocks of device</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>name</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Full block name or its substring, filtering blocks to be listed</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>ACCess BLocks </p>
+      <p>ACCess BLocks name=SCH</p>
+      
+      
+      
+      
+      
+      <h2>2.2. ACCess &gt; list</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Show registers/memories lists per filtering criteria</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>name</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Regular expression used to filter regs/mems and their fields</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>address</td>
+            <td>uint32</td>
+            <td>0xFFFFFFFF</td>
+            <td>Memory or Register address, acts as if mem/reg nam provides</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>block</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Block name or any substring of it to filter regs/mems</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>all</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Ignore filters and print all regs/mems</td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td>field</td>
+            <td>boolean</td>
+            <td>Yes</td>
+            <td>Include fields in regs/mems search and output</td>
+         </tr>
+         <tr>
+            <td>6.</td>
+            <td>desc</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Add description column in output</td>
+         </tr>
+         <tr>
+            <td>7.</td>
+            <td>property</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Name or name substring for regs/mems properties</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>ACCess LIST prp=reg.*iproc field=no</p>
+      <p>ACCess LIST name=RIP block=SCH</p>
+      <p>ACCess LIST prp=mem address=0x00800000 desc</p>
+      <p>ACCess LIST all file=access_list.xml</p>
+      
+      
+      
+      
+      
+      <h2>2.3. ACCess &gt; read</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Read registers/memories lists per filtering criteria</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>name</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Regular expression used to filter regs/mems and their fields</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>block</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Block name or any substring of it to filter regs/mems</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>all</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Ignore filters and print all regs/mems</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>field</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Include fields in regs/mems search and output</td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td>changed</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Print only when value is different from reset one</td>
+         </tr>
+         <tr>
+            <td>6.</td>
+            <td>property</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Name or name substring for regs/mems properties/n&lt;reg/mem/array/ro/wo regtype name:&lt;cpu/general/iproc/custom/port&gt;</td>
+         </tr>
+         <tr>
+            <td>7.</td>
+            <td>index</td>
+            <td>int32</td>
+            <td>-1</td>
+            <td>Memory Array Index</td>
+         </tr>
+         <tr>
+            <td>8.</td>
+            <td>id</td>
+            <td>int32</td>
+            <td>-1</td>
+            <td>Memory Entry Number</td>
+         </tr>
+         <tr>
+            <td>9.</td>
+            <td>count</td>
+            <td>int32</td>
+            <td>0</td>
+            <td>number of entries</td>
+         </tr>
+         <tr>
+            <td>10.</td>
+            <td>cache</td>
+            <td>boolean</td>
+            <td>Yes</td>
+            <td>flag used to obtain non-cached memory value</td>
+         </tr>
+         <tr>
+            <td>11.</td>
+            <td>overwrite</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>flag used to overwrite auxiliary no read</td>
+         </tr>
+         <tr>
+            <td>12.</td>
+            <td>warmboot</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>used to read only warmboot meaningful objects</td>
+         </tr>
+         <tr>
+            <td>13.</td>
+            <td>separate</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Used to read mem/reg to separate files</td>
+         </tr>
+         <tr>
+            <td>14.</td>
+            <td>print</td>
+            <td>boolean</td>
+            <td>Yes</td>
+            <td>Print the data to the screen/file</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>ACCess Read name=VTT count=1</p>
+      <p>ACCess Read name=RATE block=SCH wb count=8 print=on</p>
+      <p>ACCess Read prp=mem.*signal name=PORT count=1 field</p>
+      <p>ACCess Read name=VSI id=0 count=1 index=0 field overwrite</p>
+      <p>ACCess Read prp=mem block=ETPP count=1 file=access_list.xml</p>
+      <p>ACCess Read prp=reg.*port field separate</p>
+      <p>ACCess Read block=IPP count=1 changed</p>
+      
+      
+      
+      
+      
+      <h2>2.4. ACCess &gt; property</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Lists register number per property</p>
+      <p><strong>Examples
+            				</strong></p>
+      <p>ACCess PRoPerty</p>
+      
+      
+      
+      
+      <h2>2.5. ACCess &gt; write</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Set registers/memories value.</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>name</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Name of the mem/reg to be set</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>value</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>New value of the mem/reg</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>block</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Specific block name of mem/reg to be set</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>entry</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Entry ID</td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td>count</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Number of entries to be set</td>
+         </tr>
+         <tr>
+            <td>6.</td>
+            <td>index</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Memory array index</td>
+         </tr>
+         <tr>
+            <td>7.</td>
+            <td>offset</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Offset</td>
+         </tr>
+         <tr>
+            <td>8.</td>
+            <td>symbol</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Symbol</td>
+         </tr>
+         <tr>
+            <td>9.</td>
+            <td>register</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Flag used to specify that we will set a value to a register</td>
+         </tr>
+         <tr>
+            <td>10.</td>
+            <td>memory</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Flag used to specify that we will set a value to a memory</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>ACCess Write mem TCAM_TCAM_BANK_COMMAND block=TCAM0 entry=0 count=1 value=TCAM_CPU_CMD_WR(3),TCAM_CPU_CMD_VALID(3),TCAM_CPU_CMD_RD(0),TCAM_CPU_CMD_CMP(0)</p>
+      <p>ACCess Write mem IPPC_PMF_KBR_PASS_1 entry=0 count=1 value="0x0 0x0 0x0 0x0 0x1 0x0
+         0x0 0x0 0x0 0x0 0x0 0x5 0x0 0x0 0x0 0x0 0x8 0x0 0x0 0x11 0x3 0x0"
+      </p>
+      <p>ACCess Write reg TCAM_TCAM_BANK_BLOCK_OWNER value=0 symbol=11</p>
+      <p>ACCess Write mem TCAM_TCAM_ACTION entry=0 count=1 value=ACTION(0xFF) index=1 offset=4</p>
+      
+      
+      
+      
+      
+      <h2>2.6. ACCess &gt; modify</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Modify registers/memories field value.</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>name</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Name of the reg/mem to be set.</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>register</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Flag used to specify that we will set a value to a register.</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>memory</td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Flag used to specify that we will set a value to a memory.</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>value</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Field and its new value.</td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td>block</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Block name of it to filter regs/mems.</td>
+         </tr>
+         <tr>
+            <td>6.</td>
+            <td>entry</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Entry ID.</td>
+         </tr>
+         <tr>
+            <td>7.</td>
+            <td>count</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Entres count.</td>
+         </tr>
+         <tr>
+            <td>8.</td>
+            <td>index</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Memory Array Index.</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>ACCess MODify mem IPPC_PMF_KBR_PASS_1 entry=0 count=1 value=KEY_A_APP_DB(0x0)</p>
+      <p>ACCess MODify reg IPPD_ACTION_DISABLE value=ACR_VLAN_EDIT_CMD(1) block=IPPD0</p>
+      <p>ACCess MODify mem TCAM_TCAM_ACTION entry=0 count=1 value=ACTION(0xFF) index=1</p>
+      
+      
+      
+      
+      
+      <p><a href="#tocLink">Table of Contents</a></p>
+      
+      <h1><font color="CC092F">3.  <a name="APPLication">APPLication</a></font></h1>
+      <p><strong>Overview
+            				</strong></p>
+      <p>Reference application diagnostic pack</p>
+      
+      <h2>3.1. APPLication &gt; run</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Diagnostic pack for running init/deinit of reference applications by name or by id</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>id</td>
+            <td>int32</td>
+            <td>-1</td>
+            <td>Invoke application by id</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>name</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Invoke application by name</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>deinit</td>
+            <td>boolean</td>
+            <td>false</td>
+            <td>Whether to run init or deinit</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>APPLication RUN </p>
+      <p>APPLication RUN name="Interrupt Init"</p>
+      <p>APPLication RUN name="Interrupt Init" deinit</p>
+      <p>APPLication RUN id=3</p>
+      <p>APPLication RUN id=3 deinit</p>
+      
+      
+      
+      
+      
+      <h2>3.2. APPLication &gt; list</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>List all application names and their IDs</p>
+      <p><strong>Examples
+            				</strong></p>
+      <p>APPLication LIST</p>
+      
+      
+      
+      
+      <p><a href="#tocLink">Table of Contents</a></p>
+      
+      <h1><font color="CC092F">4.  <a name="AVS">AVS</a></font></h1>
+      <p><strong>Overview
+            				</strong></p>
+      <p>Display the AVS value of the device</p>
+      
+      <h2>4.1. AVS &gt; read</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Display the AVS value of the device</p>
+      <p><strong>Examples
+            				</strong></p>
+      <p>AVS Read</p>
+      
+      
+      
+      
+      <p><a href="#tocLink">Table of Contents</a></p>
+      
+      <h1><font color="CC092F">5.  <a name="CLear">CLear</a></font></h1>
+      <p><strong>Overview
+            				</strong></p>
+      <p>Used to clear miscellaneous diagnostic statistic information</p>
+      
+      <h2>5.1. CLear &gt; counter</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Clear device counters</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>port</td>
+            <td>port</td>
+            <td>all</td>
+            <td>filter on Port ID or port name</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>CLear COUnter port=sfi13</p>
+      <p>CLear COUnter port=sfi13-sfi16 </p>
+      <p>CLear COUnter port=fabric</p>
+      <p>CLear COUnter </p>
+      
+      
+      
+      
+      
+      <h2>5.2. CLear &gt; INTeRrupt</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Clear device interrupt</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>ID</td>
+            <td>uint32</td>
+            <td>NONE</td>
+            <td>Interrupt ID</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>Port</td>
+            <td>int32</td>
+            <td>0</td>
+            <td>port number</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>CLear INTeRrupt 12</p>
+      <p>CLear INTeRrupt 122 p=1</p>
+      
+      
+      
+      
+      
+      <p><a href="#tocLink">Table of Contents</a></p>
+      
+      <h1><font color="CC092F">6.  <a name="counter">counter</a></font></h1>
+      <p><strong>Overview
+            				</strong></p>
+      <p>Enable/disable counter collection.</p>
+      
+      <h2>6.1. counter &gt; Synopsis</h2>
+      
+      
+      
+      <h2>6.2. counter &gt; Examples</h2>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <h2>6.3. counter &gt; Arguments</h2>
+      
+      
+      
+      
+      
+      
+      
+      <p><a href="#tocLink">Table of Contents</a></p>
+      
+      <h1><font color="CC092F">7.  <a name="DaTa">DaTa</a></font></h1>
+      <p><strong>Overview
+            				</strong></p>
+      <p>Misc facilities for displaying dnxc data information</p>
+      
+      <h2>7.1. DaTa &gt; dump</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Dump data or get list of modules/submodules/data</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>changed</td>
+            <td>boolean</td>
+            <td>no</td>
+            <td>dump changed only properties</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>define</td>
+            <td>boolean</td>
+            <td>no</td>
+            <td>dump defines only</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>numeric</td>
+            <td>boolean</td>
+            <td>no</td>
+            <td>dump numerics only</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>feature</td>
+            <td>boolean</td>
+            <td>no</td>
+            <td>dump features only</td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td>table</td>
+            <td>boolean</td>
+            <td>no</td>
+            <td>dump table only</td>
+         </tr>
+         <tr>
+            <td>6.</td>
+            <td>property</td>
+            <td>boolean</td>
+            <td>no</td>
+            <td>dump properties only</td>
+         </tr>
+         <tr>
+            <td>7.</td>
+            <td>label</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>dump data marked with specified label only</td>
+         </tr>
+         <tr>
+            <td>8.</td>
+            <td>silence</td>
+            <td>boolean</td>
+            <td>true</td>
+            <td>Deprecate certain info messages from tabular printing</td>
+         </tr>
+         <tr>
+            <td>9.</td>
+            <td>name</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>[&lt;module_name&gt;[.&lt;submodule_name&gt;[.&lt;data_name&gt;]]]</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>DaTa DuMP fabric.pipes.map</p>
+      <p>DaTa DuMP fabric.pipes.*</p>
+      <p>DaTa DuMP fabric.pipes.</p>
+      <p>DaTa DuMP fabric.</p>
+      <p>DaTa DuMP chg *</p>
+      <p>DaTa DuMP label=tm *</p>
+      <p>DaTa DuMP define fabric.*</p>
+      <p>DaTa DuMP numeric fabric.*</p>
+      <p>DaTa DuMP feature fabric.*</p>
+      <p>DaTa DuMP table fabric.*</p>
+      <p>DaTa DuMP property fabric.*</p>
+      <p>DaTa DuMP silence *</p>
+      <p>DaTa DuMP </p>
+      
+      
+      
+      
+      
+      <h2>7.2. DaTa &gt; export</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Export changed data to an xml file (can also print all changed data to the consol)</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>changed</td>
+            <td>boolean</td>
+            <td>yes</td>
+            <td>Export only changed properties</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>silence</td>
+            <td>boolean</td>
+            <td>true</td>
+            <td>Deprecate certain info messages from tabular printing</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>DaTa EXPort changed file=dnx_data.xml</p>
+      <p>DaTa EXPort silence file=dnx_data.xml</p>
+      <p>DaTa EXPort </p>
+      
+      
+      
+      
+      
+      <h2>7.3. DaTa &gt; info</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Get list of modules/submodules/data or full description id data specified</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>changed</td>
+            <td>boolean</td>
+            <td>no</td>
+            <td>dump changed only properties</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>define</td>
+            <td>boolean</td>
+            <td>no</td>
+            <td>dump defines only</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>numeric</td>
+            <td>boolean</td>
+            <td>no</td>
+            <td>dump numerics only</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>feature</td>
+            <td>boolean</td>
+            <td>no</td>
+            <td>dump features only</td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td>table</td>
+            <td>boolean</td>
+            <td>no</td>
+            <td>dump table only</td>
+         </tr>
+         <tr>
+            <td>6.</td>
+            <td>property</td>
+            <td>boolean</td>
+            <td>no</td>
+            <td>dump properties only</td>
+         </tr>
+         <tr>
+            <td>7.</td>
+            <td>label</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>dump data marked with specified label only</td>
+         </tr>
+         <tr>
+            <td>8.</td>
+            <td>name</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>[&lt;module_name&gt;[.&lt;submodule_name&gt;[.&lt;data_name&gt;]]]</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>DaTa INFo fabric.pipes.map</p>
+      <p>DaTa INFo fabric.pipes.*</p>
+      <p>DaTa INFo fabric.</p>
+      <p>DaTa INFo chg *</p>
+      <p>DaTa INFo label=tm *</p>
+      <p>DaTa INFo define fabric.*</p>
+      <p>DaTa INFo numeric fabric.*</p>
+      <p>DaTa INFo feature fabric.*</p>
+      <p>DaTa INFo table fabric.*</p>
+      <p>DaTa INFo property fabric.*</p>
+      <p>DaTa INFo </p>
+      
+      
+      
+      
+      
+      <h2>7.4. DaTa &gt; property_manual</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>export xml format manual of all soc properties supported by device</p>
+      <p><strong>Examples
+            				</strong></p>
+      <p>DaTa PRoPerty_MANual</p>
+      
+      
+      
+      
+      
+      <h2>7.5. DaTa &gt; property</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Get list of soc properties contains substring &lt;property&gt; or info about soc property
+         named &lt;property&gt;
+      </p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>label</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Filter soc properties according to data label</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>name</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Filter soc properties by this substring</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>DaTa PRoPerty fabric_device_mode</p>
+      <p>DaTa PRoPerty label=tm name=</p>
+      <p>DaTa PRoPerty </p>
+      
+      
+      
+      
+      
+      <p><a href="#tocLink">Table of Contents</a></p>
+      
+      <h1><font color="CC092F">8.  <a name="DIAG">DIAG</a></font></h1>
+      <p><strong>Overview
+            				</strong></p>
+      <p>Miscellaneous facilities for displaying diagnostics information</p>
+      
+      <h2>8.1. DIAG &gt; counter</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Display the counters of the internal blocks</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>block</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Block name, empty means all</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>graphical</td>
+            <td>boolean</td>
+            <td>false</td>
+            <td>display counters in graphic view</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>hex</td>
+            <td>boolean</td>
+            <td>false</td>
+            <td>display counter in hex format</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>NonZero</td>
+            <td>boolean</td>
+            <td>false</td>
+            <td>display non-zero counter only</td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td>interval</td>
+            <td>uint32</td>
+            <td>0</td>
+            <td>interval for gtimer (second)</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>DIAG COUnter RTP </p>
+      <p>DIAG COUnter DCH nz</p>
+      <p>DIAG COUnter graphical</p>
+      <p>DIAG COUnter graphical hex</p>
+      <p>DIAG COUnter graphical interval=10</p>
+      
+      
+      
+      
+      
+      <p><a href="#tocLink">Table of Contents</a></p>
+      
+      <h1><font color="CC092F">9.  <a name="Fabric">Fabric</a></font></h1>
+      <p><strong>Overview
+            				</strong></p>
+      <p>Miscellaneous facilities for displaying fabric information</p>
+      
+      <h2>9.1. Fabric &gt; reachability</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Displays reachable links to modid</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>id</td>
+            <td>int32</td>
+            <td>NONE</td>
+            <td>Module ID</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>Fabric REACHability 3</p>
+      <p>Fabric REACHability 2</p>
+      <p>Fabric REACHability id=3</p>
+      
+      
+      
+      
+      
+      <h2>9.2. Fabric &gt; connectivity</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Display fabric interface connectivity information</p>
+      <p><strong>Examples
+            				</strong></p>
+      <p>Fabric CONnectivity</p>
+      
+      
+      
+      
+      <h2>9.3. Fabric &gt; queues</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Display queues status</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>block</td>
+            <td>enum</td>
+            <td>ALL</td>
+            <td>FE Stage (DCH/DTM/DTL/DFL)<strong><br>
+                  <br>Enum Values
+                  								</strong><br>DCH - 
+               								DCH block<br>DTM - 
+               								DTM block<br>DTL - 
+               								DTL block<br>DFL - 
+               								DFL block<br>ALL - 
+               								ALL block<br></td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>Fabric Queues dch</p>
+      <p>Fabric Queues dtm</p>
+      <p>Fabric Queues dtl</p>
+      <p>Fabric Queues dfl</p>
+      <p>Fabric Queues all</p>
+      
+      
+      
+      
+      
+      <h2>9.4. Fabric &gt; traffic_profile</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Displays if traffic of a certain cast and priority is passing through the fabric</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>destination</td>
+            <td>int32</td>
+            <td>-1</td>
+            <td>Destination ID</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>source</td>
+            <td>int32</td>
+            <td>-1</td>
+            <td>Source ID</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>Fabric Traffic_Profile </p>
+      <p>Fabric Traffic_Profile destination=40 </p>
+      <p>Fabric Traffic_Profile dst=40 src=50</p>
+      
+      
+      
+      
+      
+      <h2>9.5. Fabric &gt; thresholds</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Display the configured FIFO thresholds</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>group</td>
+            <td>enum</td>
+            <td>NONE</td>
+            <td>Threshold Group (GCI/RCI/FC/DROP/SIZE)<strong><br>
+                  <br>Enum Values
+                  								</strong><br>GCI - 
+               								GCI threshold<br>RCI - 
+               								RCI threshold<br>FC - 
+               								FC threshold<br>DROP - 
+               								DROP threshold<br>SIZE - 
+               								SIZE threshold<br></td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>pipe</td>
+            <td>int32</td>
+            <td>-1</td>
+            <td>Pipe ID (0/1/2)</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>priority</td>
+            <td>int32</td>
+            <td>-1</td>
+            <td>Priority (0/1/2/3)</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>stage</td>
+            <td>enum</td>
+            <td>ALL</td>
+            <td>TX/MIDDLE/RX/SHARED<strong><br>
+                  <br>Enum Values
+                  								</strong><br>TX - 
+               								TX STAGE<br>MIDDLE - 
+               								MIDDLE STAGE<br>RX - 
+               								RX STAGE<br>SHARED - 
+               								SHARED STAGE<br>ALL - 
+               								ALL STAGE<br></td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td>link</td>
+            <td>int32</td>
+            <td>-1</td>
+            <td>link ID</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>Fabric THreSholds RCI </p>
+      <p>Fabric THreSholds RCI stage=TX</p>
+      <p>Fabric THreSholds DROP stage=MIDDLE priority=3</p>
+      <p>Fabric THreSholds RCI priority=2 link=46 </p>
+      <p>Fabric THreSholds DROP stage=tx pipe=0</p>
+      
+      
+      
+      
+      
+      <h2>9.6. Fabric &gt; LiNK</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>display fabric link status and configuration</p>
+      
+      <h3>9.6.1. Fabric &gt; LiNK &gt; status</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Display fabric link status. 
+         
+      </p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>link</td>
+            <td>int32</td>
+            <td>-1</td>
+            <td>link ID</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>all</td>
+            <td>boolean</td>
+            <td>no</td>
+            <td>show all links</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>Fabric LiNK StaTuS </p>
+      <p>Fabric LiNK StaTuS all </p>
+      <p>Fabric LiNK StaTuS 45</p>
+      
+      
+      
+      
+      
+      <h3>9.6.2. Fabric &gt; LiNK &gt; config</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Display fabric link config 
+         
+      </p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>link</td>
+            <td>int32</td>
+            <td>-1</td>
+            <td>link ID</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>all</td>
+            <td>boolean</td>
+            <td>no</td>
+            <td>show all links</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>Fabric LiNK ConFiG </p>
+      <p>Fabric LiNK ConFiG all </p>
+      <p>Fabric LiNK ConFiG 45</p>
+      
+      
+      
+      
+      
+      
+      <h2>9.7. Fabric &gt; mesh_topology</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Diagnostic for mesh_topology block</p>
+      <p><strong>Examples
+            				</strong></p>
+      <p>Fabric Mesh_Topology</p>
+      
+      
+      
+      
+      <h2>9.8. Fabric &gt; lane_map</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Diagnostic for Fabric Lane Map, only dump the MAPPED lanes</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>lane</td>
+            <td>int32</td>
+            <td>-1</td>
+            <td>Lane ID</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>Fabric LANE_MAP lane=10</p>
+      <p>Fabric LANE_MAP </p>
+      
+      
+      
+      
+      
+      <p><a href="#tocLink">Table of Contents</a></p>
+      
+      <h1><font color="CC092F">10.  <a name="init_dnx">init_dnx</a></font></h1>
+      <p><strong>Overview
+            				</strong></p>
+      <p>DNX Init-Deinit device</p>
+      
+      <h2>10.1. init_dnx &gt; Synopsis</h2>
+      
+      
+      
+      <h2>10.2. init_dnx &gt; Examples</h2>
+      
+      
+      
+      
+      
+      
+      
+      <h2>10.3. init_dnx &gt; Arguments</h2>
+      
+      
+      
+      
+      
+      <p><a href="#tocLink">Table of Contents</a></p>
+      
+      <h1><font color="CC092F">11.  <a name="INTeRrupt">INTeRrupt</a></font></h1>
+      <p><strong>Overview
+            				</strong></p>
+      <p>Misc facilities to interrupts related diagnostic</p>
+      
+      <h2>11.1. INTeRrupt &gt; ENAble</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Enable device interrupt</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>id</td>
+            <td>uint32</td>
+            <td>NONE</td>
+            <td>Interrupt ID</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>Port</td>
+            <td>int32</td>
+            <td>0</td>
+            <td>port number</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>INTeRrupt ENAble 12</p>
+      <p>INTeRrupt ENAble 122 p=1</p>
+      <p>INTeRrupt ENAble id=3</p>
+      
+      
+      
+      
+      
+      <h2>11.2. INTeRrupt &gt; DISaBle</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Disable device interrupt</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>id</td>
+            <td>uint32</td>
+            <td>NONE</td>
+            <td>Interrupt ID</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>Port</td>
+            <td>int32</td>
+            <td>0</td>
+            <td>port number</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>INTeRrupt DISaBle 3</p>
+      <p>INTeRrupt DISaBle 2 p=1</p>
+      <p>INTeRrupt DISaBle id=12</p>
+      
+      
+      
+      
+      
+      <p><a href="#tocLink">Table of Contents</a></p>
+      
+      <h1><font color="CC092F">12.  <a name="linkscan">linkscan</a></font></h1>
+      <p><strong>Overview
+            				</strong></p>
+      <p>Misc facilities for configuring or displaying linkscan</p>
+      
+      <h2>12.1. linkscan &gt; Synopsis</h2>
+      
+      
+      
+      <h2>12.2. linkscan &gt; Examples</h2>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <h2>12.3. linkscan &gt; Arguments</h2>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <p><a href="#tocLink">Table of Contents</a></p>
+      
+      <h1><font color="CC092F">13.  <a name="MBIST">MBIST</a></font></h1>
+      <p><strong>Overview
+            				</strong></p>
+      <p>MBIST diagnostic commands</p>
+      
+      <h2>13.1. MBIST &gt; LOAD</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>MBIST load commands 
+         
+      </p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>filename</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Configure mbist load file name</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>MBIST LOAD</p>
+      
+      
+      
+      
+      
+      <h2>13.2. MBIST &gt; Stop_On_Error</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>MBIST Stop_On_Error commands 
+         
+      </p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>enable</td>
+            <td>boolean</td>
+            <td>NONE</td>
+            <td>Configure mbist stop_on_error</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>MBIST Stop_On_Error 1</p>
+      <p>MBIST Stop_On_Error 0</p>
+      
+      
+      
+      
+      
+      <h2>13.3. MBIST &gt; Test</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>MBIST test commands 
+         
+      </p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>Write_Command</td>
+            <td>uint32</td>
+            <td>-1</td>
+            <td>Configure mbist test write_command</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>run</td>
+            <td>boolean</td>
+            <td>EMPTY</td>
+            <td>Configure mbist test write_command</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>MBIST Test Write_Command=2</p>
+      <p>MBIST Test Write_Command=3</p>
+      <p>MBIST Test run</p>
+      
+      
+      
+      
+      
+      <h2>13.4. MBIST &gt; Device_Data</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>MBIST device_data commands 
+         
+      </p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>divisor</td>
+            <td>uint32</td>
+            <td>-1</td>
+            <td>Configure mbist device_data sleep_divisor</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>CoMmanD_Reg</td>
+            <td>string</td>
+            <td>NONE</td>
+            <td>Configure mbist device_data TAP command register</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>DaTaIN_Reg</td>
+            <td>string</td>
+            <td>NONE</td>
+            <td>Configure mbist device_data TAP data in register</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>DaTaOUT_Reg</td>
+            <td>string</td>
+            <td>NONE</td>
+            <td>Configure mbist device_data TAP data out register</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>MBIST Device_Data 10 Command_Reg=ECI_TAP_CPU_INTERFACE_COMMAND DataIn_Reg=ECI_TAP_CPU_INTERFACE_DATA_IN
+         DataOut_Reg=ECI_TAP_CPU_INTERFACE_DATA_OUT
+      </p>
+      
+      
+      
+      
+      
+      <h2>13.5. MBIST &gt; Print</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>MBIST print current loaded script 
+         
+      </p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>filename</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Select output file name</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>MBIST PRinT</p>
+      
+      
+      
+      
+      
+      <p><a href="#tocLink">Table of Contents</a></p>
+      
+      <h1><font color="CC092F">14.  <a name="pbmp">pbmp</a></font></h1>
+      <p><strong>Overview
+            				</strong></p>
+      <p>Convert port bitmap string to hex.</p>
+      
+      <h2>14.1. pbmp &gt; Synopsis</h2>
+      
+      
+      
+      <h2>14.2. pbmp &gt; Examples</h2>
+      
+      
+      
+      
+      <h2>14.3. pbmp &gt; Arguments</h2>
+      
+      
+      
+      <p><a href="#tocLink">Table of Contents</a></p>
+      
+      <h1><font color="CC092F">15.  <a name="PHY">PHY</a></font></h1>
+      <p><strong>Overview
+            				</strong></p>
+      <p>Misc facilities for displaying phy diagnostics</p>
+      
+      <h2>15.1. PHY &gt; info</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Dump PHY info</p>
+      <p><strong>Examples
+            				</strong></p>
+      <p>PHY INFo</p>
+      
+      
+      
+      
+      <h2>15.2. PHY &gt; PRBS</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Diagnostic for Prbs</p>
+      
+      <h3>15.2.1. PHY &gt; PRBS &gt; set</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Diagnostic for PHY Prbs set</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>pbmp</td>
+            <td>port</td>
+            <td>NONE</td>
+            <td>port # / logical port type / port name</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>mode</td>
+            <td>enum</td>
+            <td>phy</td>
+            <td>Prbs mode<strong><br>
+                  <br>Enum Values
+                  								</strong><br>phy - 
+               								PRBs mode: PHY<br>mac - 
+               								PRBs mode: MAC<br></td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>invert</td>
+            <td>boolean</td>
+            <td>false</td>
+            <td>invert</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>polynomial</td>
+            <td>enum</td>
+            <td>3</td>
+            <td>prbs polynomial<strong><br>
+                  <br>Enum Values
+                  								</strong><br>X7_X6_1 - 
+               								PRBs polynomial X7_X6_1<br>X15_X14_1 - 
+               								PRBs polynomial X15_X14_1<br>X23_X18_1 - 
+               								PRBs polynomial X23_X18_1<br>X31_X28_1 - 
+               								PRBs polynomial X31_X28_1<br>X9_X5_1 - 
+               								PRBs polynomial X9_X5_1<br>X11_X9_1 - 
+               								PRBs polynomial X11_X9_1<br>X58_X31_1 - 
+               								PRBs polynomial X58_X31_1<br>X49_X40_1 - 
+               								PRBs polynomial X49_X40_1<br>X20_X3_1 - 
+               								PRBs polynomial X20_X3_1<br>X13_X12_X2_1 - 
+               								PRBs polynomial X13_X12_X2_1<br>X10_X7_1 - 
+               								PRBs polynomial X10_X7_1<br>0 - 
+               								PRBs polynomial X7_X6_1<br>1 - 
+               								PRBs polynomial X15_X14_1<br>2 - 
+               								PRBs polynomial X23_X18_1<br>3 - 
+               								PRBs polynomial X31_X28_1<br>4 - 
+               								PRBs polynomial X9_X5_1<br>5 - 
+               								PRBs polynomial X11_X9_1<br>6 - 
+               								PRBs polynomial X58_X31_1<br>7 - 
+               								PRBs polynomial X49_X40_1<br>8 - 
+               								PRBs polynomial X20_X3_1<br>9 - 
+               								PRBs polynomial X13_X12_X2_1<br>10 - 
+               								PRBs polynomial X10_X7_1<br></td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>PHY PRBS Set sfi mode=mac poly=3 </p>
+      <p>PHY PRBS Set 1 poly=X31_X28_1 invert=1</p>
+      
+      
+      
+      
+      
+      <h3>15.2.2. PHY &gt; PRBS &gt; get</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Diagnostic for PHY Prbs get</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>pbmp</td>
+            <td>port</td>
+            <td>NONE</td>
+            <td>port # / logical port type / port name</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>interval</td>
+            <td>int32</td>
+            <td>1</td>
+            <td>interval [seconds]</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>PHY PRBS Get 1 interval=1</p>
+      
+      
+      
+      
+      
+      <h3>15.2.3. PHY &gt; PRBS &gt; clear</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Diagnostic for PHY Prbs clear</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>pbmp</td>
+            <td>port</td>
+            <td>NONE</td>
+            <td>port # / logical port type / port name</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>PHY PRBS CLear sfi </p>
+      <p>PHY PRBS CLear 13</p>
+      
+      
+      
+      
+      
+      
+      <h2>15.3. PHY &gt; measure</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Diagnostic for PHY measure</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>pbmp</td>
+            <td>port</td>
+            <td>NONE</td>
+            <td>port # / logical port type / port name</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>direction</td>
+            <td>enum</td>
+            <td>rx</td>
+            <td>Tx or Rx<strong><br>
+                  <br>Enum Values
+                  								</strong><br>rx - 
+               								Use Rx rate FIFO to do phy measure.<br>tx - 
+               								Use Tx rate FIFO to do phy measure.<br></td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>PHY MeaSuRe sfi </p>
+      <p>PHY MeaSuRe 1 rx</p>
+      
+      
+      
+      
+      
+      <h2>15.4. PHY &gt; cl72</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Diagnostic for PHY cl72</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>pbmp</td>
+            <td>port</td>
+            <td>NONE</td>
+            <td>port # / logical port type / port name</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>mode</td>
+            <td>enum</td>
+            <td>state</td>
+            <td>on or off<strong><br>
+                  <br>Enum Values
+                  								</strong><br>on - 
+               								Turn on link training.<br>off - 
+               								Turn off link training.<br>state - 
+               								Show link traning state.<br></td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>PHY CL72 sfi </p>
+      <p>PHY CL72 1 on</p>
+      
+      
+      
+      
+      
+      <h2>15.5. PHY &gt; RAW</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Diagnostic for PHY raw command</p>
+      
+      <h3>15.5.1. PHY &gt; RAW &gt; c45</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Diagnostic for PHY raw c45 command</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>phy_id</td>
+            <td>uint32</td>
+            <td>NONE</td>
+            <td>PHY ID</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>dev_addr</td>
+            <td>uint32</td>
+            <td>NONE</td>
+            <td>Device Address</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>reg_addr</td>
+            <td>uint32</td>
+            <td>NONE</td>
+            <td>Register Address</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>data</td>
+            <td>uint32</td>
+            <td>0</td>
+            <td>Set value</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>PHY RAW C45 phy_id=0x1a0 devad=0x1 regad=0x96 </p>
+      <p>PHY RAW C45 phy_id=0x1a0 devad=0x1 regad=0x96 data=0x1</p>
+      
+      
+      
+      
+      
+      
+      <h2>15.6. PHY &gt; dsc</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Diagnostic for PHY dsc info</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>pbmp</td>
+            <td>port</td>
+            <td>NONE</td>
+            <td>port # / logical port type / port name</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>state</td>
+            <td>boolean</td>
+            <td>false</td>
+            <td>Detailed DSC dump, including lane info, core info and lane event info</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>config</td>
+            <td>boolean</td>
+            <td>false</td>
+            <td>Dump Serdes lane and core configuration</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>PHY DSC sfi state </p>
+      <p>PHY DSC 1 config </p>
+      <p>PHY DSC 13</p>
+      
+      
+      
+      
+      
+      <h2>15.7. PHY &gt; list</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Diagnostic for PHY list</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>pbmp</td>
+            <td>port</td>
+            <td>NONE</td>
+            <td>port # / logical port type / port name</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>pattern</td>
+            <td>string</td>
+            <td>NONE</td>
+            <td>pattern</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>PHY LIST sfi pmd </p>
+      <p>PHY LIST 13 ctrl</p>
+      
+      
+      
+      
+      
+      <h2>15.8. PHY &gt; set</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Diagnostic for PHY Set</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>pbmp</td>
+            <td>port</td>
+            <td>NONE</td>
+            <td>port # / logical port type / port name</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>register</td>
+            <td>string</td>
+            <td>NONE</td>
+            <td>Register name or addr</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>field</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Register field name</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>lane</td>
+            <td>int32</td>
+            <td>-1</td>
+            <td>Lane ID</td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td>pll_index</td>
+            <td>int32</td>
+            <td>-1</td>
+            <td>PLL index</td>
+         </tr>
+         <tr>
+            <td>6.</td>
+            <td>data</td>
+            <td>uint32</td>
+            <td>NONE</td>
+            <td>Set value</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>PHY Set sfi reg=DIG_RST_CTL_PMDr data=0x1 </p>
+      <p>PHY Set 13 reg=DIG_RST_CTL_PMDr fld=CORE_S_RSTB dt=0x1 </p>
+      <p>PHY Set 14 reg=DIG_RST_CTL_PMDr fld=CORE_S_RSTB lane=0 pindx=0 dt=0x1 </p>
+      <p>PHY Set 1 reg=0xd101 data=0x1</p>
+      
+      
+      
+      
+      
+      <h2>15.9. PHY &gt; get</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Diagnostic for PHY Get</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>pbmp</td>
+            <td>port</td>
+            <td>NONE</td>
+            <td>port # / logical port type / port name</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>nonzero</td>
+            <td>boolean</td>
+            <td>false</td>
+            <td>list registers matching the pattern and the value is not zero</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>pattern</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>pattern</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>lane</td>
+            <td>int32</td>
+            <td>-1</td>
+            <td>Lane ID</td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td>pll_index</td>
+            <td>int32</td>
+            <td>-1</td>
+            <td>PLL index</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>PHY Get sfi nz *pmd </p>
+      <p>PHY Get 1 nz * </p>
+      <p>PHY Get 13 DIG_RST_CTL_PMDr </p>
+      <p>PHY Get 13 DIG_RST_CTL_PMDr lane=0 pindx=0 </p>
+      <p>PHY Get 14 nz DIG_RST_CTL_PMDr</p>
+      
+      
+      
+      
+      
+      <h2>15.10. PHY &gt; eyescan</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Diagnostic for PHY eyescan</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>pbmp</td>
+            <td>port</td>
+            <td>NONE</td>
+            <td>port # / logical port type / port name</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>lane</td>
+            <td>int32</td>
+            <td>0</td>
+            <td>lane</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>type</td>
+            <td>int32</td>
+            <td>1</td>
+            <td>type</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>ber_scan_mode</td>
+            <td>int32</td>
+            <td>0</td>
+            <td>ber_scan_mode</td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td>max_err_control</td>
+            <td>int32</td>
+            <td>0</td>
+            <td>max_err_control</td>
+         </tr>
+         <tr>
+            <td>6.</td>
+            <td>timer_control</td>
+            <td>int32</td>
+            <td>0</td>
+            <td>timer_control</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>PHY EYEScan 1 lane=0 </p>
+      <p>PHY EYEScan 13 type=1 </p>
+      <p>PHY EYEScan 13 type=4 ber_scan_mode=1 timer_control=100 max_err_control=51</p>
+      
+      
+      
+      
+      
+      <h2>15.11. PHY &gt; FECStat</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Diagnostic for PHY FECSTAT command</p>
+      
+      <h3>15.11.1. PHY &gt; FECStat &gt; counters</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Diagnostic to show PHY fecstat counter</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>pbmp</td>
+            <td>port</td>
+            <td>all</td>
+            <td>port # / logical port type / port name</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>PHY FECStat COUnters sfi </p>
+      <p>PHY FECStat COUnters 1</p>
+      
+      
+      
+      
+      
+      <h3>15.11.2. PHY &gt; FECStat &gt; ber</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Diagnostic to show PHY pre-FEC BER</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>pbmp</td>
+            <td>port</td>
+            <td>all</td>
+            <td>port # / logical port type / port name</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>PHY FECStat BER sfi </p>
+      <p>PHY FECStat BER 1</p>
+      
+      
+      
+      
+      
+      
+      <h2>15.12. PHY &gt; PRBSStat</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Diagnostic for PRBSSTat</p>
+      
+      <h3>15.12.1. PHY &gt; PRBSStat &gt; start</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Start or display PRBSStat.</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>pbmp</td>
+            <td>port</td>
+            <td>0</td>
+            <td>port # / logical port type / port name</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>interval</td>
+            <td>int32</td>
+            <td>1</td>
+            <td>interval [seconds]</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>PHY PRBSStat START 1 interval=30 </p>
+      <p>PHY PRBSStat START 1 </p>
+      <p>PHY PRBSStat START </p>
+      <p>PHY PRBSStat START </p>
+      
+      
+      
+      
+      
+      <h3>15.12.2. PHY &gt; PRBSStat &gt; stop</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Stop PRBSStat.</p>
+      <p><strong>Examples
+            				</strong></p>
+      <p>PHY PRBSStat STOP</p>
+      
+      
+      
+      
+      <h3>15.12.3. PHY &gt; PRBSStat &gt; counters</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Display PRBS errors.</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>pbmp</td>
+            <td>port</td>
+            <td>0</td>
+            <td>port # / logical port type / port name</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>PHY PRBSStat COUnters</p>
+      
+      
+      
+      
+      
+      <h3>15.12.4. PHY &gt; PRBSStat &gt; ber</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Display BER.</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>pbmp</td>
+            <td>port</td>
+            <td>0</td>
+            <td>port # / logical port type / port name</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>PHY PRBSStat BER</p>
+      
+      
+      
+      
+      
+      <h3>15.12.5. PHY &gt; PRBSStat &gt; clear</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Clear PRBS errors.</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>pbmp</td>
+            <td>port</td>
+            <td>0</td>
+            <td>port # / logical port type / port name</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>PHY PRBSStat CLear</p>
+      
+      
+      
+      
+      
+      
+      <p><a href="#tocLink">Table of Contents</a></p>
+      
+      <h1><font color="CC092F">16.  <a name="Port">Port</a></font></h1>
+      <p><strong>Overview
+            				</strong></p>
+      <p>Diagnostic pack for port module</p>
+      
+      <h2>16.1. Port &gt; status</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Diagnostic for printing the port status for all the logical ports.</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>pbmp</td>
+            <td>port</td>
+            <td>all</td>
+            <td>port # / logical port type / port name</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>Port StaTuS sfi </p>
+      <p>Port StaTuS 1</p>
+      
+      
+      
+      
+      
+      <h2>16.2. Port &gt; loopback</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Diagnostic for loopback</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>pbmp</td>
+            <td>port</td>
+            <td>NONE</td>
+            <td>port # / logical port type / port name</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>mode</td>
+            <td>enum</td>
+            <td>NONE</td>
+            <td>Loopback Mode<strong><br>
+                  <br>Enum Values
+                  								</strong><br>none - 
+               								Loopback mode: None<br>phy - 
+               								Loopback mode: PHY<br>mac - 
+               								Loopback mode: MAC<br>rmt - 
+               								Loopback mode: PHY REMOTE<br>mac_rmt - 
+               								Loopback mode: MAC REMOTE<br></td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>Port LooPBack 1 mode=mac </p>
+      <p>Port LooPBack 1 mode=none</p>
+      
+      
+      
+      
+      
+      <h2>16.3. Port &gt; enable</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Diagnostic for port enable</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>pbmp</td>
+            <td>port</td>
+            <td>all</td>
+            <td>port # / logical port type / port name</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>enable</td>
+            <td>boolean</td>
+            <td>NONE</td>
+            <td>Enable or Disable port</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>Port ENAble sfi no </p>
+      <p>Port ENAble sfi yes </p>
+      <p>Port ENAble 1 false </p>
+      <p>Port ENAble 1 yes </p>
+      <p>Port ENAble 13 true</p>
+      
+      
+      
+      
+      
+      <h2>16.4. Port &gt; PortMod</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Diagnostic for port portmacro</p>
+      
+      <h3>16.4.1. Port &gt; PortMod &gt; info</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Diagnostic for port portmacro info</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>pm_id</td>
+            <td>int32</td>
+            <td>-1</td>
+            <td>PortMacro ID</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>Port PortMod INFo pm_id=0</p>
+      
+      
+      
+      
+      
+      
+      <p><a href="#tocLink">Table of Contents</a></p>
+      
+      <h1><font color="CC092F">17.  <a name="SHOW">SHOW</a></font></h1>
+      <p><strong>Overview
+            				</strong></p>
+      <p>Miscellaneous facilities to show PVT, Patch, Interrupts and MIB counters diagnostic</p>
+      
+      <h2>17.1. SHOW &gt; pvt</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Shows device temperature</p>
+      <p><strong>Examples
+            				</strong></p>
+      <p>SHOW PVT</p>
+      
+      
+      
+      
+      <h2>17.2. SHOW &gt; patches</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Show device all installed patches</p>
+      <p><strong>Examples
+            				</strong></p>
+      <p>SHOW PATCHes </p>
+      <p>SHOW PATCHes </p>
+      
+      
+      
+      
+      <h2>17.3. SHOW &gt; counter</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Shows device counters</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>FULL</td>
+            <td>boolean</td>
+            <td>false</td>
+            <td>display ALL available counters</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>hex</td>
+            <td>boolean</td>
+            <td>false</td>
+            <td>display counter in hex format</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>NonZero</td>
+            <td>boolean</td>
+            <td>false</td>
+            <td>display non-zero counter only or not</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>Zero</td>
+            <td>boolean</td>
+            <td>false</td>
+            <td>display counters including zero counter</td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td>CHanGed</td>
+            <td>boolean</td>
+            <td>false</td>
+            <td>display only counters that changed their value since previous call</td>
+         </tr>
+         <tr>
+            <td>6.</td>
+            <td>port</td>
+            <td>port</td>
+            <td>all</td>
+            <td>filter on Port ID or port name</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>SHOW COUnter </p>
+      <p>SHOW COUnter full</p>
+      <p>SHOW COUnter hex</p>
+      <p>SHOW COUnter full nz port=sfi180</p>
+      <p>SHOW COUnter f port=sfi44-sfi144</p>
+      <p>SHOW COUnter full z port=sfi9</p>
+      <p>SHOW COUnter full chg port=sfi44-sfi144</p>
+      
+      
+      
+      
+      
+      <h2>17.4. SHOW &gt; INTeRrupt</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Show device interrupt status/statistics</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>value</td>
+            <td>enum</td>
+            <td>assert</td>
+            <td>Interrupt value (assert/zero/all)<strong><br>
+                  <br>Enum Values
+                  								</strong><br>assert - 
+               								assert interrupts<br>zero - 
+               								zero interrupts<br>all - 
+               								all interrupts<br></td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>MaSK</td>
+            <td>boolean</td>
+            <td>no</td>
+            <td>show mask interrupt</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>UNMask</td>
+            <td>boolean</td>
+            <td>no</td>
+            <td>show unmask interrupt</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>SHOW INTeRrupt </p>
+      <p>SHOW INTeRrupt zero</p>
+      <p>SHOW INTeRrupt all</p>
+      <p>SHOW INTeRrupt MAsK</p>
+      <p>SHOW INTeRrupt UNMask</p>
+      <p>SHOW INTeRrupt MAsK zero</p>
+      
+      
+      
+      
+      
+      <h2>17.5. SHOW &gt; units</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Show device units list or parameters
+         
+      </p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>id</td>
+            <td>int32</td>
+            <td>-1</td>
+            <td>device unit id</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>SHOW UNITs 0</p>
+      <p>SHOW UNITs </p>
+      
+      
+      
+      
+      
+      <h2>17.6. SHOW &gt; VOLTage</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Shows device voltage</p>
+      <p><strong>Examples
+            				</strong></p>
+      <p>SHOW VOLTage</p>
+      
+      
+      
+      
+      <p><a href="#tocLink">Table of Contents</a></p>
+      
+      <h1><font color="CC092F">18.  <a name="soc">soc</a></font></h1>
+      <p><strong>Overview
+            				</strong></p>
+      <p>Display SOC Info.</p>
+      
+      <h2>18.1. soc &gt; Synopsis</h2>
+      
+      
+      
+      <h2>18.2. soc &gt; Examples</h2>
+      
+      
+      
+      <p><a href="#tocLink">Table of Contents</a></p>
+      
+      <h1><font color="CC092F">19.  <a name="WarmBoot">WarmBoot</a></font></h1>
+      <p><strong>Overview
+            				</strong></p>
+      <p>Various Warmboot controls.</p>
+      
+      <h2>19.1. WarmBoot &gt; on</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>raise a flag to indicate the system is under warm reboot.</p>
+      <p><strong>Examples
+            				</strong></p>
+      <p>WarmBoot ON</p>
+      
+      
+      
+      
+      <h2>19.2. WarmBoot &gt; off</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>raise a flag to indicate the system is not under warm reboot.</p>
+      <p><strong>Examples
+            				</strong></p>
+      <p>WarmBoot OFF</p>
+      
+      
+      
+      
+      <h2>19.3. WarmBoot &gt; sync</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Sync the system state to external NV storage.</p>
+      <p><strong>Examples
+            				</strong></p>
+      <p>WarmBoot SYNC</p>
+      
+      
+      
+      
+      <h2>19.4. WarmBoot &gt; memoryuse</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Show memory usage of the current proccess.</p>
+      <p><strong>Examples
+            				</strong></p>
+      <p>WarmBoot MEMoryUSE</p>
+      
+      
+      
+      
+      <h2>19.5. WarmBoot &gt; sw_state_size</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Show the in-use sw state size and the remaining sw state size.</p>
+      <p><strong>Examples
+            				</strong></p>
+      <p>WarmBoot SW_STate_SiZe</p>
+      
+      
+      
+      
+      <h2>19.6. WarmBoot &gt; Test_MoDe</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Various Warmboot test mode controls.</p>
+      
+      <h3>19.6.1. WarmBoot &gt; Test_MoDe &gt; on</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Enable warmboot test mode.</p>
+      <p><strong>Examples
+            				</strong></p>
+      <p>WarmBoot Test_MoDe ON</p>
+      
+      
+      
+      
+      <h3>19.6.2. WarmBoot &gt; Test_MoDe &gt; off</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Disable warmboot test mode.</p>
+      <p><strong>Examples
+            				</strong></p>
+      <p>WarmBoot Test_MoDe OFF</p>
+      
+      
+      
+      
+      <h3>19.6.3. WarmBoot &gt; Test_MoDe &gt; skip</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>This command is deprecated and is not supported anymore.</p>
+      <p><strong>Examples
+            				</strong></p>
+      <p>WarmBoot Test_MoDe SKiP</p>
+      
+      
+      
+      
+      <h3>19.6.4. WarmBoot &gt; Test_MoDe &gt; no_wb_test</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>Temporarily disable warm reboot tests.</p>
+      <p><strong>Examples
+            				</strong></p>
+      <p>WarmBoot Test_MoDe NO_WB_test</p>
+      
+      
+      
+      
+      <h3>19.6.5. WarmBoot &gt; Test_MoDe &gt; allow_wb_test</h3>
+      <p><strong>Description
+            				</strong></p>
+      <p>revert a former no_wb_test call.</p>
+      <p><strong>Examples
+            				</strong></p>
+      <p>WarmBoot Test_MoDe ALLOW_wb_test</p>
+      
+      
+      
+      
+      
+      <p><a href="#tocLink">Table of Contents</a></p>
+      
+      <h1><font color="CC092F">20.  <a name="FRameWork">FRameWork</a></font></h1>
+      <p><strong>Overview
+            				</strong></p>
+      <p>Shell management commands</p>
+      
+      <h2>20.1. FRameWork &gt; compare</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Compare XML file with its golden analog</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>list</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>Filter list name from XML file</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>FRameWork CoMPare list=simple</p>
+      
+      
+      
+      
+      
+      <h2>20.2. FRameWork &gt; delete</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Compare XML file with its golden analog</p>
+      <p><strong>Examples
+            				</strong></p>
+      <p>FRameWork DeLeTe file=1234.xml</p>
+      
+      
+      
+      
+      <h2>20.3. FRameWork &gt; resource</h2>
+      <p><strong>Description
+            				</strong></p>
+      <p>Show all keywords</p>
+      <p><strong>Arguments
+            			</strong></p>
+      <table style="width:70%" border="1" cellpadding="5">
+         <tr bgcolor="#D0D0CE">
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+         </tr>
+         <tr>
+            <td>1.</td>
+            <td>name</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>String or substring to filter keywords upon</td>
+         </tr>
+         <tr>
+            <td>2.</td>
+            <td>path</td>
+            <td>string</td>
+            <td>EMPTY</td>
+            <td>String or substring to filter command path</td>
+         </tr>
+         <tr>
+            <td>3.</td>
+            <td>count</td>
+            <td>int32</td>
+            <td>-1</td>
+            <td>Filter according the number of appearances</td>
+         </tr>
+         <tr>
+            <td>4.</td>
+            <td>full</td>
+            <td>boolean</td>
+            <td>NO</td>
+            <td>Show commands requested this keyword</td>
+         </tr>
+         <tr>
+            <td>5.</td>
+            <td>all</td>
+            <td>boolean</td>
+            <td>no</td>
+            <td>Print all keywords</td>
+         </tr>
+      </table>
+      <p><strong>Examples
+            				</strong></p>
+      <p>FRameWork ReSouRCe all</p>
+      <p>FRameWork ReSouRCe name=size</p>
+      <p>FRameWork ReSouRCe name=LIF count=2-8 full</p>
+      <p>FRameWork ReSouRCe path="dbal table" full</p>
+      
+      
+      
+      
+      
+      <p><a href="#tocLink">Table of Contents</a></p>
+      
+   </body>
+</html>

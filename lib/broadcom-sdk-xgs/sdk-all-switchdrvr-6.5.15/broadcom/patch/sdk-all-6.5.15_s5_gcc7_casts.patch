@@ -1,0 +1,38 @@
+Index: systems/bde/linux/kernel/linux-kernel-bde.c
+===================================================================
+--- systems/bde/linux/kernel/linux-kernel-bde.c	(revision 2078)
++++ systems/bde/linux/kernel/linux-kernel-bde.c	(revision 2079)
+@@ -440,13 +440,13 @@ static void *cpu_address = NULL;
+ 
+ #define IHOST_GICD_REG_ADDR_VALID(d, addr) \
+     (_devices[d].bde_dev.base_address1 && \
+     (addr & 0xFFFFFF00) == _devices[d].phys_address1)
+ 
+ #define IHOST_GICD_REG_ADDR_REMAP(d, addr) \
+-    (void *)(_devices[d].bde_dev.base_address1 + (addr - _devices[d].phys_address1))
++    (void *)( (sal_vaddr_t) _devices[d].bde_dev.base_address1 + (sal_vaddr_t) (addr - _devices[d].phys_address1))
+ 
+ static uint32_t _read(int d, uint32_t addr);
+ 
+ #ifdef BCM_ICS
+ #else
+ /* Used to determine overall memory limits across all devices */
+Index: include/soc/dpp/multicast_imp.h
+===================================================================
+--- include/soc/dpp/multicast_imp.h	(revision 2078)
++++ include/soc/dpp/multicast_imp.h	(revision 2079)
+@@ -167,13 +167,13 @@
+   ((mcds)->mcdb[index].word0 & DPP_MCDS_FREE_NEXT_PREV_MASK)
+ #define DPP_MCDS_SET_FREE_PREV_ENTRY(mcds, index, prev_entry) /* set the prev free block start or start of this block */ \
+   (mcds)->mcdb[index].word0 = ((mcds)->mcdb[index].word0 & ~DPP_MCDS_FREE_NEXT_PREV_MASK) | (prev_entry)
+ #define DPP_MCDS_GET_FREE_BLOCK_SIZE(mcds, index) /* get the block size, to be called for the first block entry */ \
+   (((mcds)->mcdb[index].word0 >> DPP_MCDS_FREE_BLOCK_SIZE_SHIFT) & DPP_MCDS_FREE_BLOCK_SIZE_MASK)
+ #define DPP_MCDS_SET_FREE_BLOCK_SIZE(mcds, index, size) /* set the block size, to be called for the first block entry */ \
+-  (mcds)->mcdb[index].word0 = ((mcds)->mcdb[index].word0 & ~(DPP_MCDS_FREE_NEXT_PREV_MASK << DPP_MCDS_FREE_BLOCK_SIZE_SHIFT)) | \
++  (mcds)->mcdb[index].word0 = ((mcds)->mcdb[index].word0 & ~((sal_vaddr_t) DPP_MCDS_FREE_NEXT_PREV_MASK << DPP_MCDS_FREE_BLOCK_SIZE_SHIFT)) | \
+   ((size) << DPP_MCDS_FREE_BLOCK_SIZE_SHIFT)
+ 
+ /* Macros handling the storing of if an egress bitmap is open or not */
+ #define DPP_MCDS_ENTRY_IS_BITMAP_OPEN(   entry)    (((entry)->word1 >> DPP_MCDS_BITMAP_OPEN_SHIFT) & 1) /* returns 1 if open, 0 of closed */
+ #define DPP_MCDS_ENTRY_SET_BITMAP_OPEN(  entry) do {(entry)->word1 |=  (1 << DPP_MCDS_BITMAP_OPEN_SHIFT);} while (0) /* marks the bitmap group as open */
+ #define DPP_MCDS_ENTRY_SET_BITMAP_CLOSED(entry) do {(entry)->word1 &= ~(1 << DPP_MCDS_BITMAP_OPEN_SHIFT);} while (0) /* marks the bitmap group as closed */

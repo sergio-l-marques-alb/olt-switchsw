@@ -1,0 +1,340 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jer2_a0"  module="crps">
+    <includes>
+        <include>bcm/stat.h</include>
+    </includes>
+    <sub_module name="engine">
+        
+        <features>
+            <feature name="valid_address_admission_is_supported" value="0"></feature>
+        </features>
+        
+        <defines>
+            <define name="nof_engines" value="22"></define>
+            <define name="nof_databases" value="22"></define>
+            <define name="data_mapping_table_size" value="1024"></define>
+            <define name="max_counter_set_size" value="32"></define>
+            <define name="oam_counter_set_size" value="1"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>   
+            <table name="engines_info" >
+                <key name="engine_id" size="22"></key>
+                <value name="nof_counters" default="4096"></value>
+                <value name="meter_shared" default="0"></value>                
+                <entries>
+                    <entry engine_id="0" nof_counters="4096" meter_shared="1"></entry>
+                    <entry engine_id="1" nof_counters="4096" meter_shared="1"></entry>                    
+                    <entry engine_id="2" nof_counters="4096"></entry>                   
+                    <entry engine_id="3" nof_counters="4096"></entry>
+                    <entry engine_id="4" nof_counters="4096"></entry>
+                    <entry engine_id="5" nof_counters="4096"></entry>
+                    <entry engine_id="6" nof_counters="4096"></entry>
+                    <entry engine_id="7" nof_counters="4096"></entry>
+                    <entry engine_id="8" nof_counters="8192"></entry>
+                    <entry engine_id="9" nof_counters="8192"></entry>
+                    <entry engine_id="10" nof_counters="8192"></entry>
+                    <entry engine_id="11" nof_counters="8192"></entry>
+                    <entry engine_id="12" nof_counters="8192"></entry>
+                    <entry engine_id="13" nof_counters="8192"></entry>
+                    <entry engine_id="14" nof_counters="8192"></entry>
+                    <entry engine_id="15" nof_counters="8192"></entry>
+                    <entry engine_id="16" nof_counters="16384" meter_shared="1"></entry>
+                    <entry engine_id="17" nof_counters="16384" meter_shared="1"></entry>
+                    <entry engine_id="18" nof_counters="16384" meter_shared="1"></entry>
+                    <entry engine_id="19" nof_counters="16384" meter_shared="1"></entry>
+                    <entry engine_id="20" nof_counters="16384" meter_shared="1"></entry>
+                    <entry engine_id="21" nof_counters="16384" meter_shared="1"></entry>
+                </entries>
+            </table>    
+            <table name="source_base" >
+                <key name="source" size="bcmStatCounterInterfaceCount"></key>
+                <value name="base_val" default="0"></value>
+                
+                <entries>
+                    <entry source="bcmStatCounterInterfaceIngressReceivePp" base_val="2"></entry>
+                    <entry source="bcmStatCounterInterfaceIngressOam" base_val="12"></entry>                    
+                    <entry source="bcmStatCounterInterfaceIngressVoq" base_val="0"></entry>
+                    <entry source="bcmStatCounterInterfaceIngressTransmitPp" base_val="15"></entry>
+                    <entry source="bcmStatCounterInterfaceEgressReceivePp" base_val="17"></entry>
+                    <entry source="bcmStatCounterInterfaceEgressReceiveQueue" base_val="16"></entry>
+                    <entry source="bcmStatCounterInterfaceEgressTransmitPp" base_val="19"></entry>
+                    <entry source="bcmStatCounterInterfaceEgressOam" base_val="25"></entry>
+                    <entry source="bcmStatCounterInterfaceOamp" base_val="28"></entry>
+                </entries>              
+            </table>   
+        </tables>
+         
+    </sub_module>
+    <sub_module name="eviction" >
+        
+        <features>  
+        </features>
+        
+        <defines>
+            <define name="counters_fifo_depth" value="16384"></define>
+            <define name="nof_counters_fifo" value="2"></define>      
+            <define name="dma_record_entry_nof_bits" value="120"></define>
+            <define name="packet_and_bytes_packet_size" value="30"></define>
+            <define name="bubble_before_request_timeout" value="500"></define>          
+            <define name="bubble_after_request_timeout" value="500"></define>                       
+        </defines>
+
+        <numerics>
+            <numeric name="bg_thread_enable" value="1">
+                <property name="counter_engine_sampling_interval" method="enable">
+                    <doc>
+                        enable/disable counters bg thread operation. possible values: counter_engine_sampling_interval=0/1
+                    </doc>
+                </property>
+            </numeric>          
+        </numerics>
+        
+        <tables>
+            <table name="phy_record_format">
+                <value name="obj_type_size" default="8"></value>
+                <value name="obj_type_offset" default="104"></value>
+                <value name="reserved0_size" default="8"></value>
+                <value name="reserved0_offset" default="96"></value>
+                <value name="opcode_size" default="2"></value>
+                <value name="opcode_offset" default="94"></value>
+                <value name="err_ind_size" default="1"></value>
+                <value name="err_ind_offset" default="93"></value>
+                <value name="reserved1_size" default="3"></value>
+                <value name="reserved1_offset" default="90"></value>
+                <value name="core_id_size" default="1"></value>
+                <value name="core_id_offset" default="89"></value>
+                <value name="engine_id_size" default="6"></value>
+                <value name="engine_id_offset" default="83"></value>
+                <value name="local_ctr_id_size" default="15"></value>
+                <value name="local_ctr_id_offset" default="68"></value>
+                <value name="ctr_value_size" default="68"></value> 
+                <value name="ctr_value_offset" default="0"></value>
+            </table>    
+            
+        </tables>
+    </sub_module>  
+    <sub_module name="expansion" >
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="expansion_size" value="10"></define>  
+        </defines>
+        <numerics>
+        </numerics>
+        <tables>
+            <table name="irpp_types">
+                <value name="valid_types" 
+                 default="bcmStatExpansionTypeTmDropReason, bcmStatExpansionTypeDispositionIsDrop, 
+                 bcmStatExpansionTypeTrafficClass, bcmStatExpansionTypeDropPrecedenceMeter0Valid, 
+                 bcmStatExpansionTypeDropPrecedenceMeter0Value, bcmStatExpansionTypeDropPrecedenceMeter1Valid, 
+                 bcmStatExpansionTypDropPrecedenceMeter1Value, bcmStatExpansionTypeDropPrecedenceMeter2Valid, 
+                 bcmStatExpansionTypeDropPrecedenceMeter2Value, bcmStatExpansionTypeDropPrecedenceMeterResolved, 
+                 bcmStatExpansionTypeMetaData, bcmStatExpansionTypeMax"></value>
+                <value name="total_nof_bits" default="36"></value>
+                <value name="drop_reason_offset" default="9"></value>
+                <value name="disposition_offset" default="13"></value>
+                <value name="tc_offset" default="16"></value>
+                <value name="dp0_valid_offset" default="8"></value>
+                <value name="dp0_value_offset" default="6"></value>
+                <value name="dp1_valid_offset" default="5"></value>
+                <value name="dp1_value_offset" default="3"></value>
+                <value name="dp2_valid_offset" default="2"></value>
+                <value name="dp2_value_offset" default="0"></value>
+                <value name="final_dp_offset" default="14"></value>
+                <value name="reject_all_copies_offset" default="12"></value>
+                <value name="metadata_offset" default="19"></value>
+            </table>       
+            <table name="itm_types">
+                <value name="valid_types" 
+                default="bcmStatExpansionTypeTmDropReason, bcmStatExpansionTypeDispositionIsDrop, bcmStatExpansionTypeTrafficClass, 
+                bcmStatExpansionTypeDropPrecedenceMeterResolved, bcmStatExpansionTypeMax"></value>
+                <value name="total_nof_bits" default="9"></value>               
+                <value name="drop_reason_offset" default="0"></value>
+                <value name="disposition_offset" default="3"></value>
+                <value name="tc_offset" default="4"></value>
+                <value name="final_dp_offset" default="7"></value>              
+            </table>       
+            <table name="itpp_types">
+                <value name="valid_types" 
+                default="bcmStatExpansionTypeLatencyBin, bcmStatExpansionTypeTrafficClass, bcmStatExpansionTypeLatencyFlowProfile, bcmStatExpansionTypeMax"></value>
+                <value name="total_nof_bits" default="12"></value>              
+                <value name="latency_bin_offset" default="0"></value>
+                <value name="tc_offset" default="3"></value>
+                <value name="latency_profile_offset" default="6"></value>           
+            </table>       
+            <table name="erpp_types">
+                <value name="valid_types" default="bcmStatExpansionTypeMetaData, bcmStatExpansionTypeDropPrecedenceMeterResolved, 
+                bcmStatExpansionTypeTrafficClass, bcmStatExpansionTypeSystemMultiCast, bcmStatExpansionTypeEgressTmActionType, 
+                bcmStatExpansionTypePpDropReason, bcmStatExpansionTypeMax"></value>
+                <value name="total_nof_bits" default="16"></value>
+                <value name="metadata_offset" default="0"></value>
+                <value name="dp_offset" default="4"></value>
+                <value name="tc_offset" default="6"></value>
+                <value name="mc_offset" default="9"></value>
+                <value name="tm_action_type_offset" default="10"></value>
+                <value name="pp_drop_reason_offset" default="12"></value>
+            </table>       
+            <table name="etm_types">
+                <value name="valid_types" 
+                default="bcmStatExpansionTypeDropPrecedenceMeterResolved, bcmStatExpansionTypeTrafficClass, 
+                bcmStatExpansionTypeDiscardPp, bcmStatExpansionTypeDiscardTm,
+                bcmStatExpansionTypeTmDropReason, bcmStatExpansionTypeMax"></value>
+                <value name="total_nof_bits" default="10"></value>
+                <value name="drop_reason_offset" default="7"></value>
+                <value name="tm_discard_offset" default="1"></value>
+                <value name="pp_discard_offset" default="0"></value>
+                <value name="tc_offset" default="4"></value>
+                <value name="dp_offset" default="2"></value>
+            </table>       
+            <table name="etpp_types">
+                <value name="valid_types" 
+                default="bcmStatExpansionTypeDropPrecedenceMeterResolved, bcmStatExpansionTypeTrafficClass, 
+                bcmStatExpansionTypeSystemMultiCast, bcmStatExpansionTypeEcnEligibleAndCni, bcmStatExpansionTypePortMetaData, 
+                bcmStatExpansionTypePpDropReason, bcmStatExpansionTypeMetaData, bcmStatExpansionTypeMax"></value>
+                <value name="total_nof_bits" default="24"></value>
+            </table>       
+
+        </tables>
+    </sub_module> 
+    <sub_module name="src_interface">
+     
+        <defines>       
+        </defines>
+     
+        <numerics>
+        </numerics>
+     
+        <features>
+        </features>
+     
+        <tables>
+            <table name="command_id">
+                <key name="source" size="bcmStatCounterInterfaceCount"></key>
+                <value name="size" default="0" ></value>
+                <value name="base" default="0" ></value>
+                <entries>
+                    <entry source="bcmStatCounterInterfaceIngressReceivePp" size="10" base="0"></entry>
+                    <entry source="bcmStatCounterInterfaceIngressOam" size="3" base="7"></entry>
+                    <entry source="bcmStatCounterInterfaceIngressVoq" size="2" base="0"></entry>
+                    <entry source="bcmStatCounterInterfaceIngressTransmitPp" size="1" base="0"></entry>
+                    <entry source="bcmStatCounterInterfaceEgressReceivePp" size="2" base="0"></entry>
+                    <entry source="bcmStatCounterInterfaceEgressReceiveQueue" size="1" base="0"></entry>
+                    <entry source="bcmStatCounterInterfaceEgressTransmitPp" size="6" base="0"></entry>
+                    <entry source="bcmStatCounterInterfaceEgressOam" size="3" base="0"></entry>
+                    <entry source="bcmStatCounterInterfaceOamp" size="1" base="0"></entry>
+                </entries>
+            </table>
+
+        </tables>
+    </sub_module>
+    <sub_module name="filter">
+     
+        <defines>
+            <define name="nof_drop_reasons" value="45"></define> 
+        </defines>
+     
+        <numerics>
+        </numerics>
+     
+        <features>
+            <feature name="latency_drop_is_supported" value="0"></feature>
+        </features>
+     
+        <tables>
+            <table name="drop_reason_groups">
+                <!-- Bitmap representation
+                            0    CGM_ADMT_RJCT_BMP_GLBL_DRAM_BDBS_BIT
+                            1     CGM_ADMT_RJCT_BMP_GLBL_SRAM_BUFFERS_BIT                                                                                     
+                            2     CGM_ADMT_RJCT_BMP_GLBL_SRAM_PDBS_BIT
+                            3     CGM_ADMT_RJCT_BMP_GLBL_DP_LEVEL_BIT
+                            4     CGM_ADMT_RJCT_BMP_GLBL_QNUM_RES_ERR_BIT
+                            5     CGM_ADMT_RJCT_BMP_GLBL_QNUM_NOT_VALID_BIT
+                            6     CGM_ADMT_RJCT_BMP_GLBL_MC_REP_ERR_BIT
+                            7     CGM_ADMT_RJCT_BMP_GLBL_MC_FIFO_FULL_BIT
+                            8     CGM_ADMT_RJCT_BMP_GLBL_TAR_FIFO_RJCT_BIT
+                            9     CGM_ADMT_RJCT_BMP_GLBL_PKT_SIZE_ERR_BIT
+                            10     CGM_ADMT_RJCT_BMP_GLBL_SRAM_RSRC_ERR_BIT
+                            11     CGM_ADMT_RJCT_BMP_GLBL_EXT_ERR_BIT
+                            12     CGM_ADMT_RJCT_BMP_VOQ_SRAM_PDS_SHRD_FR_BIT
+                            13     CGM_ADMT_RJCT_BMP_VOQ_SRAM_PDS_MAX_QSIZE_BIT
+                            14     CGM_ADMT_RJCT_BMP_VOQ_SRAM_BUFFERS_SHRD_FR_BIT
+                            15     CGM_ADMT_RJCT_BMP_VOQ_SRAM_BUFFERS_MAX_QSIZE_BIT
+                            16     CGM_ADMT_RJCT_BMP_VOQ_WORDS_SHRD_FR_BIT
+                            17     CGM_ADMT_RJCT_BMP_VOQ_WORDS_MAX_QSIZE_BIT
+                            18     CGM_ADMT_RJCT_BMP_VOQ_SYS_RED_BIT
+                            19     CGM_ADMT_RJCT_BMP_VOQ_WRED_BIT
+                            20     CGM_ADMT_RJCT_BMP_VOQ_DRAM_BLOCK_BIT
+                            21     CGM_ADMT_RJCT_BMP_VSQ_PB_VSQ_SRAM_PDS_SHRD_FR_BIT
+                            22     CGM_ADMT_RJCT_BMP_VSQ_PB_VSQ_SRAM_PDS_MAX_QSIZE_BIT
+                            23     CGM_ADMT_RJCT_BMP_VSQ_VSQD_SRAM_PDS_MAX_QSIZE_BIT
+                            24     CGM_ADMT_RJCT_BMP_VSQ_VSQC_SRAM_PDS_MAX_QSIZE_BIT
+                            25     CGM_ADMT_RJCT_BMP_VSQ_VSQB_SRAM_PDS_MAX_QSIZE_BIT
+                            26     CGM_ADMT_RJCT_BMP_VSQ_VSQA_SRAM_PDS_MAX_QSIZE_BIT
+                            27     CGM_ADMT_RJCT_BMP_VSQ_PB_VSQ_SRAM_BUFFERS_SHRD_FR_BIT
+                            28     CGM_ADMT_RJCT_BMP_VSQ_PB_VSQ_SRAM_BUFFERS_MAX_QSIZE_BIT
+                            29    CGM_ADMT_RJCT_BMP_VSQ_VSQD_SRAM_BUFFERS_MAX_QSIZE_BIT
+                            30    CGM_ADMT_RJCT_BMP_VSQ_VSQC_SRAM_BUFFERS_MAX_QSIZE_BIT
+                            31     CGM_ADMT_RJCT_BMP_VSQ_VSQB_SRAM_BUFFERS_MAX_QSIZE_BIT
+                            32     CGM_ADMT_RJCT_BMP_VSQ_VSQA_SRAM_BUFFERS_MAX_QSIZE_BIT
+                            33     CGM_ADMT_RJCT_BMP_VSQ_PB_VSQ_WORDS_SHRD_FR_BIT
+                            34     CGM_ADMT_RJCT_BMP_VSQ_PB_VSQ_WORDS_MAX_QSIZE_BIT
+                            35     CGM_ADMT_RJCT_BMP_VSQ_VSQD_WORDS_MAX_QSIZE_BIT
+                            36     CGM_ADMT_RJCT_BMP_VSQ_VSQC_WORDS_MAX_QSIZE_BIT
+                            37     CGM_ADMT_RJCT_BMP_VSQ_VSQB_WORDS_MAX_QSIZE_BIT
+                            38     CGM_ADMT_RJCT_BMP_VSQ_VSQA_WORDS_MAX_QSIZE_BIT    
+                            39     CGM_ADMT_RJCT_BMP_VSQ_VSQF_WRED_BIT
+                            40     CGM_ADMT_RJCT_BMP_VSQ_VSQE_WRED_BIT
+                            41     CGM_ADMT_RJCT_BMP_VSQ_VSQD_WRED_BIT
+                            42     CGM_ADMT_RJCT_BMP_VSQ_VSQC_WRED_BIT
+                            43     CGM_ADMT_RJCT_BMP_VSQ_VSQB_WRED_BIT
+                            44     CGM_ADMT_RJCT_BMP_VSQ_VSQA_WRED_BIT
+
+                                                                                                           |  
+                           000-GlobalResourcesDrop   =b'0 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0111=0x7
+                           001-VOQResourcesDrop     =b'0 0000 0000 0000 0000 0000 0000 0011 0000 0000 0000 0000=0x30000
+                           010-WREDDrop                    =b'1 1111 1000 0000 0000 0000 0000 1100 0000 0000 0000 0000=0x1F80000C0000
+                           011-OCBResourcesDrop      =b'0 0000 0000 0000 0000 0000 0000 0000 1111 0000 0000 0000=0xF000
+                           100-VSQResourcesDrop      =b'0 0000 0111 1111 1111 1111 1110 0000 0000 0000 0000 0000=0x7FFFE00000
+                           110-MiscDrop                        =b'0 0000 0000 0000 0000 0000 0001 0000 0000 0111 1111 1000=0x1007F8
+                           111-Reserved                        = b'0 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000=0x0
+                 -->
+                <key name="name" size="bcmStatCounterGroupFilterCount"></key>
+                <value name="mask" default="0,0"></value>
+                <entries>
+                    <entry name="bcmStatCounterGroupFilterGlobalResourcesDrop" mask="0x7, 0x0"></entry>
+                    <entry name="bcmStatCounterGroupFilterVoqResourcesDrop" mask="0x30000, 0x0"></entry>
+                    <entry name="bcmStatCounterGroupFilterWredDrop" mask="0xC0000, 0x1F80"></entry>
+                    <entry name="bcmStatCounterGroupFilterOcbResourcesDrop" mask="0xF000, 0x0"></entry>
+                    <entry name="bcmStatCounterGroupFilterVsqResourcesDrop" mask="0xFFE00000, 0x7F"></entry>
+                    <entry name="bcmStatCounterGroupFilterMiscDrop" mask="0x1007F8, 0x0"></entry>
+                </entries>
+            </table>
+
+        </tables>
+    </sub_module>
+    <sub_module name="latency">  
+        <features>
+        </features>
+        
+        <defines>
+            <define name="etpp_command_id" value="5"></define>      
+            <define name="stat_id_port_offset" value="0"></define>
+            <define name="stat_id_tc_offset" value="8"></define>
+            <define name="stat_id_multicast_offset" value="11"></define>
+        </defines>  
+        <numerics>
+        </numerics>
+
+        <tables>  
+        </tables>       
+    </sub_module>       
+</device_data>
+
+
+

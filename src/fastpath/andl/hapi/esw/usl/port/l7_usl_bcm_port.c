@@ -832,13 +832,10 @@ int usl_bcm_port_flow_control_set(int unit,
       rv = tmpRv;
     }
 
-    if(hapiBroadRoboCheck() != L7_TRUE)
+    tmpRv = bcm_port_pause_addr_set(unit, port, pauseConfig->pauseMacAddr);
+    if (tmpRv != BCM_E_NONE) 
     {
-      tmpRv = bcm_port_pause_addr_set(unit, port, pauseConfig->pauseMacAddr);
-      if (tmpRv != BCM_E_NONE) 
-      {
-        rv = tmpRv;
-      }
+      rv = tmpRv;
     }
 
     if (pauseConfig->pauseTx || pauseConfig->pauseRx) 

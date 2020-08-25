@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="dev_init" bsl_flag="BSL_LS_BCMDNX_INIT">
+    <includes>
+        <include>bcm_int/dnx/init/init_mem.h</include>
+        <include>soc/dnx/dnx_data/dnx_data_verify.h</include>
+    </includes>
+
+    <sub_module name="time" doc="time relevant for init">
+        <numerics>
+            <numeric name="analyze" doc="whether to analyze init time"></numeric>
+        </numerics>    
+    </sub_module>
+
+    <sub_module name="mem" doc="memory data relevant for init">
+        <numerics>
+            <numeric name="force_zeros" doc="if true will force zeroing memories in pcid and emulation"></numeric>
+            <numeric name="defaults_verify" doc="if true will test memory defaults are as exepected"></numeric>
+        </numerics>
+
+        <tables>
+            <table name="default" doc="default values for memories, any mem that is not mentioned will be set to zero">
+                <key name="index" doc="running index"></key>
+                <value name="mem" type="soc_mem_t" doc="memory"></value>
+                <value name="mode" type="dnx_init_mem_default_mode_e" doc="default value will be set according to this mode"></value>
+                <value name="default_get_cb" type="dnx_init_mem_default_get_f" doc="callback to get the default, used in custom modes"></value>
+                <value name="field" type="soc_field_t" doc="If field defined - will set just the specified field (all the reset will be set to zero). not relevant for custom modes"></value>
+            </table>
+        </tables>
+         
+    </sub_module>
+
+    <sub_module name="properties" doc="used to store information related to soc properties">
+        
+        <tables>
+            <table name="unsupported" doc="unsupported soc properties">
+                <key name="index" doc="running index"></key>
+                <value name="property" type="char *" doc="soc property name"></value>
+                <value name="suffix" type="char *" doc="used in case the soc property read using suffix method"></value>
+                <value name="num_max" type="int" doc="max number of index to check in case using suffix_num method"></value>
+                <value name="per_port" type="int" doc="1 if the soc property might be read per port"></value>
+                <value name="err_msg" type="char *" doc="detailed error message with instructions what to do instead"></value>
+            </table>
+        </tables>
+         
+    </sub_module>
+
+    <sub_module name="general" doc="general values for device init">
+        <numerics>
+            <numeric name="access_only" doc="boot with access only"></numeric>
+        </numerics>
+        <features>
+             <feature name="data_path_hw" doc="If set, indicates data path HW needs to be set"></feature>
+        </features>
+
+    </sub_module>
+    
+    <sub_module name="ha" doc="values for sw state and high availability init">
+        <numerics>
+            <numeric name="warmboot_support" doc="specify if unit should support wb"></numeric>
+            <numeric name="sw_state_max_size" doc="specify the amount of memory (in bytes) preallocated for sw state"></numeric>
+        </numerics>
+    </sub_module>
+
+
+    <sub_module name="shadow" doc="shadow memory for init">
+        <numerics>
+            <numeric name="cache_enable_all" doc="if true shadow all cacheable memory"></numeric>
+            <numeric name="cache_enable_ecc" doc="if true shadow all cacheable memory which contain ecc field"></numeric>
+            <numeric name="cache_enable_parity" doc="if true shadow all cacheable memory which contain parity field"></numeric>
+            <numeric name="cache_enable_specific" doc="if true, some specific memory be shadowed"></numeric>
+            <numeric name="cache_disable_specific" doc="if true, some specific memory won't be shadowed"></numeric>
+        </numerics>
+
+        <tables>
+            <table name="uncacheable_mem" doc="uncache memory">
+                <key name="index" doc="uncacheable memory index"></key>
+                <value name="mem" type="soc_mem_t" doc="memory"></value>
+            </table>
+        </tables>
+
+     </sub_module>
+</device_data>
+
+
+
+
+

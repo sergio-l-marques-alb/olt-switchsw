@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="utilex" bsl_flag="BSL_LS_SHAREDSWDNX_UTILSDNX">
+    <sub_module name="common" doc="Definitions common to all the various utilex services">
+
+        <features>
+        </features>
+        
+        
+        <defines>
+            <define name="max_nof_dss_per_core" doc="Maximal number of bit map arrays to assign at init."></define>
+            <define name="max_nof_hashs_per_core" doc="Maximal number of hash table entries to assign at init."></define>
+            <define name="max_nof_lists_per_core" doc="Maximal number of sorted list entries to assign at init."></define>
+            <define name="max_nof_multis_per_core" doc="Maximal number of multi set entries to assign at init."></define>
+            <define name="max_nof_res_tag_bitmaps_per_core" doc="Maximal number of res tag bitmaps to assign at init."></define>
+            <define name="max_nof_defragmented_chunks_per_core" doc="Maximal number of defragmented chunks to assign at init."></define>
+        </defines>
+        
+        
+        <tables>
+        </tables>
+        
+    </sub_module>
+</device_data>

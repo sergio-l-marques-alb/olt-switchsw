@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="failover" bsl_flag="BSL_LS_BCMDNX_FAILOVER">
+    <includes>
+    </includes>
+    <sub_module name="path_select" doc="protection path select data">
+
+        <defines>
+            <define name="egress_size" doc="size of egress path select table"></define>
+            <define name="ingress_size" doc="size of ingress path select table"></define>
+            <define name="fec_size" doc="size of fec path select table"></define>
+            <define name="egr_no_protection" doc="protection path select pointer dedicate for no egress protection"></define>
+            <define name="ing_no_protection" doc="protection path select pointer dedicate for no ingress protection"></define>
+            <define name="fec_no_protection" doc="protection path select pointer dedicate for no fec protection"></define>
+            <define name="fec_facility_protection" doc="protection path select pointer dedicate for fec facility protection"></define>
+            <define name="nof_fec_path_select_banks" doc="number of banks included in fec protection path select table"></define>
+            <define name="fec_bank_size" doc="failover fec bank size"></define>
+            <define name="in_lif_protection_pointer_nof_msb" doc="Number MS bits from protection pointer used for HW access to the fields(0-3) of memory IPPA_VTT_PATH_SELECT."></define>
+            <define name="in_lif_protection_pointer_nof_lsb" doc="Number LS bits from protection pointer used for HW access to the entries (0-4095) of memory IPPA_VTT_PATH_SELECT."></define>
+        </defines>
+
+    </sub_module>
+    
+    <sub_module name="facility" doc="Facility protection data">
+        <features>
+            <feature name="accelerated_mode_enable" doc="enable/disable accelerated facility protection."></feature>
+        </features>
+    </sub_module>
+
+</device_data>
+
+
+
+
+

@@ -1,0 +1,170 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jer2_a0"  module="l2">
+
+    <sub_module name="general">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="vsi_offset_shift" value="70"/>         <!--  70 = MACT_ENTRY_SIZE - MACT_KEY_SIZE -->
+            <define name="lif_offset_shift" value="-74"/>        <!--  -74 = - MACT_KEY_SIZE + VMV_SIZE     -->
+        </defines>
+
+        <numerics>
+            <numeric name="l2_learn_limit_mode" value="0">
+                <property name="l2_learn_limit_mode" method="direct_map">
+                    <map name="VLAN" value="0"/>
+                    <map name="VLAN_PORT" value="1"/>
+                    <map name="TUNNEL" value="2"/>
+                    <doc>MACT learn limit mode</doc>
+                </property>
+            </numeric>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="hw_bug" doc="L2 related HW bugs">
+        <features>
+        <feature name="age_out_and_refresh_profile_selection"></feature>
+        <feature name="age_machine_pause_after_flush"></feature>
+        <feature name="age_state_not_updated" value="1"></feature>
+        <feature name="appdb_id_for_olp" value="1"></feature>
+        <feature name="eth_qual_is_mc" value="0"></feature>
+        <feature name="fid_mgmt_ecc_error" value="1"></feature>
+        <feature name="wrong_limit_interrupt_handling" value="1"></feature>
+        <feature name="transplant_instead_of_refresh" value="1"></feature>   
+        <feature name="static_mac_age_out" value="1"></feature>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="vsi">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="nof_vsi_aging_profiles" value="32"/>
+            <define name="nof_event_forwarding_profiles" value="4"/>
+            <define name="nof_vsi_learning_profiles" value="32"/>
+        </defines>
+
+        <numerics>
+            <numeric name="nof_vsis" doc="Number of VSIs" value="32768">
+                <property name="mdb_profile_vsi" official="false" method="direct_map">
+                    <map name="0" value="32768"/>
+                    <doc>NULL</doc> <!--  not required - soc property already defined by a different data -->
+                </property>
+            </numeric>
+        </numerics>
+
+        <tables>
+        </tables>
+         
+    </sub_module>
+    
+    <sub_module name="vlan_domain">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name= "nof_vlan_domains" value="512"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="dma">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="flush_nof_dma_entries" value="64"/>
+            <define name="flush_db_nof_dma_rules" value="16"/>
+            <define name="flush_db_nof_dma_rules_per_table" value="8"/>
+            <define name="flush_db_rule_size" value="67"/>
+            <define name="flush_db_data_size" value="25"/>
+            <define name="flush_group_size" value="4"/>
+        </defines>
+
+        <numerics>
+            <numeric name= "learning_fifo_dma_buffer_size" value="200000">
+                <property name="learning_fifo_dma_buffer_size" method="range" range_min="20" range_max="327680">
+                    <doc>
+                        Configure the size of the host memory in bytes. 
+                        The valid range of memory size is 20-327680 bytes.
+                        learning_fifo_dma_buffer_size=20-327680
+                        Default: 200000
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="learning_fifo_dma_timeout" value="32767">
+                <property name="learning_fifo_dma_timeout" method="range" range_min="0" range_max="65535">
+                    <doc>
+                        Configures the learning fifo dma timeout in microseconds.
+                        The valid range is 0-65535.
+                        learning_fifo_dma_timeout=0-65535
+                        Default: 32767
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="learning_fifo_dma_threshold" value="4">
+                <property name="learning_fifo_dma_threshold" method="range" range_min="1" range_max="16384">
+                    <doc>
+                        Configures the learning fifo dma threshold.
+                        The valid range is 1-16384.
+                        learning_fifo_dma_threshold=1-16384
+                        Default: 4
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+   
+        <tables>
+        </tables>
+
+    </sub_module>
+
+    <sub_module name="olp">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="lpkgv_shift" value="26"/>
+            <define name="lpkgv_mask" value="0x3f"/>
+            <define name="lpkgv_with_outlif" value="0x20"/>
+            <define name="lpkgv_wo_outlif" value="0x30"/>
+            <define name="destination_offset" value="37"/>
+            <define name="outlif_offset" value="11"/>
+            <define name="eei_offset" value="38"/>
+            <define name="fec_offset" value="12"/>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+</device_data>

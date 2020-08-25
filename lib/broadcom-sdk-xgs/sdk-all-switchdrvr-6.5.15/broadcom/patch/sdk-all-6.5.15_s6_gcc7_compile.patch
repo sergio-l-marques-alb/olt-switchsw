@@ -1,0 +1,37 @@
+Index: make/Makefile.unix-user
+===================================================================
+--- make/Makefile.unix-user	(revision 2079)
++++ make/Makefile.unix-user	(revision 2080)
+@@ -155,8 +155,8 @@ LDFLAGS += -Wl,-rpath-link,${LIB_OVERRID
+ endif
+ #
+ # Optionally use the linker --relax flag to enable linking larger
+ # images on the GTO platform
+ #
+ ifneq (,${LINKER_RELAX})
+-LDFLAGS += -Wl,--relax
++LDFLAGS += -Wl,--relax,--gc-sections,--no-keep-memory
+ endif
+Index: make/Make.config
+===================================================================
+--- make/Make.config	(revision 2079)
++++ make/Make.config	(revision 2080)
+@@ -1542,15 +1542,15 @@ DEBUG_SYMBOLS=TRUE
+ endif
+ # }
+ endif
+ 
+ ifeq ($(DEBUG_SYMBOLS),TRUE)
+ # {
+-CFLAGS += -g
+-CXXFLAGS += -g
+-CPPFLAGS += -g
++CFLAGS += -g1
++CXXFLAGS += -g1
++CPPFLAGS += -g1
+ # }
+ endif
+ 
+ ifndef BCM_88732_A0
+ # {
+ CFGFLAGS += -DNO_BCM_88732_A0
