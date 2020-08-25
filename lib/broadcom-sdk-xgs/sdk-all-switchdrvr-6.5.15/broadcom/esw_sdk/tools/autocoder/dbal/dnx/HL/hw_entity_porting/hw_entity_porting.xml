@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    this file represents how to modify registers and memories between devices
+-->
+
+<HwMapping xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="hw_entity_porting.xsd">
+
+<!-- J2B0 mappings 
+
+    <Mapping Type="MEM" Device="J2B0">
+        <OneLineDescription>mapping IPPA debug unit JR2 memories to J2B0</OneLineDescription>
+        <Memories>
+            <Memory Name="IPPD_MEM_F000000m" MapTo="IPPD_IPPD_DEBUG_UNITm"/>
+        </Memories>
+    </Mapping>
+-->
+    <!-- FIXME: SDK-156382 -->
+    <Mapping Type="MEM" Device="J2B0">
+        <OneLineDescription>dummy porting</OneLineDescription>
+        <Memories>
+            <Memory Name="INVALIDm" MapTo="INVALIDm"/>
+        </Memories>
+    </Mapping>
+
+</HwMapping>
+
+   

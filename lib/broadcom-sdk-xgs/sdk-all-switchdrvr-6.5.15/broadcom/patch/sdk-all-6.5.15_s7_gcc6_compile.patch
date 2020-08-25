@@ -1,0 +1,164 @@
+Index: src/soc/common/reg.c
+===================================================================
+--- src/soc/common/reg.c	(revision 7379)
++++ src/soc/common/reg.c	(revision 7380)
+@@ -4164,13 +4164,13 @@ soc_reg_addr(int unit, soc_reg_t reg, in
+                         break;
+                     }
+                 }
+                 if (block < 0) {
+                     /* PTin added */
+                     PT_LOG_CRITIC(LOG_CTX_SDK, "port=%d reg=%d index=%d phy_port=%d block=%d pindex=%d portblktype=%d regblktype=%d SOC_BLOCK_IN_LIST=%d",
+-                                  port, reg, index, phy_port, block, pindex, portblktype, regblktype, SOC_BLOCK_IN_LIST(regblktype,portblktype)); 
++                                  port, reg, index, phy_port, block, pindex, portblktype, *regblktype, SOC_BLOCK_IN_LIST(regblktype,portblktype)); 
+                     assert(SOC_REG_ADDR_INVALID_PORT); /* invalid port */
+                 }
+             }
+         } else {
+         port &= ~SOC_REG_ADDR_INSTANCE_MASK;
+         block = pindex = -1;
+@@ -4421,30 +4421,30 @@ soc_reg_addr(int unit, soc_reg_t reg, in
+                 block = PLL_BLOCK(unit);
+                 break;
+             case SOC_BLK_NIF:
+                 block = NIF_BLOCK(unit);
+                 break;
+             default:
+-                    block = -1; /* unknown non-port block */
++                block = -1; /* unknown non-port block */
+                 /* PTin added */
+                 PT_LOG_CRITIC(LOG_CTX_SDK, "{port=%d reg=%d index=%d} {phy_port=%d block=%d pindex=%d} portblktype=%d regblktype=%d SOC_REG_FIRST_BLK_TYPE=%d SOC_BLOCK_IN_LIST=%d",
+-                              port, reg, index, phy_port, block, pindex, portblktype, regblktype, SOC_REG_FIRST_BLK_TYPE(regblktype), SOC_BLOCK_IN_LIST(regblktype,portblktype)); 
+-                    /* PTin added */
+-                    PT_LOG_CRITIC(LOG_CTX_SDK, "port=%d reg=%d index=%d instance_mask=0x%x", port, reg, index, instance_mask);
+-                    PT_LOG_CRITIC(LOG_CTX_SDK, "{phy_port=%d block=%d pindex=%d} portblktype=%d regblktype=%d SOC_REG_FIRST_BLK_TYPE=%d SOC_BLOCK_IN_LIST=%d",
+-                                  phy_port, block, pindex, portblktype, regblktype, SOC_REG_FIRST_BLK_TYPE(regblktype), SOC_BLOCK_IN_LIST(regblktype,portblktype));
+-                    break;
++                              port, reg, index, phy_port, block, pindex, portblktype, *regblktype, SOC_REG_FIRST_BLK_TYPE(regblktype), SOC_BLOCK_IN_LIST(regblktype,portblktype)); 
++                /* PTin added */
++                PT_LOG_CRITIC(LOG_CTX_SDK, "port=%d reg=%d index=%d instance_mask=0x%x", port, reg, index, instance_mask);
++                PT_LOG_CRITIC(LOG_CTX_SDK, "{phy_port=%d block=%d pindex=%d} portblktype=%d regblktype=%d SOC_REG_FIRST_BLK_TYPE=%d SOC_BLOCK_IN_LIST=%d",
++                              phy_port, block, pindex, portblktype, *regblktype, SOC_REG_FIRST_BLK_TYPE(regblktype), SOC_BLOCK_IN_LIST(regblktype,portblktype));
++                break;
+             }
+         }
+ 
+     /* PTin added: sometimes this application crash here! */
+     if (block < 0)
+     {
+       PT_LOG_CRITIC(LOG_CTX_SDK, "assert(block>=0): port=%d reg=%d index=%d instance_mask=0x%x", port, reg, index, instance_mask);
+       PT_LOG_CRITIC(LOG_CTX_SDK, "assert(block>=0): {phy_port=%d block=%d pindex=%d} portblktype=%d regblktype=%d SOC_REG_FIRST_BLK_TYPE=%d SOC_BLOCK_IN_LIST=%d",
+-                    phy_port, block, pindex, portblktype, regblktype, SOC_REG_FIRST_BLK_TYPE(regblktype), SOC_BLOCK_IN_LIST(regblktype,portblktype));
++                    phy_port, block, pindex, portblktype, *regblktype, SOC_REG_FIRST_BLK_TYPE(regblktype), SOC_BLOCK_IN_LIST(regblktype,portblktype));
+     }
+     assert(block >= 0); /* block must be valid */
+ 
+     /* determine final block, pindex, and index */
+     gransh = 0;
+     switch (SOC_REG_INFO(unit, reg).regtype) {
+@@ -4500,13 +4500,13 @@ soc_reg_addr(int unit, soc_reg_t reg, in
+         /* PTin added */
+         if (index < 0 || index >= NUM_COS(unit))
+         {
+           PT_LOG_CRITIC(LOG_CTX_SDK, "assert(...): unit=%d port=%d reg=%d index=%d NUM_COS=%d SOC_REG_INFO(unit,reg).regtype=%d instance_mask=0x%x",
+                         unit, port, reg, index, NUM_COS(unit), SOC_REG_INFO(unit,reg).regtype, instance_mask);
+           PT_LOG_CRITIC(LOG_CTX_SDK, "assert(...): {phy_port=%d block=%d pindex=%d} portblktype=%d regblktype=%d SOC_REG_FIRST_BLK_TYPE=%d SOC_BLOCK_IN_LIST=%d",
+-                        phy_port, block, pindex, portblktype, regblktype, SOC_REG_FIRST_BLK_TYPE(regblktype), SOC_BLOCK_IN_LIST(regblktype,portblktype));
++                        phy_port, block, pindex, portblktype, *regblktype, SOC_REG_FIRST_BLK_TYPE(regblktype), SOC_BLOCK_IN_LIST(regblktype,portblktype));
+         }
+         assert(index >= 0 && index < NUM_COS(unit));
+         pindex = index;
+         index = 0;
+         break;
+     case soc_customreg:
+@@ -4515,13 +4515,13 @@ soc_reg_addr(int unit, soc_reg_t reg, in
+         break;
+     default:
+         /* PTin added */
+         PT_LOG_CRITIC(LOG_CTX_SDK, "assert(0): unit=%d port=%d reg=%d index=%d NUM_COS=%d SOC_REG_INFO.regtype=%d instance_mask=0x%x",
+                       unit, port, reg, index, NUM_COS(unit), SOC_REG_INFO(unit,reg).regtype, instance_mask);
+         PT_LOG_CRITIC(LOG_CTX_SDK, "assert(0): {phy_port=%d block=%d pindex=%d} portblktype=%d regblktype=%d SOC_REG_FIRST_BLK_TYPE=%d SOC_BLOCK_IN_LIST=%d",
+-                      phy_port, block, pindex, portblktype, regblktype, SOC_REG_FIRST_BLK_TYPE(regblktype), SOC_BLOCK_IN_LIST(regblktype,portblktype));
++                      phy_port, block, pindex, portblktype, *regblktype, SOC_REG_FIRST_BLK_TYPE(regblktype), SOC_BLOCK_IN_LIST(regblktype,portblktype));
+         assert(0); /* unknown register type */
+         break;
+     }
+ 
+     /* put together address: base|block|pindex + index */
+     base = SOC_REG_INFO(unit, reg).offset;
+@@ -4543,13 +4543,13 @@ soc_reg_addr(int unit, soc_reg_t reg, in
+         /* PTin added */
+         if (index < 0 || index > SOC_REG_NUMELS(unit, reg))
+         {
+           PT_LOG_CRITIC(LOG_CTX_SDK, "assert(...): unit=%d port=%d reg=%d index=%d SOC_REG_NUMELS=%d SOC_REG_INFO.regtype=%d instance_mask=0x%x",
+                         unit, port, reg, index, SOC_REG_NUMELS(unit,reg), SOC_REG_INFO(unit,reg).regtype, instance_mask);
+           PT_LOG_CRITIC(LOG_CTX_SDK, "assert(...): {phy_port=%d block=%d pindex=%d} portblktype=%d regblktype=%d SOC_REG_FIRST_BLK_TYPE=%d SOC_BLOCK_IN_LIST=%d",
+-                        phy_port, block, pindex, portblktype, regblktype, SOC_REG_FIRST_BLK_TYPE(regblktype), SOC_BLOCK_IN_LIST(regblktype,portblktype));
++                        phy_port, block, pindex, portblktype, *regblktype, SOC_REG_FIRST_BLK_TYPE(regblktype), SOC_BLOCK_IN_LIST(regblktype,portblktype));
+         }
+         assert(index >= SOC_REG_INFO(unit, reg).first_array_index && index < SOC_REG_NUMELS(unit, reg) + SOC_REG_INFO(unit, reg).first_array_index);
+ #if defined(BCM_SABER2_SUPPORT)
+         if (SOC_IS_SABER2(unit) && block == OAMP_BLOCK(unit)) {
+             base += (index - SOC_REG_INFO(unit, reg).first_array_index)*(SOC_REG_ELEM_SKIP(unit, reg) << 8);
+         } else
+@@ -4561,13 +4561,13 @@ soc_reg_addr(int unit, soc_reg_t reg, in
+         /* PTin added */
+         if (index < 0 || index > SOC_REG_NUMELS(unit, reg))
+         {
+           PT_LOG_CRITIC(LOG_CTX_SDK, "assert(...): unit=%d port=%d reg=%d index=%d SOC_REG_NUMELS=%d SOC_REG_INFO.regtype=%d instance_mask=0x%x",
+                         unit, port, reg, index, SOC_REG_NUMELS(unit,reg), SOC_REG_INFO(unit,reg).regtype, instance_mask);
+           PT_LOG_CRITIC(LOG_CTX_SDK, "assert(...): {phy_port=%d block=%d pindex=%d} portblktype=%d regblktype=%d SOC_REG_FIRST_BLK_TYPE=%d SOC_BLOCK_IN_LIST=%d",
+-                        phy_port, block, pindex, portblktype, regblktype, SOC_REG_FIRST_BLK_TYPE(regblktype), SOC_BLOCK_IN_LIST(regblktype,portblktype));
++                        phy_port, block, pindex, portblktype, *regblktype, SOC_REG_FIRST_BLK_TYPE(regblktype), SOC_BLOCK_IN_LIST(regblktype,portblktype));
+         }
+         assert(index >= 0 && index < SOC_REG_NUMELS(unit, reg));
+         if (index && SOC_REG_ARRAY2(unit, reg)) {
+             base += ((index*2) << gransh);
+         } else if (index && SOC_REG_ARRAY4(unit, reg)) {
+             base += ((index * 4) << gransh);
+Index: src/bcm/esw/tomahawk/hashing.c
+===================================================================
+--- src/bcm/esw/tomahawk/hashing.c	(revision 7379)
++++ src/bcm/esw/tomahawk/hashing.c	(revision 7380)
+@@ -39,14 +39,18 @@ typedef struct bcm_rtag7_base_hash_s {
+ } bcm_rtag7_base_hash_t;
+ 
+ #define   ETHERTYPE_IPV6 0x86dd /* ipv6 ethertype */
+ #define   ETHERTYPE_IPV4 0x0800 /* ipv4 ethertype */
+ #define   ETHERTYPE_MIN  0x0600 /* minimum ethertype for hashing */
+ 
++#ifndef IP_PROT_TCP
+ #define   IP_PROT_TCP 0x6  /* TCP protocol number */
++#endif
++#ifndef IP_PROT_UDP
+ #define   IP_PROT_UDP 0x11 /* TCP protocol number */
++#endif
+ 
+ #define MODE_REG_HASH     0
+ #define MODE_RES_HASH     1
+ #define MODE_RANDOM       2
+ #define MODE_ROUND_ROBIN  3
+ 
+Index: src/bcm/esw/greyhound2/hashing.c
+===================================================================
+--- src/bcm/esw/greyhound2/hashing.c	(revision 7379)
++++ src/bcm/esw/greyhound2/hashing.c	(revision 7380)
+@@ -38,14 +38,18 @@ typedef struct bcm_rtag7_base_hash_s {
+ } bcm_rtag7_base_hash_t;
+ 
+ #define   ETHERTYPE_IPV6 0x86dd /* ipv6 ethertype */
+ #define   ETHERTYPE_IPV4 0x0800 /* ipv4 ethertype */
+ #define   ETHERTYPE_MIN  0x0600 /* minimum ethertype for hashing */
+ 
++#ifndef IP_PROT_TCP
+ #define   IP_PROT_TCP 0x6  /* TCP protocol number */
++#endif
++#ifndef IP_PROT_UDP
+ #define   IP_PROT_UDP 0x11 /* TCP protocol number */
++#endif
+ 
+ #define RTAG7_L2_ONLY         0x0
+ #define RTAG7_UNKNOWN_HIGIG   0x1
+ #define RTAG7_MPLS            0x2
+ #define RTAG7_MIM             0x3
+ #define RTAG7_IPV4            0x4

@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jer2_b0" module="egr_queuing">  
+    <sub_module name="params" doc="default values for egr_queuing module">
+        <defines>
+            <define name="txq_iready_th" value="23"></define>
+        </defines> 
+        <features>
+            <!--
+                For J2A0, it is required to invoke dnx_ofp_rates_if_port_read_enable_set() with 'read_en'
+                set to FALSE before accessing DBAL_TABLE_EGQ_SHAPER_OTM_CALENDAR_CRDT_TABLE.
+                When finished, invoke it with 'read_en' set to TRUE.
+                Not required from J2B0 on.
+            -->
+            <feature name="conditional_crdt_table_access" value="0"></feature>
+        </features>
+    </sub_module>
+</device_data>
+

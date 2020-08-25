@@ -1,0 +1,201 @@
+<?xml version="1.0"?>
+
+<device_data lib="dnx_data" module="dram" bsl_flag="BSL_LS_BCMDNX_DRAM">
+    <includes>
+        <include>bcm_int/dnx/dram/hbmc/hbmc.h</include>
+    </includes>
+
+    <sub_module name="hbm" doc="HBM parameters and defines">
+        <features>
+            <feature name="is_supported" doc="hbm supported indication"></feature>
+        </features>    
+        <numerics>
+            <numeric name="burst_length" doc="burst length"/>
+            <numeric name="stop_traffic_temp_threshold" doc="temperature threshold (C degrees) above which the HBM should not recieve packets anymore"/>
+            <numeric name="restore_traffic_temp_threshold" doc="temperature threshold (C degrees) below which the HBM should be reassigned to usage in the traffic flow"/>
+            <numeric name="usec_between_temp_samples" doc="time in usecs to wait between HBM temperature sampling"/>
+            <numeric name="power_down_temp_threshold" doc="temperature threshold, for doing DRAM shut down"/>
+            <numeric name="dram_temp_monitor_enable" doc="enable/disable driver temperature monitoring"/>            
+        </numerics>
+    
+        <defines>
+            <define name="nof_hbms" doc="number of HBMs"></define>
+            <define name="nof_channels" doc="number of channels in each HBM"></define>
+            <define name="channel_broadcast_id" doc="channel id to use in dbal when trying to broadcast"></define>
+            <define name="mr_mask" doc="mode register bit mask"></define>
+            <define name="nof_mrs" doc="number of mode registers"></define>
+            <define name="phy_address_mask" doc="bit mask to describe the relevant bits in phy register address"></define>
+            <define name="hbc_physical_last_in_chain" doc="block index of the physically last in chain hbc, provided all hbms are active"></define>
+        </defines>
+
+        <tables>
+            <table name="mr_defaults" doc="mode registers default values">
+                <key name="index" doc="mode register index"></key>
+                <value name="value" type="uint32" doc="default value for mode register"></value>
+            </table> 
+
+            <table name="channel_symmetric_regs" doc="per channel list of symmetric registers">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+            </table>
+
+            <table name="channel_not_symmetric_regs" doc="per channel list of not symmetric registers">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+            </table>
+
+            <table name="controller_symmetric_regs" doc="per controller list of symmetric registers">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+            </table>
+
+            <table name="controller_not_symmetric_regs" doc="per controller list of not symmetric registers">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+            </table>
+
+            <table name="channel_interrupt_regs" doc="per channel list of interrupt registers">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+            </table>
+
+            <table name="controller_interrupt_regs" doc="per controller list of interrupt registers">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+            </table>
+
+            <table name="channel_debug_regs" doc="per channel list of debug registers - should be preented if value is not reset value">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+                <value name="reassuring_str" type="char *" doc="string to explain that this register's value is as expected (reset value)"></value>
+            </table>
+
+            <table name="channel_counter_regs" doc="per channel list of counter registers">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+            </table>
+
+            <table name="channel_type_regs" doc="per channel list of registers that require per type printing">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+                <value name="type" type="dnx_hbmc_diag_registers_type_t" doc="printing type"></value>
+            </table>
+
+            <table name="controller_info_regs" doc="per contorller list of info registers">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+            </table>
+
+        </tables>
+    </sub_module>
+
+    <sub_module name="general_info" doc="general info derived from defaults or soc properties which is relevant also for other types of drams, not only to HBM">        
+        <defines>
+            <define name="otp_restore_version" doc="when restoring from OTP the tune data, do it according to the given version format"></define>
+        </defines>
+        <numerics>
+            <numeric name="frequency" doc="dram frequency (in MHZ), used to calculated data_rate"></numeric>
+            <numeric name="buffer_size" doc="dram buffer size in bytes"></numeric>
+            <numeric name="command_address_parity" doc="command address parity"></numeric>
+            <numeric name="dq_write_parity" doc="dq write parity"></numeric>
+            <numeric name="dq_read_parity" doc="dq read parity"></numeric>
+            <numeric name="dbi_read" doc="dbi read"></numeric>
+            <numeric name="dbi_write" doc="dbi write"></numeric>
+            <numeric name="write_latency" doc="write latency"></numeric>
+            <numeric name="read_latency" doc="read latency"></numeric>
+            <numeric name="parity_latency" doc="parity latency"></numeric>
+            <numeric name="actual_parity_latency" doc="parity latency to be used after factoring in the effect of other numerics"></numeric>
+            <numeric name="tune_mode_on_init" doc="tune mode during init sequence"></numeric>
+        </numerics>
+
+        <tables>
+            <table name="dram_info" doc="general information regarding the dram in the system">
+                <value name="dram_type" type="uint32" doc="dram type as defined by tuning infrastructure"></value>
+                <value name="dram_bitmap" type="uint32" doc="bitmap of currently available drams"></value>
+                <value name="nof_columns" type="uint32" doc="number of columns in the dram"></value>
+                <value name="nof_rows" type="uint32" doc="number of rows in the dram"></value>
+                <value name="nof_banks" type="uint32" doc="number of banks in the dram"></value>
+                <value name="data_rate" type="uint32" doc="(in MHZ)data rate in mbps, in DDRs equal 2 * frequency"></value>
+                <value name="ref_clock" type="uint32" doc="ref clock for the dram phy"></value>
+                <value name="ctl_type" type="uint32" doc="shmoo input - which actions to perform"></value>
+            </table>
+
+            <table name="timing_params" doc="timing parameters">
+                <value name="twr" type="uint32" doc="twr timing parameter"></value>
+                <value name="trp" type="uint32" doc="trp timing parameter"></value>
+                <value name="trtps" type="uint32" doc="trtps timing parameter"></value>
+                <value name="trtpl" type="uint32" doc="trtpl timing parameter"></value>
+                <value name="trrds" type="uint32" doc="trrds timing parameter"></value>
+                <value name="trrdl" type="uint32" doc="trrdl timing parameter"></value>
+                <value name="tfaw" type="uint32" doc="tfaw timing parameter"></value>
+                <value name="trcdwr" type="uint32" doc="trcdwr timing parameter"></value>
+                <value name="trcdrd" type="uint32" doc="trcdrd timing parameter"></value>
+                <value name="tras" type="uint32" doc="tras timing parameter"></value>
+                <value name="trc" type="uint32" doc="trc timing parameter"></value>
+                <value name="twtrl" type="uint32" doc="twtrl timing parameter"></value>
+                <value name="twtrs" type="uint32" doc="twtrs timing parameter"></value>
+                <value name="trtw" type="uint32" doc="trtw timing parameter"></value>
+                <value name="tccdr" type="uint32" doc="tccdr timing parameter"></value>
+                <value name="tccds" type="uint32" doc="tccds timing parameter"></value>
+                <value name="tccdl" type="uint32" doc="tccdl timing parameter"></value>
+                <value name="trrefd" type="uint32" doc="trrefd timing parameter"></value>
+                <value name="trfcsb" type="uint32" doc="trfcsb timing parameter"></value>
+                <value name="trfc" type="uint32" doc="trfc timing parameter"></value>
+                <value name="tmrd" type="uint32" doc="tmrd timing parameter"></value>
+                <value name="tmod" type="uint32" doc="tmod timing parameter"></value>
+            </table>
+
+            <table name="refresh_intervals" doc="refresh intervals timing parameters">
+                <key name="temp_index" doc="temperature index"></key>
+                <value name="trefi" type="uint32" doc="trefi timing parameters"></value>
+                <value name="trefisb" type="uint32" doc="trefisb timing parameters"></value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="address_translation" doc="information regarding the address translation scheme between logical to physical buffer">        
+        <numerics>
+        </numerics>
+
+        <defines>
+            <define name="matrix_column_size" doc="the number of rows in the ATM"></define>
+            <define name="physical_address_transaction_size" doc="nof bytes in each read/write from/to physical address"></define>
+        </defines>
+
+        <tables>
+            <table name="matrix_configuration" doc="address translation matrix(ATM) configuration options">
+                <key name="matrix_option" doc="matrix selector"/>
+                <value name="logical_to_physical" type="uint32[DNX_DATA_MAX_DRAM_ADDRESS_TRANSLATION_MATRIX_COLUMN_SIZE]" doc="the values of the ATM"></value>
+            </table>
+
+            <table name="interrupt_regs" doc="per address translation unit list of interrupt registers">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+            </table>
+
+            <table name="counter_regs" doc="per address translation unit list of counter registers">
+                <key name="index" doc="running index"></key>
+                <value name="reg" type="soc_reg_t" doc="register"></value>
+            </table>
+
+        </tables>
+    </sub_module>
+
+    <sub_module name="buffers" doc="information regarding BDs and BDBs">        
+        <numerics>
+            <numeric name="allowed_errors" doc="number of times a buffer is allowed into the quarantine FIFO before it is deleted instead of restored"></numeric>
+        </numerics>
+
+        <defines>
+            <define name="nof_bdbs" doc="number of BDBs per core"></define>
+            <define name="nof_fpc_banks" doc="number of free pointer controler banks"/>
+        </defines>
+
+        <tables>
+            <table name="deleted_buffers_info" doc="deleted buffers info">
+                <value name="deleted_buffers_file" type="char *" doc="full path to file containing deleted buffers for this unit"></value>
+            </table>
+        </tables>
+    </sub_module>
+
+</device_data>

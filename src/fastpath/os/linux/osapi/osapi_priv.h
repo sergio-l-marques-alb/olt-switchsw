@@ -32,7 +32,7 @@
 
 #define OSAPI_MAX_PRIO 255
 
-typedef int (*osapi_task_entry_t)(L7_uint32, void *);
+typedef int (*osapi_task_entry_t)(void *, L7_uint32);
 
 typedef struct osapi_task_s {
    L7_uint32 flags;

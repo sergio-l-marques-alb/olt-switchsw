@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="trap" bsl_flag="BSL_LS_BCMDNX_RX">
+
+    <sub_module name="ingress" doc="trap profiles data">
+
+        <numerics>
+            <numeric name="protocol_traps_init_mode" doc="initialize protocol traps configuration mode"></numeric>
+        </numerics>
+        
+        <features>
+            <feature name="ndp_trap_en" doc="Are NDP/myNDP traps supported"></feature>
+        </features>
+        
+        <defines>
+            <define name="nof_predefeind_traps" doc="Number of predefined traps"></define>
+            <define name="nof_user_defined_traps" doc="Number of bcmRxTrapUserDefine traps"></define>
+            <define name="nof_1588_traps" doc="Number of bcmRxTrap1588 traps"></define>
+            <define name="nof_entries_action_table" doc="Number of entries in action table of traps"></define>
+            <define name="nof_protocol_trap_profiles" doc="Number of protocol trap profiles"></define>
+            <define name="nof_recycle_cmds" doc="Number of forward recycle commands"></define>
+            <define name="nof_programmable_traps" doc="Number of programmable traps"></define>
+            <define name="nof_lif_traps" doc="Number of LIF traps"></define>
+            <define name="nof_icmp_compressed_types" doc="Number of ICMP compressed types"></define>
+            <define name="nof_stat_objs" doc="Number of ingress statistical objects"></define>
+            <define name="max_nof_stat_objs_to_overwrite" doc="Max number of statistical objects to overwrite"></define>            
+        </defines>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="erpp" doc="erpp traps">
+
+        <features>
+            <feature name="unknown_da_trap_en" doc="Is UnknownDA trap supported"></feature>
+            <feature name="ipv6_traps_en" doc="Are IPv6 traps supported"></feature>
+        </features>
+
+        <defines>
+            <define name="nof_erpp_app_traps" doc="Number of ERPP application traps"></define>
+            <define name="nof_erpp_forward_profiles" doc="Number of ERPP forward profiles"></define>
+            <define name="nof_erpp_user_configurable_profiles" doc="Number of user configurable profiles"></define>
+            <define name="nof_erpp_snif_profiles" doc="Number of ERPP snif profiles"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+    <sub_module name="etpp" doc="etpp traps">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="nof_etpp_app_traps" doc="Number of ETPP application traps"></define>
+            <define name="nof_etpp_user_configurable_profiles" doc="Number of user configurable profiles"></define>
+            <define name="nof_etpp_trap_profiles" doc="Number of ETPP trap profiles"></define>
+            <define name="nof_etpp_oam_traps" doc="Number of ETPP OAM traps"></define>
+            <define name="nof_etpp_snif_profiles" doc="Number of ETPP snif profiles"></define>
+            <define name="nof_mtu_profiles" doc="Number of MTU profiles"></define>
+            <define name="nof_mtu_profiles_per_fwd_type" doc="Number of MTU profiles per forwarding layer type"></define>
+            <define name="nof_etpp_lif_traps" doc="Number of ETPP LIF traps"></define>
+            <define name="max_mtu_value" doc="The maximum MTU value allowed."></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="strength" doc="trap profiles data">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="max_strength" doc="Max value of strength (4b)"></define>
+            <define name="max_ingress_to_egress_compressed_strength" doc="Max value of ingress compressed strength (3b) mapped to egress strength (4b)"></define>
+        </defines>
+
+        <numerics>
+            <numeric name="default_trap_strength" doc="Default trap strength used when drop / trap packets to CPU"></numeric>
+            <numeric name="default_snoop_strength" doc="Default snoop strength used when drop / trap packets to CPU"></numeric>
+        </numerics>
+
+        <tables>
+        </tables>
+    </sub_module>
+
+</device_data>
+
+
+
+

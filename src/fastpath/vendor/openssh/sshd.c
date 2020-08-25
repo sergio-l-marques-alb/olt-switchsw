@@ -1226,7 +1226,7 @@ recv_rexec_state(int fd, Buffer *conf)
 #endif /* L7_SSHD */
 
 #ifdef L7_SSHD
-void sshd_connection_task(L7_uint32 numArgs, int *argv)
+void sshd_connection_task(int *argv, L7_uint32 numArgs)
 {
     int                 cn = argv[0];
     child_context_t     *context = &child_connect_context[cn];
@@ -2298,7 +2298,7 @@ sshd_main(int ac, char **av)
                 osapiSnprintf(taskName, sizeof(taskName), "sshd[%d]", cn);
                 sshdTaskArgv[cn][0] = cn;
                 pid = (int) osapiTaskCreate(taskName, sshd_connection_task,
-                                       1, &sshdTaskArgv[cn],
+                                       &sshdTaskArgv[cn], 1, 
                                        L7_DEFAULT_STACK_SIZE*4,
                                        L7_DEFAULT_TASK_PRIORITY,
                                        L7_DEFAULT_TASK_SLICE);

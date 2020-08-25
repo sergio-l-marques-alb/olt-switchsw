@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jer2_a0"  module="ipq">
+
+    <includes>
+    </includes>
+
+    <sub_module name="queues">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="nof_queues" value="64*1024"></define>
+            <define name="min_bundle_size" value="4"></define>
+            <define name="fmq_bundle_size" value="4"></define>
+
+            <define name="queue_id_bits" value="16"></define>
+            <define name="min_bundle_size_bits" value="2"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>   
+        </tables>
+         
+    </sub_module>
+
+    <sub_module name="regions">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="nof_queues" value="2048"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>   
+    <sub_module name="tc_map" doc="TC map info">
+
+        <features>
+        </features>
+        
+        <defines>
+            <define name="nof_voq_flow_profiles" value="4"></define>
+            <define name="default_voq_flow_profile_idx" value="0"></define>
+            <define name="nof_sysport_profiles" value="4"></define>
+            <define name="default_sysport_profile_idx" value="0"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+        
+        <tables>
+        </tables>
+        
+    </sub_module>
+</device_data>
+
+
+

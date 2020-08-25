@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<top>
+    <packets>
+       <packet name="simple">
+           <source port="200"/>
+           <proto name="PTCH_2">
+               <field name="PP_SSP" value="13"/>
+           </proto>
+           <proto name="ETH0">
+               <field name="DA" value="00:01:02:03:04:05"/>
+           </proto>
+           <proto name="IPv4">
+               <field name="SIP" value="10.20.30.41"/>
+           </proto>
+       </packet>
+       <packet name="default">
+           <proto name="PTCH_2"/>
+           <proto name="ETH2">
+               <field name="DA" value="00:11:22:33:44:55"/>
+               <field name="Inner_VLAN.VID" value="24"/>
+           </proto>
+           <proto name="IPv4">
+               <field name="DIP" value="10.01.01.222"/>
+           </proto>
+           <proto name="TCP"/>
+       </packet>
+       <packet name="mpls_ipv4">
+           <proto name="PTCH_2"/>
+           <proto name="ETH1">
+               <field name="DA" value="00:66:77:88:99:AA"/>
+           </proto>
+           <proto name="MPLS"/>
+           <proto name="MPLS"/>
+           <proto name="MPLS"/>
+           <proto name="IPv4">
+               <field name="SIP" value="192.0.0.111"/>
+           </proto>
+           <proto name="UDP"/>
+       </packet>
+       <packet name="ipv6">
+           <proto name="PTCH_2"/>
+           <proto name="ETH1">
+               <field name="DA" value="00:66:77:88:99:AA"/>
+           </proto>
+           <proto name="IPv6">
+               <field name="SIP" value="cdef:1234:4321:5678:8765:ab01:01ab:fedc"/>
+           </proto>
+           <proto name="UDP"/>
+       </packet>
+       <packet name="mpls_ipv6">
+           <proto name="PTCH_2"/>
+           <proto name="ETH1">
+               <field name="DA" value="00:66:77:88:99:AA"/>
+           </proto>
+           <proto name="MPLS"/>
+           <proto name="MPLS"/>
+           <proto name="MPLS"/>
+           <proto name="IPv6">
+               <field name="SIP" value="cdef:1234:4321:5678:8765:ab01:01ab:fedc"/>
+           </proto>
+           <proto name="UDP"/>
+       </packet>
+       <packet name="sa_equals_da">
+           <source port="200"/>
+           <proto name="PTCH_2">
+               <field name="PP_SSP" value="13"/>
+           </proto>
+           <proto name="ETH0">
+               <field name="DA" value="00:01:02:03:04:05"/>
+               <field name="SA" value="00:01:02:03:04:05"/>
+           </proto>
+           <proto name="IPv4">
+               <field name="SIP" value="10.20.30.41"/>
+           </proto>
+       </packet>       
+    </packets>
+    <signals>
+       <set name="layer1">
+           <signal name="Layer_Protocols.1" block="IRPP" from="VTT1" value="1"/>
+       </set>
+       <set name="default">
+           <signal name="Layer_Protocols.0" block="IRPP" from="VTT1" value="LAYER_TYPES_ETHERNET"/>
+           <signal name="Layer_Protocols.1" block="IRPP" from="VTT1" value="LAYER_TYPES_IPV4"/>
+           <signal name="Layer_Protocols.2" block="IRPP" from="VTT1" value="LAYER_TYPES_TCP"/>
+       </set>
+       <set name="mpls_ipv4">
+           <signal name="Layer_Protocols.0" block="IRPP" from="VTT1" value="LAYER_TYPES_ETHERNET"/>
+           <signal name="Layer_Protocols.1" block="IRPP" from="VTT1" value="LAYER_TYPES_MPLS"/>
+           <signal name="Layer_Protocols.2" block="IRPP" from="VTT1" value="LAYER_TYPES_MPLS"/>
+           <signal name="Layer_Protocols.3" block="IRPP" from="VTT1" value="LAYER_TYPES_IPV4"/>
+           <signal name="Layer_Protocols.4" block="IRPP" from="VTT1" value="LAYER_TYPES_UDP"/>
+       </set>
+       <set name="mpls_IPv6">
+           <signal name="Layer_Protocols.0" block="IRPP" from="VTT1" value="LAYER_TYPES_ETHERNET"/>
+           <signal name="Layer_Protocols.1" block="IRPP" from="VTT1" value="LAYER_TYPES_MPLS"/>
+           <signal name="Layer_Protocols.2" block="IRPP" from="VTT1" value="LAYER_TYPES_MPLS"/>
+           <signal name="Layer_Protocols.3" block="IRPP" from="VTT1" value="LAYER_TYPES_IPV6"/>
+           <signal name="Layer_Protocols.4" block="IRPP" from="VTT1" value="LAYER_TYPES_UDP"/>
+       </set>
+       <set name="IPv6">
+           <signal name="Layer_Protocols.0" block="IRPP" from="VTT1" value="LAYER_TYPES_ETHERNET"/>
+           <signal name="Layer_Protocols.1" block="IRPP" from="VTT1" value="LAYER_TYPES_IPV6"/>
+           <signal name="Layer_Protocols.2" block="IRPP" from="VTT1" value="LAYER_TYPES_UDP"/>
+       </set>
+    </signals>
+</top>

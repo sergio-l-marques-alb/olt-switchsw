@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jer2_a0"  module="mib">
+
+    <sub_module name="general">
+
+        <features>
+        </features>
+
+        <defines>
+        </defines>
+
+        <numerics>
+            <numeric name="stat_interval" value="1000000">
+                <property name="bcm_stat_interval" method="range" range_min="0" range_max="0xffffffff">
+                    <doc>
+                        Set statistics collection interval in microseconds
+                    </doc>
+                </property>
+            </numeric>
+            <numeric name="stat_jumbo" value="1518" init_only="1">
+                <property name="bcm_stat_jumbo" method="range" range_min="0" range_max="0x3fff">
+                    <doc>
+                        Maximum packet size used in statistics counter update
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+
+        <tables>
+            <table name="stat_pbmp" init_only="1">
+                <value name="pbmp" default="0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff">
+                    <property name="bcm_stat_pbmp" method="pbmp">
+                        <doc>
+                        Bitmap of ports to enable statistic counter collection
+                        </doc>
+                    </property>
+                </value>
+            </table>
+        </tables>
+
+    </sub_module>
+</device_data>
+
+
+

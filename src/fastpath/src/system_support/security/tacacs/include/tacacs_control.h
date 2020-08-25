@@ -88,7 +88,7 @@ typedef struct
 L7_RC_t tacacsStartTasks();
 void tacacsTask(void);
 void tacacsRxTask(void);
-void tacacsConnectTask(L7_uint32 argc, void *argv);
+void tacacsConnectTask(void *argv, L7_uint32 argc);
 L7_RC_t tacacsTimeoutHandler(void);
 void tacacsTimerAdd(void);
 void tacacsTimerDelete(void);

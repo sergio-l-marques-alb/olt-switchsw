@@ -414,7 +414,7 @@ dbgPingSync( )
 }
 
 static void
-dbgPingSyncTask( int argc, char *argv[] )
+dbgPingSyncTask( char *argv[], int argc )
 {
     L7_uint32 taskId;
     dbgPingSync();
@@ -490,7 +490,7 @@ dbgPingRandom( L7_uint32 num )
         {
         case 0:
             if ((taskHandle =  osapiTaskCreate( "dbgPingRandomSync",
-                        dbgPingSyncTask, 1, &rxArgs, L7_DEFAULT_STACK_SIZE,
+                        dbgPingSyncTask, &rxArgs, 1, L7_DEFAULT_STACK_SIZE,
                         L7_DEFAULT_TASK_PRIORITY,
                         L7_DEFAULT_TASK_SLICE)) == L7_FAILURE)
             {

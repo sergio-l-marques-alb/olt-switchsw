@@ -98,7 +98,7 @@ L7_RC_t dapiDebugInit(DAPI_t *dapi_g, L7_BOOL cmdDecode)
       return L7_FAILURE;
     }
 
-    if (osapiTaskCreate("DapiDebugTask", (void *)dapiDebugTask, 1 ,dapi_g, L7_DEFAULT_STACK_SIZE,
+    if (osapiTaskCreate("DapiDebugTask", (void *)dapiDebugTask, dapi_g, 1 ,L7_DEFAULT_STACK_SIZE,
                         L7_DEFAULT_TASK_PRIORITY, L7_DEFAULT_TASK_SLICE) == L7_ERROR)
     {
       return L7_FAILURE;

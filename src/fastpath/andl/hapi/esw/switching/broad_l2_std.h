@@ -752,7 +752,7 @@ L7_RC_t hapiBroadL2AddrFlushInit (DAPI_t *dapi_g);
 * @end
 *
 *********************************************************************/
-void hapiBroadL2AddrFlushTask(L7_uint32 numArgs, DAPI_t *dapi_g);
+void hapiBroadL2AddrFlushTask(DAPI_t *dapi_g, L7_uint32 numArgs);
 
 
 /*********************************************************************

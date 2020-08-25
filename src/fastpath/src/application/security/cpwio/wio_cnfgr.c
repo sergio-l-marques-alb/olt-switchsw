@@ -576,7 +576,7 @@ static L7_RC_t wioThreadCreate(void)
 
   wioTaskHandle = osapiTaskCreate(WIO_TASK,
                                   wioTask,
-                                  L7_NULL, L7_NULLPTR,
+                                  L7_NULLPTR, L7_NULL,
                                   L7_DEFAULT_STACK_SIZE,
                                   L7_TASK_PRIORITY_LEVEL(L7_DEFAULT_TASK_PRIORITY),
                                   L7_DEFAULT_TASK_SLICE);

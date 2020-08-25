@@ -408,7 +408,7 @@ traceRouteAsync( traceRouteTable_t *traceEntry )
     {
         rxArgs[0] = 0;
         if ((traceRouteAsyncTaskId =  osapiTaskCreate( "traceRouteAsync",
-                        traceRouteASyncTask, 1, &rxArgs, L7_DEFAULT_STACK_SIZE,
+                        traceRouteASyncTask, &rxArgs, 1, L7_DEFAULT_STACK_SIZE,
                         L7_DEFAULT_TASK_PRIORITY,
                         L7_DEFAULT_TASK_SLICE)) == L7_FAILURE)
         {

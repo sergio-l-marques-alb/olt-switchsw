@@ -261,8 +261,9 @@ sal_thread_create(char *name, int ss, int prio, void (f)(void *), void *arg)
         if (0==strcmp("bcmINTR",name))  {pri=87; tslice=1;}
         else                            {pri=L7_DEFAULT_TASK_PRIORITY; tslice=L7_DEFAULT_TASK_SLICE;}
 
-        salTaskHandle = osapiTaskCreate(name, f, (L7_uint32) arg,
-                                        L7_NULLPTR, ss,
+        salTaskHandle = osapiTaskCreate(name, f,
+                                        arg, 1,
+                                        ss,
                                         pri,
                                         tslice);
     }

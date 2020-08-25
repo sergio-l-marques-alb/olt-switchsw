@@ -974,7 +974,7 @@ static L7_RC_t captive_portal_init()
 *********************************************************************/
 
 static int
-captive_portal_main(int argc, char *argv[])
+captive_portal_main(char *argv[], int argc)
 {
   int rc = 0, my_pid;
 
@@ -1051,8 +1051,9 @@ captivePortalTaskStart(void)
 
 
     cpTaskId =
-        osapiTaskCreate(captive_portal_task_name, captive_portal_main, 1,
-                        captive_portal_task_name, captivePortalStackSize(),
+        osapiTaskCreate(captive_portal_task_name, captive_portal_main,
+                        captive_portal_task_name, 1,
+                        captivePortalStackSize(),
                         captivePortalTaskPriority(),
                         captivePortalTaskSlice());
 

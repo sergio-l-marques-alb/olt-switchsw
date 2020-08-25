@@ -1,0 +1,35 @@
+This document outline the steps the users need to take
+to link LinkCAT library into the SDK.
+
+We have the ability to link linkCAT library with different 
+architectures in the final executable, therefore it is requires 
+that separated directories for each architecture exists and the 
+linkCAT library place in the correct directory.
+ 
+The following example is for SLK little endian architecture. 
+
+Preparation steps before compiling for SDK with linkCAT library 
+distributed as as standalone package 
+
+1. mkdir -p <your path>/build/unix/user/slk
+2. mkdir -p <your path>/include
+3. cp <path of linkCAT library> <your path>/build/unix/user/slk/.
+4. cp <path of linkCat header file> <your path>/include/.
+5. Add these lines to your $SDK/make/Make.local
+CFGFLAGS += -DPHYMOD_LINKCAT_SUPPORT
+CFGFLAGS += -DSERDES_API_FLOATING_POINT
+CFLAGS += -I<your path>
+PHYMOD_LINKCAT_LIB_PATH=<your path>
+6. Compiling images in SDK
+cd $SDK/systems/linux/user/slk
+make
+
+Due to recent changes in LinkCAT library as of 6/11/18, we've added
+new code to accomodate the changes and support both the old and the new
+library. 
+
+To use LinkCAT application with the old library the users just need
+to follow the directions above. To use the LinkCAT application with the
+new library, in addition to steps above add
+CFGFLAGS += -DPHYMOD_NEW_LINKCAT
+

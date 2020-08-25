@@ -334,7 +334,7 @@ void tacacsTask(void)
 * @end
 *
 *********************************************************************/
-void tacacsConnectTask(L7_uint32 argc, void *argv)
+void tacacsConnectTask(void *argv, L7_uint32 argc)
 {
   tacacsMsg_t       msg;
   L7_sockaddr_in_t  s_addr;

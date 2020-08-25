@@ -863,7 +863,7 @@ static L7_char8 s_state[L7_SSLT_SUBJECT_DN_FIELD_MAX + 1];
 static L7_char8 s_country[L7_SSLT_SUBJECT_DN_COUNTRY_SIZE + 1];
 static L7_char8 s_email[L7_SSLT_SUBJECT_DN_FIELD_MAX + 1];
 
-static void ssltCertGenTask(L7_int32 numargs, L7_uint32 *argv )
+static void ssltCertGenTask(L7_uint32 *argv, L7_int32 numargs)
 {
   L7_char8 *commonName = s_common_name;
   L7_char8 *orgName    = s_org_name;
@@ -981,7 +981,7 @@ L7_RC_t ssltCertGenerate(L7_uint32 number,
   certGenArgv[2] = days;
 
   certGenTaskId = osapiTaskCreate("ssltCertGenTask", (void *)ssltCertGenTask,
-                                  3, &certGenArgv,
+                                  &certGenArgv, 3,
                                   ssltSidDefaultStackSize(),
                                   ssltSidDefaultTaskPriority(),
                                   ssltSidDefaultTaskSlice());

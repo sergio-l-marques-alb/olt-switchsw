@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Aligned to Pemla. Arch version: #123
+    Auto-Generted - DO NOT EDIT!!!!
+-->
+
+<FieldTypesDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../field_types_schema.xsd">
+
+
+<FieldType Name="PRTTCAM_KEY_VP_COE" Print="STRUCTURE" Size="16">
+    <OneLineDescription>PRT Virtual for CoE</OneLineDescription>
+    <FieldDbInterface>
+        <StructFields>
+            <StructField Name="VID" Size="8" Type="VLAN_ID"/>
+            <StructField Name="PTC_ATTRIBUTE" Size="8" Type="UINT"/>
+        </StructFields>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping/>
+</FieldType>
+
+
+<FieldType Name="PRTTCAM_KEY_VP_SPA" Print="STRUCTURE" Size="16">
+    <OneLineDescription>PRT Virtual for SPA</OneLineDescription>
+    <FieldDbInterface>
+        <StructFields>
+            <StructField Name="SYSTEM_PORT_AGGREGATE" Size="16" Type="SYSTEM_PORT"/>
+        </StructFields>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping/>
+</FieldType>
+
+
+<FieldType Name="PRT_KBR_INFO_HALF" Print="UINT32" Size="17">
+    <OneLineDescription/>
+    <FieldDbInterface>
+        <ChildFields>
+            <ChildField Name="PRTTCAM_KEY_VP_COE"/>
+            <ChildField Name="PRTTCAM_KEY_VP_SPA"/>
+        </ChildFields>
+    </FieldDbInterface>
+    <FieldToPhyDbMapping>
+        <ChildFieldsEncoding>
+            <ChildField EncodeType="PREFIX" Name="PRTTCAM_KEY_VP_COE" Value="0"/>
+            <ChildField EncodeType="PREFIX" Name="PRTTCAM_KEY_VP_SPA" Value="1"/>
+        </ChildFieldsEncoding>
+    </FieldToPhyDbMapping>
+</FieldType>
+
+</FieldTypesDbCatalog>

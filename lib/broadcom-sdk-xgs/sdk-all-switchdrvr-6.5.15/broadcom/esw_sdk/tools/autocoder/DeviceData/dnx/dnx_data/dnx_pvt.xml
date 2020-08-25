@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="pvt" bsl_flag="BSL_LS_BCMDNX_PVT">
+
+    <sub_module name="general" doc="PVT general attributes">
+
+        <features>
+        </features>
+
+        <defines>
+            <define name="nof_pvt_monitors" doc="Number of device PVT monitors"></define>
+            <define name="pvt_base" doc="PVT base. Used for correct calculation of the monitor readings"></define>
+            <define name="pvt_factor" doc="PVT factor Used for correct calculation of the monitor readings"></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+
+        <tables>
+        </tables>
+
+    </sub_module>
+</device_data>

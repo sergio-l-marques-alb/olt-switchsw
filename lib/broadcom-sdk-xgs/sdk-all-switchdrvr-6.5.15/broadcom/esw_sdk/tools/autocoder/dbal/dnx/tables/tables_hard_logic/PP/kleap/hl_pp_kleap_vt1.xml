@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="KLEAP_VT1_KBR_INFO">
+        <OneLineDescription>Indicates per Context per KBR the KBR info - FFC and AppDB configured</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CONTEXT_PROFILE" Size="6"/>
+                <Field Name="KBR_IDX" Type="UINT" Size="3" MaxValue="5"/>
+            </Key>
+            <Result>
+                <Field Name="APP_DB_ID"/>
+                <Field Name="FFC_BITMAP" Size="10" Type="BITMAP"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FFC_BITMAP">
+                    <Access>
+                        <Memory Name="IPPF_VTT_ST_ONE_LE_KBRm"> 
+                            <EntryOffset Formula="CONTEXT_PROFILE"/>
+                            <HwField Name="KBR_INSTRUCTIONS_VECTORf"/>
+                            <DataOffset Formula="KBR_IDX*RESULT"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="APP_DB_ID">
+                    <Access>
+                        <Memory Name="IPPF_VTT_ST_ONE_LE_KBRm"> 
+                            <EntryOffset Formula="CONTEXT_PROFILE"/>
+                            <HwField Name="KBR_INSTRUCTIONS_VECTORf"/>
+                            <DataOffset Formula="KBR_IDX*RESULT+FFC_BITMAP"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="KLEAP_VT1_FFC_INSTRUCTION">
+        <OneLineDescription>Indicates per Context per KBR the KBR info - FFC and AppDB configured</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CONTEXT_PROFILE" Size="6"/>
+                <Field Name="FFC_IDX" Type="UINT" Size="4" MaxValue="9"/>
+            </Key>
+            <Result>
+                <Field Name="VT1_FFC_INSTRUCTION"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="VT1_FFC_INSTRUCTION">
+                    <Access>
+                        <Memory Name="IPPF_VTT_ST_ONE_LE_FFCm"> 
+                            <EntryOffset Formula="CONTEXT_PROFILE"/>
+                            <HwField Name="FFC_INSTRUCTIONS_VECf"/>
+                            <DataOffset Formula="FFC_IDX*VT1_FFC_INSTRUCTION"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="KLEAP_VT1_PD_INFO">
+        <OneLineDescription>Indicates per prioriy decoder and context its parameters and profile</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CONTEXT_PROFILE" Size="6"/>
+                <Field Name="PD_IDX" Type="UINT" Size="2" MaxValue="2"/>
+                <Field Name="KBR_IDX" Type="UINT" Size="5" MaxValue="5"/>
+            </Key>
+            <Result>
+                <Field Name="PD_STRENGTH_WIDTH" Type="UINT" Size="2"/>
+                <Field Name="PD_CONST_STRENGTH" Type="UINT" Size="4"/>
+                <Field Name="PD_ORDER" Type="UINT" Size="3"/>
+                <Field Name="PD_PROFILE" Type="UINT" Size="7"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PD_STRENGTH_WIDTH">
+                    <Access>
+                        <Memory Name="IPPF_VTT_ST_ONE_LE_PDm"> 
+                            <EntryOffset Formula="CONTEXT_PROFILE"/>
+                            <DataOffset Formula="PD_IDX*54+KBR_IDX*PD_STRENGTH_WIDTH"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PD_ORDER">
+                    <Access>
+                        <Memory Name="IPPF_VTT_ST_ONE_LE_PDm"> 
+                            <EntryOffset Formula="CONTEXT_PROFILE"/>
+                            <DataOffset Formula="PD_IDX*54+36+KBR_IDX*PD_ORDER"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PD_CONST_STRENGTH">
+                    <Access>
+                        <Memory Name="IPPF_VTT_ST_ONE_LE_PDm"> 
+                            <EntryOffset Formula="CONTEXT_PROFILE"/>
+                            <DataOffset Formula="PD_IDX*54+12+KBR_IDX*PD_CONST_STRENGTH"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PD_PROFILE">
+                    <Access>
+                        <Memory Name="IPPF_VTT_ST_ONE_LE_PD_CONTEXT_TO_PROFILES_DATAm"> 
+                            <EntryOffset Formula="CONTEXT_PROFILE"/>
+                            <DataOffset Formula="PD_IDX*42+KBR_IDX*PD_PROFILE"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>
+

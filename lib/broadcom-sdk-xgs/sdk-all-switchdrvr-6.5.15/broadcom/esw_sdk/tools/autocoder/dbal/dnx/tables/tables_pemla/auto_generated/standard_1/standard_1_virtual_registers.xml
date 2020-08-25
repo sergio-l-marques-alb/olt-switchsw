@@ -1,0 +1,708 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Fields Types DB:
+    This xml contains the fields types DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+    Auto generated synced to PEMLA
+    ******************************************************
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../../pemla_schema.xsd">
+
+    <AppDB Name="PEMLA_SRV6">
+        <OneLineDescription>SRV6 virtual registers pemla table</OneLineDescription>
+        <AccessMethod>PEMLA</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="ENCAPSULATION"                                 Size="1" Type="UINT"
+                       Description="Normal/Reduced; Use values from SRv6_Termination_Type"/>
+                <Field Name="ENDPOINT"                                      Size="1" Type="UINT"
+                       Description="USP/PSP; Use values from SRv6_Termination_Type"/>
+            </Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PEMLA_OAM">
+        <OneLineDescription>OAM virtual registers pemla table</OneLineDescription>
+        <AccessMethod>PEMLA</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="CFG_BFDV6_CHECKSUM_ERROR_TRAP_CODE"            Size="9" Type="UINT"
+                       Description="The trap code to be used if a BFD over IPv6 packet is received with wrong checksum"/>
+                <Field Name="CFG_G_ACH_CHANNEL_TYPE_VALUE_1"                Size="16" Type="UINT"
+                       Description="Used for parser mapping of layer after G-Ach"/>
+                <Field Name="CFG_G_ACH_CHANNEL_TYPE_VALUE_2"                Size="16" Type="UINT"
+                       Description="Used for parser mapping of layer after G-Ach"/>
+                <Field Name="CFG_G_ACH_CHANNEL_TYPE_VALUE_3"                Size="16" Type="UINT"
+                       Description="Used for parser mapping of layer after G-Ach"/>
+                <Field Name="CFG_G_ACH_CHANNEL_TYPE_VALUE_4"                Size="16" Type="UINT"
+                       Description="Used for parser mapping of layer after G-Ach"/>
+                <Field Name="CFG_G_ACH_CHANNEL_TYPE_VALUE_5"                Size="16" Type="UINT"
+                       Description="Used for parser mapping of layer after G-Ach"/>
+                <Field Name="CFG_G_ACH_CHANNEL_TYPE_VALUE_6"                Size="16" Type="UINT"
+                       Description="Used for parser mapping of layer after G-Ach"/>
+                <Field Name="CFG_G_ACH_LAYER_PROTOCOL_VALUE_1"              Size="5" Type="UINT"
+                       Description="The parser layer protocol mapped from the corresponding channel type"/>
+                <Field Name="CFG_G_ACH_LAYER_PROTOCOL_VALUE_2"              Size="5" Type="UINT"
+                       Description="The parser layer protocol mapped from the corresponding channel type"/>
+                <Field Name="CFG_G_ACH_LAYER_PROTOCOL_VALUE_3"              Size="5" Type="UINT"
+                       Description="The parser layer protocol mapped from the corresponding channel type"/>
+                <Field Name="CFG_G_ACH_LAYER_PROTOCOL_VALUE_4"              Size="5" Type="UINT"
+                       Description="The parser layer protocol mapped from the corresponding channel type"/>
+                <Field Name="CFG_G_ACH_LAYER_PROTOCOL_VALUE_5"              Size="5" Type="UINT"
+                       Description="The parser layer protocol mapped from the corresponding channel type"/>
+                <Field Name="CFG_G_ACH_LAYER_PROTOCOL_VALUE_6"              Size="5" Type="UINT"
+                       Description="The parser layer protocol mapped from the corresponding channel type"/>
+            </Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PEMLA_TRAP">
+        <OneLineDescription>TRAP virtual registers pemla table</OneLineDescription>
+        <AccessMethod>PEMLA</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="CFG_CPU_TRAP_CODE_CCM"                         Size="9" Type="UINT"
+                       Description="Used in CPU_TRAP_CODE in Trap stage"/>
+                <Field Name="CFG_CPU_TRAP_CODE_DM"                          Size="9" Type="UINT"
+                       Description="Used in CPU_TRAP_CODE in Trap stage"/>
+                <Field Name="CFG_CPU_TRAP_CODE_GT1"                         Size="9" Type="UINT"
+                       Description="Used in CPU_TRAP_CODE in Trap stage"/>
+                <Field Name="CFG_CPU_TRAP_CODE_GT2"                         Size="9" Type="UINT"
+                       Description="Used in CPU_TRAP_CODE in Trap stage"/>
+                <Field Name="CFG_CPU_TRAP_CODE_GT3"                         Size="9" Type="UINT"
+                       Description="Used in CPU_TRAP_CODE in Trap stage"/>
+                <Field Name="CFG_CPU_TRAP_CODE_GT4"                         Size="9" Type="UINT"
+                       Description="Used in CPU_TRAP_CODE in Trap stage"/>
+                <Field Name="CFG_CPU_TRAP_CODE_GT5"                         Size="9" Type="UINT"
+                       Description="Used in CPU_TRAP_CODE in Trap stage"/>
+                <Field Name="CFG_CPU_TRAP_CODE_LM"                          Size="9" Type="UINT"
+                       Description="Used in CPU_TRAP_CODE in Trap stage"/>
+                <Field Name="CFG_CPU_TRAP_CODE_OAM_LVLERR"                  Size="9" Type="UINT"
+                       Description="Used in CPU_TRAP_CODE in Trap stage"/>
+                <Field Name="CFG_CPU_TRAP_CODE_OAM_PSVERR"                  Size="9" Type="UINT"
+                       Description="Used in CPU_TRAP_CODE in Trap stage"/>
+                <Field Name="CFG_RCY_APPEND_ORIG_GT1"                       Size="1" Type="UINT"
+                       Description="Used in FWD_RCY_APP_ORIG_FTMH in Trap stage"/>
+                <Field Name="CFG_RCY_APPEND_ORIG_GT2"                       Size="1" Type="UINT"
+                       Description="Used in FWD_RCY_APP_ORIG_FTMH in Trap stage"/>
+                <Field Name="CFG_RCY_APPEND_ORIG_GT3"                       Size="1" Type="UINT"
+                       Description="Used in FWD_RCY_APP_ORIG_FTMH in Trap stage"/>
+                <Field Name="CFG_RCY_APPEND_ORIG_GT4"                       Size="1" Type="UINT"
+                       Description="Used in FWD_RCY_APP_ORIG_FTMH in Trap stage"/>
+                <Field Name="CFG_RCY_APPEND_ORIG_GT5"                       Size="1" Type="UINT"
+                       Description="Used in FWD_RCY_APP_ORIG_FTMH in Trap stage"/>
+                <Field Name="CFG_RCY_CMD_GT1"                               Size="4" Type="UINT"
+                       Description="Used in FWD_RCY_CMD in Trap stage; GT = General Trap"/>
+                <Field Name="CFG_RCY_CMD_GT2"                               Size="4" Type="UINT"
+                       Description="Used in FWD_RCY_CMD in Trap stage; GT = General Trap"/>
+                <Field Name="CFG_RCY_CMD_GT3"                               Size="4" Type="UINT"
+                       Description="Used in FWD_RCY_CMD in Trap stage; GT = General Trap"/>
+                <Field Name="CFG_RCY_CMD_GT4"                               Size="4" Type="UINT"
+                       Description="Used in FWD_RCY_CMD in Trap stage; GT = General Trap"/>
+                <Field Name="CFG_RCY_CMD_GT5"                               Size="4" Type="UINT"
+                       Description="Used in FWD_RCY_CMD in Trap stage; GT = General Trap"/>
+                <Field Name="CFG_RCY_CMD_OAM_CPU"                           Size="4" Type="UINT"
+                       Description="Used in FWD_RCY_CMD in Trap stage; GT = General Trap"/>
+                <Field Name="CFG_RCY_CMD_OAM_FPGA"                          Size="4" Type="UINT"
+                       Description="Used in FWD_RCY_CMD in Trap stage; GT = General Trap"/>
+                <Field Name="CFG_RCY_CMD_OAM_LOOPBACK"                      Size="4" Type="UINT"
+                       Description="Used in FWD_RCY_CMD in Trap stage; GT = General Trap"/>
+                <Field Name="CFG_RCY_CMD_OAM_LVLERR"                        Size="4" Type="UINT"
+                       Description="Used in FWD_RCY_CMD in Trap stage; GT = General Trap"/>
+                <Field Name="CFG_RCY_CMD_OAM_OAMP"                          Size="4" Type="UINT"
+                       Description="Used in FWD_RCY_CMD in Trap stage; GT = General Trap"/>
+                <Field Name="CFG_RCY_CMD_OAM_PSVERR"                        Size="4" Type="UINT"
+                       Description="Used in FWD_RCY_CMD in Trap stage; GT = General Trap"/>
+                <Field Name="CFG_RCY_CROP_GT1"                              Size="1" Type="UINT"
+                       Description="Used in FWD_RCY_CROP_PKT in Trap stage"/>
+                <Field Name="CFG_RCY_CROP_GT2"                              Size="1" Type="UINT"
+                       Description="Used in FWD_RCY_CROP_PKT in Trap stage"/>
+                <Field Name="CFG_RCY_CROP_GT3"                              Size="1" Type="UINT"
+                       Description="Used in FWD_RCY_CROP_PKT in Trap stage"/>
+                <Field Name="CFG_RCY_CROP_GT4"                              Size="1" Type="UINT"
+                       Description="Used in FWD_RCY_CROP_PKT in Trap stage"/>
+                <Field Name="CFG_RCY_CROP_GT5"                              Size="1" Type="UINT"
+                       Description="Used in FWD_RCY_CROP_PKT in Trap stage"/>
+                <Field Name="CFG_RCY_PRIO_GT1"                              Size="2" Type="UINT"
+                       Description="Used in FWD_RCY_PRIO in Trap stage; GT = General Trap"/>
+                <Field Name="CFG_RCY_PRIO_GT2"                              Size="2" Type="UINT"
+                       Description="Used in FWD_RCY_PRIO in Trap stage; GT = General Trap"/>
+                <Field Name="CFG_RCY_PRIO_GT3"                              Size="2" Type="UINT"
+                       Description="Used in FWD_RCY_PRIO in Trap stage; GT = General Trap"/>
+                <Field Name="CFG_RCY_PRIO_GT4"                              Size="2" Type="UINT"
+                       Description="Used in FWD_RCY_PRIO in Trap stage; GT = General Trap"/>
+                <Field Name="CFG_RCY_PRIO_GT5"                              Size="2" Type="UINT"
+                       Description="Used in FWD_RCY_PRIO in Trap stage; GT = General Trap"/>
+                <Field Name="CFG_RCY_PRIO_OAM_CPU"                          Size="2" Type="UINT"
+                       Description="Used in FWD_RCY_PRIO in Trap stage; GT = General Trap"/>
+                <Field Name="CFG_RCY_PRIO_OAM_FPGA"                         Size="2" Type="UINT"
+                       Description="Used in FWD_RCY_PRIO in Trap stage; GT = General Trap"/>
+                <Field Name="CFG_RCY_PRIO_OAM_LOOPBACK"                     Size="2" Type="UINT"
+                       Description="Used in FWD_RCY_PRIO in Trap stage; GT = General Trap"/>
+                <Field Name="CFG_RCY_PRIO_OAM_LVLERR"                       Size="2" Type="UINT"
+                       Description="Used in FWD_RCY_PRIO in Trap stage; GT = General Trap"/>
+                <Field Name="CFG_RCY_PRIO_OAM_OAMP"                         Size="2" Type="UINT"
+                       Description="Used in FWD_RCY_PRIO in Trap stage; GT = General Trap"/>
+                <Field Name="CFG_RCY_PRIO_OAM_PSVERR"                       Size="2" Type="UINT"
+                       Description="Used in FWD_RCY_PRIO in Trap stage; GT = General Trap"/>
+                <Field Name="FTMH_O_ETHERNET"                               Size="16" Type="UINT"
+                       Description="Ethertype field value signaling FTMH is the next header following Ethernet"/>
+                <Field Name="FTMH_O_IPVX"                                   Size="8" Type="UINT"
+                       Description="Protocol/Next-Header field value signaling FTMH is the next header following Ethernet"/>
+            </Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PEMLA_STACKING">
+        <OneLineDescription>STACKING virtual registers pemla table</OneLineDescription>
+        <AccessMethod>PEMLA</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="LEFT_TERMINATION_TMID_MASK"                    Size="16" Type="UINT"
+                       Description="One-hot set of left Termination TM-ID"/>
+                <Field Name="MY_TM_ID_MASK"                                 Size="16" Type="UINT"
+                       Description="One-hot set of my TM-ID bit indication"/>
+                <Field Name="RIGHT_TERMINATION_TMID_MASK"                   Size="16" Type="UINT"
+                       Description="One-hot set of right Termination TM-ID"/>
+            </Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PEMLA_SFLOW">
+        <OneLineDescription>SFLOW virtual registers pemla table</OneLineDescription>
+        <AccessMethod>PEMLA</AccessMethod>
+        <Maturity Level="PARTIALLY_FUNCTIONAL" Jira="SDK-111111"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="SFLOW_SAMPLING_RATE"                           Size="32" Type="UINT"
+                       Description="sFlow sampling rate"/>
+                <Field Name="SFLOW_UPTIME"                                  Size="32" Type="UINT"
+                       Description="sFlow UpTime in msec"/>
+            </Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PEMLA_VTT2_DEFAULT_LIF">
+        <OneLineDescription>VTT2_DEFAULT_LIF virtual registers pemla table</OneLineDescription>
+        <AccessMethod>PEMLA</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="VTT2___PPPOE___TUNNEL_TERMINATE"               Size="20" Type="UINT"
+                       Description=""/>
+            </Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PEMLA_FWD1_DEFAULT_FORWARD_RESULT">
+        <OneLineDescription>FWD1_DEFAULT_FORWARD_RESULT virtual registers pemla table</OneLineDescription>
+        <AccessMethod>PEMLA</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="FWD1___BIER___MPLS_FORWARDING"                 Size="21" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___BIER___TI_FORWARDING"                   Size="21" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___FCOE___FCF_NO_VFT"                      Size="21" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___FCOE___FCF_NPV_NO_VFT"                  Size="21" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___FCOE___FCF_NPV_VFT"                     Size="21" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___FCOE___FCF_VFT"                         Size="21" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___FCOE___TRANSIT"                         Size="21" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___FCOE___TRANSIT_FIP"                     Size="21" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___MPLS___FWD"                             Size="21" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___MPLS___FWD_COUPLED"                     Size="21" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___MPLS___FWD_PER_INTERFACE"               Size="21" Type="UINT"
+                       Description=""/>
+            </Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PEMLA_FWD2_DEFAULT_FORWARD_RESULT">
+        <OneLineDescription>FWD2_DEFAULT_FORWARD_RESULT virtual registers pemla table</OneLineDescription>
+        <AccessMethod>PEMLA</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="FWD2___FCOE___FCF"                             Size="21" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD2___FCOE___FCF_FIP"                         Size="21" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD2___IPV4___MC_PRIVATE_WO_BF_WO_F2B"         Size="21" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD2___IPV4___PRIVATE_UC"                      Size="21" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD2___IPV6___MC_PRIVATE_WO_BF_WO_F2B"         Size="21" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD2___IPV6___PRIVATE_UC"                      Size="21" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD2___SRV6___PRIVATE_UC"                      Size="21" Type="UINT"
+                       Description=""/>
+            </Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PEMLA_FWD1_CONTEXT_LEARN_ALLOWED">
+        <OneLineDescription>FWD1_CONTEXT_LEARN_ALLOWED virtual registers pemla table</OneLineDescription>
+        <AccessMethod>PEMLA</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="FWD1___BIER___MPLS_FORWARDING"                 Size="1" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___BIER___TI_FORWARDING"                   Size="1" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___FCOE___FCF_NO_VFT"                      Size="1" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___FCOE___FCF_NPV_NO_VFT"                  Size="1" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___FCOE___FCF_NPV_VFT"                     Size="1" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___FCOE___FCF_VFT"                         Size="1" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___FCOE___TRANSIT"                         Size="1" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___FCOE___TRANSIT_FIP"                     Size="1" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___IPV4___MC_PRIVATE"                      Size="1" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___IPV4___MC_PRIVATE_PUBLIC"               Size="1" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___IPV4___PRIVATE_PUBLIC_OPTIMIZED_UC"     Size="1" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___IPV4___PRIVATE_UC"                      Size="1" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___IPV6___MC_PRIVATE"                      Size="1" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___IPV6___MC_PRIVATE_PUBLIC"               Size="1" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___IPV6___PRIVATE_PUBLIC_OPTIMIZED_UC"     Size="1" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___IPV6___PRIVATE_UC"                      Size="1" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___MPLS___FWD"                             Size="1" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___MPLS___FWD_COUPLED"                     Size="1" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___MPLS___FWD_PER_INTERFACE"               Size="1" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___MPLS___OAM_ONLY"                        Size="1" Type="UINT"
+                       Description=""/>
+                <Field Name="FWD1___SRV6___SEGMENT_END_POINT_FORWARDING"    Size="1" Type="UINT"
+                       Description=""/>
+            </Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PEMLA_FWD1_LEARN_INFO_RESOLUTION">
+        <OneLineDescription>FWD1_LEARN_INFO_RESOLUTION virtual registers pemla table</OneLineDescription>
+        <AccessMethod>PEMLA</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="LEARN_INFO_RESOLUTION"                         Size="1" Type="UINT"
+                       Description=""/>
+            </Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PEMLA_PROPAGATION_PROFILE_VALUES_MNGMNT">
+        <OneLineDescription>PROPAGATION_PROFILE_VALUES_MNGMNT virtual registers pemla table</OneLineDescription>
+        <AccessMethod>PEMLA</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="AC_BASIC"                                      Size="2" Type="UINT"
+                       Description=""/>
+            </Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PEMLA_INT">
+        <OneLineDescription>INT virtual registers pemla table</OneLineDescription>
+        <AccessMethod>PEMLA</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="INT_INSTRUCTION_BITMAP"                        Size="32" Type="UINT"
+                       Description=""/>
+                <Field Name="INT_LENGTH"                                    Size="8" Type="UINT"
+                       Description=""/>
+                <Field Name="INT_RESERVED"                                  Size="8" Type="UINT"
+                       Description=""/>
+                <Field Name="INT_TYPE"                                      Size="8" Type="UINT"
+                       Description=""/>
+            </Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PEMLA_PARSERETH">
+        <OneLineDescription>PARSERETH virtual registers pemla table</OneLineDescription>
+        <AccessMethod>PEMLA</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="ETHTYPEARP"                                    Size="16" Type="UINT"
+                       Description=""/>
+                <Field Name="ETHTYPEFCOE"                                   Size="16" Type="UINT"
+                       Description=""/>
+                <Field Name="ETHTYPEPPP"                                    Size="16" Type="UINT"
+                       Description=""/>
+                <Field Name="ETHTYPEPTP_GENERAL"                            Size="16" Type="UINT"
+                       Description=""/>
+                <Field Name="ETHTYPEY1731"                                  Size="16" Type="UINT"
+                       Description=""/>
+                <Field Name="TPID_1"                                        Size="16" Type="UINT"
+                       Description=""/>
+                <Field Name="TPID_2"                                        Size="16" Type="UINT"
+                       Description=""/>
+                <Field Name="TPID_3"                                        Size="16" Type="UINT"
+                       Description=""/>
+                <Field Name="TPID_4"                                        Size="16" Type="UINT"
+                       Description=""/>
+                <Field Name="TPID_5"                                        Size="16" Type="UINT"
+                       Description=""/>
+                <Field Name="TPID_6"                                        Size="16" Type="UINT"
+                       Description=""/>
+                <Field Name="TPID_7"                                        Size="16" Type="UINT"
+                       Description=""/>
+            </Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PEMLA_PARSERIPV4">
+        <OneLineDescription>PARSERIPV4 virtual registers pemla table</OneLineDescription>
+        <AccessMethod>PEMLA</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="NEXTPROTOCOLICMP"                              Size="8" Type="UINT"
+                       Description=""/>
+                <Field Name="NEXTPROTOCOLIGMP"                              Size="8" Type="UINT"
+                       Description=""/>
+                <Field Name="NEXTPROTOCOLPPP"                               Size="8" Type="UINT"
+                       Description=""/>
+            </Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PEMLA_PARSERIPV6">
+        <OneLineDescription>PARSERIPV6 virtual registers pemla table</OneLineDescription>
+        <AccessMethod>PEMLA</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="IPV6EXTVALUE1"                                 Size="8" Type="UINT"
+                       Description=""/>
+                <Field Name="IPV6EXTVALUE2"                                 Size="8" Type="UINT"
+                       Description=""/>
+                <Field Name="IPV6EXTVALUE3"                                 Size="8" Type="UINT"
+                       Description=""/>
+                <Field Name="NEXTPROTOCOLICMPV6"                            Size="8" Type="UINT"
+                       Description=""/>
+                <Field Name="NEXTPROTOCOLL2TPV3"                            Size="8" Type="UINT"
+                       Description=""/>
+                <Field Name="NEXTPROTOCOLMLD"                               Size="8" Type="UINT"
+                       Description=""/>
+                <Field Name="NEXTPROTOCOLSRV6"                              Size="8" Type="UINT"
+                       Description=""/>
+            </Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PEMLA_PARSERUDP">
+        <OneLineDescription>PARSERUDP virtual registers pemla table</OneLineDescription>
+        <AccessMethod>PEMLA</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="DSTPORTBFD_MULTI_HOP"                          Size="16" Type="UINT"
+                       Description=""/>
+                <Field Name="DSTPORTBFD_SINGLE_HOP"                         Size="16" Type="UINT"
+                       Description=""/>
+                <Field Name="DSTPORTETH"                                    Size="16" Type="UINT"
+                       Description=""/>
+                <Field Name="DSTPORTGENERAL_1"                              Size="16" Type="UINT"
+                       Description=""/>
+                <Field Name="DSTPORTGENERAL_2"                              Size="16" Type="UINT"
+                       Description=""/>
+                <Field Name="DSTPORTGENEVE"                                 Size="16" Type="UINT"
+                       Description=""/>
+                <Field Name="DSTPORTIPV4"                                   Size="16" Type="UINT"
+                       Description=""/>
+                <Field Name="DSTPORTIPV6"                                   Size="16" Type="UINT"
+                       Description=""/>
+                <Field Name="DSTPORTL2TP"                                   Size="16" Type="UINT"
+                       Description=""/>
+                <Field Name="DSTPORTMPLS"                                   Size="16" Type="UINT"
+                       Description=""/>
+                <Field Name="DSTPORTMICROBFD"                               Size="16" Type="UINT"
+                       Description=""/>
+                <Field Name="DSTPORTVXLAN_1"                                Size="16" Type="UINT"
+                       Description=""/>
+                <Field Name="DSTPORTVXLAN_2"                                Size="16" Type="UINT"
+                       Description=""/>
+            </Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PEMLA_PARSERVXLAN_GPE">
+        <OneLineDescription>PARSERVXLAN_GPE virtual registers pemla table</OneLineDescription>
+        <AccessMethod>PEMLA</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="NEXTPROTOCOLIPT"                               Size="8" Type="UINT"
+                       Description=""/>
+                <Field Name="NEXTPROTOCOLIPV4"                              Size="8" Type="UINT"
+                       Description=""/>
+                <Field Name="NEXTPROTOCOLIPV6"                              Size="8" Type="UINT"
+                       Description=""/>
+                <Field Name="NEXTPROTOCOLMPLS"                              Size="8" Type="UINT"
+                       Description=""/>
+            </Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PEMLA_PARSERGRE">
+        <OneLineDescription>PARSERGRE virtual registers pemla table</OneLineDescription>
+        <AccessMethod>PEMLA</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="ETH"                                           Size="16" Type="UINT"
+                       Description=""/>
+            </Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PEMLA_PARSERGENEVE">
+        <OneLineDescription>PARSERGENEVE virtual registers pemla table</OneLineDescription>
+        <AccessMethod>PEMLA</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="ETH"                                           Size="16" Type="UINT"
+                       Description=""/>
+            </Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PEMLA_PARSERPPPOE">
+        <OneLineDescription>PARSERPPPOE virtual registers pemla table</OneLineDescription>
+        <AccessMethod>PEMLA</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="NEXTPROTOCOLIPV4"                              Size="16" Type="UINT"
+                       Description=""/>
+                <Field Name="NEXTPROTOCOLIPV6"                              Size="16" Type="UINT"
+                       Description=""/>
+            </Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PEMLA_PARSERIN1_MPLS_SPECULATIVE">
+        <OneLineDescription>PARSERIN1_MPLS_SPECULATIVE virtual registers pemla table</OneLineDescription>
+        <AccessMethod>PEMLA</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="PROHIBIT_CW"                                   Size="1" Type="UINT"
+                       Description="1: Control Word is not allowed in the network; 0: Control Word is allowed in the network"/>
+                <Field Name="VALUE_OF_0"                                    Size="5" Type="UINT"
+                       Description="Next context when first nibble is 0: normally: Eth context"/>
+                <Field Name="VALUE_OF_4"                                    Size="5" Type="UINT"
+                       Description="Next context when first nibble is 4: normally: IPv4 context"/>
+                <Field Name="VALUE_OF_6"                                    Size="5" Type="UINT"
+                       Description="Next context when first nibble is 6: normally: IPv6 context"/>
+            </Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PEMLA_PARSERBIERMPLS">
+        <OneLineDescription>PARSERBIERMPLS virtual registers pemla table</OneLineDescription>
+        <AccessMethod>PEMLA</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="NEXTPROTOCOLETH"                               Size="6" Type="UINT"
+                       Description=""/>
+                <Field Name="NEXTPROTOCOLIPV4"                              Size="6" Type="UINT"
+                       Description=""/>
+                <Field Name="NEXTPROTOCOLIPV6"                              Size="6" Type="UINT"
+                       Description=""/>
+                <Field Name="NEXTPROTOCOLOAM"                               Size="6" Type="UINT"
+                       Description=""/>
+                <Field Name="NEXTPROTOCOL_MPLS_DOWNSTREAM"                  Size="6" Type="UINT"
+                       Description=""/>
+                <Field Name="NEXTPROTOCOL_MPLS_UPSTREAM"                    Size="6" Type="UINT"
+                       Description=""/>
+            </Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PEMLA_PARSERSYSHDRS">
+        <OneLineDescription>PARSERSYSHDRS virtual registers pemla table</OneLineDescription>
+        <AccessMethod>PEMLA</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="JR_FTMH_EXT_SIZE_IN_BYTES"                     Size="6" Type="UINT"
+                       Description="Stacking and Load Balancing extensions size (0B - 3B)"/>
+                <Field Name="JR_UDH_SIZE_IN_BYTES"                          Size="6" Type="UINT"
+                       Description="User Defined Header size (0B - 16B)"/>
+            </Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="PEMLA_VTT5_DUMMY_LIF_LOOKUP">
+        <OneLineDescription>VTT5_DUMMY_LIF_LOOKUP virtual registers pemla table</OneLineDescription>
+        <AccessMethod>PEMLA</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="LIF_INDEX"                                     Size="20" Type="UINT"
+                       Description=""/>
+            </Result>
+            <TableLabels></TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

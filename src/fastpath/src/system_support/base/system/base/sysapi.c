@@ -237,8 +237,7 @@ void sysapiTimerTaskStart(void)
   }
   sysapiTimerTaskID = osapiTaskCreate(   "osapiTimer",
       (void *)osapiTimerHandler,
-      0,
-      L7_NULLPTR,
+      L7_NULLPTR, 0,
       L7_DEFAULT_STACK_SIZE,
 #ifdef _L7_OS_LINUX_
       L7_MEDIUM_TASK_PRIORITY,

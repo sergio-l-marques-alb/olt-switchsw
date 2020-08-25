@@ -896,7 +896,7 @@ static L7_RC_t sntpCfgTaskCreate()
   /* Create configurator layer thread */
   sntpCfgTaskId = osapiTaskCreate(L7_SNTP_CFG_TASK,
                                   sntpCfgTask,
-                                  L7_NULL, L7_NULLPTR,
+                                  L7_NULLPTR, L7_NULL,
                                   L7_SNTP_DEFAULT_STACK_SIZE,
                                   L7_SNTP_DEFAULT_TASK_PRI,
                                   L7_SNTP_DEFAULT_TASK_SLICE);

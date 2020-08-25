@@ -190,13 +190,9 @@ static L7_RC_t hapiBroadPolicyActionAdd(BROAD_POLICY_RULE_ENTRY_t  *rulePtr,
         return L7_ERROR;
       }
 
-      /*supported for ROBO*/
-      if(hapiBroadRoboVariantCheck() != __BROADCOM_53115_ID)
+      if (action_scope != BROAD_POLICY_ACTION_CONFORMING)
       {
-       if (action_scope != BROAD_POLICY_ACTION_CONFORMING)
-       {
-         L7_LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
-       }
+        L7_LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
       }
       actionPtr->u.ifp_parms.usp.unit = param0;
       actionPtr->u.ifp_parms.usp.slot = param1;
@@ -456,10 +452,6 @@ static void hapiBroadPolicyActionUpdate(BROAD_POLICY_ENTRY_t *policyInfo)
         switch (actionIdx)
         {
         case BROAD_ACTION_REDIRECT:
-         /* RoBo's SDK code does not support using lport as parameter for
-            redirect actions. It should by modid, port*/
-         if(hapiBroadRoboCheck() != L7_TRUE)
-         {
           if (hapiBroadPolicyPortSelect(&actionPtr->u.ifp_parms.usp, &lport) == L7_SUCCESS)
           {
             /* Use gport (i.e. lport) for parameter */
@@ -473,7 +465,7 @@ static void hapiBroadPolicyActionUpdate(BROAD_POLICY_ENTRY_t *policyInfo)
             actionPtr->u.ifp_parms.modport = BCMX_LPORT_INVALID;
           }
           break;
-         }
+
         case BROAD_ACTION_MIRROR:
           if (hapiBroadPolicyPortSelect(&actionPtr->u.ifp_parms.usp, &lport) == L7_SUCCESS)
           {
