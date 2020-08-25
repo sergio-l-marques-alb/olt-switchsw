@@ -2826,6 +2826,7 @@ L7_BASE_TECHNOLOGY_TYPES_t cnfgrBaseTechnologyTypeGet(void)
     case __BROADCOM_56680_ID:
     case __BROADCOM_56685_ID:  /* PTin added: new switch 56689 (Valkyrie2) */
     case __BROADCOM_56843_ID:  /* PTin added: new switch 56843 (Trident) */
+    case __BROADCOM_56370_ID:  /* PTin added: new switch 56370 (Trident3-X3) */
     case __BROADCOM_56820_ID:
     case __BROADCOM_56634_ID:
     case __BROADCOM_56524_ID:

@@ -285,6 +285,24 @@
       __BROADCOM_56334_ID,
       NO_CONNECTION_LIST
     },
+
+    /* PTin added: new switch 56370 (Trident3-X3) */
+    /* 56370 board */
+    {
+        BCM_SYS_BOARD_56370,
+        /* *soc_brd_info */
+    1, 
+    { 
+        BCM56846_DEVICE_ID, //BCM56370_DEVICE_ID,   (Trident3-X3) FIXME
+        //olt-swdrv/trunk/lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.18/broadcom/esw_sdk/include/soc/devids.h:#define BCM56370_DEVICE_ID      0xb370
+    },
+        bcm_sys_id_defl,
+        bcm_sys_sa_init_defl,
+        bcm_sys_pre_stack_defl,
+        UNIT_BROAD_32_TENGIG_1_GIG_56370_REV_1_ID,
+        __BROADCOM_56370_ID,
+        NO_CONNECTION_LIST
+    },
 /* }; */
 
 #endif /* HPC_BOARDS_H */

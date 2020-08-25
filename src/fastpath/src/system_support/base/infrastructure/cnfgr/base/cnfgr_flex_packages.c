@@ -1125,6 +1125,7 @@ static L7_BOOL cnfgrFlexDhcpSnoopingIsFeaturePresent(L7_uint32 featureId)
         case __BROADCOM_56640_ID:   /* PTin added: new switch 5664x (Triumph3) */
         case __BROADCOM_56340_ID:   /* PTin added: new switch 56340 (Helix4) */
         case __BROADCOM_56450_ID:   /* PTin added: new switch 56450 (Katana2) */
+        case __BROADCOM_56370_ID:  /* PTin added: new switch 56370 (Trident3-X3) */
           dsMatrix[L7_DHCP_SNOOPING_IPSG] = L7_TRUE;
 
         default:

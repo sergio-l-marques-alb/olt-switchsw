@@ -7,7 +7,14 @@ X2 = $(shell echo $(X1) | bc)
 BUILD=\"$(shell date +%y%m%d)-$(X2)\"
 
 FP_FOLDER ?= fastpath
-CARD_FOLDER ?= FastPath-Ent-esw-xgs4-$(CPU)-LR-CSxw-IQH_$(BOARD)
+
+# (Trident3-X3) FIXME
+ifeq ($(BOARD),TC16SXG)
+       CARD_FOLDER ?= FastPath-Ent-esw-xgs4-td3x3arm-LR-CSxw-IQH_$(BOARD)
+else
+       CARD_FOLDER ?= FastPath-Ent-esw-xgs4-$(CPU)-LR-CSxw-IQH_$(BOARD)
+endif
+
 OUTPATH ?= output/$(CARD_FOLDER)
 
 #CROSS_COMPILE := $(TOOLCHAIN_BIN_DIR)/$(CROSS_COMPILE)

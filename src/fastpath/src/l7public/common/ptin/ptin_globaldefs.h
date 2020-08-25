@@ -94,7 +94,7 @@ extern int ptin_sys_number_of_ports;
 #define PTIN_BOARD_TYPE_TU100G    0x41
 #define PTIN_BOARD_TYPE_TT08SXG   0x58
 #define PTIN_BOARD_TYPE_TA12XGE   0x43
-
+#define PTIN_BOARD_TYPE_TC16SXG   0x71
 
 #define PTIN_BOARD_IS_PRESENT(board)  ((board) != 0)
 #define PTIN_BOARD_IS_UPLINK(board)   ((board)==(PTIN_BOARD_TYPE_TOLTU20G) || ((board)==(PTIN_BOARD_TYPE_TOLTU20GR)) || \
@@ -103,16 +103,17 @@ extern int ptin_sys_number_of_ports;
 #define PTIN_BOARD_IS_DOWNLINK(board) ((board)==(PTIN_BOARD_TYPE_TOLT8G) || (board)==(PTIN_BOARD_TYPE_TOLT8GR) || \
                                        (board)==(PTIN_BOARD_TYPE_TG16G) || (board)==(PTIN_BOARD_TYPE_TG16GF) || \
                                        (board)==(PTIN_BOARD_TYPE_TT04SXG) || (board)==(PTIN_BOARD_TYPE_TT08SXG) || \
-                                       (board)==(PTIN_BOARD_TYPE_TA48GE) || (board)==(PTIN_BOARD_TYPE_TA48GED))
+                                       (board)==(PTIN_BOARD_TYPE_TA48GE) || (board)==(PTIN_BOARD_TYPE_TA48GED) || \
+                                       (board)==(PTIN_BOARD_TYPE_TC16SXG))
 #define PTIN_BOARD_LS_CTRL(board)     ((board)==(PTIN_BOARD_TYPE_TOLTU20G) || (board)==(PTIN_BOARD_TYPE_TOLTU20GR) || \
                                        (board)==(PTIN_BOARD_TYPE_TU40G) || (board)==(PTIN_BOARD_TYPE_TU40GR) || \
                                        (board)==(PTIN_BOARD_TYPE_TOLT8G) || (board)==(PTIN_BOARD_TYPE_TOLT8GR) || \
                                        (board)==(PTIN_BOARD_TYPE_TG16G) || (board)==(PTIN_BOARD_TYPE_TG16GF) || \
                                        (board)==(PTIN_BOARD_TYPE_TT04SXG) || (board)==(PTIN_BOARD_TYPE_TT08SXG) || \
-                                       (board)==(PTIN_BOARD_TYPE_CXO160G) || (board)==(PTIN_BOARD_TYPE_CXO640G))
+                                       (board)==(PTIN_BOARD_TYPE_CXO160G) || (board)==(PTIN_BOARD_TYPE_CXO640G)) /*(Trident3-X3) FIXME?*/
 
 /* These cards will be reseted when a switchover is applied (ptin_control) */
-#define PTIN_BOARD_IS_TORESET(board)  ((board)==(PTIN_BOARD_TYPE_TG16G) || (board)==(PTIN_BOARD_TYPE_TG16GF) || (board)==(PTIN_BOARD_TYPE_TT04SXG))
+#define PTIN_BOARD_IS_TORESET(board)  ((board)==(PTIN_BOARD_TYPE_TG16G) || (board)==(PTIN_BOARD_TYPE_TG16GF) || (board)==(PTIN_BOARD_TYPE_TT04SXG)) /*(Trident3-X3) FIXME?*/
 
 #define WC_MAP_FILE "/usr/local/ptin/var/bcm_port_map"
 
@@ -185,6 +186,10 @@ extern int ptin_sys_number_of_ports;
 /* OLT1T3 Matrix card */
 #elif (PTIN_BOARD == PTIN_BOARD_CXO640G)
 #include "ptin_globaldefs_cxo640g.h"
+
+/* TC16SXG */
+#elif (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+#include "ptin_globaldefs_tc16sxg.h"
 
 #endif
 

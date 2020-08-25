@@ -347,6 +347,23 @@
   }
 }
 ,
+/* PTin added: new switch 56370 (Trident3-X3) FIXME*/
+{
+  {
+    CARD_BROAD_32_TENGIG_1_GIG_56370_REV_1_ID,   /* cardtypeID */
+    "BCM56370-64TENGE-1GIG",              /* cardModel  */
+    "Broadcom BCM56370 - 32 XG +1 GbE Ethernet Line Card",  /* cardDescription  */
+    SYSAPI_CARD_TYPE_LINE,            /* type       */
+    33, /* XXXX */
+    SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
+    SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
+    /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */
+    hpcPortInfoTable_CARD_BROAD_32_TENGIG_1_GIG_56370_REV_1,
+    /* portInfo, refers to table declared above for each card type */
+    &dapiBroadPhysicalCardEntry_CARD_BROAD_32_TENGIG_1_GIG_56370_REV_1 /* dapiCardInfo */
+  }
+}
+,
 /* PTin end */
 {
   {
@@ -556,6 +573,23 @@
     /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */
     hpcPortInfoTable_CARD_CPU,    /* portInfo, refers to table declared above for each card type */
     &dapiBroadCpuCardEntry_CARD_BROAD_64_TENGIG_REV_1  /* dapiCardInfo */
+  }
+}
+,
+/* PTin added: new switch 56370 (Trident3-X3) */
+{
+  /* Logical CPU Card */
+  {
+    L7_LOGICAL_CARD_CPU_32_TENGIG_1_GIG_56370_REV_1_ID, /* cardtypeID */
+    "LVL7 Logical CPU Card",        /* cardModel  */
+    "LVL7 Logical CPU Card",        /* cardDescription  */
+    SYSAPI_CARD_TYPE_LOGICAL_CPU, /* type       */
+    (sizeof(hpcPortInfoTable_CARD_CPU)/sizeof(SYSAPI_HPC_PORT_DESCRIPTOR_t)),
+    SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
+    SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
+    /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */
+    hpcPortInfoTable_CARD_CPU,    /* portInfo, refers to table declared above for each card type */
+    &dapiBroadCpuCardEntry_CARD_BROAD_32_TENGIG_1_GIG_REV_1  /* dapiCardInfo */
   }
 }
 ,

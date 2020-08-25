@@ -981,6 +981,92 @@ L7_RC_t hpcConfigBoardSet()
         #endif
 
         break;
+
+    /* PTin added: new switch 56370 (Trident3-X3) */
+    case UNIT_BROAD_32_TENGIG_1_GIG_56370_REV_1_ID:
+      #if 0
+      if (sal_config_set(spn_POLLED_IRQ_MODE, "1") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_TDMA_INTR_ENABLE, "0") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_TSLAM_INTR_ENABLE, "0") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_SCHAN_INTR_ENABLE, "0") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_MIIM_INTR_ENABLE, "0") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_MEMCMD_INTR_ENABLE, "0") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_L2MOD_DMA_INTR_ENABLE, "0") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_TSLAM_DMA_ENABLE, "0") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_TABLE_DMA_ENABLE, "0") != 0)
+        return(L7_FAILURE);
+      PT_LOG_NOTICE(LOG_CTX_MISC,"Interrupts and DMA disabled!");
+      #else
+      PT_LOG_NOTICE(LOG_CTX_MISC,"Interrupts and DMA are enabled!");
+      #endif
+
+      if (sal_config_set(spn_TRUNK_EXTEND, "0x1") != 0) return(L7_FAILURE);
+
+      /* Configure to use LCPLL reference clock */
+      if (sal_config_set(spn_XGXS_LCPLL_XTAL_REFCLK, "1") != 0) return(L7_FAILURE);
+
+      /* Configure mmu lossy mode */
+      if (sal_config_set(spn_MMU_LOSSLESS, "0") != 0)
+        return(L7_FAILURE);
+
+      /* Linkscan interval */
+      if (sal_config_set(spn_BCM_LINKSCAN_INTERVAL, "10000") != 0)
+        return(L7_FAILURE);
+
+      #if 0 && (PTIN_BOARD == PTIN_BOARD_TC16SXG)   /*(Trident3-X3) FIXME*/
+      if (hpcBoardWCinit_bcm56846() == L7_SUCCESS)
+      {
+        PT_LOG_NOTICE(LOG_CTX_STARTUP,"WCs initialized successfully");
+      }
+      else
+      {
+        PT_LOG_ERR(LOG_CTX_STARTUP,"Error initializing WCs");
+      }
+
+      /* Disable BAM */
+      if (sal_config_set(spn_PHY_AN_C73"_xe0",  "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe1",  "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe2",  "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe3",  "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe4",  "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe5",  "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe6",  "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe7",  "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe8",  "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe9",  "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe10", "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe11", "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe12", "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe13", "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe14", "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe15", "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe16", "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe17", "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe18", "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe19", "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe20", "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe21", "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe22", "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe23", "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe24", "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe25", "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe26", "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe27", "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe28", "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe29", "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe30", "0x02") != 0) return(L7_FAILURE);
+      if (sal_config_set(spn_PHY_AN_C73"_xe31", "0x02") != 0) return(L7_FAILURE);
+      #endif
+
+      break;
       /* PTin end */
 
       default:

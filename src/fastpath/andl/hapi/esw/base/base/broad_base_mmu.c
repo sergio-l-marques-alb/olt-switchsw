@@ -860,6 +860,7 @@ hapiBroadPgInit(int unit, pg_cosmap_t *cosmap,int num_cos,
         /* PTin added: new switch 5664x (Triumph3) */
         /* PTin added: new switch 56843 (Trident) */
         /* PTin added: new switch 56450 (Katana2) */
+        /* PTin added: new switch 56370 (Trident3-X3) FIXME*/
         if (SOC_IS_APOLLO(unit) || SOC_IS_TRIUMPH2(unit) || SOC_IS_VALKYRIE2(unit) || SOC_IS_TRIDENT(unit) ||
             SOC_IS_TRIUMPH3(unit) || SOC_IS_KATANA2(unit))
         {
@@ -1097,6 +1098,7 @@ void hapiBroadMmuCellLimits(int unit, int *total_cells, int *total_packets,
     if (SOC_IS_VALKYRIE(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit)) {   /* PTin added: new switch 56689 (Valkyrie2) */
         *total_cells = 24 * 1024; /* 24K cells */
     }else if SOC_IS_TRIDENT(unit) {                                                 /* PTin added: new switch 56843 (Trident) */
+                                                                                    /* PTin added: new switch 56370 (Trident3-X3) FIXME*/
        *total_cells = 45 * 1024; /* 45K cells */
     }else{ 
        *total_cells = 32 * 1024; /* 32K cells */
@@ -1406,6 +1408,7 @@ int hapiBroadMmuTriumphPauseSet(int unit, int pause)
     /* PTin added: new switch 56689 (Valkyrie2) */
     /* PTin added: new switch 5664x (Triumph3) */
     /* PTin added: new switch 56843 (Trident) */
+    /* PTin added: new switch 56370 (Trident3-X3) FIXME*/
     if (SOC_IS_APOLLO(unit) || SOC_IS_TRIUMPH2(unit) || SOC_IS_VALKYRIE2(unit) || SOC_IS_TRIDENT(unit) ||
         SOC_IS_TRIUMPH3(unit))
     { /* Everything in service pool 0 */
@@ -1546,6 +1549,7 @@ L7_RC_t hapiBroadTrVlMmuModify(L7_uint32 unit)
                            &in_reserved_pkts, &out_reserved_cells, &out_reserved_pkts);
     /* PTin added: new switch 56689 (Valkyrie2) */
     /* PTin added: new switch 5664x (Triumph3) */
+    /* PTin added: new switch 56370 (Trident3-X3) FIXME*/
     triumph2_family = SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit) ||
                       SOC_IS_TRIUMPH3(unit);
 
@@ -2145,6 +2149,7 @@ L7_RC_t hapiBroadTridentMmuModify(L7_uint32 unit)
     /* PTin added: new switch 56689 (Valkyrie2) */
     /* PTin added: new switch 5664x (Triumph3) */
     /* PTin added: new switch 56843 (Trident) */
+    /* PTin added: new switch 56370 (Trident3-X3) FIXME */
     triumph2_family = SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit) ||
                       SOC_IS_TRIUMPH3(unit) || SOC_IS_TRIDENT(unit);
 

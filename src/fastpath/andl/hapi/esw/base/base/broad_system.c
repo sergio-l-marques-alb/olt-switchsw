@@ -2287,6 +2287,7 @@ L7_RC_t hapiBroadGetSystemBoardFamily(bcm_chip_family_t *board_family)
       *board_family = BCM_FAMILY_SCORPION;
       break;
     case __BROADCOM_56843_ID:  /* PTin added: new switch 56843 (Trident) */
+    case __BROADCOM_56370_ID:  /* PTin added: new switch 56370 (Trident3-X3) */
       *board_family = BCM_FAMILY_TRIDENT;
       break;
   default:

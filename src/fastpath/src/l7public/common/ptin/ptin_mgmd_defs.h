@@ -68,6 +68,9 @@
 #elif (PTIN_BOARD == PTIN_BOARD_CXO640G)
 #include "ptin_mgmd_defs_cxo640g.h"
 
+#elif (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+#include "ptin_mgmd_defs_tc16sxg.h"
+
 #endif
 
 #endif /* _PTIN_MGMD_DEFS_MAIN_H */

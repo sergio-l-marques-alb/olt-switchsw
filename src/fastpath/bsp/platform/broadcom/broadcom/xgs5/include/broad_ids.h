@@ -46,6 +46,7 @@
 #define UNIT_BROAD_48_GIG_4_TENGIG_56450_REV_1_ID           0xB4500001 /* PTin added: new switch 56450 (Katana2) */
 #define UNIT_BROAD_40_TENGIG_56843_REV_1_ID                 0xB8430001 /* PTin added: new switch 56843 (Trident) */
 #define UNIT_BROAD_64_TENGIG_56846_REV_1_ID                 0xB8460001 /* PTin added: new switch 56846 (Trident-plus) */
+#define UNIT_BROAD_32_TENGIG_1_GIG_56370_REV_1_ID           0xB3700001 /* PTin added: new switch 56370 (Trident3-X3) */
 
 /*******************************************************************************
 *
@@ -74,6 +75,7 @@
 #define CARD_BROAD_48_GIG_4_TENGIG_56450_REV_1_ID         0x56450001   /* PTin added: new switch 56450 (Katana2) */
 #define CARD_BROAD_40_TENGIG_56843_REV_1_ID               0x56843001   /* PTin added: new switch 56843 (Trident) */
 #define CARD_BROAD_64_TENGIG_56846_REV_1_ID               0x56846001   /* PTin added: new switch 56846 (Trident-plus) */
+#define CARD_BROAD_32_TENGIG_1_GIG_56370_REV_1_ID         0x56370001   /* PTin added: new switch 56370 (Trident3-X3) */
 #define CARD_BROAD_48_GIG_4_TENGIG_56646_REV_1_ID         0x56646001   /* PTin added: new switch 56646 (?) */
 
 /* Logical CPU cards */
@@ -84,5 +86,6 @@
 #define L7_LOGICAL_CARD_SCORPION_24_TENGIG_4_GIG_REV_1_ID           0xFF010011
 #define L7_LOGICAL_CARD_CPU_40_TENGIG_REV_1_ID                      0xFF010012  /* PTin added: new switch 56843 (Trident) */
 #define L7_LOGICAL_CARD_CPU_64_TENGIG_REV_1_ID                      0xFF010013  /* PTin added: new switch 56846 (Trident-plus) */
+#define L7_LOGICAL_CARD_CPU_32_TENGIG_1_GIG_56370_REV_1_ID          0xFF010014  /* PTin added: new switch 56370 (Trident3-X3) */
 
 #endif
