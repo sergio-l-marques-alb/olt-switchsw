@@ -149,6 +149,9 @@ typedef enum {
 } BROAD_CPU_RATE_LIMIT_TYPE_t;
 
 int hapiBroadCpuCosqRateSet(int unit, int cosq, int rate, BROAD_CPU_RATE_LIMIT_TYPE_t type);
+#ifdef L7_ROBO_SUPPORT
+static L7_int32 hapiBroadSetRoboDefaultParameters( L7_int32 unit );
+#endif
 
 typedef struct
 {
@@ -1044,6 +1047,11 @@ L7_RC_t hapiBroadSwitchControlSet(int i)
     return L7_FAILURE;
   }
 
+  if(hapiBroadRoboCheck() == L7_TRUE)
+  {
+    bcm_switch_control_set(i, bcmSwitchDosAttackToCpu, 1);
+  }
+
   /* Set sflow parameters */
   rv = bcm_switch_control_set(i, bcmSwitchSampleIngressRandomSeed, 
                               FD_SFLOW_SAMPLE_RANDOM_SEED);
@@ -1131,6 +1139,12 @@ void hpcHardwareBlockMaskSet(L7_int32 unit)
   {
     PBMP_PORT_ITER (unit, port)
     {
+#ifdef L7_ROBO_SUPPORT
+      if(IS_E_PORT(unit,port))
+      {
+        continue;
+      }  
+#endif
       rv = bcm_port_flood_block_set(unit, port, CMIC_PORT(unit), floodBlockFlag);
       if (rv != BCM_E_NONE && rv != BCM_E_UNAVAIL)
       {
@@ -1507,7 +1521,15 @@ void hpcHardwareDefaultConfigApply(void)
           /* Disable learning on the ports. The port security component sets
           ** up learning.
           */
+#ifndef L7_ROBO_SUPPORT
+/* PTin modified */
+//#ifdef L7_MACLOCK_PACKAGE
+//          rv = bcm_port_learn_set (i,port,  0);
+//#else 
+          /* If PML component is not present, we have to enable the learning mode on all ports */
           rv = bcm_port_learn_set (i,port, (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD));
+//#endif
+#endif
           if (rv != BCM_E_NONE)
           {
             L7_LOG_ERROR(rv);
@@ -1973,6 +1995,14 @@ void hpcHardwareDefaultConfigApply(void)
     /* apply the Opcode 0 patch for XGS3 devices if necessary */
     hapiBroadXgs3Opcode0Patch(i,L7_TRUE); 
 
+#ifdef L7_ROBO_SUPPORT 
+    if (SOC_IS_ROBO(i))
+    {
+      hapiBroadSetRoboDefaultParameters(i);
+    }
+#endif
+
+
 #ifdef INCLUDE_L3
     /* Enable L3 Egress mode. Must be done before any host/route is 
      * created.
@@ -2061,6 +2091,116 @@ void hpcHardwareDefaultConfigApply(void)
   }
 }
 
+#ifdef L7_ROBO_SUPPORT
+/*********************************************************************
+* @purpose  Disables DLF,broadcast,multicast flood to the CPU ,passes
+*           ARP packets
+*
+* @param    void
+*                                       
+* @returns  none
+*
+* @comments    
+*       
+* @end
+*********************************************************************/
+static L7_int32 hapiBroadSetRoboDefaultParameters( L7_int32 unit )
+{
+  L7_uint32  reg_addr, reg_value, temp;
+  L7_int32     reg_len;
+  L7_int32     rv;
+
+  temp = 0;
+
+  if( SOC_IS_ROBO53115(unit))
+  {
+    /*packets not reaching CPU*/
+
+    reg_len = (DRV_SERVICES(unit)->reg_length_get)(unit, IMP_CTLr);
+    reg_addr = (DRV_SERVICES(unit)->reg_addr)(unit, IMP_CTLr, 0, 0);
+    if ((rv = (DRV_SERVICES(unit)->reg_read)
+        (unit, reg_addr, &reg_value, reg_len)) < 0) 
+    {
+        return rv;
+    }
+    /* Broadcast packet */
+    SOC_IF_ERROR_RETURN((DRV_SERVICES(unit)->reg_field_set)
+       (unit, IMP_CTLr, &reg_value, RX_BCST_ENf, &temp));
+
+    /* Multicast  packet */
+    SOC_IF_ERROR_RETURN((DRV_SERVICES(unit)->reg_field_set)
+       (unit, IMP_CTLr, &reg_value, RX_MCST_ENf, &temp));
+
+    /* Unicast DLF Failure */
+    SOC_IF_ERROR_RETURN((DRV_SERVICES(unit)->reg_field_set)
+        (unit, IMP_CTLr, &reg_value, RX_UCST_ENf, &temp));
+
+    if ((rv = (DRV_SERVICES(unit)->reg_write)
+        (unit, reg_addr, &reg_value, reg_len)) < 0) 
+    {
+        return rv;
+    }
+
+    /* set Reserved Multicast Untag check to set vlan tag */
+    reg_addr = 0x3401;
+    reg_value = 0x0a;
+    reg_len = 1;
+    if ((rv = (DRV_SERVICES(unit)->reg_write)
+        (unit, reg_addr, &reg_value, reg_len)) < 0)
+    {
+        return rv;
+    }
+    /* Since CPU is blocked from receiving BCAST traffic
+     * enabling HL_PRTC_CTRL register to trap ARP request/DHCP packets
+     */
+    rv = bcm_switch_control_set(unit, bcmSwitchArpReplyToCpu, 1);
+    if (rv != BCM_E_NONE)
+    {
+      L7_LOG_ERROR(rv);
+    }
+
+    rv = bcm_switch_control_set(unit, bcmSwitchDhcpPktToCpu, 1);
+    if (rv != BCM_E_NONE)
+    {
+      L7_LOG_ERROR(rv);
+    }
+
+    /* Enabling tagging with PVID for untagged GMRP/GVRP packets */
+    reg_addr = (DRV_SERVICES(unit)->reg_addr)(unit, VLAN_CTRL2r, 0, 0);
+    reg_len = (DRV_SERVICES(unit)->reg_length_get)(unit, VLAN_CTRL2r);
+
+    if ((rv = (DRV_SERVICES(unit)->reg_read)
+        (unit, reg_addr, &reg_value, reg_len)) < 0) 
+    {
+        return rv;
+    }
+
+    temp = 1;
+    SOC_IF_ERROR_RETURN((DRV_SERVICES(unit)->reg_field_set)
+       (unit, VLAN_CTRL2r, &reg_value, EN_GMRP_GVRP_UNTAG_MAPf, &temp));
+    
+    if ((rv = (DRV_SERVICES(unit)->reg_write)
+            (unit, reg_addr, &reg_value, reg_len)) < 0) 
+    {
+      return rv;
+    }
+#if L7_FEAT_CUSTOM_LED_BLINK
+    reg_addr = (DRV_SERVICES(unit)->reg_addr)(unit, LED_FUNC1_CTLr, 0, 0);
+    reg_len = (DRV_SERVICES(unit)->reg_length_get)(unit, LED_FUNC1_CTLr);
+
+    reg_value = 0x3041;
+    if ((rv = (DRV_SERVICES(unit)->reg_write)
+            (unit, reg_addr, &reg_value, reg_len)) < 0) 
+    {
+      return rv;
+    }
+#endif
+
+ }
+    
+  return rv;
+}
+#endif
 
 /*********************************************************************
 * @purpose  Resets the Driver to a known state
@@ -3207,12 +3347,22 @@ systemInit(int unit)
   sal_usecs_t           usec;
   char          *msg = NULL;
   pbmp_t                pbmp;
+#ifdef BCM_ROBO_SUPPORT
+extern int soc_robo_misc_init(int ); 
+extern int soc_robo_mmu_init(int );
+#endif
 
   PT_LOG_INFO(LOG_CTX_STARTUP, "Starting systemInit...");
 
+#ifdef BCM_ROBO_SUPPORT
+  SYSTEM_INIT_CHECK(soc_robo_reset_init(unit), "Device reset");
+  SYSTEM_INIT_CHECK(soc_robo_misc_init(unit), "Misc init");
+  SYSTEM_INIT_CHECK(soc_robo_mmu_init(unit), "MMU init");
+#else
   SYSTEM_INIT_CHECK(soc_reset_init(unit), "Device reset");
   SYSTEM_INIT_CHECK(soc_misc_init(unit), "Misc init");
   SYSTEM_INIT_CHECK(soc_mmu_init(unit), "MMU init");
+#endif
 
 #if defined(INCLUDE_PHY_8706)  
 #if L7_FEAT_SF10GBT

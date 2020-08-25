@@ -141,8 +141,6 @@ extern void hpcDebugBcmCpudbShow();
  * We need these routines only when BCM shell is not included.
  */
 
-/* PTin removed for SDK-ALL-6.5.15 or higher */
-#if (SDK_VERSION_IS < SDK_VERSION(6,5,15,0))
 /*
  * Convert hex digit to hex character and vice-versa
  */
@@ -251,7 +249,6 @@ format_uint64(char *buf, uint64 n)
 
   format_long_integer(buf, val, 2);
 }
-#endif
 #endif
 
 /*********************************************************************
@@ -1219,13 +1216,7 @@ L7_RC_t hapiBroadDebugMemoryDump(L7_int32 memtype, L7_uint32 unit, L7_int32 copy
           printf("0x%08x ", entry[i]);
       }
       else
-      {
-#if (SDK_VERSION_IS >= SDK_VERSION(6,5,15,0))
-        soc_mem_entry_dump(unit, mem, entry, 0x0 /*Flags*/);
-#else
         soc_mem_entry_dump(unit, mem, entry);
-#endif
-      }
 
       printf("\n");
     }
@@ -1729,11 +1720,8 @@ L7_RC_t hapiBroadDebugVlanTable(L7_uint32 unit)
     }
     printf("\n");
 
-#if (SDK_VERSION_IS >= SDK_VERSION(6,5,15,0))
-    soc_mem_entry_dump(unit, mem, entry, 0x0 /*Flags*/);
-#else
     soc_mem_entry_dump(unit, mem, entry);
-#endif
+
     printf("\n");
   }
 
@@ -3010,11 +2998,11 @@ void driverWvTraceSet(void)
   trgOff();
   trgAdd(L7_TRACE_TRIGGER_DRIVER_UNIT_FAIL_START, TRG_ENABLE, TRG_CTX_ANY, 0, 0,
           TRIGGER_COND_NO, 0, 0, 0, 0,
-          1, NULL, TRG_ACT_WV_START, (L7_FUNCPTR)wvEvtLogStart, TRUE, 0);
+          1, NULL, TRG_ACT_WV_START, (FUNCPTR)wvEvtLogStart, TRUE, 0);
 
   trgAdd(L7_TRACE_TRIGGER_DRIVER_UNIT_FAIL_END, TRG_ENABLE, TRG_CTX_ANY, 0, 0,
           TRIGGER_COND_NO, 0, 0, 0, 0,
-          1, NULL, TRG_ACT_WV_STOP, (L7_FUNCPTR)wvEvtLogStop, TRUE, 0);
+          1, NULL, TRG_ACT_WV_STOP, (FUNCPTR)wvEvtLogStop, TRUE, 0);
   trgOn();
 }
 

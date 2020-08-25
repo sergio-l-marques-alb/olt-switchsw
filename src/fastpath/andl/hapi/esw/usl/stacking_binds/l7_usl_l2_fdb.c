@@ -78,6 +78,9 @@ L7_uint32 uslMacAgeTime = 300;
 *********************************************************************/
 int usl_l7_remove_l2_addr_by_trunk (void *user_data, shr_avl_datum_t *datum , void *extra_data)
 {
+#ifdef L7_ROBO_SUPPORT /*CHANGE DURING HAPI PORT*/ 
+ return BCM_E_NONE;
+#else
   L7_uint32             unit;
   L7_uint32             l2entry_tgid, l2entry_vlanid, l2entry_static;
   mac_addr_t            macAddr;
@@ -125,6 +128,7 @@ int usl_l7_remove_l2_addr_by_trunk (void *user_data, shr_avl_datum_t *datum , vo
   }
 
   return(BCM_E_NONE);
+#endif
 }
 
 /*********************************************************************
@@ -144,6 +148,9 @@ int usl_l7_remove_l2_addr_by_trunk (void *user_data, shr_avl_datum_t *datum , vo
 *********************************************************************/
 int usl_l7_remove_l2_addr_by_port (void *user_data, shr_avl_datum_t *datum , void *extra_data)
 {
+#ifdef L7_ROBO_SUPPORT /*CHANGE DURING HAPI PORT*/
+  return BCM_E_NONE; 
+#else
   L7_uint32             unit, port, modid;
   L7_uint32             l2entry_port, l2entry_modid, l2entry_vlanid, l2entry_static;
   mac_addr_t            macAddr;
@@ -187,6 +194,7 @@ int usl_l7_remove_l2_addr_by_port (void *user_data, shr_avl_datum_t *datum , voi
   }
 
   return(BCM_E_NONE);
+#endif
 }
 
 
@@ -207,6 +215,9 @@ int usl_l7_remove_l2_addr_by_port (void *user_data, shr_avl_datum_t *datum , voi
 *********************************************************************/
 int usl_l7_remove_l2_addr_by_vlan (void *user_data, shr_avl_datum_t *datum , void *extra_data)
 {
+#ifdef L7_ROBO_SUPPORT /*CHANGE DURING HAPI PORT*/
+return BCM_E_NONE;
+#else
   L7_uint32             unit;
   L7_uint32             l2entry_port, l2entry_modid, l2entry_vlanid, l2entry_static;
   mac_addr_t            macAddr;
@@ -248,6 +259,7 @@ int usl_l7_remove_l2_addr_by_vlan (void *user_data, shr_avl_datum_t *datum , voi
   }
 
   return(BCM_E_NONE);
+#endif
 }
 
 /*********************************************************************

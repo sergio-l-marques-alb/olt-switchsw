@@ -1642,7 +1642,7 @@ L7_BOOL osapiTaskIdIs( L7_uchar8 *taskNameToMatch )
 
 typedef struct {
    char *name;
-   L7_FUNCPTR value;
+   FUNCPTR value;
 } SYMBOL;  /* need tools to build symbol table */
 typedef unsigned long ULONG;
 

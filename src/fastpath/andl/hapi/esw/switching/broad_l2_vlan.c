@@ -2236,6 +2236,15 @@ L7_RC_t hapiBroadCosSetDot1pParams(DAPI_USP_t *usp, L7_uchar8 dot1p, L7_uchar8 c
       
   hapiPortPtr->dot1pMap[dot1p] = cosq;
 
+  if(hapiBroadRoboCheck() == L7_TRUE)
+  {
+    if (dot1p <= L7_DOT1P_MAX_PRIORITY)   /* PTin modified: + default prio */
+    {
+      bcmx_cosq_port_mapping_set(hapiPortPtr->bcmx_lport, (bcm_cos_t)dot1p,  (bcm_cos_queue_t)cosq); 
+    }
+    return L7_SUCCESS;
+  }
+
   if (L7_TRUE == hapiPortPtr->port_is_lag)
   {
     int               i;

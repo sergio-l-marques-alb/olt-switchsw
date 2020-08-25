@@ -325,6 +325,10 @@ L7_RC_t hapiBroadSystemPolicyInstallRaptor(DAPI_t *dapi_g)
                                        FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
   BROAD_POLICY_t      sysId1 = BROAD_POLICY_INVALID, sysId2 = BROAD_POLICY_INVALID;
   BROAD_POLICY_RULE_t ruleId;
+#ifdef BCM_ROBO_SUPPORT
+  L7_ushort16       sntp_dport    = 123;
+  L7_uchar8         ip_udp_proto[]   = {IP_PROT_UDP}; 
+#endif
 
   hapiSystem = (BROAD_SYSTEM_t *)dapi_g->system->hapiSystem;
 
@@ -334,7 +338,12 @@ L7_RC_t hapiBroadSystemPolicyInstallRaptor(DAPI_t *dapi_g)
   /* give dot1x EAPOL packets high priority so they reach the cpu */
   hapiBroadPolicyRuleAdd(&ruleId);
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&eap_ethtype, exact_match);
+#ifdef BCM_ROBO_SUPPORT
+  hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_REASON_CODE,
+                                       BCM_ROBO_RX_REASON_PROTOCOL_TERMINATION, 0, 0);
+#else
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS, 0, 0);
+#endif
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
 
   /* Drop BPDUs which are within the reserved range but not used. Add rule
@@ -346,7 +355,12 @@ L7_RC_t hapiBroadSystemPolicyInstallRaptor(DAPI_t *dapi_g)
   /* give BPDUs high priority */
   hapiBroadPolicyRuleAdd(&ruleId);
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, res_macda, res_macmask);
+#ifdef BCM_ROBO_SUPPORT
+  hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_REASON_CODE,
+                                       BCM_ROBO_RX_REASON_PROTOCOL_TERMINATION, 0, 0);
+#else
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_BPDU_COS, 0, 0);
+#endif
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
 
 #ifdef L7_ISDP_PACKAGE
@@ -366,11 +380,28 @@ L7_RC_t hapiBroadSystemPolicyInstallRaptor(DAPI_t *dapi_g)
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&arp_ethtype, exact_match);
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, bcast_macda, exact_match);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_MED_PRIORITY_COS, 0, 0);
+#ifdef BCM_ROBO_SUPPORT
+  hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_REASON_CODE,
+                                            BCM_ROBO_RX_REASON_PROTOCOL_SNOOP, 0, 0);
+#endif
 
   result = hapiBroadPolicyCommit(&sysId1);
 
   if (L7_SUCCESS != result)
       return result;
+
+#ifdef BCM_ROBO_SUPPORT /* ADDED for SNTP Broad packet */
+   /* Create policy for L4 specific information, e.g. SNTPs */
+  hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);   /* Policy 2 */
+  hapiBroadPolicyRuleAdd(&ruleId);
+  hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO, ip_udp_proto, exact_match);
+  hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DPORT, (L7_uchar8 *)&sntp_dport, exact_match);
+  hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
+
+  result = hapiBroadPolicyCommit(&sysId2);
+  if (L7_SUCCESS != result)
+    return result;
+#endif /* SNTP Broad packet */
 
 #ifdef L7_STACKING_PACKAGE
   /* If this device is using front panel stacking then create a filter to
@@ -421,7 +452,10 @@ L7_RC_t hapiBroadSystemPolicyInstallRaptor(DAPI_t *dapi_g)
   hapiBroadSystemIpv6PacketsToCpuPolicyInstall(dapi_g);
 #endif
 
-  result = hapiBroadDot1xViolationPolicyCreate(dapi_g);
+  if(hapiBroadRoboVariantCheck() != __BROADCOM_53115_ID)
+  {
+    result = hapiBroadDot1xViolationPolicyCreate(dapi_g);
+  }
 
   return result;
 }
@@ -491,7 +525,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   bcm_chip_family_t board_family;
 
   if ((hapiBroadRaptorCheck() == L7_TRUE) ||
-      (hapiBroadHawkeyeCheck() == L7_TRUE) )
+      (hapiBroadRoboCheck()== L7_TRUE) || (hapiBroadHawkeyeCheck() == L7_TRUE) )
   {
     return hapiBroadSystemPolicyInstallRaptor(dapi_g);
   }
@@ -2224,6 +2258,18 @@ L7_RC_t hapiBroadCpuPortMapGet(L7_ushort16 unitNum, L7_ushort16 slotNum, DAPI_t 
   {
     hapiPortPtr  = (BROAD_PORT_t *)dapi_g->unit[usp.unit]->slot[usp.slot]->port[usp.port]->hapiPort;
 
+#ifdef L7_ROBO_SUPPORT
+    hapiPortPtr->bcm_port =  dapiCardInfoPtr->slotMap[slotMapIndex].bcm_port;
+    if ((hapiBroadRoboCheck() == L7_TRUE))
+    {
+      int i;
+      for (i = 0; i < bde->num_devices(BDE_SWITCH_DEVICES); i++)
+      {
+        bcm_port_enable_set(i,hapiPortPtr->bcm_port,1);
+      }
+    }
+#endif
+
     if (hapiBroadMapDbEntryGet(&cpuKey,
                                dapiCardInfoPtr->slotMap[slotMapIndex].bcm_cpuunit,
                                dapiCardInfoPtr->slotMap[slotMapIndex].bcm_port,
@@ -2249,7 +2295,10 @@ L7_RC_t hapiBroadCpuPortMapGet(L7_ushort16 unitNum, L7_ushort16 slotNum, DAPI_t 
 
   return result;
 }
-
+#ifdef BCM_ROBO_SUPPORT
+extern int
+drv_bcm5395_queue_rx_reason_set(int unit, uint8 reason, uint32 queue);
+#endif
 /*********************************************************************
 *
 * @purpose On a new bcm unit insert, refresh the l2/linkscan/rx registrations.
@@ -2315,6 +2364,11 @@ L7_RC_t hapiBroadBcmxRegisterUnit(L7_ushort16 unitNum,L7_ushort16 slotNum, DAPI_
       return result;
     }
 
+    if ( hapiBroadRoboCheck() == L7_TRUE)
+    {
+      bcmx_l2_notify_stop();
+    }
+
     rv = bcmx_l2_notify_start();
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
@@ -2336,6 +2390,13 @@ L7_RC_t hapiBroadBcmxRegisterUnit(L7_ushort16 unitNum,L7_ushort16 slotNum, DAPI_
     result = L7_FAILURE;
     return result;
   }
+
+#ifdef BCM_ROBO_SUPPORT
+/*need to change with SOC_IS_53115*/
+ drv_bcm5395_queue_rx_reason_set(0,DRV_RX_REASON_SWITCHING,3);
+ drv_bcm5395_queue_rx_reason_set(0,DRV_RX_REASON_PROTO_TERM,3);
+ drv_bcm5395_queue_rx_reason_set(0,DRV_RX_REASON_PROTO_SNOOP,3);
+#endif
 
   rv = bcmx_rx_register("hapiBroadReceive",
                         hapiBroadReceive,
@@ -2582,8 +2643,12 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
 #if !defined(__MxP_FILTER__INSTEAD_OF__APS_AND_CCM__)
     hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID,  (L7_uchar8*)&new_vlan_id, exact_match);
 #endif
-
+#ifdef BCM_ROBO_SUPPORT
+    hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_REASON_CODE, 
+                                      BCM_ROBO_RX_REASON_SWITCHING, 0, 0);
+#else
     hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_MEDIUM, 0, 0);
+#endif
 
     /* PTin added: inband */
     hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);

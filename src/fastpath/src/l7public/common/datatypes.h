@@ -151,9 +151,9 @@ typedef void (*L7_VOIDFUNCPTR_t) (); /* ptr to fcn rtrning void  */
 */
 #if defined(_L7_OS_LINUX_) || defined(_L7_OS_ECOS_)
   #ifdef __cplusplus
-typedef L7_int32    (*L7_FUNCPTR) (...); 
+typedef L7_int32    (*FUNCPTR) (...); 
   #else
-typedef L7_int32    (*L7_FUNCPTR) (); 
+typedef L7_int32    (*FUNCPTR) (); 
   #endif
 #endif
 #ifdef L7_METRO_FLEX_PACKAGE

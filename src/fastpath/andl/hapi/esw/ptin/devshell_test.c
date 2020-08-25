@@ -1632,6 +1632,43 @@ int ptin_vlan_stat_get(bcm_vlan_t vlanId, bcm_cos_t cos, bcm_vlan_stat_t stat)
   return error;
 }
 
+// Perfis 'a VLAN: feature unavailable!
+
+int ptin_vlan_policer_policer_set(int port, bcm_vlan_t vlanId, uint32 cir, uint32 eir)
+{
+  int error;
+  bcm_port_t  bcm_port;
+  bcm_policer_t policer_id;
+  bcm_policer_config_t policer_cfg;
+
+  // Validate port, and get bcm_port reference
+  if (port>=PTIN_SYSTEM_N_PORTS || hapi_ptin_bcmPort_get(port,&bcm_port)!=L7_SUCCESS)
+  {
+    printf("Port is invalid\r\n");
+    return -1;
+  }
+
+  bcm_policer_config_t_init(&policer_cfg);
+  policer_cfg.flags       = 0; //BCM_POLICER_DROP_RED;
+  policer_cfg.mode        = bcmPolicerModeTrTcm;
+  policer_cfg.ckbits_sec  = cir*1000;
+  policer_cfg.ckbits_burst= 100;
+  policer_cfg.pkbits_sec  = (cir+eir)*1000;
+  policer_cfg.pkbits_burst= 100;
+
+  if ((error=bcm_policer_create(0,&policer_cfg,&policer_id))!=BCM_E_NONE || policer_id<=0)
+  {
+    printf("Error creating policer: error=%d(\"%s\") policer_id=%d\r\n",error,bcm_errmsg(error),policer_id);
+  }
+
+  error = bcm_vlan_port_policer_set(0,vlanId,bcm_port,policer_id);
+
+  printf("bcm_vlan_port_policer_set(0,%d,%d,%d) => %d (\"%s\")\r\n",vlanId,bcm_port,policer_id,error,bcm_errmsg(error));
+
+  return error;
+}
+
+
 int ptin_vp_gpon(L7_uint32 pon_port, L7_uint32 network_port, L7_int s_vid, L7_int c_vid)
 {
   int unit = 0;

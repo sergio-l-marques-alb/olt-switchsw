@@ -29,7 +29,7 @@
 #include "platform_config.h"
 
 /* PTin added: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0) && SDK_VERSION_IS < SDK_VERSION(6,5,15,0))
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
 #include "bcm_int/ea/tk371x/field.h"
 #endif
 
@@ -682,19 +682,19 @@ static int policy_udf_id[SOC_MAX_NUM_DEVICES];
  * Proto and L4 Dst Port is the best we can do. The Super Qset that includes
  * these UDF values can be reused by other policies as needed.
  */
-static uint32 sys0_ethType[SOC_MAX_NUM_DEVICES];
-static uint32 sys0_ipProto[SOC_MAX_NUM_DEVICES];
-static uint32 sys0_l4DstPort[SOC_MAX_NUM_DEVICES];
-static uint32 sys0_tunIpv6NextHdr[SOC_MAX_NUM_DEVICES];
+static bcm_field_udf_t sys0_ethType[SOC_MAX_NUM_DEVICES];
+static bcm_field_udf_t sys0_ipProto[SOC_MAX_NUM_DEVICES];
+static bcm_field_udf_t sys0_l4DstPort[SOC_MAX_NUM_DEVICES];
+static bcm_field_udf_t sys0_tunIpv6NextHdr[SOC_MAX_NUM_DEVICES];
 
 /* iSCSI policies require combination of L3/4 fields that are not supported
  * by default, so UDF is required.  The Super Qset that includes
  * these UDF values can be reused by other policies as needed.
  */
-static uint32 iscsi_dstIpAddr[SOC_MAX_NUM_DEVICES];
-static uint32 iscsi_l4SrcDstPort[SOC_MAX_NUM_DEVICES];
-static uint32 iscsi_opCode[SOC_MAX_NUM_DEVICES];
-static uint32 iscsi_opCodeTcpOptions[SOC_MAX_NUM_DEVICES];
+static bcm_field_udf_t iscsi_dstIpAddr[SOC_MAX_NUM_DEVICES];
+static bcm_field_udf_t iscsi_l4SrcDstPort[SOC_MAX_NUM_DEVICES];
+static bcm_field_udf_t iscsi_opCode[SOC_MAX_NUM_DEVICES];
+static bcm_field_udf_t iscsi_opCodeTcpOptions[SOC_MAX_NUM_DEVICES];
 
 
 #define SUPER_QSET_TABLE_SIZE  32    /* total number of super qsets */
@@ -1841,7 +1841,7 @@ static int _policy_super_qset_init_efp(int unit)
 static int _policy_super_qset_init(int unit)
 {
   int  i, j;
-  char str[501], val[21];
+  char str[301], val[21];
 
   for (i = 0; i < SUPER_QSET_TABLE_SIZE; i++)
   {

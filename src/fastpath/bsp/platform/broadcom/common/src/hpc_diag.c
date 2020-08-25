@@ -47,6 +47,9 @@
 *************************************************************************/
 L7_RC_t hpcDiagStart(void)
 {
+#ifdef L7_ROBO_SUPPORT
+  return L7_SUCCESS;
+#else
   L7_RC_t rc = L7_SUCCESS;
   char entered_password[DIAGS_PASSWORD_MAX_ENTRY+1];
   char password_format_string[16];
@@ -77,5 +80,6 @@ L7_RC_t hpcDiagStart(void)
   sal_thread_create("bcmCLI", 128*1024,100, (void *)hapiBroadDebugDiagShell, 0);
 
   return(rc);
+#endif
 }
 
