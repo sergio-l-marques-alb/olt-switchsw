@@ -104,6 +104,10 @@ extern void _bcm_vp_vfi_set(int unit, int vp, int vfi);
 #include <soc/esw/cancun_enums.h>
 #endif
 
+#if (__GNUC__ >= 4) /* PTin added */
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
 #ifdef BCM_SPECIAL_LABEL_SUPPORT
 char *label_type_array[5] = { "special_label_type_NONE",
                                   "Special_label_type_GAL",
@@ -115,7 +119,6 @@ char *label_type_array[5] = { "special_label_type_NONE",
 #if (defined(BCM_TOMAHAWK2_SUPPORT) || defined(BCM_TRIDENT3_SUPPORT))
 #define ECN_MAP_ID_INVALID 0xffffffff
 #endif
-
 
 _bcm_tr_mpls_bookkeeping_t  _bcm_tr_mpls_bk_info[BCM_MAX_NUM_UNITS] = {{ 0 }};
 STATIC _bcm_mpls_egr_nhopList_t  *_bcm_tr_mpls_nhop_headPtr[BCM_MAX_NUM_UNITS][_BCM_TR_MPLS_HASH_ELEMENTS];

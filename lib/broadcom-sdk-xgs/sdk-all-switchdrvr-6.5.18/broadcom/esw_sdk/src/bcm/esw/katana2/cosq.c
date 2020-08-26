@@ -43,6 +43,9 @@
 #include <bcm_int/esw/switch.h>
 #endif /* BCM_WARM_BOOT_SUPPORT */
 
+#pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+
 #if defined(BCM_KATANA2_SUPPORT)
 #include <soc/katana2.h>
 #include <bcm_int/esw/multicast.h>

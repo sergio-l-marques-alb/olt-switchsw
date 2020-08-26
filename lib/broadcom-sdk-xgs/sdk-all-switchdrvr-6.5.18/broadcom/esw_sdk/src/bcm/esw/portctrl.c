@@ -82,11 +82,6 @@
 #include <soc/portmod/portmod_legacy_phy.h>
 #include <soc/esw/portctrl_internal.h>
 
-extern uint32_t phymod_dbg_mask;
-extern uint32_t phymod_dbg_addr;
-extern uint32_t phymod_dbg_lane;
-
-
 /*
  * Define:
  *      PORTCTRL_PORT_RESOLVE
@@ -128,6 +123,10 @@ extern int bcmi_esw_port_eee_cfg_set(int unit, bcm_port_t port, int value);
 #define PORTCTRL_AUTONEG_ABILITY_MAX_COUNT 20
 #define PORTCTRL_SPEED_ABILITY_MAX_COUNT 50
 #endif /* PORTMOD_SUPPORT */
+
+#if (__GNUC__ >= 4) /* PTin added */
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif
 
 /*
  * Macros for use with encapsulation set related functions
