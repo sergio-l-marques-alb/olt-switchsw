@@ -64,6 +64,10 @@
 #include <soc/drv.h>    /* For MH Opcode-0 priority workaround */
 #endif
 
+#if (__GNUC__ >= 4) /* PTin added */
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
 void topo_cpu_dump(topo_cpu_t *topo_cpu, char *prefix);
 
 
@@ -1728,11 +1732,13 @@ tks_stk_task(int unit, args_t *args)
             
         }
 
+#ifndef LVL7_FIXUP
         st_tid = sal_thread_create("bcmSTACK",
                                    SAL_THREAD_STKSZ,
                                    st_pri,
                                    tks_st_thread,
                                    cfg);
+#endif
 #if defined(ST_EVLOG)
         /* Start event logging for Stack task */
         if (st_log != NULL) {

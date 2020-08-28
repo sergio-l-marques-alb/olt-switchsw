@@ -27,6 +27,10 @@
 #endif
 #endif
 
+#if (__GNUC__ >= 4) /* PTin added */
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
 #define _SOC_COE_PORT_TYPE_CASCADED             4
 #define _SOC_COE_PORT_TYPE_CASCADED_LINKPHY     0
 #define _SOC_COE_PORT_TYPE_CASCADED_SUBTAG      1

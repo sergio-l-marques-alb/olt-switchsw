@@ -27,7 +27,7 @@ endif
 # Location where SDK archives are stored by vendor make system.
 #
 ifeq (1,$(BLD_L7_TARGETOS_LINUX))
-  vend_sdk_arc := $(out_vend_sdk)/unix-user/$(BOARD)-$(L7_CPU)
+  vend_sdk_arc := $(out_vend_sdk)/unix-user/$(L7_CPU)
 
   ifeq (1,$(BLD_L7_TARGETOS_LINUX_26))
     vend_sdk_arc := $(vend_sdk_arc)-2_6
