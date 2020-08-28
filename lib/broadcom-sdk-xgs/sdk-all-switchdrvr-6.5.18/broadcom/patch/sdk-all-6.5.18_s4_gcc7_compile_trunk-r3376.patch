@@ -1,0 +1,37 @@
+Index: make/Make.config
+===================================================================
+--- make/Make.config	(revision 3375)
++++ make/Make.config	(revision 3376)
+@@ -1817,15 +1817,15 @@ DEBUG_SYMBOLS=TRUE
+ endif
+ # }
+ endif
+ 
+ ifeq ($(DEBUG_SYMBOLS),TRUE)
+ # {
+-CFLAGS += -g
+-CXXFLAGS += -g
+-CPPFLAGS += -g
++CFLAGS += -g1
++CXXFLAGS += -g1
++CPPFLAGS += -g1
+ ifdef LTSW_CHIPS
+ LTSW_ADD_CFLAGS += -g
+ endif
+ # }
+ endif
+ 
+Index: make/Makefile.unix-user
+===================================================================
+--- make/Makefile.unix-user	(revision 3375)
++++ make/Makefile.unix-user	(revision 3376)
+@@ -158,8 +158,8 @@ LDFLAGS += -Wl,-rpath-link,${LIB_OVERRID
+ endif
+ #
+ # Optionally use the linker --relax flag to enable linking larger
+ # images on the GTO platform
+ #
+ ifneq (,${LINKER_RELAX})
+-LDFLAGS += -Wl,--relax
++LDFLAGS += -Wl,--relax,--gc-sections,--no-keep-memory
+ endif

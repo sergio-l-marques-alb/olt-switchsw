@@ -1,0 +1,76 @@
+Index: include/sal/compiler.h
+===================================================================
+--- include/sal/compiler.h	(revision 3372)
++++ include/sal/compiler.h	(revision 3373)
+@@ -751,13 +751,13 @@ typedef struct sal_int64_s  { int u64_w[
+ #if defined(COMPILER_WILL_USE_STATIC) || (defined(COMPILER_HAS_STATIC) && !defined(BROADCOM_DEBUG))
+ /* { */
+ # define STATIC    static
+ /* } */
+ #else
+ /* { */
+-# define STATIC
++#  define STATIC static /* PTin corrected */
+ /* } */
+ #endif
+ /* } */
+ #endif /* !STATIC */
+ 
+ /* } */
+Index: include/soc/dpp/drv.h
+===================================================================
+--- include/soc/dpp/drv.h	(revision 3372)
++++ include/soc/dpp/drv.h	(revision 3373)
+@@ -434,28 +434,28 @@
+         do {\
+             _rv = soc_schan_override_disable(unit); \
+         } while(0)
+ 
+ /* iterate over all cores */
+ #define SOC_DPP_CORES_ITER(core_id, index) \
+-    for (index = (((core_id) == _SHR_CORE_ALL) ? 0 : (core_id));\
++    for(index = (((core_id) == _SHR_CORE_ALL) ? 0 : (core_id));\
+         index < (((core_id) == _SHR_CORE_ALL) ?  SOC_DPP_CONFIG(unit)->core_mode.nof_active_cores : ((core_id) + 1));\
+         index++)
+ 
+ #define SOC_DPP_ASSYMETRIC_CORES_ITER(core_id, index)\
+-    for (index = (((core_id) == _SHR_CORE_ALL || SOC_DPP_CORE_MODE_IS_SYMMETRIC(unit)) ? 0 : (core_id));\
++    for(index = (((core_id) == _SHR_CORE_ALL || SOC_DPP_CORE_MODE_IS_SYMMETRIC(unit)) ? 0 : (core_id));\
+         index < (((core_id) == _SHR_CORE_ALL) ?  \
+                     (SOC_DPP_CORE_MODE_IS_SYMMETRIC(unit) ? 1 : SOC_DPP_CONFIG(unit)->core_mode.nof_active_cores) : \
+                     ((core_id) + 1));\
+         index++)
+ 
+ /* validate core in range */
+ #define SOC_DPP_CORE_VALIDATE(unit, core, allow_all) \
+-        if((core >= SOC_DPP_DEFS_GET(unit, nof_cores) || (core < 0)) && \
+-           (!allow_all || core != _SHR_CORE_ALL)) { \
+-                SOCDNX_EXIT_WITH_ERR(SOC_E_PARAM,(_BSL_BCM_MSG("Invalid Core %d"), core)); \
++        if((core >= SOC_DPP_DEFS_GET(unit, nof_cores) || ((core) < 0)) && \
++           (!allow_all || (core) != _SHR_CORE_ALL)) { \
++                SOCDNX_EXIT_WITH_ERR(SOC_E_PARAM,(_BSL_BCM_MSG("Invalid Core %d"), (core))); \
+         }
+ 
+ /* converts modid to base modid */
+ #define SOC_DPP_IS_MODID_AND_BASE_MODID_ON_SAME_FAP(unit, modid, base_modid) \
+            ((base_modid <= modid) && (base_modid + SOC_DPP_CONFIG(unit)->core_mode.nof_active_cores > modid))
+ 
+Index: src/soc/dpp/QAX/qax_sram.c
+===================================================================
+--- src/soc/dpp/QAX/qax_sram.c	(revision 3372)
++++ src/soc/dpp/QAX/qax_sram.c	(revision 3373)
+@@ -46,13 +46,13 @@ int soc_qax_sram_conf_set(int unit)
+     soc_reg64_field32_set(unit, SPB_STATIC_CONFIGURATIONr, &reg64_val, PTC_PDQ_RDY_TH_WORDf, 8);
+     soc_reg64_field32_set(unit, SPB_STATIC_CONFIGURATIONr, &reg64_val, STOP_IRE_WHEN_FBC_EMPTYf, 1);
+     soc_reg64_field32_set(unit, SPB_STATIC_CONFIGURATIONr, &reg64_val, STOP_IRE_THf, 5);
+     SOCDNX_IF_ERR_EXIT( WRITE_SPB_STATIC_CONFIGURATIONr(unit, reg64_val));
+ 
+     /* SPB_CONTEXT_MRUm */
+-    sal_memset(mem_entry, 0, SOC_MAX_MEM_WORDS);
++    sal_memset(mem_entry, 0, SOC_MAX_MEM_WORDS*sizeof(uint32));
+     soc_mem_field32_set(unit, SPB_CONTEXT_MRUm, mem_entry, MAX_SIZEf, 0x2fff);
+     soc_mem_field32_set(unit, SPB_CONTEXT_MRUm, mem_entry, MAX_ORG_SIZEf, 0x2fff);
+     soc_mem_field32_set(unit, SPB_CONTEXT_MRUm, mem_entry, MIN_ORG_SIZEf, 0x20);
+     soc_mem_field32_set(unit, SPB_CONTEXT_MRUm, mem_entry, MIN_SIZEf, 0x20);
+     SOCDNX_IF_ERR_EXIT( sand_fill_table_with_entry( unit, SPB_CONTEXT_MRUm, MEM_BLOCK_ALL, mem_entry));
+ 
