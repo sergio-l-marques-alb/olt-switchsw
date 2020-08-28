@@ -3029,10 +3029,10 @@ phy_tscf_ability_local_get(int unit, soc_port_t port, soc_port_ability_t *abilit
         ability->flags     = SOC_PA_AUTONEG;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
-             (BSL_META_U(pc->unit,
-                         "phy_tscf_ability_local_get:unit=%d p=%d sp=%08x\n"),
-              unit, port, ability->speed_full_duplex));
+    LOG_DEBUG(BSL_LS_SOC_PHY,
+              (BSL_META_U(pc->unit,
+                          "phy_tscf_ability_local_get:unit=%d p=%d sp=%08x\n"),
+               unit, port, ability->speed_full_duplex));
     return (SOC_E_NONE);
 }
 

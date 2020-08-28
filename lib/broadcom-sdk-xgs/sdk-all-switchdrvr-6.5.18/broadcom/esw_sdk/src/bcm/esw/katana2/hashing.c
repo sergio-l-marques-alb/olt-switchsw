@@ -42,8 +42,12 @@ typedef struct bcm_rtag7_base_hash_s {
 #define   ETHERTYPE_MPLS 0x8847 /* MPLS ethertype */
 #define   ETHERTYPE_MIN  0x0600 /* minimum ethertype for hashing */
 
+#ifndef IP_PROT_TCP
 #define   IP_PROT_TCP 0x6  /* TCP protocol number */
+#endif
+#ifndef IP_PROT_UDP
 #define   IP_PROT_UDP 0x11 /* TCP protocol number */
+#endif
 
 #define RTAG7_L2_ONLY         0x0
 #define RTAG7_UNKNOWN_HIGIG   0x1

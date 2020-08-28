@@ -3145,6 +3145,31 @@ bcm_esw_field_group_status_get(int unit,
         return (rv);
     }
 
+#ifdef LVL7_FIXUP
+    if (fg->flags & _FP_GROUP_SPAN_SINGLE_SLICE)
+    {
+      fg->group_status.slice_width_physical = 1;
+    }
+    else if (fg->flags & _FP_GROUP_SPAN_DOUBLE_SLICE)
+    {
+      fg->group_status.slice_width_physical = 2;
+    }
+    else 
+    {
+      fg->group_status.slice_width_physical = 4;
+    }
+
+    if (fg->flags & _FP_GROUP_INTRASLICE_DOUBLEWIDE)
+    {
+      fg->group_status.intraslice_mode_enable = 1;
+    }
+    else
+    {
+      fg->group_status.intraslice_mode_enable = 0;
+    }
+#endif
+
+
     *status = fg->group_status;
     FP_UNLOCK(unit);
     return (rv);

@@ -4931,7 +4931,8 @@ _bcm_kt2_cosq_mapping_set_regular(int unit, bcm_port_t gport,
     int count_index= 0;
     int rv;
 #ifndef BCM_COSQ_HIGIG_MAP_DISABLE
-    int cpu_hg_index = 0;
+    int cpu_hg_index;
+    cpu_hg_index = 0;
 #endif
     
     if (count < 1 || count > 16) {

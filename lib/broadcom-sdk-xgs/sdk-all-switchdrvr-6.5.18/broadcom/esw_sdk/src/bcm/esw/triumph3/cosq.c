@@ -5714,6 +5714,7 @@ _bcm_tr3_adjust_lls_bw(int unit, bcm_port_t port, _bcm_tr3_cosq_node_t *node,
         mem_size = sizeof(uint32)*SOC_MAX_MEM_WORDS*count;
         i_lls_tree->mtro_entries = sal_alloc(mem_size, "lls_war_buf");
 
+        /* CSP#1137542 correction */
         rv = soc_phyctrl_speed_get(unit, port, &speed);
         if (rv == BCM_E_UNAVAIL) {
             si = &SOC_INFO(unit);

@@ -1293,6 +1293,8 @@ _bcm_esw_link_fault_get(int unit, int port, int *fault)
     bcm_port_ability_t  port_ability;
     int ln_rmt_fault = 0;
     int ln_lcl_fault = 0;
+    _bcm_port_info_t *port_info;
+    int value;
 
 #ifdef BCM_HELIX5_SUPPORT
     if (SOC_IS_HELIX5(unit)) {
@@ -1399,8 +1401,21 @@ _bcm_esw_link_fault_get(int unit, int port, int *fault)
 
         SOC_IF_ERROR_RETURN
             (soc_reg_get(unit, reg, port, 0, &lss));
-        rmt_fault = soc_reg64_field32_get(unit, reg, lss, rmt_fault_field);
-        lcl_fault = soc_reg64_field32_get(unit, reg, lss, lcl_fault_field);
+
+        lcl_fault = rmt_fault = 0;
+        _bcm_port_info_access(unit, port, &port_info);
+        if (MAC_CONTROL_GET(port_info->p_mac, unit, port,
+                            SOC_MAC_CONTROL_FAULT_REMOTE_ENABLE, &value) == BCM_E_NONE
+            && value == 1)
+        {
+            rmt_fault = soc_reg64_field32_get(unit, reg, lss, rmt_fault_field);
+        }
+        if (MAC_CONTROL_GET(port_info->p_mac, unit, port,
+                            SOC_MAC_CONTROL_FAULT_LOCAL_ENABLE, &value) == BCM_E_NONE
+            && value == 1)
+        {
+            lcl_fault = soc_reg64_field32_get(unit, reg, lss, lcl_fault_field);
+        }
 
         if (rmt_fault || lcl_fault) {
             *fault = TRUE;
@@ -1427,6 +1442,14 @@ _bcm_esw_link_fault_get(int unit, int port, int *fault)
 
     return BCM_E_NONE;
 }
+
+/* PTin added: linkscan */
+#if 1
+int _ptin_esw_link_fault_get(int unit, int port, int *fault)
+{
+  return _bcm_esw_link_fault_get(unit, port, fault);
+}
+#endif
 #endif /* HERC15, FIREBOLT */  
 
 
@@ -3815,6 +3838,83 @@ _bcm_esw_link_force(int unit, uint32 flags, bcm_port_t port,
 
     return(BCM_E_NONE);
 }
+
+/* PTin added: linkscan */
+#if 1
+int
+_ptin_esw_link_force(int unit, bcm_port_t port, int force, int link, int no_linkchange)
+{
+    soc_persist_t *sop = SOC_PERSIST(unit);
+    ls_cntl_t *lc = link_control[unit];
+    pbmp_t pbm;
+
+    LC_CHECK_INIT(unit);
+
+    if (!SOC_PORT_VALID(unit, port) || !IS_PORT(unit, port)) {
+        return BCM_E_PORT;
+    }
+
+    LC_LOCK(unit);
+
+    if (force) {
+        SOC_PBMP_PORT_REMOVE(sop->lc_pbm_override_link, port);
+        if (link) {
+            if (lc->lc_warm_boot) {
+                /* Don't update ports when recovering from Warm Boot. */
+                SOC_PBMP_PORT_ADD(sop->lc_pbm_link, port);
+                SOC_PBMP_PORT_REMOVE(sop->lc_pbm_link_change, port);
+            }
+            SOC_PBMP_PORT_ADD(sop->lc_pbm_override_link, port);
+        }
+        SOC_PBMP_PORT_ADD(sop->lc_pbm_override_ports, port);
+    } else {
+        SOC_PBMP_PORT_REMOVE(sop->lc_pbm_override_ports, port);
+        SOC_PBMP_PORT_REMOVE(sop->lc_pbm_override_link, port);
+
+        /* Don't set link change (link down) if port is only on
+           hardware linkscan. This is because a hardware interrupt
+           may never come for a port that is currently up. */
+        if (!(SOC_PBMP_MEMBER(lc->lc_pbm_hw, port) &&
+              !SOC_PBMP_MEMBER(lc->lc_pbm_sw, port))) {
+            /* PTin modified */
+            #if 0
+            SOC_PBMP_PORT_ADD(sop->lc_pbm_link_change, port);
+            #else
+            if (no_linkchange)
+            {
+              //SOC_PBMP_PORT_ADD(sop->lc_pbm_link, port);
+              SOC_PBMP_PORT_REMOVE(sop->lc_pbm_link_change, port);
+            }
+            else
+            {
+              SOC_PBMP_PORT_ADD(sop->lc_pbm_link_change, port);
+            }
+            #endif
+        }
+    }
+
+    /*
+     * Force immediate update to just this port - this allows loopback 
+     * forces to take effect immediately.
+     */
+    SOC_PBMP_CLEAR(pbm);
+    SOC_PBMP_PORT_ADD(pbm, port);
+    /* PTin modified */
+    _bcm_esw_linkscan_update(unit, 0 /*flags*/, pbm);
+
+    LC_UNLOCK(unit);
+
+    /*
+     * Wake up master thread to notice changes - required if using hardware
+     * link scanning.
+     */
+    if (lc->lc_sema != NULL) {
+        sal_sem_give(lc->lc_sema);
+    }
+
+    return(BCM_E_NONE);
+}
+#endif
 
 /*
  * Function:    
