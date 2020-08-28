@@ -38,10 +38,9 @@
  ****************************************************************/
 
 #define TOPO_ATP_FLAGS (ATP_F_NEXT_HOP | ATP_F_REASSEM_BUF | ATP_F_NO_ACK)
-
 static sal_thread_t st_tid = SAL_THREAD_ERROR;
 
-STATIC void
+void
 tks_st_thread(void *cookie)
 {
   bcm_st_config_t *cfg;
@@ -65,7 +64,6 @@ tks_st_thread(void *cookie)
   sal_thread_exit(rv);
 }
 /* end - code from Broadcom SDK5 file : $Id: tksdiag.c,v 1.2.2.35 2003/12/04 02:32:18 dtalayco */
-
 
 #ifndef L7_BCM_SHELL_SUPPORT 
 /* The show functions were initially pulled from DIAG code. Previouly, DIAG was not linked in.
