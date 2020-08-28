@@ -1,0 +1,535 @@
+Index: src/soc/dpp/DRC/drc_combo28_init.c
+===================================================================
+--- src/soc/dpp/DRC/drc_combo28_init.c	(revision 3371)
++++ src/soc/dpp/DRC/drc_combo28_init.c	(revision 3372)
+@@ -1956,28 +1956,28 @@ int soc_dpp_drc_combo28_init_check_bist_
+     SOCDNX_NULL_CHECK(combo28_bist_err_cnt);
+ 
+     is_gddr5 = (drc_info->dram_type == SHMOO_COMBO28_DRAM_TYPE_GDDR5);
+     is_crc   = ((drc_info->write_crc == 1) && (drc_info->read_crc == 1));
+ 
+     /* Print Result */
+-    LOG_VERBOSE(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "\nDRAM index: %u \nResults:\n"), dram_ndx));
++    LOG_INFO(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "\nDRAM index: %u \nResults:\n"), dram_ndx));
+     /* Mapping of bits with errors : 0x%x (bit N stands for an error in bits N, N+32, ... N+224) */
+-    LOG_VERBOSE(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Mapping of bits with errors : 0x%x \n"), combo28_bist_err_cnt->bist_err_occur));
++    LOG_INFO(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Mapping of bits with errors : 0x%x \n"), combo28_bist_err_cnt->bist_err_occur));
+     /* Number of errors occoured in bits that are not masked by bist full mask: %d */
+-    LOG_VERBOSE(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Number of errors occoured (bist full mask): %d\n"), combo28_bist_err_cnt->bist_full_err_cnt)); 
++    LOG_INFO(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Number of errors occoured (bist full mask): %d\n"), combo28_bist_err_cnt->bist_full_err_cnt)); 
+     /* Number of errors occoured in bits that are not masked by bist single bit mask: %d */
+-    LOG_VERBOSE(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Number of errors occoured (bist single mask): %d\n"), combo28_bist_err_cnt->bist_single_err_cnt)); 
+-    LOG_VERBOSE(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Number of global errors: %d\n"), combo28_bist_err_cnt->bist_global_err_cnt));
+-    LOG_VERBOSE(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Number of DBI errors: %d\n"), combo28_bist_err_cnt->bist_dbi_global_err_cnt));
++    LOG_INFO(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Number of errors occoured (bist single mask): %d\n"), combo28_bist_err_cnt->bist_single_err_cnt)); 
++    LOG_INFO(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Number of global errors: %d\n"), combo28_bist_err_cnt->bist_global_err_cnt));
++    LOG_INFO(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Number of DBI errors: %d\n"), combo28_bist_err_cnt->bist_dbi_global_err_cnt));
+     /* Mapping of DBI bits with errors : 0x%x (bit N stands for an error in bits N, N+8, ... N+24) */
+     LOG_VERBOSE(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Mapping of DBI bits with errors : 0x%x \n"), combo28_bist_err_cnt->bist_dbi_err_occur));
+     if ((is_gddr5 == 1) && (is_crc == 1))
+     {
+-        LOG_VERBOSE(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Number of EDC errors: %d\n"), combo28_bist_err_cnt->bist_edc_global_err_cnt));
++        LOG_INFO(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Number of EDC errors: %d\n"), combo28_bist_err_cnt->bist_edc_global_err_cnt));
+         /* Mapping of EDC bits with errors : 0x%x (bit N stands for an error in bits N, N+8, ... N+24) */
+-        LOG_VERBOSE(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Mapping of EDC bits with errors : 0x%x \n"), combo28_bist_err_cnt->bist_edc_err_occur));
++        LOG_INFO(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Mapping of EDC bits with errors : 0x%x \n"), combo28_bist_err_cnt->bist_edc_err_occur));
+     }
+ 
+     /* Check BIST resault */
+     if ((combo28_bist_err_cnt->bist_err_occur != 0x0)          || (combo28_bist_err_cnt->bist_full_err_cnt != 0x0)   || 
+         (combo28_bist_err_cnt->bist_single_err_cnt != 0x0)     || (combo28_bist_err_cnt->bist_global_err_cnt != 0x0) ||
+         (combo28_bist_err_cnt->bist_dbi_global_err_cnt != 0x0) || (combo28_bist_err_cnt->bist_dbi_err_occur != 0x0)  || 
+Index: src/soc/dpp/ARAD/arad_drv.c
+===================================================================
+--- src/soc/dpp/ARAD/arad_drv.c	(revision 3371)
++++ src/soc/dpp/ARAD/arad_drv.c	(revision 3372)
+@@ -5530,13 +5530,13 @@ soc_arad_info_config(int unit)
+     val = soc_property_get(unit, spn_TDM_EGRESS_DP, 0);
+     dpp_arad->init.tdm_egress_dp = val;
+ 
+     /*
+      * Init NIF ports
+      */
+-    dpp_arad->init.nif_recovery_enable = soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "nif_recovery_enable", 1);
++    dpp_arad->init.nif_recovery_enable = soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "nif_recovery_enable", 1);	/* PTin modified: startup */
+     dpp_arad->init.nif_recovery_iter = soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "nif_recovery_iter", 5);
+ 
+     /*
+      * rcy port allocation per channel for channelized interfaces
+      */
+     dpp_arad->init.rcy_channelized_shared_context_enable = soc_property_get(unit, spn_RCY_CHANNELIZED_SHARED_CONTEXT_ENABLE, 0);
+@@ -6350,14 +6350,42 @@ soc_arad_info_config(int unit)
+                 dpp_arad->init.drc_info.zq_calib_map[1] = 1;
+                 dpp_arad->init.drc_info.zq_calib_map[2] = 3;
+                 dpp_arad->init.drc_info.zq_calib_map[3] = 3;
+ 
+             } else if (SOC_IS_JERICHO(unit) && !SOC_IS_QAX(unit)) {
+                 dram_bitmap = soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "dram_bitamp", 0x0);
++                printf("%s(%d) dram_bitmap=0x%x\r\n", __FUNCTION__, __LINE__, dram_bitmap);
+                 if (dram_bitmap != 0) {
+                     SHR_BITCOPY_RANGE(dpp_arad->init.drc_info.dram_bitmap, 0, &dram_bitmap, 0, SOC_DPP_DEFS_GET(unit, hw_dram_interfaces_max));
++
++                    /* Ref CLK: A is the master of B, C is the master of D, F is the master of E, H is the master of G. */
++                    SHR_BITSET(dpp_arad->init.drc_info.ref_clk_bitmap, 0);
++                    SHR_BITSET(dpp_arad->init.drc_info.ref_clk_bitmap, 2);
++                    SHR_BITSET(dpp_arad->init.drc_info.ref_clk_bitmap, 5);
++                    SHR_BITSET(dpp_arad->init.drc_info.ref_clk_bitmap, 7);
++
++                    /* 
++                     * Jericho ZQ calibration mapping:
++                     * A slave of C
++                     * B slave of C
++                     * C is Master
++                     * D slave of C
++                     * E slave of F
++                     * F is Master
++                     * G slave of F
++                     * H slave of F
++                     */
++                    dpp_arad->init.drc_info.zq_calib_map[0] = 2;
++                    dpp_arad->init.drc_info.zq_calib_map[1] = 2;
++                    dpp_arad->init.drc_info.zq_calib_map[2] = 2;
++                    dpp_arad->init.drc_info.zq_calib_map[3] = 2;
++                    dpp_arad->init.drc_info.zq_calib_map[4] = 5;
++                    dpp_arad->init.drc_info.zq_calib_map[5] = 5;
++                    dpp_arad->init.drc_info.zq_calib_map[6] = 5;
++                    dpp_arad->init.drc_info.zq_calib_map[7] = 5;
++
+                 } else {
+ 
+                     /* Allowed values for Jericho/88675:
+                      *  0
+                      *  2  (Dram's A, C)
+                      *  3  (Dram's A, B, C)
+@@ -6375,12 +6403,13 @@ soc_arad_info_config(int unit)
+                         break;
+                     case 3:
+                         SHR_BITSET(dpp_arad->init.drc_info.dram_bitmap, 0);
+                         SHR_BITSET(dpp_arad->init.drc_info.dram_bitmap, 1);
+                         SHR_BITSET(dpp_arad->init.drc_info.dram_bitmap, 2);
+                         break;
++                    case 4:
+                     case 41:
+                         SHR_BITSET(dpp_arad->init.drc_info.dram_bitmap, 0);
+                         SHR_BITSET(dpp_arad->init.drc_info.dram_bitmap, 1);
+                         SHR_BITSET(dpp_arad->init.drc_info.dram_bitmap, 2);
+                         SHR_BITSET(dpp_arad->init.drc_info.dram_bitmap, 3);
+                         break;
+Index: systems/bde/linux/kernel/linux_dma.c
+===================================================================
+--- systems/bde/linux/kernel/linux_dma.c	(revision 3371)
++++ systems/bde/linux/kernel/linux_dma.c	(revision 3372)
+@@ -171,15 +171,16 @@ MODULE_PARM_DESC(himemaddr,
+ #define ONE_GB (1024*1024*1024)
+ 
+ /* Default DMA memory size */
+ #ifdef SAL_BDE_DMA_MEM_DEFAULT
+ #define DMA_MEM_DEFAULT (SAL_BDE_DMA_MEM_DEFAULT * ONE_MB)
+ #else
+-#define DMA_MEM_DEFAULT (8 * ONE_MB)
++#define DMA_MEM_DEFAULT (16 * ONE_MB)
+ #endif
+ 
++
+ /* We try to assemble a contiguous segment from chunks of this size */
+ #define DMA_BLOCK_SIZE (512 * ONE_KB)
+ 
+ typedef struct _dma_segment {
+     struct list_head list;
+     unsigned long req_size;     /* Requested DMA segment size */
+@@ -614,12 +615,14 @@ _alloc_mpool(size_t size)
+         if (((pbase + (size - 1)) >> 16) > DMA_BIT_MASK(16)) {
+             gprintk("DMA in high memory at 0x%lx size 0x%lx is beyond the 4GB limit and not supported.\n", pbase, (unsigned long)size);
+             return;
+         }
+         _cpu_pbase = _dma_pbase = pbase;
+         _dma_vbase = IOREMAP(_dma_pbase, size);
++        if (dma_debug >= 1)
++          gprintk("_alloc_mpool (himem=1): _dma_vbase:%p pbase:%lx  allocated:%lx\n", _dma_vbase, pbase, (unsigned long)size);
+     } else {
+         /* Get DMA memory from kernel */
+         if (dma_debug >= 1) {
+             gprintk("Allocating DMA memory using method dmaalloc=%d\n", dmaalloc);
+         }
+         switch (dmaalloc) {
+@@ -628,26 +631,28 @@ _alloc_mpool(size_t size)
+             size_t alloc_size = size; /* size of memory allocated in current iteration */
+             if (alloc_size > DMA_MAX_ALLOC_SIZE) {
+                 alloc_size = DMA_MAX_ALLOC_SIZE;
+             }
+             /* get a memory allocation from the kernel */
+             {
+-                dma_addr_t dma_handle;
++                dma_addr_t dma_handle = 0;
+                 if (!(_dma_vbase = dma_alloc_coherent(DMA_DEV(DMA_DEV_INDEX),
+                         alloc_size, &dma_handle, GFP_KERNEL)) || !dma_handle) {
+-                    gprintk("Failed to allocate coherent memory pool of size 0x%lx\n", (unsigned long)alloc_size);
++                    gprintk("_alloc_mpool: failed to allocate the memory pool of size 0x%lx (_dma_vbase=0x%08lx dma_handle=0x%08lx)\n",
++                            (unsigned long)alloc_size, (unsigned long) _dma_vbase, (unsigned long) dma_handle);
+                     return;
+                 }
+                 _cpu_pbase = pbase = dma_handle;
+             }
+ 
+             if (alloc_size != size) {
+                 gprintk("allocated 0x%lx bytes instead of 0x%lx bytes.\n",
+                         (unsigned long)alloc_size, (unsigned long)size);
+             }
+             size = _dma_mem_size = alloc_size;
++            gprintk("_alloc_mpool: _SIMPLE_MEMORY_ALLOCATION_ successfull\n");
+             break;
+           }
+ #endif /* _SIMPLE_MEMORY_ALLOCATION_ */
+ 
+           case ALLOC_TYPE_CHUNK:
+             _dma_vbase = _pgalloc(size);
+@@ -928,13 +933,13 @@ _sfree(int d, void *ptr)
+ int
+ _sinval(int d, void *ptr, int length)
+ {
+ #if defined(dma_cache_wback_inv)
+      dma_cache_wback_inv((unsigned long)ptr, length);
+ #else
+-#if defined(IPROC_CMICD) || defined(BCM958525)
++#if defined(IPROC_CMICD) || defined(BCM958525) || defined(__aarch64__) /* PTin adapted for arm64 */
+     
+     dma_sync_single_for_cpu(NULL, (unsigned long)ptr, length, DMA_BIDIRECTIONAL);
+ #else
+     dma_cache_sync(NULL, ptr, length, DMA_BIDIRECTIONAL);
+ #endif
+ #endif
+@@ -944,13 +949,13 @@ _sinval(int d, void *ptr, int length)
+ int
+ _sflush(int d, void *ptr, int length)
+ {
+ #if defined(dma_cache_wback_inv)
+     dma_cache_wback_inv((unsigned long)ptr, length);
+ #else
+-#if defined(IPROC_CMICD) || defined(BCM958525)
++#if defined(IPROC_CMICD) || defined(BCM958525) || defined(__aarch64__) /* PTin adapted for arm64 */
+     
+     dma_sync_single_for_cpu(NULL, (unsigned long)ptr, length, DMA_BIDIRECTIONAL);
+ #else
+     dma_cache_sync(NULL, ptr, length, DMA_BIDIRECTIONAL);
+ #endif
+ #endif
+Index: systems/bde/linux/kernel/linux-kernel-bde.c
+===================================================================
+--- systems/bde/linux/kernel/linux-kernel-bde.c	(revision 3371)
++++ systems/bde/linux/kernel/linux-kernel-bde.c	(revision 3372)
+@@ -64,16 +64,24 @@
+ #endif
+ #define msi_control_reg(base)         (base + PCI_MSI_FLAGS)
+ #endif
+ #endif
+ MODULE_AUTHOR("Broadcom Corporation");
+ MODULE_DESCRIPTION("Kernel BDE");
++#ifdef __arm__
++MODULE_LICENSE("Proprietary");
++#else
+ MODULE_LICENSE("GPL");
++#endif
+ 
+ /* PCIe max payload */
++#if defined (__arm__)     /* PTin added: PCI */
+ int maxpayload = 256;
++#else
++int maxpayload = 128;     /* PTin modified: Max payload limited to 128B */
++#endif
+ LKM_MOD_PARAM(maxpayload, "i", int, 0);
+ MODULE_PARM_DESC(maxpayload,
+ "Limit maximum payload size and request size on PCIe devices");
+ 
+ /* Use MSI or MSIX interrupts */
+ int usemsi = -1;
+@@ -380,18 +388,21 @@ static void *cpu_address = NULL;
+ #define PCI_DEVID_PI7C9X130   0xE130
+ #define DEV_CTRL_REG           0xb8
+ 
+ #define MAX_PAYLOAD_256B       (1 << 5)
+ #define MAX_PAYLOAD_512B       (2 << 5)
+ #define MAX_READ_REQ_256B      (1 << 12)
+-
++#define MAX_READ_REQ_512B      (2 << 12)          /* PTin added: PCI */
+ 
+ /* Freescale 8548 PCI-E  host Bridge */
+ #define FSL_VENDOR_ID                   0x1957
+ #define FSL8548PCIE_DEVICE_ID           0x0013
+ #define FSL2020EPCIE_DEVICE_ID          0x0070
++#define FSL8544PCIE_DEVICE_ID           0x0033    /* PTin added: PCI PQ3 8544 */
++#define FSL2040EPCIE_DEVICE_ID          0x0411    /* PTin added: PCI P2040 */
++#define FSL2040SECEPCIE_DEVICE_ID       0x0410    /* PTin added: PCI P2040 */
+ #define FSL8548PCIE_DEV_CTRL_REG        0x54
+ 
+ /* 4716 PCI-E  host Bridge */
+ #define BCM4716_VENDOR_ID               0x14e4
+ #define BCM4716PCIE_DEVICE_ID           0x4716
+ #define BCM4716PCIE_DEV_CAP_REG         0xd4
+@@ -434,12 +445,23 @@ static void *cpu_address = NULL;
+ #define BCM58522_PCI_DEVICE_ID     0x8022
+ 
+ /* Broadcom BCM58712 */
+ #define BCM58712_PCI_VENDOR_ID     0x14E4
+ #define BCM58712_PCI_DEVICE_ID     0x168E
+ 
++/* PTin added: PCI high speed switches */
++#if 1
++/* Broadcom BCM56640 */
++#define BCM56640_PCI_VENDOR_ID     0x14E4
++#define BCM56640_PCI_DEVICE_ID     0xb640
++
++/* Broadcom BCM56846 */
++#define BCM56846_PCI_VENDOR_ID     0x14E4
++#define BCM56846_PCI_DEVICE_ID     0xb846
++#endif
++
+ /* Default gicd address if not available in DTB */
+ #define IHOST_GICD_REG_ADDR        0x10781100
+ #define IHOST_GICD_REG_REMAP_LEN   0x100
+ 
+ #define IHOST_GICD_REG_ADDR_VALID(d, addr) \
+     (_devices[d].bde_dev.base_address1 && \
+@@ -592,12 +614,15 @@ _eb_device_create(resource_size_t paddr,
+ 
+ static int
+ sand_device_create(void)
+ {
+     bde_ctrl_t* ctrl;
+ 
++    /* Do not execute this function. Otherwise linux-kerbel-bde.ko insertion will fail! */
++    return 0;
++
+     ctrl = _devices; 
+ 
+ #ifndef __DUNE_LINUX_BCM_CPU_PCIE__
+     ctrl->dev_type |= BDE_PCI_DEV_TYPE | BDE_SWITCH_DEV_TYPE;
+     ctrl->pci_device = NULL; /* No PCI bus */
+ 
+@@ -1806,22 +1831,38 @@ p2p_bridge(void)
+          * Writes to the PCIE capability device control register
+          */
+         pci_write_config_dword(dev, DEV_CTRL_REG,
+                                MAX_PAYLOAD_256B | MAX_READ_REQ_256B);
+     }
+ 
+-    if ((dev = PCI_FIND_DEV(FSL_VENDOR_ID, FSL8548PCIE_DEVICE_ID, NULL)) != NULL ||
++    if ((dev = PCI_FIND_DEV(FSL_VENDOR_ID, FSL8544PCIE_DEVICE_ID, NULL)) != NULL ||     /* PTin added: PCI PQ3-8544*/
++        (dev = PCI_FIND_DEV(FSL_VENDOR_ID, FSL8548PCIE_DEVICE_ID, NULL)) != NULL ||
+         (dev = PCI_FIND_DEV(FSL_VENDOR_ID, FSL2020EPCIE_DEVICE_ID, NULL)) != NULL) {
+         /*
+          * Configure the PCIE cap: Max payload size: 256, Max Read
+          * Request size: 256, disabling relax ordering.
+          * Writes to the PCIE capability device control register
+          */
+         pci_write_config_dword(dev, FSL8548PCIE_DEV_CTRL_REG,
+                                MAX_PAYLOAD_256B | MAX_READ_REQ_256B);
+     }
++    /* PTin added: PCI P2040 */
++    #if 0
++    else if ((dev = PCI_FIND_DEV(FSL_VENDOR_ID, FSL2040EPCIE_DEVICE_ID, NULL)) != NULL ||
++             (dev = PCI_FIND_DEV(FSL_VENDOR_ID, FSL2040SECEPCIE_DEVICE_ID, NULL)) != NULL)
++    {
++        /*
++         * Configure the PCIE cap: Max payload size: 512, Max Read
++         * Request size: 512, disabling relax ordering.
++         * Writes to the PCIE capability device control register
++         */
++        pci_write_config_dword(dev, FSL8548PCIE_DEV_CTRL_REG,
++                               MAX_PAYLOAD_512B | MAX_READ_REQ_512B);
++    }
++    #endif
++
+     if ((dev = PCI_FIND_DEV(BCM4716_VENDOR_ID, BCM4716PCIE_DEVICE_ID, NULL)) != NULL ||
+         (dev = PCI_FIND_DEV(BCM53000_VENDOR_ID, BCM53000PCIE_DEVICE_ID, NULL)) != NULL) {
+         uint32 tmp, maxpayld, device_bmp=0, mask;
+         unsigned long addr;
+         uint16 tmp16, tmp161;
+         int i, bus0 = -1, bus1 = -1, port;        
+@@ -2389,12 +2430,17 @@ _pci_probe(struct pci_dev *dev, const st
+ 
+         if (debug >= 4) {gprintk("Enabling PCI device : vendor_id=0x%x, device_id=0x%x\n", dev->vendor, dev->device);}
+         if (pci_enable_device(dev)) {
+             gprintk("Cannot enable PCI device : vendor_id = %x, device_id = %x\n",
+                     dev->vendor, dev->device);
+         }
++/* PTin added */
++        else {
++            gprintk("LTX: Enabled pci device : vendor_id = %x, device_id = %x\n",dev->vendor, dev->device);
++        }
++/* PTin end */
+ 
+         
+         /*
+          * These are workarounds to get around some existing
+          * kernel problems :(
+          */
+@@ -2403,15 +2449,17 @@ _pci_probe(struct pci_dev *dev, const st
+          * While probing we determine the overall limits for the PCI
+          * memory windows across all devices. These limits are used
+          * later on by the PCI-PCI bridge  code.
+          */
+         if (pci_resource_start(dev, baroff) < _pci_mem_start) {
+             _pci_mem_start = pci_resource_start(dev, baroff);
++            gprintk("LTX: Adjusted _pci_mem_start\n");
+         }
+         if (pci_resource_end(dev, baroff) > _pci_mem_end) {
+             _pci_mem_end = pci_resource_end(dev, baroff);
++            gprintk("LTX: Adjusted _pci_mem_end\n");
+         }
+ 
+ #ifdef CONFIG_SANDPOINT
+         /*
+          * Something wrong with the PCI subsystem in the mousse kernel.
+          * The device is programmed correctly, but the irq in the pci
+@@ -2503,12 +2551,29 @@ _pci_probe(struct pci_dev *dev, const st
+             /* BCM58525/BCM58712 CPU boards support 128 Max payload size */
+             if (maxpayload) {
+                 maxpayload = 128;
+                 if (debug >= 1) gprintk("force max payload size to 128\n");
+             }
+         }
++        /* PTin added: PCI */
++        #if 1
++        else if ((PCI_FIND_DEV(BCM56846_PCI_VENDOR_ID, BCM56846_PCI_DEVICE_ID, NULL)) != NULL) {
++            /* BCM58525 CPU boards support 128 Max payload size */
++            if (maxpayload) {
++                maxpayload = 256;
++                if (debug >= 1) gprintk("force max payload size to 256\n");
++            }
++        }
++        else if ((PCI_FIND_DEV(BCM56640_PCI_VENDOR_ID, BCM56640_PCI_DEVICE_ID, NULL)) != NULL) {
++            /* BCM58525 CPU boards support 128 Max payload size */
++            if (maxpayload) {
++                maxpayload = 512;
++                if (debug >= 1) gprintk("force max payload size to 512\n");
++            }
++        }
++        #endif
+ 
+         if (forceirq > 0 && dev->irq != (uint32) forceirq) {
+             if (forceirqubm & (1U << (_ndevices - 1))) {
+                 dev->irq = forceirq;
+                 if (debug >= 1) gprintk("force irq to %d\n", forceirq);
+             }
+@@ -2517,12 +2582,13 @@ _pci_probe(struct pci_dev *dev, const st
+         ctrl->iLine = dev->irq;
+         if (unlikely(debug > 1))
+             gprintk("%s:irq = %d\n",__func__, ctrl->iLine);
+ 
+         if (shbde_pci_is_pcie(shbde, dev)) {
+             /* Set PCIe max payload */
++            gprintk("%s: Setting maxpayload %d\n",__func__, maxpayload);
+             shbde_pci_max_payload_set(shbde, dev, maxpayload);
+         } else {
+             /* Set PCI retry to infinite on non-PCIe switch device */
+             pci_write_config_word(dev, 0x40, 0x0080);
+             if (debug >= 1) gprintk("set DMA retry to infinite on switch device\n");
+         }
+@@ -2557,12 +2623,48 @@ _pci_probe(struct pci_dev *dev, const st
+         break;
+     default:
+         break;
+     }
+ #endif /* BCM_DFE_SUPPORT */
+ 
++#ifndef __arm__
++    if (debug >= 1) {
++        uint8 aux8;
++        uint32 aux32;
++
++        gprintk("***********PCI Conf registers: api 5.9.2**********\n");
++        pci_read_config_dword(dev, 0x0, &aux32);
++        gprintk("* Vendor ID | Device ID :  0x%08X *\n", aux32);
++        pci_read_config_dword(dev, 0x4, &aux32);
++        gprintk("* Class Code| rev ID    :  0x%08X *\n", aux32);
++        pci_read_config_byte(dev, 0xC, &aux8);
++        gprintk("* Cache line syze       :  0x%02X       *\n", aux8);
++        pci_read_config_byte(dev, 0xD, &aux8);
++        gprintk("* Latency Timer         :  0x%02X       *\n", aux8);
++        pci_read_config_byte(dev, 0xE, &aux8);
++        gprintk("* Header Type           :  0x%02X       *\n", aux8);
++        pci_read_config_dword(dev, 0x10, &aux32);
++        gprintk("* BASE ADDRESS LOW      :  0x%08X *\n", aux32);
++        pci_read_config_dword(dev, 0x14, &aux32);
++        gprintk("* BASE ADDRESS HIGH     :  0x%08X *\n", aux32);
++        pci_read_config_byte(dev, 0x3C, &aux8);
++        gprintk("* Interrupt Line        :  0x%02X       *\n", aux8);
++        pci_read_config_byte(dev, 0x3D, &aux8);
++        gprintk("* Interrupt Pin         :  0x%02X       *\n", aux8);
++        pci_read_config_byte(dev, 0x3E, &aux8);
++        gprintk("* Minimum Grant         :  0x%02X       *\n", aux8);
++        pci_read_config_byte(dev, 0x3F, &aux8);
++        gprintk("* Maximum Latency       :  0x%02X       *\n", aux8);
++        pci_read_config_byte(dev, 0x40, &aux8);
++        gprintk("* Retry Count           :  0x%02X       *\n", aux8);
++        pci_read_config_byte(dev, 0x41, &aux8);
++        gprintk("* TRDY Timeout          :  0x%02X       *\n", aux8);
++        gprintk("****************************\n");
++    }
++#endif
++
+     /* Prevent compiler warning */
+     if (ctrl == NULL) {
+         return 0;
+     }
+ 
+     ctrl->be_pio = 0;
+@@ -3505,12 +3607,15 @@ _interrupt_connect(int d,
+     bde_ctrl_t *ctrl;
+     unsigned long irq_flags;
+     int isr2_dev;
+     int isr_active;
+     int ret = 0;
+ 
++    gprintk("Setting IRQ...\n");
++    /* PTin end */
++
+     isr2_dev = d & LKBDE_ISR2_DEV;
+     d &= ~LKBDE_ISR2_DEV;
+ 
+     if (!VALID_DEVICE(d)) {
+         gprintk("_interrupt_connect: Invalid device index %d\n", d);
+         return -1;
+@@ -3550,19 +3655,28 @@ _interrupt_connect(int d,
+         if (isr_active) {
+             /* Main handler (_isr) already installed */
+             return 0;
+         }
+     }
+ 
++    gprintk("irq to be used: %d\n",ctrl->iLine);
++    /* PTin end */
++
+     if (ctrl->iLine != -1) {
+         irq_flags = IRQF_SHARED;
+ #ifdef CONFIG_PCI_MSI
++        gprintk ("LTX: Trying to enable MSI\n");
+         if (ctrl->use_msi >= PCI_USE_INT_MSI) {
+             ret = _msi_connect(ctrl);
+             if(ret != 0)
+                 goto msi_exit;
++            gprintk ("LTX: Success enabling MSI\n");
++        }
++        else
++        {
++            gprintk ("LTX: MSI not enabled\n");
+         }
+ #endif
+ #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,2,84))
+         if (ctrl->use_msi == PCI_USE_INT_MSIX) {
+             int i;
+             for (i = 0; i < ctrl->msix_cnt; i++) {
+@@ -3621,12 +3735,13 @@ _interrupt_connect(int d,
+ 
+                 if (unlikely(debug >= 1))
+                     gprintk("%s(%d):device# = %d, irq_flags = %lu, irq = %d\n",
+                          __func__, __LINE__, d,
+                          irq_flags, ctrl->pci_device ? ctrl->pci_device->irq : ctrl->iLine);
+             }
++            gprintk("Success requesting irq %d\n", ctrl->iLine);
+         }
+     }
+     return 0;
+ 
+ err_disable_msi:
+ #ifdef CONFIG_PCI_MSI
