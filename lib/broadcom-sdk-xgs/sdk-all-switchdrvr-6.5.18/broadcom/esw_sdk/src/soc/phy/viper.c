@@ -1539,10 +1539,10 @@ phy_viper_ability_local_get(int unit, soc_port_t port, soc_port_ability_t *abili
         ability->flags     = SOC_PA_ABILITY_NONE;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
-             (BSL_META_U(pc->unit,
-                         "phy_viper_ability_local_get:unit=%d p=%d sp=%08x\n"),
-              unit, port, ability->speed_full_duplex));
+    LOG_DEBUG(BSL_LS_SOC_PHY,
+              (BSL_META_U(pc->unit,
+                          "phy_viper_ability_local_get:unit=%d p=%d sp=%08x\n"),
+               unit, port, ability->speed_full_duplex));
     return (SOC_E_NONE);
 }
 

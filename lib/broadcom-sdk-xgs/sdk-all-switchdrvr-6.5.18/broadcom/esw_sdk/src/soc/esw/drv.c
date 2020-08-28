@@ -173,6 +173,9 @@
 #include <soc/avs.h>
 #endif /* INCLUDE_AVS */
 
+/* PTin added: PCIe */
+#include "logger.h"
+
 #if defined(CANCUN_SUPPORT)
 #include <soc/esw/cancun.h>
 #endif /* CANCUN_SUPPORT */
@@ -9724,6 +9727,7 @@ soc_do_init(int unit, int reset)
             } else
 #endif
             {
+                PT_LOG_INFO(LOG_CTX_SDK, "Going to make PCIe bw adjustment...");
                 SOC_IF_ERROR_RETURN(cmic_pcie_cdr_bw_adj(unit, pcie_phy_addr));
             }
         }
@@ -10247,6 +10251,21 @@ soc_do_init(int unit, int reset)
             }
         }
 #endif /* BCM_TRIUMPH_SUPPORT */
+#if defined(BCM_TRIUMPH2_SUPPORT)
+        if (SOC_IS_TRIUMPH2(unit) || SOC_IS_VALKYRIE2(unit)) {
+            if (mem == MMU_WRED_THD_0_CELLm ||
+                mem == MMU_WRED_THD_1_CELLm ||
+                mem == MMU_WRED_THD_0_PACKETm ||
+                mem == MMU_WRED_THD_1_PACKETm ||
+                mem == MMU_WRED_PORT_THD_0_CELLm ||
+                mem == MMU_WRED_PORT_THD_1_CELLm ||
+                mem == MMU_WRED_PORT_THD_0_PACKETm ||
+                mem == MMU_WRED_PORT_THD_1_PACKETm ) {
+                SOC_MEM_INFO(unit, mem).flags |= SOC_MEM_FLAG_CACHABLE;
+                SOC_MEM_INFO(unit, mem).flags |= SOC_MEM_FLAG_SER_CACHE_RESTORE;
+            }
+        }
+#endif /* BCM_TRIUMPH2_SUPPORT */
 #ifdef  BCM_VALKYRIE_SUPPORT
        if (SOC_IS_VALKYRIE(unit)) {
            if (mem == FP_TCAMm || mem == VFP_TCAMm) {
@@ -19219,6 +19238,8 @@ soc_reset(int unit)
              */
             msi_en = 0;
         }
+
+        PT_LOG_NOTICE(LOG_CTX_SDK, "MSI enable=%d", msi_en);
 
         addr = CMIC_CMCx_PCIE_MISCEL_OFFSET(SOC_PCI_CMC(unit));
         rval = soc_pci_read(unit, addr);

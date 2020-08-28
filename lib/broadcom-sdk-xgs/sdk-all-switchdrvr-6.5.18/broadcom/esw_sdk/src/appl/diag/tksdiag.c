@@ -709,7 +709,7 @@ _stk_port_update(int unit, bcm_port_t port, uint32 flags, void *cookie)
  *         5610x A0
  */
 
-STATIC int
+int
 mh_opcode0_priority_select(int unit, 
                            int group_priority,
                            bcm_field_group_t *group,
@@ -830,7 +830,7 @@ mh_opcode0_priority_select(int unit,
  *     Given the above, the device type and rev will NOT be validated.
  */
 
-STATIC int
+int
 mh_opcode0_priority_clear(int unit, 
                           bcm_field_group_t group,
                           bcm_field_entry_t entry,
@@ -1732,13 +1732,11 @@ tks_stk_task(int unit, args_t *args)
             
         }
 
-#ifndef LVL7_FIXUP
         st_tid = sal_thread_create("bcmSTACK",
                                    SAL_THREAD_STKSZ,
                                    st_pri,
                                    tks_st_thread,
                                    cfg);
-#endif
 #if defined(ST_EVLOG)
         /* Start event logging for Stack task */
         if (st_log != NULL) {
