@@ -2840,7 +2840,9 @@ void hapiBroadCmDefaults(void)
 
   hapiBroadCmLayerSet(bslLayerAppl, L7_TRUE);
   hapiBroadCmLayerSet(bslLayerBcm,  L7_TRUE);
+#if (SDK_VERSION_IS < SDK_VERSION(6,5,18,0))
   hapiBroadCmLayerSet(bslLayerBcmx, L7_TRUE);
+#endif
   hapiBroadCmLayerSet(bslLayerSoc,  L7_TRUE);
   hapiBroadCmLayerSet(bslLayerSys,  L7_TRUE);
 

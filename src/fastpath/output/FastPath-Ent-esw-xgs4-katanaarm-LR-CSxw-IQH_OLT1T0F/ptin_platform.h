@@ -10,6 +10,6 @@
 /* SDK version */
 #define SDK_MAJOR_VERSION   6
 #define SDK_MINOR_VERSION   5
-#define SDK_REVISION_ID     15
+#define SDK_REVISION_ID     18
 #define SDK_PATCH_ID        0
 

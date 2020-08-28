@@ -1809,7 +1809,9 @@ L7_RC_t ptin_hapi_linkfaults_enable(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, L7_BOOL l
 {
   DAPI_PORT_t  *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr;
+#if (SDK_VERSION_IS < SDK_VERSION(6,5,18,0))
   L7_int fault;
+#endif
   L7_int rv;
   L7_RC_t rc = L7_SUCCESS;
 
@@ -1840,14 +1842,14 @@ L7_RC_t ptin_hapi_linkfaults_enable(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, L7_BOOL l
     PT_LOG_ERR(LOG_CTX_HAPI, "ddUsp={%u,%u,%u}: Error blocking semaphore related to bcm_port %u", ddUsp->unit, ddUsp->slot, ddUsp->port, hapiPortPtr->bcm_port);
     return L7_FAILURE;
   }
-
+#if (SDK_VERSION_IS < SDK_VERSION(6,5,18,0))
   /* Clear link faults */
   rv = _ptin_esw_link_fault_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &fault);
   if (rv != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error clearing faults for bcm_port %u", hapiPortPtr->bcm_port);
   }
-
+#endif
   rv = bcm_port_control_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmPortControlLinkFaultLocalEnable, local_enable);
   if (rv != BCM_E_NONE)
   {

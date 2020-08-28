@@ -847,7 +847,7 @@ bcm_error_t ptin_port_fault_get(bcm_port_t bcm_port)
 }
 
 #include "bcm_int/esw/link.h"
-
+#if (SDK_VERSION_IS < SDK_VERSION(6,5,18,0))
 bcm_error_t ptin_link_fault_get(bcm_port_t bcm_port)
 {
   uint32 flags;
@@ -860,7 +860,7 @@ bcm_error_t ptin_link_fault_get(bcm_port_t bcm_port)
   return rv;
 }
 
-
+#endif 
 bcm_error_t ptin_linkscan(bcm_port_t bcm_port)
 {
   int status;

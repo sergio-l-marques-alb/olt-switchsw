@@ -1111,11 +1111,14 @@ L7_RC_t hapiBroadDebugMemoryDump(L7_int32 memtype, L7_uint32 unit, L7_int32 copy
       ((mem == MMU_IPMC_VLAN_TBLm) ||
        ((mem >= MMU_IPMC_GROUP_TBL0m) && (mem <= MMU_IPMC_GROUP_TBL7m))))
   {
+
+#if (SDK_VERSION_IS < SDK_VERSION(6,5,18,0))
      extern int _bcm_fb_ipmc_repl_freeze(int unit);
      if (_bcm_fb_ipmc_repl_freeze(unit) != BCM_E_NONE)
      {
        return L7_FAILURE;
      }
+#endif
   }
 #endif
 
@@ -1233,11 +1236,13 @@ L7_RC_t hapiBroadDebugMemoryDump(L7_int32 memtype, L7_uint32 unit, L7_int32 copy
       ((mem == MMU_IPMC_VLAN_TBLm) ||
        ((mem >= MMU_IPMC_GROUP_TBL0m) && (mem <= MMU_IPMC_GROUP_TBL7m))))
   {
+#if (SDK_VERSION_IS < SDK_VERSION(6,5,18,0))
       extern int _bcm_fb_ipmc_repl_thaw(int unit);
       if (_bcm_fb_ipmc_repl_thaw(unit) != BCM_E_NONE)
       {
          return L7_FAILURE;
       }
+#endif
   }
 #endif
 

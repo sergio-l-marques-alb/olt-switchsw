@@ -24,7 +24,7 @@ CROSS_COMPILE  = arm-linux-
 
 # Kernel and SDK paths
 KERNEL_PATH ?= $(OLT_DIR)/../lib/kernel/linux-3.6.5-kt2arm_LDK-3.4.7-RC4
-SDK_PATH    ?= $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.15/broadcom
+SDK_PATH    ?= $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.18/broadcom
 
 # Comilation logging level
 export LVL7_MAKEFILE_LOGGING := N
